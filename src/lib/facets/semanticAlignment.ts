@@ -126,8 +126,8 @@ export const FACET_CONCEPTS: FacetConcept[] = [
     domain: "business",
     facetField: "concentrationRisk",
     facetValue: { type: "vendor" },
-    definition: "Business depends on a single or limited number of suppliers for critical inputs.",
-    semanticTerms: ["vendor dependency", "single supplier", "sole source", "supply chain", "supplier concentration", "limited suppliers", "supply risk", "vendor lock-in"],
+    definition: "Business depends on a single or limited number of suppliers for critical inputs. Supply chain vulnerability from sole-source dependencies.",
+    semanticTerms: ["vendor dependency", "single supplier", "sole source", "supply chain", "supplier concentration", "limited suppliers", "supply risk", "vendor lock-in", "supplier", "manufacturer", "MOQ", "minimum order", "supply chain participant", "procurement"],
   },
 
   // ── Business: Margin Structure ──
@@ -138,7 +138,7 @@ export const FACET_CONCEPTS: FacetConcept[] = [
     facetField: "marginStructure",
     facetValue: { marginTrend: "declining", marginDriver: "competitive pressure" },
     definition: "Margins are declining due to rising costs, competitive pressure, or pricing erosion. Overhead is growing faster than revenue.",
-    semanticTerms: ["margin compression", "margin decline", "shrinking margin", "thin margin", "low margin", "tight margin", "overhead rising", "cost increase", "cost pressure", "cost escalation", "expense growing", "profit squeeze", "margin erosion", "break even"],
+    semanticTerms: ["margin compression", "margin decline", "shrinking margin", "thin margin", "low margin", "tight margin", "overhead rising", "cost increase", "cost pressure", "cost escalation", "expense growing", "profit squeeze", "margin erosion", "break even", "estimated margin", "margin range"],
   },
   {
     id: "margin_strong",
@@ -201,6 +201,101 @@ export const FACET_CONCEPTS: FacetConcept[] = [
     semanticTerms: ["seasonal", "cyclical", "off season", "peak season", "fluctuation", "volatile demand", "uneven revenue", "lumpy", "weather dependent", "holiday", "summer", "winter"],
   },
 
+  // ── Business: IP / Patent Constraints ──
+  {
+    id: "ip_constraint",
+    name: "IP / Patent Barrier",
+    domain: "business",
+    facetField: "operationalBottleneck",
+    facetValue: { process: "intellectual property", constraint: "IP restriction" },
+    definition: "Business faces intellectual property constraints including patent thickets, licensing requirements, or IP-controlled markets. Freedom to operate is limited by existing patents.",
+    semanticTerms: ["patent", "intellectual property", "IP", "patent thicket", "patent holder", "patent controlled", "licensing", "freedom to operate", "IP barrier", "patent landscape", "infringement", "patent risk", "dominant holder", "IP dominance", "prior art", "patent dense"],
+  },
+  {
+    id: "ip_opportunity",
+    name: "IP Opportunity / Expired Patents",
+    domain: "business",
+    facetField: "operationalBottleneck",
+    facetValue: { process: "intellectual property", constraint: "IP opportunity" },
+    definition: "Expired patents, patent white space, or innovation angles based on prior art analysis create opportunities for market entry without IP barriers.",
+    semanticTerms: ["expired patent", "public domain", "patent white space", "patent gap", "unprotected", "innovation angle", "prior art", "expired IP", "commercial opportunity", "defensible", "patent free", "open technology", "patent informed"],
+  },
+
+  // ── Business: Supply Chain / Distribution ──
+  {
+    id: "supply_chain_dependency",
+    name: "Supply Chain Dependency",
+    domain: "business",
+    facetField: "concentrationRisk",
+    facetValue: { type: "vendor" },
+    definition: "Business relies on complex supply chains with suppliers, manufacturers, and distributors. Supply chain disruption risks and dependencies on specific regions or providers.",
+    semanticTerms: ["supply chain", "supplier", "manufacturer", "distributor", "procurement", "sourcing", "logistics", "fulfillment", "warehouse", "inventory", "lead time", "MOQ", "minimum order", "region", "import", "export", "shipping", "freight"],
+  },
+  {
+    id: "distribution_channel",
+    name: "Distribution Channel Structure",
+    domain: "business",
+    facetField: "concentrationRisk",
+    facetValue: { type: "channel" as any },
+    definition: "How the business distributes its product or service to customers. Channel strategy, intermediaries, direct-to-consumer, wholesale, or marketplace models.",
+    semanticTerms: ["distribution", "channel", "distributor", "direct to consumer", "wholesale", "marketplace", "retail", "online", "ecommerce", "dealer", "broker", "intermediary", "fulfillment", "delivery", "last mile"],
+  },
+
+  // ── Business: Equipment / Asset Dependency ──
+  {
+    id: "asset_dependency",
+    name: "Equipment / Asset Dependency",
+    domain: "business",
+    facetField: "operationalBottleneck",
+    facetValue: { process: "asset management", constraint: "equipment dependency" },
+    definition: "Business operations depend heavily on specialized equipment, vehicles, facilities, or physical assets. Asset maintenance, replacement, and utilization drive profitability.",
+    semanticTerms: ["equipment", "vehicle", "fleet", "machinery", "facility", "asset", "capital equipment", "maintenance", "repair", "replacement", "depreciation", "utilization", "uptime", "downtime", "truck", "machine", "tool", "infrastructure"],
+  },
+
+  // ── Business: Cash Flow / Working Capital ──
+  {
+    id: "cash_flow_pressure",
+    name: "Cash Flow / Working Capital Pressure",
+    domain: "business",
+    facetField: "marginStructure",
+    facetValue: { marginTrend: "declining", marginDriver: "cash flow timing" },
+    definition: "Business faces cash flow challenges from slow collections, high upfront costs, payment delays, or working capital needs.",
+    semanticTerms: ["cash flow", "working capital", "accounts receivable", "collections", "payment delay", "DSO", "days sales outstanding", "billing cycle", "payment terms", "cash conversion", "float", "prepayment", "deposit", "invoicing", "cash crunch"],
+  },
+
+  // ── Business: Scalability Constraint ──
+  {
+    id: "scalability_constraint",
+    name: "Linear Scaling / Growth Ceiling",
+    domain: "business",
+    facetField: "operationalBottleneck",
+    facetValue: { process: "growth model", constraint: "linear scaling" },
+    definition: "Business growth is linearly tied to adding more people, locations, or physical resources. Cannot scale efficiently without proportional cost increases.",
+    semanticTerms: ["scalability", "scaling", "growth ceiling", "linear growth", "add more", "open more locations", "hire more", "cannot scale", "growth constraint", "expansion limited", "replication", "franchise", "multi-location", "multi-unit"],
+  },
+
+  // ── Business: Quality / Consistency ──
+  {
+    id: "quality_consistency",
+    name: "Quality / Consistency Challenge",
+    domain: "business",
+    facetField: "operationalBottleneck",
+    facetValue: { process: "quality control", constraint: "consistency gap" },
+    definition: "Business struggles with maintaining consistent quality across deliveries, locations, or service encounters. Variability in outcomes creates customer satisfaction issues.",
+    semanticTerms: ["quality", "consistency", "variability", "standardization", "quality control", "inconsistent", "defect", "error rate", "rework", "customer complaint", "satisfaction", "standard operating procedure", "SOP", "training gap"],
+  },
+
+  // ── Business: Market Pricing Intelligence ──
+  {
+    id: "market_pricing_data",
+    name: "Market Pricing Intelligence",
+    domain: "business",
+    facetField: "pricingArchitecture",
+    facetValue: { model: "fixed", priceSettingPower: "moderate", switchingCost: "low" },
+    definition: "Market pricing data including price ranges, average prices, pricing strategies, and competitive pricing benchmarks.",
+    semanticTerms: ["market pricing", "price range", "average price", "pricing strategy", "competitive pricing", "price point", "price benchmark", "price comparison", "cost analysis", "pricing data", "pricing intelligence"],
+  },
+
   // ── Market Facets ──
   {
     id: "market_declining",
@@ -227,7 +322,7 @@ export const FACET_CONCEPTS: FacetConcept[] = [
     facetField: "competitiveDensity",
     facetValue: "fragmented",
     definition: "Market has many small players with no dominant leader. Intense competition, low barriers to entry.",
-    semanticTerms: ["fragmented", "many competitors", "cottage industry", "no dominant player", "low concentration", "intense competition", "crowded market", "competitive pressure", "low barriers", "easy entry", "hundreds of providers", "mom and pop"],
+    semanticTerms: ["fragmented", "many competitors", "cottage industry", "no dominant player", "low concentration", "intense competition", "crowded market", "competitive pressure", "low barriers", "easy entry", "hundreds of providers", "mom and pop", "establishments", "business density", "industry density"],
   },
   {
     id: "competitive_concentrated",
@@ -244,8 +339,30 @@ export const FACET_CONCEPTS: FacetConcept[] = [
     domain: "market",
     facetField: "regulatoryEnvironment",
     facetValue: "restrictive",
-    definition: "Industry faces heavy regulation, licensing requirements, or compliance burdens that limit operations.",
-    semanticTerms: ["heavily regulated", "compliance", "licensing", "permit required", "regulatory burden", "HIPAA", "OSHA", "FDA", "state regulation", "federal regulation", "inspection", "zoning", "certificate", "accreditation", "bonding", "insurance required"],
+    definition: "Industry faces heavy regulation, licensing requirements, compliance burdens, active rulemaking, state-by-state variance, or government oversight that limits operations.",
+    semanticTerms: ["heavily regulated", "compliance", "licensing", "permit required", "regulatory burden", "HIPAA", "OSHA", "FDA", "state regulation", "federal regulation", "inspection", "zoning", "certificate", "accreditation", "bonding", "insurance required", "regulatory complexity", "rulemaking", "regulatory variance", "state variance", "oversight", "agency", "regulatory risk", "proposed rule", "regulatory change"],
+  },
+
+  // ── Market: Geographic Opportunity ──
+  {
+    id: "market_geographic_opportunity",
+    name: "Geographic Market Opportunity",
+    domain: "market",
+    facetField: "marketGrowth",
+    facetValue: "moderate",
+    definition: "Specific geographic markets showing opportunity signals based on population, income, demand-supply gaps, or underserved areas.",
+    semanticTerms: ["high opportunity market", "opportunity score", "population", "median income", "underserved", "market gap", "geographic opportunity", "metro", "state", "region", "census", "demographic", "market size", "addressable market"],
+  },
+
+  // ── Market: Competitive Intelligence ──
+  {
+    id: "competitive_intelligence",
+    name: "Competitive Intelligence / Competitor Data",
+    domain: "market",
+    facetField: "competitiveDensity",
+    facetValue: "moderate",
+    definition: "Direct competitor data including names, pricing, positioning, and market share. Competitive landscape analysis.",
+    semanticTerms: ["competitor", "competitive analysis", "market share", "competitor pricing", "competitive landscape", "rival", "alternative", "substitute", "incumbent", "market position", "competitive advantage", "differentiation"],
   },
 
   // ── Demand Facets ──
@@ -293,6 +410,39 @@ export const FACET_CONCEPTS: FacetConcept[] = [
     facetValue: true,
     definition: "Customers hesitate due to lack of trust, poor reputation, or need for social proof.",
     semanticTerms: ["trust", "skepticism", "credibility", "reputation", "reviews", "word of mouth", "referral", "social proof", "testimonial", "online rating", "unproven", "risk averse"],
+  },
+
+  // ── Demand: Customer Acquisition ──
+  {
+    id: "demand_acquisition_cost",
+    name: "High Customer Acquisition Cost",
+    domain: "demand",
+    facetField: "awarenessGap",
+    facetValue: true,
+    definition: "Acquiring new customers is expensive relative to lifetime value. Marketing, sales, and lead generation costs are high.",
+    semanticTerms: ["customer acquisition", "CAC", "acquisition cost", "cost per lead", "marketing spend", "sales cost", "lead generation", "conversion rate", "funnel", "pipeline", "advertising", "outreach", "cold call"],
+  },
+
+  // ── Business: Strategic Risk / Vulnerability ──
+  {
+    id: "strategic_vulnerability",
+    name: "Strategic Vulnerability / Fragility",
+    domain: "business",
+    facetField: "operationalBottleneck",
+    facetValue: { process: "strategic resilience", constraint: "fragility" },
+    definition: "Business model has structural vulnerabilities, fragility risks, blocking uncertainties, or feasibility gaps that threaten viability.",
+    semanticTerms: ["vulnerability", "fragility", "risk", "red team", "feasibility", "blocking", "uncertainty", "threat", "weakness", "exposure", "disruption risk", "model risk", "execution risk", "confidence", "decision grade", "viability"],
+  },
+
+  // ── Business: Technology / Innovation Opportunity ──
+  {
+    id: "technology_opportunity",
+    name: "Technology / Innovation Opportunity",
+    domain: "business",
+    facetField: "operationalBottleneck",
+    facetValue: { process: "technology adoption", constraint: "innovation gap" },
+    definition: "Opportunity to leverage technology, innovation, or digital transformation to improve operations, reduce costs, or create new value.",
+    semanticTerms: ["technology", "innovation", "digital transformation", "automation opportunity", "software solution", "platform", "SaaS", "AI", "machine learning", "data analytics", "IoT", "mobile app", "online", "digital", "modernize", "upgrade", "novel approach", "competitive advantage"],
   },
 ];
 
