@@ -376,6 +376,7 @@ export function generateOpportunityVectors(
           ],
           triggerIds,
           explorationMode: "constraint",
+          explorationType: "constraint_resolution",
           rationale: `${altA.rationale} Combined with: ${altB.rationale}`,
           evidenceIds: [...new Set([...dimA.evidenceIds, ...dimB.evidenceIds])],
         });
