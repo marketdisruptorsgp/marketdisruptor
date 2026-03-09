@@ -58,7 +58,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full">
         <CommandNavigation onOpenTour={tour.open} />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-11 flex items-center border-b border-border bg-background px-2 gap-2 flex-shrink-0">
+          <header className="h-11 flex items-center border-b-2 border-border bg-sidebar px-2 gap-2 flex-shrink-0 z-10">
             <SidebarTrigger />
             <button
               onClick={() => navigate("/")}
