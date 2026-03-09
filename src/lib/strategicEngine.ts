@@ -460,8 +460,10 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   const evCount = flat.length;
 
   // ── Stage 2b: Facet Population ──
+  // Minimum threshold: 2 for business models (richer but fewer evidence), 4 otherwise
+  const minEvidenceThreshold = input.analysisType === "business_model" ? 2 : 4;
   let facetedEvidence: Evidence[] = flat;
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: faceted, stage: s2b } = traceStage("Facet Population", flat.length, () =>
       populateFacets(flat)
     );
