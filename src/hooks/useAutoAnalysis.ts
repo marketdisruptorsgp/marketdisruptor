@@ -42,6 +42,7 @@ export interface AutoAnalysisResult {
   diagnostic: StrategicDiagnostic | null;
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
+  deepenedOpportunities: DeepenedOpportunity[];
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
