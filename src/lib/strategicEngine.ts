@@ -1624,15 +1624,15 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
       // Convert deepened opportunities into StrategicInsights for downstream compat
       for (const deep of deepenedOpps) {
-        if (patternOpps.some(i => jaccard(i.label, deep.label) >= 0.5)) continue;
+        if (patternOpps.some(i => jaccard(i.label, deep.reconfigurationLabel) >= 0.5)) continue;
 
         patternOpps.push(makeInsight({
           id: nextId("reconfig-opp"),
           analysisId: input.analysisId,
           insightType: "emerging_opportunity",
-          label: deep.label,
+          label: deep.reconfigurationLabel,
           description: [
-            deep.summary,
+            `[${deep.patternName}] ${deep.summary}`,
             `Strategic bet — Industry assumes: "${deep.strategicBet.industryAssumption}"`,
             `Contrarian belief: "${deep.strategicBet.contrarianBelief}"`,
             `Implication: ${deep.strategicBet.implication}`,

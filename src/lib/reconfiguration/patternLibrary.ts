@@ -85,7 +85,6 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
     ],
     qualifies: (profile) => {
       const cNames = constraintNames(profile);
-      const reasons: string[] = [];
       const strengths: string[] = [];
       const resolves: string[] = [];
 
@@ -97,6 +96,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.regulatorySensitivity === "heavy") {
         return { qualifies: false, reason: "Heavy regulation makes marketplace aggregation impractical.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: labor-heavy businesses rarely benefit from aggregation — the constraint is delivery, not discovery
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.distributionControl !== "intermediated") {
+        return { qualifies: false, reason: "Labor-heavy delivery with non-intermediated distribution — aggregation doesn't resolve the binding constraint.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: if distribution is already owned, aggregation adds little value
+      if (profile.distributionControl === "owned") {
+        return { qualifies: false, reason: "Distribution is already owned — aggregation has no leverage point.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.supplyFragmentation === "atomized") strengths.push("Highly atomized supply — strong aggregation opportunity");
       if (profile.supplyFragmentation === "fragmented") strengths.push("Fragmented supply amenable to aggregation");
@@ -106,8 +113,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("geographic_constraint")) { resolves.push("geographic_constraint"); strengths.push("Digital aggregation removes geographic limitation"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports aggregation." : "Insufficient signals for aggregation.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports aggregation." : "Insufficient signal density for aggregation.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
@@ -141,6 +148,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.marginStructure === "thin_margin" && profile.revenueModel === "recurring") {
         return { qualifies: false, reason: "Thin margins on recurring revenue — unbundling would erode unit economics.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: labor-heavy services are rarely "bundled products" — unbundling doesn't apply
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.supplyFragmentation !== "consolidated") {
+        return { qualifies: false, reason: "Labor-heavy service with fragmented supply — no monolithic bundle to decompose.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: atomized supply means the market is already unbundled
+      if (profile.supplyFragmentation === "atomized") {
+        return { qualifies: false, reason: "Atomized supply indicates market is already unbundled.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (cNames.has("forced_bundling")) { resolves.push("forced_bundling"); strengths.push("Forced bundling detected — direct unbundling target"); }
       if (cNames.has("perceived_value_mismatch")) { resolves.push("perceived_value_mismatch"); strengths.push("Value mismatch suggests customers overpay for unwanted components"); }
@@ -149,8 +164,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.switchingCosts === "low" || profile.switchingCosts === "none") strengths.push("Low switching costs enable component-level competition");
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports unbundling." : "Insufficient signals for unbundling.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports unbundling." : "Insufficient signal density for unbundling.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
@@ -184,6 +199,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.supplyFragmentation === "consolidated" && profile.switchingCosts === "high") {
         return { qualifies: false, reason: "Consolidated market with high switching costs — no unbundled fragments to rebundle.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: consolidated supply in general — need prior fragmentation for rebundling to make sense
+      if (profile.supplyFragmentation === "consolidated") {
+        return { qualifies: false, reason: "Consolidated supply — rebundling requires prior unbundling or fragmentation.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: labor-heavy + high switching costs — rebundling is unlikely to work when delivery is bespoke and sticky
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.switchingCosts === "high") {
+        return { qualifies: false, reason: "Labor-heavy delivery with high switching costs — rebundling adds insufficient value over incumbent relationships.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.supplyFragmentation === "fragmented" || profile.supplyFragmentation === "atomized") {
         strengths.push("Fragmented supply suggests prior unbundling — rebundling opportunity exists");
@@ -195,8 +218,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("access_constraint")) { resolves.push("access_constraint"); strengths.push("Unified bundle improves access to currently scattered capabilities"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports rebundling." : "Insufficient signals for rebundling.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports rebundling." : "Insufficient signal density for rebundling.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
@@ -230,6 +253,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.distributionControl === "owned" && profile.marginStructure === "high_margin") {
         return { qualifies: false, reason: "Already controls distribution with high margins — limited relocation upside.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: owned distribution with non-thin margins — no chain position problem to solve
+      if (profile.distributionControl === "owned" && profile.marginStructure !== "thin_margin") {
+        return { qualifies: false, reason: "Owns distribution with healthy margins — no chain position problem.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: labor-heavy + owned distribution — the constraint is delivery capacity, not chain position
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.distributionControl === "owned") {
+        return { qualifies: false, reason: "Labor-heavy with owned distribution — constraint is delivery capacity, not chain position.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.distributionControl === "intermediated") strengths.push("Intermediated distribution — bypass or disintermediation opportunity");
       if (profile.marginStructure === "thin_margin") strengths.push("Thin margins suggest margin is captured elsewhere in the chain");
@@ -239,8 +270,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Vendor concentration creates upstream relocation opportunity"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports supply chain relocation." : "Insufficient signals for supply chain relocation.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports supply chain relocation." : "Insufficient signal density for supply chain relocation.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
@@ -274,6 +305,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.marginStructure === "negative_margin" && profile.assetUtilization === "high") {
         return { qualifies: false, reason: "Negative margins with fully utilized assets — no latent value to monetize.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: labor-heavy with high utilization — no spare capacity or latent asset to monetize
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.assetUtilization === "high") {
+        return { qualifies: false, reason: "Labor-heavy with fully utilized capacity — no latent asset to monetize.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: thin margins + high utilization — the business is already squeezing everything
+      if (profile.marginStructure === "thin_margin" && profile.assetUtilization === "high" && !cNames.has("asset_underutilization")) {
+        return { qualifies: false, reason: "Thin margins with high asset utilization — no hidden value to extract.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.assetUtilization === "underutilized" || profile.assetUtilization === "idle") {
         strengths.push("Underutilized assets suggest hidden monetization opportunity");
@@ -289,8 +328,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports stakeholder monetization." : "Insufficient signals for stakeholder monetization.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports stakeholder monetization." : "Insufficient signal density for stakeholder monetization.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
@@ -338,8 +377,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("skill_scarcity")) { resolves.push("skill_scarcity"); strengths.push("Scarce skills suggest valuable expertise worth abstracting"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports infrastructure abstraction." : "Insufficient signals for infrastructure abstraction.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports infrastructure abstraction." : "Insufficient signal density for infrastructure abstraction.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };

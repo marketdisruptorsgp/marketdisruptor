@@ -82,6 +82,8 @@ export interface DeepenedOpportunity {
   patternName: string;
   /** Human-readable label (action-oriented, sentence case) */
   label: string;
+  /** Concrete business reconfiguration — the specific structural move, not the pattern name */
+  reconfigurationLabel: string;
   /** One-paragraph summary of the opportunity */
   summary: string;
   /** Full causal chain: constraint → driver → pattern → outcome */
@@ -130,6 +132,7 @@ export function deepenOpportunities(
     const feasibility = assessFeasibility(qp, profile);
     const firstMove = designFirstMove(qp, profile, constraint);
     const label = buildOpportunityLabel(qp, profile);
+    const reconfigurationLabel = buildReconfigurationLabel(qp, profile, constraint);
     const summary = buildSummary(qp, causalChain, economicMechanism);
     const relevantEvidenceIds = findRelevantEvidence(qp, evidence);
 
@@ -138,6 +141,7 @@ export function deepenOpportunities(
       patternId: qp.pattern.id,
       patternName: qp.pattern.name,
       label,
+      reconfigurationLabel,
       summary,
       causalChain,
       strategicBet: qp.strategicBet,
@@ -529,6 +533,75 @@ function buildOpportunityLabel(qp: QualifiedPattern, profile: StructuralProfile)
       return profile.laborIntensity === "artisan" || profile.laborIntensity === "labor_heavy"
         ? "Abstract expert capability into scalable infrastructure others can use"
         : "Extract the core capability into shared infrastructure with near-zero marginal cost";
+
+    default:
+      return qp.pattern.transformation;
+  }
+}
+
+/**
+ * Build a concrete reconfiguration label that describes the specific business move,
+ * distinct from the abstract pattern name. Uses profile dimensions and constraint
+ * context to generate domain-specific language.
+ */
+function buildReconfigurationLabel(qp: QualifiedPattern, profile: StructuralProfile, constraint: string): string {
+  const patternId = qp.pattern.id;
+  const constraintLower = constraint.toLowerCase();
+
+  switch (patternId) {
+    case "aggregation":
+      if (constraintLower.includes("information") || constraintLower.includes("search")) {
+        return "Create a demand aggregation layer that routes clients to vetted providers and captures coordination margin";
+      }
+      if (profile.supplyFragmentation === "atomized") {
+        return "Build a single-access marketplace that consolidates hundreds of independent providers under one trusted interface";
+      }
+      return "Launch a comparison and booking platform that captures the relationship premium between fragmented suppliers and underserved buyers";
+
+    case "unbundling":
+      if (constraintLower.includes("value") || constraintLower.includes("mismatch")) {
+        return "Extract the highest-value component and sell it standalone at a premium, eliminating forced cross-subsidy";
+      }
+      if (profile.marginStructure === "high_margin") {
+        return "Isolate the margin-rich component from the legacy bundle and offer it as a focused, higher-value product";
+      }
+      return "Decompose the current offering into individually purchasable components so customers pay only for what they use";
+
+    case "rebundling":
+      if (constraintLower.includes("discovery") || constraintLower.includes("awareness")) {
+        return "Assemble scattered point solutions into a unified workflow organized around the customer's actual job-to-be-done";
+      }
+      return "Combine fragmented tools into a single integrated platform that solves the complete problem customers currently stitch together manually";
+
+    case "supply_chain_relocation":
+      if (profile.distributionControl === "intermediated") {
+        return "Bypass the intermediary layer and establish direct customer relationships to capture margin and own the data";
+      }
+      if (constraintLower.includes("margin") || constraintLower.includes("compress")) {
+        return "Shift to a higher-leverage position in the value chain where margin accrues to the party that controls the customer relationship";
+      }
+      return "Relocate delivery to a different point in the chain where margin is disproportionate to value added";
+
+    case "stakeholder_monetization":
+      if (profile.assetUtilization === "underutilized" || profile.assetUtilization === "idle") {
+        return "Open underutilized capacity or idle assets to external users, converting a cost center into a second revenue stream";
+      }
+      if (constraintLower.includes("revenue") || constraintLower.includes("concentration")) {
+        return "Identify and monetize a currently unmonetized participant in the value system — data, audience, or byproduct";
+      }
+      return "Create a new revenue mechanism from a latent asset or stakeholder the business already produces as a byproduct";
+
+    case "infrastructure_abstraction":
+      if (profile.laborIntensity === "artisan" || profile.laborIntensity === "labor_heavy") {
+        return "Productize the firm's internal workflow and expertise into a shared operational platform for peers and smaller competitors";
+      }
+      if (constraintLower.includes("owner") || constraintLower.includes("dependency")) {
+        return "Codify owner-dependent expertise into a repeatable system that operates independently of any single practitioner";
+      }
+      if (constraintLower.includes("manual") || constraintLower.includes("process")) {
+        return "Extract manual processes into automated tooling that can be licensed to others facing the same operational challenge";
+      }
+      return "Abstract the core internal capability into shared infrastructure with near-zero marginal cost per additional user";
 
     default:
       return qp.pattern.transformation;
