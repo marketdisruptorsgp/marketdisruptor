@@ -400,69 +400,8 @@ export default function CommandDeckPage() {
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
-  // ── All playbooks for radar ──
-  const allPlaybooks = useMemo(() => {
-    const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
-      analysis.activeMode === "service" ? "service"
-      : analysis.activeMode === "business" ? "business_model" : "product";
-    return generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
-  }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
-  // ── Benchmark, Opportunity Radar, Strategic Story ──
-  const benchmark = useMemo(() =>
-    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook),
-    [autoAnalysis.flatEvidence, narrative, topPlaybook],
-  );
-  const opportunityRadar = useMemo(() =>
-    computeOpportunityMap(allPlaybooks, autoAnalysis.flatEvidence, narrative),
-    [allPlaybooks, autoAnalysis.flatEvidence, narrative],
-  );
-  const confidenceExplanation = useMemo(() =>
-    computeConfidenceExplanation(autoAnalysis.flatEvidence),
-    [autoAnalysis.flatEvidence],
-  );
-  const strategicStory = useMemo(() =>
-    generateStrategicStory(narrative, topPlaybook, autoAnalysis.flatEvidence),
-    [narrative, topPlaybook, autoAnalysis.flatEvidence],
-  );
 
-  // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
-  const evidenceAttribution = useMemo(() => {
-    const categories: globalThis.Map<string, number> = new globalThis.Map();
-    const categoryExamples: globalThis.Map<string, string> = new globalThis.Map();
-    for (const e of autoAnalysis.flatEvidence) {
-      const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-      categories.set(cat, (categories.get(cat) || 0) + 1);
-      // Keep the highest-impact example per category for diagnosis evidence
-      if (!categoryExamples.has(cat) || (e.impact ?? 0) > 5) {
-        categoryExamples.set(cat, e.label || e.description || "");
-      }
-    }
-    const sorted = [...categories.entries()].sort((a, b) => b[1] - a[1]);
-    const strong = sorted.filter(([, c]) => c >= 3).map(([k]) => k);
-    const weak = sorted.length > 0
-      ? ["Demand Signal", "Cost Structure", "Competitive Pressure", "Customer Behavior", "Distribution Channel"]
-          .map(k => k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
-          .filter(k => !categories.has(k) || (categories.get(k) || 0) < 2)
-          .slice(0, 2)
-      : [];
-    const sources = sorted.slice(0, 5).map(([k]) => k);
-
-    // Trapped value drivers from narrative + evidence
-    const trappedValueDrivers: string[] = [];
-    if (narrative?.primaryConstraint) trappedValueDrivers.push(`${narrative.primaryConstraint} constraining current structure`);
-    if (strong.length > 0) trappedValueDrivers.push(`${strong[0]} patterns detected across ${categories.get(strong[0]) || 0} signals`);
-    if (narrative?.breakthroughOpportunity) trappedValueDrivers.push(`Opportunity: ${narrative.breakthroughOpportunity}`);
-
-    // Diagnosis evidence bullets — top evidence categories with example signals
-    const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => {
-      const rawDetail = categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`;
-      const detail = humanizeLabel(rawDetail) || `${categories.get(cat)} indicators detected`;
-      return { category: cat, detail };
-    });
-
-    return { strong, weak, sources, trappedValueDrivers, diagnosisEvidence };
-  }, [autoAnalysis.flatEvidence, narrative]);
 
   const lastRecomputeHash = useRef<string>("");
   const savedScenarios = useMemo(() => {
