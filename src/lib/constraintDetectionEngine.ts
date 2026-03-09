@@ -284,7 +284,7 @@ const DETECTION_RULES: ConstraintRule[] = [
       if (ob) return { match: true, facetBasis: ["operationalBottleneck.capacityUtilization"], explanation: `Capacity utilization at ${Math.round(ob.operationalBottleneck!.capacityUtilization! * 100)}% — near ceiling` };
       return { match: false, facetBasis: [], explanation: "" };
     },
-    keywordPattern: /capacity[\s-]?ceiling|maxed[\s-]?out|at[\s-]?capacity|no[\s-]?room[\s-]?to[\s-]?grow|fixed[\s-]?asset[\s-]?limit/,
+    keywordPattern: /capacity[\s-]?ceiling|maxed[\s-]?out|at[\s-]?capacity|no[\s-]?room[\s-]?to[\s-]?grow|fixed[\s-]?asset[\s-]?limit|throughput[\s-]?limit|queue[\s-]?back|wait[\s-]?time|turning[\s-]?away|congestion|cannot[\s-]?expand|fixed[\s-]?(?:seating|equipment|square[\s-]?footage|tunnel|real[\s-]?estate)/,
     keywordExplanation: "Text evidence suggests fixed asset capacity ceiling",
   },
 
