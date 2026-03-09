@@ -70,6 +70,12 @@ export interface TrendDataPoint {
   hasData: boolean;
 }
 
+export interface StrategicBetSummary {
+  assumption: string;
+  contrarian: string;
+  implication: string;
+}
+
 export interface AggregatedOpportunity {
   id: string;
   label: string;
@@ -82,6 +88,10 @@ export interface AggregatedOpportunity {
   opportunityScore?: number;
   simulationCount?: number;
   riskLevel?: "low" | "moderate" | "high";
+  /** Parsed strategic bet framing (if pattern-guided) */
+  strategicBet?: StrategicBetSummary;
+  /** First move action (if pattern-guided) */
+  firstMove?: string;
   // Multi-factor scoring components
   marketAttractiveness?: number;
   structuralAdvantage?: number;
