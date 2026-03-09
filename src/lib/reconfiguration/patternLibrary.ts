@@ -85,7 +85,6 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
     ],
     qualifies: (profile) => {
       const cNames = constraintNames(profile);
-      const reasons: string[] = [];
       const strengths: string[] = [];
       const resolves: string[] = [];
 
@@ -97,6 +96,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.regulatorySensitivity === "heavy") {
         return { qualifies: false, reason: "Heavy regulation makes marketplace aggregation impractical.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: labor-heavy businesses rarely benefit from aggregation — the constraint is delivery, not discovery
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.distributionControl !== "intermediated") {
+        return { qualifies: false, reason: "Labor-heavy delivery with non-intermediated distribution — aggregation doesn't resolve the binding constraint.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: if distribution is already owned, aggregation adds little value
+      if (profile.distributionControl === "owned") {
+        return { qualifies: false, reason: "Distribution is already owned — aggregation has no leverage point.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.supplyFragmentation === "atomized") strengths.push("Highly atomized supply — strong aggregation opportunity");
       if (profile.supplyFragmentation === "fragmented") strengths.push("Fragmented supply amenable to aggregation");
@@ -106,8 +113,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("geographic_constraint")) { resolves.push("geographic_constraint"); strengths.push("Digital aggregation removes geographic limitation"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports aggregation." : "Insufficient signals for aggregation.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports aggregation." : "Insufficient signal density for aggregation.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
