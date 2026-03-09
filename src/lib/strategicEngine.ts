@@ -286,6 +286,8 @@ export interface StrategicAnalysisOutput {
   structuralProfile: StructuralProfile | null;
   /** Stage 3R: Qualified structural patterns */
   qualifiedPatterns: QualifiedPattern[];
+  /** Stage 4R: Deepened opportunity candidates */
+  deepenedOpportunities: DeepenedOpportunity[];
 }
 
 // ═══════════════════════════════════════════════════════════════
