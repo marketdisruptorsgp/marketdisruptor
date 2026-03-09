@@ -54,7 +54,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     analysisId, products, selectedProduct,
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
-    geoData, regulatoryData,
+    geoData, regulatoryData, activeLens,
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
@@ -112,6 +112,16 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       };
       const newIntelligence = buildSystemIntelligence(siInput);
 
+      // Build lens config for structural diagnosis
+      const lensConfig = activeLens
+        ? {
+            lensType: (activeLens.id === "__eta__" ? "eta" : "custom") as "default" | "eta" | "custom",
+            name: activeLens.name,
+            risk_tolerance: activeLens.risk_tolerance ?? undefined,
+            constraints: activeLens.constraints ?? undefined,
+          }
+        : null;
+
       // Run the strategic engine
       const input: StrategicAnalysisInput = {
         products,
@@ -128,6 +138,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         completedSteps,
         geoMarketData: geoData,
         regulatoryData,
+        lensConfig,
       };
 
       const result = runStrategicAnalysis(input);
@@ -162,12 +173,19 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           laborIntensity: sp.laborIntensity,
           revenueModel: sp.revenueModel,
           bindingConstraints: sp.bindingConstraints.map(c => c.constraintName),
+          ...(sp.etaActive ? {
+            etaActive: true,
+            ownerDependency: sp.ownerDependency,
+            acquisitionComplexity: sp.acquisitionComplexity,
+            improvementRunway: sp.improvementRunway,
+          } : {}),
         });
       }
       if (result.qualifiedPatterns.length > 0) {
         console.log("[Reconfiguration] Qualified Patterns:", result.qualifiedPatterns.map(qp => ({
           pattern: qp.pattern.name,
           signalDensity: qp.signalDensity,
+          etaAdjustment: qp.etaAdjustment,
           bet: `"${qp.strategicBet.contrarianBelief}"`,
         })));
       }

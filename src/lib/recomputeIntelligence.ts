@@ -66,6 +66,7 @@ export interface IntelligenceInput {
   lensState?: string;
   geoMarketData?: any | null;
   regulatoryData?: any | null;
+  lensConfig?: import("@/lib/reconfiguration/structuralProfile").DiagnosisLensConfig | null;
 }
 
 export interface IntelligenceOutput {
@@ -113,6 +114,7 @@ function buildEngineInput(
     aiAlternatives,
     geoMarketData: input.geoMarketData,
     regulatoryData: input.regulatoryData,
+    lensConfig: input.lensConfig,
   };
 }
 

@@ -40,6 +40,7 @@ import {
   type StructuralProfile,
   type QualifiedPattern,
   type DeepenedOpportunity,
+  type DiagnosisLensConfig,
 } from "@/lib/reconfiguration";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
@@ -152,6 +153,8 @@ export interface StrategicAnalysisInput {
   aiAlternatives?: import("@/lib/opportunityDesignEngine").DimensionAlternative[];
   geoMarketData?: any | null;
   regulatoryData?: any | null;
+  /** Lens configuration — when ETA, shapes structural diagnosis with acquisition dimensions */
+  lensConfig?: DiagnosisLensConfig | null;
 }
 
 export interface StrategicAnalysisOutput {
@@ -328,6 +331,21 @@ function buildStrategicNarrative(
 
   // Narrative summary — secondary context
   const parts: string[] = [];
+
+  // ETA acquisition context
+  if (profile.etaActive) {
+    const etaParts: string[] = [];
+    if (profile.ownerDependency === "owner_critical") etaParts.push("owner-critical (high key-person risk)");
+    else if (profile.ownerDependency === "owner_reliant") etaParts.push("owner-reliant (moderate transition risk)");
+    if (profile.acquisitionComplexity === "turnkey") etaParts.push("turnkey acquisition");
+    else if (profile.acquisitionComplexity === "complex" || profile.acquisitionComplexity === "prohibitive") etaParts.push(`${profile.acquisitionComplexity} acquisition structure`);
+    if (profile.improvementRunway === "transformative") etaParts.push("transformative operational improvement runway");
+    else if (profile.improvementRunway === "significant") etaParts.push("significant improvement runway post-acquisition");
+    if (etaParts.length > 0) {
+      parts.push(`Acquisition profile: ${etaParts.join(", ")}.`);
+    }
+  }
+
   if (alternative) {
     parts.push(`If the primary thesis doesn't hold, an alternative move exists: ${trimAt(alternative.reconfigurationLabel, 120).toLowerCase()}, which resolves ${alternative.resolvesConstraints[0]?.replace(/_/g, " ") || "a different structural constraint"}.`);
   }
@@ -337,7 +355,8 @@ function buildStrategicNarrative(
   const narrativeSummary = parts.length > 0 ? parts.join(" ") : `The structural diagnosis identified ${constraint.toLowerCase()} as the binding constraint, with a clear resolution path.`;
 
   // Executive Summary — one paragraph
-  const executiveSummary = `This analysis identified a structural opportunity: ${move.toLowerCase()}. The current model is constrained by ${constraint.toLowerCase()} because ${driver.toLowerCase()}. Applying ${primary.patternName.toLowerCase()} should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
+  const etaPrefix = profile.etaActive ? `[Acquisition Lens] ` : "";
+  const executiveSummary = `${etaPrefix}This analysis identified a structural opportunity: ${move.toLowerCase()}. The current model is constrained by ${constraint.toLowerCase()} because ${driver.toLowerCase()}. Applying ${primary.patternName.toLowerCase()} should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
 
   return {
     primaryConstraint: constraint,
@@ -466,11 +485,11 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   if (evCount >= 4) {
     const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () =>
-      diagnoseStructuralProfile(flat, candidatesForProfile)
+      diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig)
     );
     stages.push(s4);
     structuralProfile = profile;
-    events.push(`Structural profile: ${profile.supplyFragmentation} fragmentation, ${profile.laborIntensity} labor, ${profile.revenueModel} revenue, ${profile.distributionControl} distribution`);
+    events.push(`Structural profile: ${profile.supplyFragmentation} fragmentation, ${profile.laborIntensity} labor, ${profile.revenueModel} revenue, ${profile.distributionControl} distribution${profile.etaActive ? ` | ETA: owner=${profile.ownerDependency}, complexity=${profile.acquisitionComplexity}, runway=${profile.improvementRunway}` : ""}`);
   }
 
   // ── Stage 5: Pattern Qualification (max 2) ──
