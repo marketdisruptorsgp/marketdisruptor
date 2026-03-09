@@ -96,8 +96,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "constraint",
-        label: narrative?.primaryConstraint || thesis?.coreConstraint || "Analyzing constraints…",
-        description: topConstraint?.description || thesis?.coreConstraintRootCause || "Waiting for sufficient evidence to identify structural barriers.",
+        label: narrative?.primaryConstraint || thesis?.causalChain?.constraint || "Analyzing constraints…",
+        description: topConstraint?.description || thesis?.causalChain?.reasoning || "Waiting for sufficient evidence to identify structural barriers.",
         icon: Target,
         color: "hsl(var(--destructive))",
         bgColor: "hsl(var(--destructive) / 0.08)",
@@ -106,8 +106,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "driver",
-        label: narrative?.keyDriver || (thesis?.contrarian ? `Contrarian belief: ${thesis.contrarian}` : "Identifying root causes…"),
-        description: topDriver?.description || thesis?.industryAssumption || "The underlying driver will emerge as more signals are processed.",
+        label: narrative?.keyDriver || thesis?.causalChain?.driver || "Identifying root causes…",
+        description: topDriver?.description || thesis?.strategicBet?.industryAssumption || "The underlying driver will emerge as more signals are processed.",
         icon: Brain,
         color: "hsl(var(--warning))",
         bgColor: "hsl(var(--warning) / 0.08)",
@@ -116,8 +116,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "leverage",
-        label: narrative?.leveragePoint || thesis?.reconfigurationLabel || "Calculating intervention points…",
-        description: topLeverage?.description || thesis?.economicMechanism || "Leverage points require constraint and driver identification.",
+        label: narrative?.leveragePoint || thesis?.strategicBet?.contrarianBelief || "Calculating intervention points…",
+        description: topLeverage?.description || thesis?.strategicBet?.implication || "Leverage points require constraint and driver identification.",
         icon: Lightbulb,
         color: "hsl(var(--primary))",
         bgColor: "hsl(var(--primary) / 0.08)",
@@ -127,7 +127,7 @@ export const StrategicXRay = memo(function StrategicXRay({
       {
         stage: "opportunity",
         label: narrative?.breakthroughOpportunity || thesis?.reconfigurationLabel || "Generating opportunities…",
-        description: topOpp?.description || thesis?.economicMechanism || "Opportunities derive from identified leverage points.",
+        description: topOpp?.description || thesis?.economicMechanism?.valueCreation || "Opportunities derive from identified leverage points.",
         icon: TrendingUp,
         color: "hsl(var(--success))",
         bgColor: "hsl(var(--success) / 0.08)",
@@ -137,7 +137,7 @@ export const StrategicXRay = memo(function StrategicXRay({
       {
         stage: "move",
         label: narrative?.strategicVerdict || thesis?.reconfigurationLabel || "Synthesizing strategic move…",
-        description: narrative?.verdictRationale || thesis?.strategicNarrative || "The full reasoning chain will converge into a directive once all stages have data.",
+        description: narrative?.verdictRationale || thesis?.summary || "The full reasoning chain will converge into a directive once all stages have data.",
         icon: Route,
         color: "hsl(var(--primary))",
         bgColor: "hsl(var(--primary) / 0.12)",
