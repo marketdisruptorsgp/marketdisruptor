@@ -132,6 +132,7 @@ export function deepenOpportunities(
     const feasibility = assessFeasibility(qp, profile);
     const firstMove = designFirstMove(qp, profile, constraint);
     const label = buildOpportunityLabel(qp, profile);
+    const reconfigurationLabel = buildReconfigurationLabel(qp, profile, constraint);
     const summary = buildSummary(qp, causalChain, economicMechanism);
     const relevantEvidenceIds = findRelevantEvidence(qp, evidence);
 
@@ -140,6 +141,7 @@ export function deepenOpportunities(
       patternId: qp.pattern.id,
       patternName: qp.pattern.name,
       label,
+      reconfigurationLabel,
       summary,
       causalChain,
       strategicBet: qp.strategicBet,
