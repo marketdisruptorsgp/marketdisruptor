@@ -74,6 +74,56 @@ import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/market
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 
 // ═══════════════════════════════════════════════════════════════
+//  STRATEGIC LABEL HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+/** Maps evidence categories to action-oriented verbs for opportunity labels */
+const DIMENSION_ACTION_VERBS: Record<string, string> = {
+  demand_signal: "Capture unmet demand in",
+  distribution_channel: "Go direct through",
+  pricing_model: "Reprice around",
+  customer_segment: "Expand into",
+  cost_structure: "Cut costs by addressing",
+  competitive_landscape: "Outflank competitors via",
+  supply_chain: "Streamline supply of",
+  technology_platform: "Upgrade to",
+  regulatory_environment: "Navigate regulation around",
+};
+
+/** Maps dimension names to strategic action verbs for morphological vectors */
+const SHIFT_VERBS: Record<string, string> = {
+  pricing_model: "Reprice",
+  distribution_channel: "Go direct",
+  customer_segment: "Reposition for",
+  revenue_model: "Monetize via",
+  cost_structure: "Restructure costs",
+  technology_platform: "Migrate to",
+  supply_chain: "Reroute supply",
+  service_model: "Shift delivery to",
+  geographic_market: "Expand into",
+};
+
+function formatStrategicLabel(
+  dims: { dimension: string; from: string; to: string }[],
+): string {
+  if (dims.length === 1) {
+    const d = dims[0];
+    const dimKey = d.dimension.toLowerCase().replace(/\s+/g, "_");
+    const verb = SHIFT_VERBS[dimKey];
+    const toClean = d.to.charAt(0).toLowerCase() + d.to.slice(1);
+    if (verb) {
+      return `${verb}: ${toClean} to capture margin`;
+    }
+    return `Move to ${toClean} — bypass ${d.from.toLowerCase()}`;
+  }
+  // Multi-dimension: use first as primary, second as modifier
+  const primary = dims[0];
+  const secondary = dims[1];
+  const verb = SHIFT_VERBS[primary.dimension.toLowerCase().replace(/\s+/g, "_")] || "Shift";
+  return `${verb}: ${primary.to.charAt(0).toLowerCase() + primary.to.slice(1)} + ${secondary.to.charAt(0).toLowerCase() + secondary.to.slice(1)}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  TYPES
 // ═══════════════════════════════════════════════════════════════
 
@@ -718,8 +768,8 @@ function discoverLeverage(
   );
   for (const gs of growthSignals.slice(0, 3)) {
     const oppLabel = humanize(gs.label.replace(/^[^:]+:\s*/, ""));
-    const trimmedOppLabel = oppLabel.length > 80 ? oppLabel.slice(0, oppLabel.lastIndexOf(" ", 80) > 30 ? oppLabel.lastIndexOf(" ", 80) : 80) : oppLabel;
-    const label = `${gs.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} opportunity: ${trimmedOppLabel}`;
+    const dimVerb = DIMENSION_ACTION_VERBS[gs.category] || "Capitalize on";
+    const label = `${dimVerb} ${oppLabel.charAt(0).toLowerCase() + oppLabel.slice(1)}`;
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
     insights.push(makeInsight({
@@ -776,9 +826,7 @@ export function generateOpportunitiesFromVectors(
       .map(d => `${d.dimension}: ${d.from} → ${d.to}`)
       .join("; ");
 
-    const label = vector.changedDimensions.length === 1
-      ? `Shift ${vector.changedDimensions[0].dimension.toLowerCase()} from ${vector.changedDimensions[0].from.slice(0, 30)} to ${vector.changedDimensions[0].to.slice(0, 30)}`
-      : `Combined shift: ${vector.changedDimensions.map(d => d.dimension.toLowerCase()).join(" + ")}`;
+    const label = formatStrategicLabel(vector.changedDimensions);
 
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
@@ -823,8 +871,8 @@ function generateOpportunitiesFallback(
     const relatedConstraints = constraints.filter(c => lev.relatedInsightIds.includes(c.id));
     const con = relatedConstraints[0];
 
-    const conText = con ? humanize(con.label).slice(0, 55) : "";
-    const levText = humanize(lev.label).slice(0, 55);
+    const conText = con ? humanize(con.label) : "";
+    const levText = humanize(lev.label);
     const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
     const label = con
