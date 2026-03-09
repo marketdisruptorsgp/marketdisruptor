@@ -148,6 +148,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.marginStructure === "thin_margin" && profile.revenueModel === "recurring") {
         return { qualifies: false, reason: "Thin margins on recurring revenue — unbundling would erode unit economics.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: labor-heavy services are rarely "bundled products" — unbundling doesn't apply
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.supplyFragmentation !== "consolidated") {
+        return { qualifies: false, reason: "Labor-heavy service with fragmented supply — no monolithic bundle to decompose.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: atomized supply means the market is already unbundled
+      if (profile.supplyFragmentation === "atomized") {
+        return { qualifies: false, reason: "Atomized supply indicates market is already unbundled.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (cNames.has("forced_bundling")) { resolves.push("forced_bundling"); strengths.push("Forced bundling detected — direct unbundling target"); }
       if (cNames.has("perceived_value_mismatch")) { resolves.push("perceived_value_mismatch"); strengths.push("Value mismatch suggests customers overpay for unwanted components"); }
@@ -156,8 +164,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.switchingCosts === "low" || profile.switchingCosts === "none") strengths.push("Low switching costs enable component-level competition");
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports unbundling." : "Insufficient signals for unbundling.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports unbundling." : "Insufficient signal density for unbundling.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
