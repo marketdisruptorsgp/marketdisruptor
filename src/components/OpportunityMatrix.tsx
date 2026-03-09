@@ -78,7 +78,7 @@ function LeverageMeter({ leverage }: { leverage: LeverageScore }) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Leverage</span>
-        <span className="text-xs font-bold tabular-nums" style={{ color }}>{leverage.index.toFixed(1)}/5</span>
+        <span className="text-xs font-bold" style={{ color }}>{leverage.index >= 4 ? "Strong" : leverage.index >= 3 ? "Moderate" : "Limited"}</span>
       </div>
       {DIMS.map(d => (
         <div key={d.key} className="flex items-center gap-2">
