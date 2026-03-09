@@ -11,6 +11,7 @@ import type { Evidence } from "@/lib/evidenceEngine";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   runStrategicAnalysis,
+  runStrategicAnalysisAsync,
   type StrategicInsight,
   type StrategicNarrative,
   type StrategicAnalysisInput,
