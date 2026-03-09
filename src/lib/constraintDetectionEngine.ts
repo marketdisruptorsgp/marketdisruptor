@@ -209,7 +209,7 @@ const DETECTION_RULES: ConstraintRule[] = [
       if (pa) return { match: true, facetBasis: ["pricingArchitecture.priceSettingPower"], explanation: "Weak price-setting power indicates commoditized pricing environment" };
       return { match: false, facetBasis: [], explanation: "" };
     },
-    keywordPattern: /race[\s-]?to[\s-]?bottom|price[\s-]?war|commodit|no[\s-]?pricing[\s-]?power|undercutting|interchangeable/,
+    keywordPattern: /race[\s-]?to[\s-]?bottom|price[\s-]?war|commodit|no[\s-]?pricing[\s-]?power|undercutting|interchangeable|commission[\s-]?compress|commission[\s-]?declin|weak[\s-]?price[\s-]?setting/,
     keywordExplanation: "Text evidence suggests commoditized pricing dynamics",
   },
   {
