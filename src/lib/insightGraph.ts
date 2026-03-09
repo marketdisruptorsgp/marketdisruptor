@@ -260,7 +260,7 @@ export function buildInsightGraph(
   return buildGraphFromPipeline(allEvidence, insights, scenarios, deepenedOpportunities);
 }
 
-function buildGraphFromEvidence(
+function buildGraphFromPipeline(
   allEvidence: Evidence[],
   insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
   scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
