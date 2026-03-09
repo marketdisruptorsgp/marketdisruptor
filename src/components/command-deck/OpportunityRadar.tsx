@@ -33,7 +33,7 @@ function ScoreRow({ label, value, max = 10, color, icon: Icon }: {
           <Icon size={11} style={{ color }} />
           <span className="text-[10px] font-bold text-muted-foreground">{label}</span>
         </div>
-        <span className="text-xs font-extrabold tabular-nums" style={{ color }}>{value.toFixed(1)}</span>
+        <span className="text-xs font-extrabold" style={{ color }}>{value >= 7 ? "Strong" : value >= 4 ? "Moderate" : "Early"}</span>
       </div>
       <div className="h-1.5 rounded-full overflow-hidden bg-muted">
         <motion.div
