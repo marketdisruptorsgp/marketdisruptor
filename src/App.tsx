@@ -46,6 +46,7 @@ const PipelineObservabilityPage = lazy(() => import("./pages/PipelineObservabili
 const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage"));
 const CommandDeckPage = lazy(() => import("./pages/CommandDeckPage"));
 const BenchmarkRunner = lazy(() => import("./pages/BenchmarkRunner"));
+const PipelineTestRunner = lazy(() => import("./pages/PipelineTestRunner"));
 
 const queryClient = new QueryClient();
 
@@ -150,7 +151,8 @@ function AppRoutes() {
       <Routes>
         <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
         <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
-        <Route path="/admin/benchmark" element={<LazyRoute><BenchmarkRunner /></LazyRoute>} />
+         <Route path="/admin/benchmark" element={<LazyRoute><BenchmarkRunner /></LazyRoute>} />
+         <Route path="/admin/pipeline-test" element={<LazyRoute><PipelineTestRunner /></LazyRoute>} />
         <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
         <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
         <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
@@ -186,7 +188,8 @@ function AppRoutes() {
         <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
         <Route path="/admin/architecture" element={<LazyRoute><AdminArchitecturePage /></LazyRoute>} />
         <Route path="/admin/pipeline" element={<LazyRoute><PipelineObservabilityPage /></LazyRoute>} />
-        <Route path="/admin/benchmark" element={<LazyRoute><BenchmarkRunner /></LazyRoute>} />
+         <Route path="/admin/benchmark" element={<LazyRoute><BenchmarkRunner /></LazyRoute>} />
+         <Route path="/admin/pipeline-test" element={<LazyRoute><PipelineTestRunner /></LazyRoute>} />
         <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
         <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
         <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />

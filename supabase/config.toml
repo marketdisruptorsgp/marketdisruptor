@@ -54,3 +54,6 @@ verify_jwt = false
 [functions.generate-opportunity-vectors]
 verify_jwt = false
 
+[functions.analyze-business-structure]
+verify_jwt = false
+
