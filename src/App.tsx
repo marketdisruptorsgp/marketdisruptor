@@ -185,6 +185,7 @@ function AppRoutes() {
         <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
         <Route path="/admin/architecture" element={<LazyRoute><AdminArchitecturePage /></LazyRoute>} />
         <Route path="/admin/pipeline" element={<LazyRoute><PipelineObservabilityPage /></LazyRoute>} />
+        <Route path="/admin/benchmark" element={<LazyRoute><BenchmarkRunner /></LazyRoute>} />
         <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
         <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
         <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
