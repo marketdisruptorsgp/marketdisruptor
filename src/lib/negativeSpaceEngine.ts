@@ -275,15 +275,15 @@ export function exploreNegativeSpace(
     const supportingEvidence: string[] = [];
     if (pattern.competitiveTriggers.test(competitiveText)) {
       const matchingEvidence = competitiveEvidence.filter(e => 
-        pattern.competitiveTriggers.test(e.description.toLowerCase())
+        pattern.competitiveTriggers.test((e.description || '').toLowerCase())
       );
-      supportingEvidence.push(...matchingEvidence.map(e => e.description));
+      supportingEvidence.push(...matchingEvidence.map(e => e.description || ''));
     }
     if (pattern.demandTriggers.test(demandText)) {
       const matchingDemand = demandEvidence.filter(e =>
-        pattern.demandTriggers.test(e.description.toLowerCase())
+        pattern.demandTriggers.test((e.description || '').toLowerCase())
       );
-      supportingEvidence.push(...matchingDemand.map(e => e.description));
+      supportingEvidence.push(...matchingDemand.map(e => e.description || ''));
     }
 
     gaps.push({
