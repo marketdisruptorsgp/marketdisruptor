@@ -173,12 +173,19 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           laborIntensity: sp.laborIntensity,
           revenueModel: sp.revenueModel,
           bindingConstraints: sp.bindingConstraints.map(c => c.constraintName),
+          ...(sp.etaActive ? {
+            etaActive: true,
+            ownerDependency: sp.ownerDependency,
+            acquisitionComplexity: sp.acquisitionComplexity,
+            improvementRunway: sp.improvementRunway,
+          } : {}),
         });
       }
       if (result.qualifiedPatterns.length > 0) {
         console.log("[Reconfiguration] Qualified Patterns:", result.qualifiedPatterns.map(qp => ({
           pattern: qp.pattern.name,
           signalDensity: qp.signalDensity,
+          etaAdjustment: qp.etaAdjustment,
           bet: `"${qp.strategicBet.contrarianBelief}"`,
         })));
       }
