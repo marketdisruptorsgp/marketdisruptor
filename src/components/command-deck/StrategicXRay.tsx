@@ -13,6 +13,7 @@ import {
   Lightbulb, TrendingUp, Route, X, Pencil, RotateCcw,
 } from "lucide-react";
 import type { StrategicInsight, StrategicNarrative } from "@/lib/strategicEngine";
+import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import type { Evidence } from "@/lib/evidenceEngine";
 import { humanizeLabel } from "@/lib/humanize";
 
