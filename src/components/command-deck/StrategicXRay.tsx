@@ -56,6 +56,7 @@ export const StrategicXRay = memo(function StrategicXRay({
   narrative,
   insights,
   flatEvidence,
+  thesis,
   onChallenge,
   onRecompute,
 }: StrategicXRayProps) {
