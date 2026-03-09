@@ -898,9 +898,9 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   stages.push(so);
 
   const constraintCount = structuralProfile?.bindingConstraints.length ?? 0;
-  const insufficientEvidence = evCount < 4;
+  const insufficientEvidence = evCount < minEvidenceThreshold;
   let message: string | null = null;
-  if (insufficientEvidence) message = `Need at least 4 evidence items. Have ${evCount}.`;
+  if (insufficientEvidence) message = `Need at least ${minEvidenceThreshold} evidence items. Have ${evCount}.`;
   else if (qualifiedPatternsResult.length === 0) message = "No patterns qualified — more evidence may be needed.";
 
   const diagnostic: StrategicDiagnostic = {
