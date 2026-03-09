@@ -101,6 +101,27 @@ export interface AggregatedOpportunity {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  STRATEGIC BET PARSING
+// ═══════════════════════════════════════════════════════════════
+
+function parseStrategicBet(desc: string): StrategicBetSummary | undefined {
+  const assumptionMatch = desc.match(/Industry assumes:\s*"([^"]+)"/);
+  const contrarianMatch = desc.match(/Contrarian belief:\s*"([^"]+)"/);
+  const implicationMatch = desc.match(/Implication:\s*([^|]+)/);
+  if (!assumptionMatch || !contrarianMatch) return undefined;
+  return {
+    assumption: assumptionMatch[1].trim(),
+    contrarian: contrarianMatch[1].trim(),
+    implication: implicationMatch ? implicationMatch[1].trim() : "",
+  };
+}
+
+function parseFirstMove(desc: string): string | undefined {
+  const match = desc.match(/First move:\s*([^|]+)/);
+  return match ? match[1].trim() : undefined;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════════
 
