@@ -100,8 +100,8 @@ export default function PipelineTestRunner() {
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
               {PRESET_BUSINESSES.map((biz) => (
-                <Button key={biz} variant="outline" size="sm" onClick={() => runTest(biz)} disabled={isGenerating || isRunning}>
-                  {biz}
+                <Button key={biz.name} variant="outline" size="sm" onClick={() => runTest(biz.name, biz.description)} disabled={isGenerating || isRunning}>
+                  {biz.name}
                 </Button>
               ))}
             </div>
