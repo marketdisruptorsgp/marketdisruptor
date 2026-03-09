@@ -317,7 +317,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           // Hydrate graph first (instant display)
           if (persistedGraph?.nodes?.length > 0) {
             hydratedRef.current = true;
-            setGraph({ nodes: persistedGraph.nodes, edges: persistedGraph.edges, topNodes: [] });
+            setGraph({ nodes: persistedGraph.nodes, edges: persistedGraph.edges, topNodes: { primaryConstraint: null, keyDriver: null, breakthroughOpportunity: null, highestConfidence: null } });
             console.log("[StrategicEngine] ✓ Hydrated graph from DB:",
               `${persistedGraph.nodes.length} nodes, ${persistedGraph.edges.length} edges`);
           }
