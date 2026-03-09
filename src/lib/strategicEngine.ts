@@ -758,23 +758,47 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     events.push(`${qPatterns.length} patterns qualified: ${qPatterns.map(p => p.pattern.name).join(", ") || "none"}`);
   }
 
-  // ── Stage 6: AI-Powered Thesis Construction ──
+  // ── Stage 6: Thesis Construction (AI-gated) ──
   let deepenedOpps: DeepenedOpportunity[] = [];
+  const bindingConstraintCount = structuralProfile?.bindingConstraints.length ?? 0;
+  const meetsAIThreshold = evCount >= 12 && bindingConstraintCount >= 1 && qualifiedPatternsResult.length >= 1;
+
   if (structuralProfile && qualifiedPatternsResult.length > 0) {
-    events.push("Calling AI for thesis deepening...");
-    try {
-      deepenedOpps = await deepenOpportunitiesAsync(
-        qualifiedPatternsResult,
-        structuralProfile!,
-        flat,
-        input.analysisType,
-      );
-      deepenedOpps = deepenedOpps.slice(0, 2);
-      events.push(`${deepenedOpps.length} AI theses: ${deepenedOpps.map(d => d.reconfigurationLabel.slice(0, 60)).join(" | ")}`);
-    } catch (err) {
-      console.warn("[StrategicEngine] AI deepening failed, using deterministic:", err);
+    if (meetsAIThreshold) {
+      events.push(`AI quality gate PASSED (${evCount} evidence, ${bindingConstraintCount} constraints, ${qualifiedPatternsResult.length} patterns) — calling AI deepening...`);
+      try {
+        // Build lens context for AI
+        const lensContext = input.lensConfig ? {
+          lensType: input.lensConfig.lensType,
+          name: input.lensConfig.name,
+          risk_tolerance: input.lensConfig.risk_tolerance,
+          constraints: input.lensConfig.constraints,
+          primary_objective: (input.lensConfig as any).primary_objective,
+          target_outcome: (input.lensConfig as any).target_outcome,
+          time_horizon: (input.lensConfig as any).time_horizon,
+          available_resources: (input.lensConfig as any).available_resources,
+          evaluation_priorities: (input.lensConfig as any).evaluation_priorities,
+        } : undefined;
+
+        deepenedOpps = await deepenOpportunitiesAsync(
+          qualifiedPatternsResult,
+          structuralProfile!,
+          flat,
+          input.analysisType,
+          undefined, // businessContext — auto-derived
+          lensContext,
+        );
+        deepenedOpps = deepenedOpps.slice(0, 2);
+        events.push(`${deepenedOpps.length} AI theses: ${deepenedOpps.map(d => d.reconfigurationLabel.slice(0, 60)).join(" | ")}`);
+      } catch (err) {
+        console.warn("[StrategicEngine] AI deepening failed, using deterministic:", err);
+        deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 2);
+        events.push(`${deepenedOpps.length} deterministic theses (AI fallback)`);
+      }
+    } else {
+      events.push(`AI quality gate FAILED (${evCount}/12 evidence, ${bindingConstraintCount}/1 constraints, ${qualifiedPatternsResult.length}/1 patterns) — using deterministic deepening`);
       deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 2);
-      events.push(`${deepenedOpps.length} deterministic theses (AI fallback)`);
+      events.push(`${deepenedOpps.length} deterministic theses`);
     }
   }
 

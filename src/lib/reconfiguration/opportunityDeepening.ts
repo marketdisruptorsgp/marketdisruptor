@@ -172,6 +172,17 @@ export async function deepenOpportunitiesAsync(
   evidence: Evidence[],
   analysisType: string = "product",
   businessContext?: string,
+  operatorLens?: {
+    lensType?: string;
+    name?: string;
+    risk_tolerance?: string;
+    constraints?: string;
+    primary_objective?: string;
+    target_outcome?: string;
+    time_horizon?: string;
+    available_resources?: string;
+    evaluation_priorities?: Record<string, number>;
+  },
 ): Promise<DeepenedOpportunity[]> {
   if (qualifiedPatterns.length === 0) return [];
 
@@ -230,6 +241,7 @@ export async function deepenOpportunitiesAsync(
           evidenceSummary,
           analysisType,
           businessContext: businessContext ?? buildBusinessContextFromEvidence(evidence),
+          operatorLens: operatorLens || null,
         },
       },
       120_000,

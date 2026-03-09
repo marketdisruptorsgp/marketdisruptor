@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { structuralProfile, qualifiedPatterns, evidenceSummary, analysisType, businessContext } = await req.json();
+    const { structuralProfile, qualifiedPatterns, evidenceSummary, analysisType, businessContext, operatorLens } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -24,6 +24,12 @@ serve(async (req) => {
       });
     }
 
+    // ── Build Operator Lens Context ──
+    const lensBlock = buildLensBlock(operatorLens);
+
+    // ── Build Differentiation Bias ──
+    const differentiationBias = buildDifferentiationBias(structuralProfile, operatorLens);
+
     const systemPrompt = `You are a strategic business reconfiguration analyst. Given a structural profile of a business, qualified structural patterns, and evidence, you generate SPECIFIC, CONCRETE thesis deepenings — not generic consulting advice.
 
 CRITICAL RULES:
@@ -34,33 +40,23 @@ CRITICAL RULES:
 5. The "strategicBet" must articulate a genuine contrarian belief — something most people in this industry would disagree with.
 6. Every field must reference specifics from the structural profile and evidence. No templated responses.
 
+STRATEGIC REASONING LENSES — Use these to generate non-obvious insights:
+1. CROSS-INDUSTRY ANALOGS: What companies in DIFFERENT industries solved a structurally similar constraint? How did they reconfigure? Can that mechanism transfer here?
+2. CONSTRAINT INVERSIONS: Can the binding constraint itself become a competitive advantage? (e.g., "slow" → "artisanal," "fragmented" → "curated local network")
+3. SECOND-ORDER EFFECTS: If this constraint were resolved, what NEW capability or market position becomes accessible that wasn't before?
+4. TEMPORAL ARBITRAGE: What recent changes (technology, regulation, consumer behavior) make a previously impossible move now viable? What timing window exists?
+5. NEGATIVE SPACE: What is NO competitor doing? Why? Is the reason structural (truly impossible) or assumed (an unexamined industry norm)?
+6. THREE-LENS MANDATE: Evaluate every thesis through: (a) structural viability, (b) economic mechanism, (c) operator execution capacity. All three must hold.
+
+DIFFERENTIATION MANDATE:
+${differentiationBias}
+
+${lensBlock}
+
 You are generating ${qualifiedPatterns.length} deepened thesis(es), one per qualified pattern.`;
 
-    const profileSummary = [
-      `Supply fragmentation: ${structuralProfile.supplyFragmentation}`,
-      `Margin structure: ${structuralProfile.marginStructure}`,
-      `Switching costs: ${structuralProfile.switchingCosts}`,
-      `Distribution control: ${structuralProfile.distributionControl}`,
-      `Labor intensity: ${structuralProfile.laborIntensity}`,
-      `Revenue model: ${structuralProfile.revenueModel}`,
-      `Customer concentration: ${structuralProfile.customerConcentration}`,
-      `Asset utilization: ${structuralProfile.assetUtilization}`,
-      `Regulatory sensitivity: ${structuralProfile.regulatorySensitivity}`,
-      `Value chain position: ${structuralProfile.valueChainPosition}`,
-      structuralProfile.etaActive ? `ETA Active: owner dependency=${structuralProfile.ownerDependency}, acquisition complexity=${structuralProfile.acquisitionComplexity}, improvement runway=${structuralProfile.improvementRunway}` : null,
-      `Binding constraints: ${structuralProfile.bindingConstraints.map((bc: any) => `${bc.constraintName}: ${bc.explanation}`).join("; ")}`,
-    ].filter(Boolean).join("\n");
-
-    const patternsSummary = qualifiedPatterns.map((qp: any) => [
-      `Pattern: ${qp.pattern.name} (${qp.pattern.id})`,
-      `Transformation: ${qp.pattern.transformation}`,
-      `Mechanism: ${qp.pattern.mechanism}`,
-      `Precedents: ${qp.pattern.precedents.join(", ")}`,
-      `Signal density: ${qp.signalDensity}`,
-      `Resolves: ${qp.qualification.resolvesConstraints.join(", ")}`,
-      `Strength signals: ${qp.qualification.strengthSignals.join("; ")}`,
-      `Strategic bet — Industry assumes: "${qp.strategicBet.industryAssumption}" | Contrarian belief: "${qp.strategicBet.contrarianBelief}"`,
-    ].join("\n")).join("\n---\n");
+    const profileSummary = buildProfileSummary(structuralProfile);
+    const patternsSummary = buildPatternsSummary(qualifiedPatterns);
 
     const userPrompt = `STRUCTURAL PROFILE:
 ${profileSummary}
@@ -75,95 +71,9 @@ ${businessContext || "No additional context."}
 EVIDENCE SUMMARY (top signals):
 ${(evidenceSummary || []).slice(0, 25).map((e: any) => `- [${e.type}] ${e.label}${e.description ? ": " + e.description.slice(0, 150) : ""}`).join("\n")}
 
-Generate one deepened thesis per qualified pattern. Return ONLY the JSON array.`;
+Generate one deepened thesis per qualified pattern. Each thesis MUST be specific to THIS business — not generic industry advice. Return ONLY the JSON array.`;
 
-    // Use tool calling for structured output
-    const tools = [
-      {
-        type: "function",
-        function: {
-          name: "return_deepened_theses",
-          description: "Return the deepened thesis objects for each qualified pattern.",
-          parameters: {
-            type: "object",
-            properties: {
-              theses: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    patternId: { type: "string", description: "The pattern ID (e.g. 'aggregation', 'infrastructure_abstraction')" },
-                    reconfigurationLabel: { type: "string", description: "Concrete, specific business move in one sentence. NOT the pattern name." },
-                    summary: { type: "string", description: "One-paragraph summary of the opportunity." },
-                    causalChain: {
-                      type: "object",
-                      properties: {
-                        constraint: { type: "string", description: "The binding constraint this resolves" },
-                        driver: { type: "string", description: "Root cause behind the constraint" },
-                        pattern: { type: "string", description: "The structural pattern applied" },
-                        outcome: { type: "string", description: "Expected outcome if the pattern works" },
-                        reasoning: { type: "string", description: "One sentence: Because X, applying Y should produce Z" },
-                      },
-                      required: ["constraint", "driver", "pattern", "outcome", "reasoning"],
-                      additionalProperties: false,
-                    },
-                    strategicBet: {
-                      type: "object",
-                      properties: {
-                        industryAssumption: { type: "string", description: "What most people in this market believe" },
-                        contrarianBelief: { type: "string", description: "The contrarian bet this thesis makes" },
-                        implication: { type: "string", description: "What follows if the contrarian belief is correct" },
-                      },
-                      required: ["industryAssumption", "contrarianBelief", "implication"],
-                      additionalProperties: false,
-                    },
-                    economicMechanism: {
-                      type: "object",
-                      properties: {
-                        valueCreation: { type: "string", description: "How new value is created" },
-                        costStructureShift: { type: "string", description: "What changes in cost structure" },
-                        revenueImplication: { type: "string", description: "New/improved revenue mechanism" },
-                        defensibility: { type: "string", description: "What creates defensibility, or null" },
-                      },
-                      required: ["valueCreation", "costStructureShift", "revenueImplication"],
-                      additionalProperties: false,
-                    },
-                    feasibility: {
-                      type: "object",
-                      properties: {
-                        level: { type: "string", enum: ["achievable", "challenging", "requires_validation"] },
-                        marketConditions: { type: "array", items: { type: "string" } },
-                        requiredCapabilities: { type: "array", items: { type: "string" } },
-                        executionRisks: { type: "array", items: { type: "string" } },
-                        regulatoryConsiderations: { type: "string", description: "Regulatory notes or null" },
-                      },
-                      required: ["level", "marketConditions", "requiredCapabilities", "executionRisks"],
-                      additionalProperties: false,
-                    },
-                    firstMove: {
-                      type: "object",
-                      properties: {
-                        action: { type: "string", description: "The smallest concrete action to test this thesis — something doable THIS WEEK" },
-                        learningObjective: { type: "string", description: "What you'd learn from the first move" },
-                        timeframe: { type: "string", description: "e.g. '1 week', '10 days', '2 weeks'" },
-                        successCriteria: { type: "string", description: "Go/no-go criteria" },
-                      },
-                      required: ["action", "learningObjective", "timeframe", "successCriteria"],
-                      additionalProperties: false,
-                    },
-                    precedents: { type: "array", items: { type: "string" }, description: "2-3 real-world precedents of this structural move" },
-                  },
-                  required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "precedents"],
-                  additionalProperties: false,
-                },
-              },
-            },
-            required: ["theses"],
-            additionalProperties: false,
-          },
-        },
-      },
-    ];
+    const tools = [buildToolSchema()];
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 150_000);
@@ -182,7 +92,7 @@ Generate one deepened thesis per qualified pattern. Return ONLY the JSON array.`
         ],
         tools,
         tool_choice: { type: "function", function: { name: "return_deepened_theses" } },
-        temperature: 0.7,
+        temperature: 0.4,
       }),
       signal: controller.signal,
     });
@@ -218,7 +128,6 @@ Generate one deepened thesis per qualified pattern. Return ONLY the JSON array.`
     // Extract tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall || toolCall.function.name !== "return_deepened_theses") {
-      // Fallback: try to parse content as JSON
       const content = data.choices?.[0]?.message?.content;
       if (content) {
         try {
@@ -260,3 +169,182 @@ Generate one deepened thesis per qualified pattern. Return ONLY the JSON array.`
     });
   }
 });
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function buildLensBlock(operatorLens: any): string {
+  if (!operatorLens) return "";
+
+  const parts: string[] = [`\nOPERATOR LENS — "${operatorLens.name || "Custom"}"`];
+
+  if (operatorLens.lensType === "eta") {
+    parts.push(`This operator is evaluating acquisition. Frame all recommendations as actions a new owner-operator could take within ${operatorLens.time_horizon || "3 years"}.`);
+    parts.push("Do NOT default to AI/technology solutions. Prioritize: process improvement → pricing/positioning → structural model change → operational optimization → technology (only if justified).");
+    parts.push("Distinguish quick wins (0-6 months), medium-term plays (6-18 months), and structural changes (18+ months).");
+  }
+
+  if (operatorLens.primary_objective) parts.push(`Primary Objective: ${operatorLens.primary_objective}`);
+  if (operatorLens.target_outcome) parts.push(`Target Outcome: ${operatorLens.target_outcome}`);
+  if (operatorLens.risk_tolerance) parts.push(`Risk Tolerance: ${operatorLens.risk_tolerance}`);
+  if (operatorLens.time_horizon) parts.push(`Time Horizon: ${operatorLens.time_horizon}`);
+  if (operatorLens.available_resources) parts.push(`Available Resources: ${operatorLens.available_resources}`);
+  if (operatorLens.constraints) parts.push(`Operator Constraints: ${operatorLens.constraints}`);
+
+  if (operatorLens.evaluation_priorities && typeof operatorLens.evaluation_priorities === "object") {
+    const priorities = Object.entries(operatorLens.evaluation_priorities)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
+      .map(([k, v]) => `${k.replace(/_/g, " ")}=${v}`)
+      .join(", ");
+    parts.push(`Priority Weights: ${priorities}`);
+  }
+
+  parts.push("\nCRITICAL: The operator's lens MUST shape the thesis. Two operators in the same market with different assets, goals, or constraints should receive completely different strategic recommendations. The thesis must be specific to THIS operator's position.");
+
+  return parts.join("\n");
+}
+
+function buildDifferentiationBias(structuralProfile: any, operatorLens: any): string {
+  const hasLens = operatorLens && (operatorLens.constraints || operatorLens.available_resources);
+  
+  const parts = [
+    "Before finalizing each thesis, apply this test: 'Would most competitors in this exact industry benefit equally from this same strategy?'",
+    "If YES → the strategy is GENERIC. Reject it and generate a more specific alternative that depends on:",
+  ];
+
+  if (hasLens) {
+    parts.push("  - This specific operator's assets, relationships, or capabilities");
+    parts.push("  - This operator's unique constraints (which competitors may not share)");
+  }
+
+  parts.push("  - A specific structural constraint that is NOT universal to the industry");
+  parts.push("  - A contrarian belief that most industry participants would actively disagree with");
+  parts.push("  - A mechanism that creates defensibility through structural position, not just execution speed");
+  parts.push("");
+  parts.push("BANNED GENERIC STRATEGIES (never recommend these without extreme specificity):");
+  parts.push("  - 'Start a subscription model' (unless you can explain WHY customers would switch from transactional)");
+  parts.push("  - 'Build a marketplace/platform' (unless you can identify the specific supply-side aggregation mechanism)");
+  parts.push("  - 'Add AI/automation' (unless you can identify the specific manual process AND why competitors haven't already done this)");
+  parts.push("  - 'Expand to adjacent markets' (unless you can identify the structural advantage that transfers)");
+  parts.push("  - 'Improve customer experience' (this is a tactic, not a strategy)");
+
+  return parts.join("\n");
+}
+
+function buildProfileSummary(sp: any): string {
+  return [
+    `Supply fragmentation: ${sp.supplyFragmentation}`,
+    `Margin structure: ${sp.marginStructure}`,
+    `Switching costs: ${sp.switchingCosts}`,
+    `Distribution control: ${sp.distributionControl}`,
+    `Labor intensity: ${sp.laborIntensity}`,
+    `Revenue model: ${sp.revenueModel}`,
+    `Customer concentration: ${sp.customerConcentration}`,
+    `Asset utilization: ${sp.assetUtilization}`,
+    `Regulatory sensitivity: ${sp.regulatorySensitivity}`,
+    `Value chain position: ${sp.valueChainPosition}`,
+    sp.etaActive ? `ETA Active: owner dependency=${sp.ownerDependency}, acquisition complexity=${sp.acquisitionComplexity}, improvement runway=${sp.improvementRunway}` : null,
+    `Binding constraints: ${sp.bindingConstraints.map((bc: any) => `${bc.constraintName}: ${bc.explanation}`).join("; ")}`,
+  ].filter(Boolean).join("\n");
+}
+
+function buildPatternsSummary(qualifiedPatterns: any[]): string {
+  return qualifiedPatterns.map((qp: any) => [
+    `Pattern: ${qp.pattern.name} (${qp.pattern.id})`,
+    `Transformation: ${qp.pattern.transformation}`,
+    `Mechanism: ${qp.pattern.mechanism}`,
+    `Precedents: ${qp.pattern.precedents.join(", ")}`,
+    `Signal density: ${qp.signalDensity}`,
+    `Resolves: ${qp.qualification.resolvesConstraints.join(", ")}`,
+    `Strength signals: ${qp.qualification.strengthSignals.join("; ")}`,
+    `Strategic bet — Industry assumes: "${qp.strategicBet.industryAssumption}" | Contrarian belief: "${qp.strategicBet.contrarianBelief}"`,
+  ].join("\n")).join("\n---\n");
+}
+
+function buildToolSchema() {
+  return {
+    type: "function",
+    function: {
+      name: "return_deepened_theses",
+      description: "Return the deepened thesis objects for each qualified pattern.",
+      parameters: {
+        type: "object",
+        properties: {
+          theses: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                patternId: { type: "string", description: "The pattern ID (e.g. 'aggregation', 'infrastructure_abstraction')" },
+                reconfigurationLabel: { type: "string", description: "Concrete, specific business move in one sentence. NOT the pattern name. Must be unique to this operator." },
+                summary: { type: "string", description: "One-paragraph summary of the opportunity." },
+                causalChain: {
+                  type: "object",
+                  properties: {
+                    constraint: { type: "string", description: "The binding constraint this resolves" },
+                    driver: { type: "string", description: "Root cause behind the constraint" },
+                    pattern: { type: "string", description: "The structural pattern applied" },
+                    outcome: { type: "string", description: "Expected outcome if the pattern works" },
+                    reasoning: { type: "string", description: "One sentence: Because X, applying Y should produce Z" },
+                  },
+                  required: ["constraint", "driver", "pattern", "outcome", "reasoning"],
+                  additionalProperties: false,
+                },
+                strategicBet: {
+                  type: "object",
+                  properties: {
+                    industryAssumption: { type: "string", description: "What most people in this market believe" },
+                    contrarianBelief: { type: "string", description: "The contrarian bet this thesis makes" },
+                    implication: { type: "string", description: "What follows if the contrarian belief is correct" },
+                  },
+                  required: ["industryAssumption", "contrarianBelief", "implication"],
+                  additionalProperties: false,
+                },
+                economicMechanism: {
+                  type: "object",
+                  properties: {
+                    valueCreation: { type: "string", description: "How new value is created" },
+                    costStructureShift: { type: "string", description: "What changes in cost structure" },
+                    revenueImplication: { type: "string", description: "New/improved revenue mechanism" },
+                    defensibility: { type: "string", description: "What creates defensibility, or null" },
+                  },
+                  required: ["valueCreation", "costStructureShift", "revenueImplication"],
+                  additionalProperties: false,
+                },
+                feasibility: {
+                  type: "object",
+                  properties: {
+                    level: { type: "string", enum: ["achievable", "challenging", "requires_validation"] },
+                    marketConditions: { type: "array", items: { type: "string" } },
+                    requiredCapabilities: { type: "array", items: { type: "string" } },
+                    executionRisks: { type: "array", items: { type: "string" } },
+                    regulatoryConsiderations: { type: "string", description: "Regulatory notes or null" },
+                  },
+                  required: ["level", "marketConditions", "requiredCapabilities", "executionRisks"],
+                  additionalProperties: false,
+                },
+                firstMove: {
+                  type: "object",
+                  properties: {
+                    action: { type: "string", description: "The smallest concrete action to test this thesis — something doable THIS WEEK" },
+                    learningObjective: { type: "string", description: "What you'd learn from the first move" },
+                    timeframe: { type: "string", description: "e.g. '1 week', '10 days', '2 weeks'" },
+                    successCriteria: { type: "string", description: "Go/no-go criteria" },
+                  },
+                  required: ["action", "learningObjective", "timeframe", "successCriteria"],
+                  additionalProperties: false,
+                },
+                precedents: { type: "array", items: { type: "string" }, description: "2-3 real-world precedents of this structural move" },
+              },
+              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "precedents"],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["theses"],
+        additionalProperties: false,
+      },
+    },
+  };
+}
