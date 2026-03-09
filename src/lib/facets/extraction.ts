@@ -259,7 +259,7 @@ function tryExtractMarketFacets(text: string): MarketFacets | null {
   } else if (text.match(/high[\s-]?growth|rapid[\s-]?growth|booming|emerging[\s-]?market|growing[\s-]?(?:market|demand|population|segment)|population[\s-]?(?:growth|increas|boom)|demand[\s-]?(?:increas|grow|rising|surge)/)) {
     facets.marketGrowth = "high"; matched = true;
   } else if (text.match(/stable[\s-]?(?:market|demand|growth)|steady[\s-]?(?:demand|market|growth)|mature[\s-]?market|established[\s-]?market/)) {
-    facets.marketGrowth = "stable"; matched = true;
+    facets.marketGrowth = "stagnant"; matched = true;
   }
 
   if (text.match(/fragmented|many[\s-]?small|cottage|dispersed[\s-]?player|no[\s-]?dominant|low[\s-]?concentration|highly[\s-]?competitive|intense[\s-]?competition|many[\s-]?competitor|crowded[\s-]?market|competitive[\s-]?(?:landscape|market|pressure|intensity)|(?:hundreds?|thousands?)\s+of[\s-]?(?:competitor|provider|practice|operator|player)/)) {
