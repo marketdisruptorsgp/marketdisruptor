@@ -1,14 +1,14 @@
 /**
  * CircularGauge — Command center metric display
  * 
- * Renders a circular progress gauge with animated fill,
- * used in the Strategic Command Deck for key metrics.
+ * Qualitative signal gauge with animated ring indicator.
+ * No numeric values — uses qualitative labels.
  */
 
 import { motion } from "framer-motion";
 
 interface CircularGaugeProps {
-  /** 0-100 percentage */
+  /** 0-100 percentage (drives ring fill internally) */
   value: number;
   /** Short label below the value */
   label: string;
@@ -18,6 +18,13 @@ interface CircularGaugeProps {
   accentColor?: string;
   /** Optional subtext shown below label */
   subtext?: string;
+}
+
+function qualitativeLabel(value: number): string {
+  if (value >= 70) return "Strong";
+  if (value >= 40) return "Moderate";
+  if (value > 10) return "Early";
+  return "Limited";
 }
 
 export function CircularGauge({
@@ -38,6 +45,8 @@ export function CircularGauge({
     : clampedValue >= 40 ? "hsl(var(--warning))"
     : "hsl(var(--destructive))"
   );
+
+  const qualLabel = qualitativeLabel(clampedValue);
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -66,16 +75,16 @@ export function CircularGauge({
             transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
           />
         </svg>
-        {/* Center value */}
+        {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.span
-            className="text-2xl font-black tabular-nums"
+            className="text-sm font-black"
             style={{ color }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            {Math.round(clampedValue)}
+            {qualLabel}
           </motion.span>
         </div>
         {/* Glow effect */}
