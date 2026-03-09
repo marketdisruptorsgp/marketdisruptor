@@ -407,6 +407,11 @@ export function aggregateOpportunities(input: CommandDeckMetricsInput): Aggregat
         const riskLevel: "low" | "moderate" | "high" =
           opportunityScore >= 6 ? "low" : opportunityScore >= 3 ? "moderate" : "high";
 
+        // Parse strategic bet from description if present
+        const desc = e.description ?? "";
+        const strategicBet = parseStrategicBet(desc);
+        const firstMove = parseFirstMove(desc);
+
         return {
           id: e.id,
           label: e.label,
@@ -421,6 +426,8 @@ export function aggregateOpportunities(input: CommandDeckMetricsInput): Aggregat
           opportunityScore,
           simulationCount: simCount,
           riskLevel,
+          strategicBet,
+          firstMove,
           marketAttractiveness: Math.round(marketAttractiveness * 100) / 10,
           structuralAdvantage: Math.round(structuralAdvantage * 100) / 10,
           simulationFeasibility: Math.round(simulationFeasibility * 100) / 10,
