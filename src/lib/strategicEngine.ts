@@ -776,9 +776,7 @@ export function generateOpportunitiesFromVectors(
       .map(d => `${d.dimension}: ${d.from} → ${d.to}`)
       .join("; ");
 
-    const label = vector.changedDimensions.length === 1
-      ? `Shift ${vector.changedDimensions[0].dimension.toLowerCase()} from ${vector.changedDimensions[0].from.slice(0, 30)} to ${vector.changedDimensions[0].to.slice(0, 30)}`
-      : `Combined shift: ${vector.changedDimensions.map(d => d.dimension.toLowerCase()).join(" + ")}`;
+    const label = formatStrategicLabel(vector.changedDimensions);
 
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
