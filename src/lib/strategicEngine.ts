@@ -715,7 +715,9 @@ function discoverLeverage(
     ["demand_signal", "distribution_channel", "pricing_model"].includes(s.category) && s.strength >= 5
   );
   for (const gs of growthSignals.slice(0, 3)) {
-    const label = `${gs.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} opportunity: ${humanize(gs.label.replace(/^[^:]+:\s*/, "")).slice(0, 45)}`;
+    const oppLabel = humanize(gs.label.replace(/^[^:]+:\s*/, ""));
+    const trimmedOppLabel = oppLabel.length > 80 ? oppLabel.slice(0, oppLabel.lastIndexOf(" ", 80) > 30 ? oppLabel.lastIndexOf(" ", 80) : 80) : oppLabel;
+    const label = `${gs.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} opportunity: ${trimmedOppLabel}`;
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
     insights.push(makeInsight({
