@@ -536,6 +536,7 @@ function buildOpportunityLabel(qp: QualifiedPattern, profile: StructuralProfile)
 
     default:
       return qp.pattern.transformation;
+  }
 }
 
 /**
