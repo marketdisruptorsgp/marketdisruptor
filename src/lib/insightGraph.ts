@@ -327,7 +327,7 @@ function buildGraphFromEvidence(
       } else if (ins.insightType === "assumption_cluster") {
         nodeType = "assumption";
         layer = "evidence";
-      } else if (ins.insightType === "structural_insight") {
+      } else if (ins.insightType === "structural_insight" || ins.insightType === "leverage_point") {
         nodeType = "leverage_point";
         layer = "insight";
       } else if (ins.insightType === "tool_recommendation") {
