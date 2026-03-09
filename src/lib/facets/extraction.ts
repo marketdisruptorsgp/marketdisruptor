@@ -229,19 +229,49 @@ function tryExtractDemandFacets(text: string): DemandFacets | null {
   const facets: DemandFacets = { domain: "demand" };
   let matched = false;
 
-  if (text.match(/awareness[\s-]?gap|don.?t[\s-]?know|unaware|unknown[\s-]?solution/)) {
+  if (text.match(/awareness[\s-]?gap|don.?t[\s-]?know|unaware|unknown[\s-]?solution|low[\s-]?awareness|brand[\s-]?(?:recognition|awareness)|discovery[\s-]?problem|hard[\s-]?to[\s-]?find|visib[\w]*[\s-]?(?:low|poor|limited)/)) {
     facets.awarenessGap = true; matched = true;
   }
-  if (text.match(/can.?t[\s-]?access|out[\s-]?of[\s-]?reach|geographic[\s-]?limit|underserved[\s-]?area/)) {
+  if (text.match(/can.?t[\s-]?access|out[\s-]?of[\s-]?reach|geographic[\s-]?limit|underserved[\s-]?area|food[\s-]?desert|care[\s-]?desert|access[\s-]?(?:barrier|gap|issue|problem)|transportation[\s-]?barrier|rural|remote[\s-]?(?:area|location|communit)/)) {
     facets.accessConstraint = "geographic"; matched = true;
-  } else if (text.match(/too[\s-]?expensive|can.?t[\s-]?afford|price[\s-]?barrier|cost[\s-]?prohibitive/)) {
+  } else if (text.match(/too[\s-]?expensive|can.?t[\s-]?afford|price[\s-]?barrier|cost[\s-]?prohibitive|uninsured|out[\s-]?of[\s-]?pocket|deductible[\s-]?(?:high|barrier)|financial[\s-]?barrier|price[\s-]?sensitive|budget[\s-]?constrain|affordab/)) {
     facets.accessConstraint = "financial"; matched = true;
   }
-  if (text.match(/drop[\s-]?off|abandon|churn|don.?t[\s-]?persist|lose[\s-]?interest|motivation[\s-]?decay/)) {
+  if (text.match(/drop[\s-]?off|abandon|churn|don.?t[\s-]?persist|lose[\s-]?interest|motivation[\s-]?decay|customer[\s-]?(?:churn|attrition|loss|defect)|member[\s-]?(?:churn|cancel|attrition)|retention[\s-]?(?:problem|issue|challenge|low|poor)|high[\s-]?(?:churn|attrition|cancel)|cancel[\s-]?rate/)) {
     facets.motivationDecay = true; matched = true;
   }
-  if (text.match(/trust|skeptic|credib|reputation[\s-]?risk|unproven/)) {
+  if (text.match(/trust|skeptic|credib|reputation[\s-]?risk|unproven|review[\s-]?(?:depend|driven|importan)|word[\s-]?of[\s-]?mouth|referral[\s-]?(?:depend|driven|based|importan)|social[\s-]?proof|testimonial|online[\s-]?(?:review|rating|reputation)/)) {
     facets.trustBarrier = true; matched = true;
+  }
+  if (text.match(/switching[\s-]?cost|lock[\s-]?in|vendor[\s-]?lock|sticky|habit|inertia|relationship[\s-]?(?:driven|dependent|based)|loyalty|long[\s-]?term[\s-]?(?:relationship|client|patient|customer)/)) {
+    facets.trustBarrier = true; matched = true;
+  }
+
+  return matched ? facets : null;
+}
+
+function tryExtractMarketFacets(text: string): MarketFacets | null {
+  const facets: MarketFacets = { domain: "market" };
+  let matched = false;
+
+  if (text.match(/declining[\s-]?market|shrinking[\s-]?demand|sunset|commoditized[\s-]?market|market[\s-]?(?:declin|contract|shrink|mature|saturat)|flat[\s-]?(?:growth|market|demand)|stagnant|no[\s-]?growth|slow[\s-]?growth|population[\s-]?(?:declin|shrink|flat|stagnant)/)) {
+    facets.marketGrowth = "declining"; matched = true;
+  } else if (text.match(/high[\s-]?growth|rapid[\s-]?growth|booming|emerging[\s-]?market|growing[\s-]?(?:market|demand|population|segment)|population[\s-]?(?:growth|increas|boom)|demand[\s-]?(?:increas|grow|rising|surge)/)) {
+    facets.marketGrowth = "high"; matched = true;
+  } else if (text.match(/stable[\s-]?(?:market|demand|growth)|steady[\s-]?(?:demand|market|growth)|mature[\s-]?market|established[\s-]?market/)) {
+    facets.marketGrowth = "stable"; matched = true;
+  }
+
+  if (text.match(/fragmented|many[\s-]?small|cottage|dispersed[\s-]?player|no[\s-]?dominant|low[\s-]?concentration|highly[\s-]?competitive|intense[\s-]?competition|many[\s-]?competitor|crowded[\s-]?market|competitive[\s-]?(?:landscape|market|pressure|intensity)|(?:hundreds?|thousands?)\s+of[\s-]?(?:competitor|provider|practice|operator|player)/)) {
+    facets.competitiveDensity = "fragmented"; matched = true;
+  } else if (text.match(/monopol|dominat|single[\s-]?player|duopoly|oligopol|(?:few|2|3|two|three)\s+(?:major|large|dominant)\s+(?:player|competitor|company)/)) {
+    facets.competitiveDensity = "monopolistic"; matched = true;
+  } else if (text.match(/dso[\s-]?(?:chain|group|corporate)|corporate[\s-]?(?:chain|consolidat|roll[\s-]?up)|private[\s-]?equity|consolidat[\w]*[\s-]?(?:trend|wave|pressure)|roll[\s-]?up|aggregat/)) {
+    facets.competitiveDensity = "consolidating"; matched = true;
+  }
+
+  if (text.match(/heavily[\s-]?regulat|strict[\s-]?compliance|regulatory[\s-]?burden|license[\s-]?required|licens[\w]+|permit[\s-]?required|(?:state|federal|government|hipaa|osha)\s+(?:regulat|compliance|requirement|mandated)|compliance[\s-]?(?:cost|burden|requirement|complex)|zoning|inspection[\s-]?(?:required|mandate)/)) {
+    facets.regulatoryEnvironment = "restrictive"; matched = true;
   }
 
   return matched ? facets : null;
