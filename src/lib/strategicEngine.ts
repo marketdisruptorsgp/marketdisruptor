@@ -153,6 +153,8 @@ export interface StrategicAnalysisInput {
   aiAlternatives?: import("@/lib/opportunityDesignEngine").DimensionAlternative[];
   geoMarketData?: any | null;
   regulatoryData?: any | null;
+  /** Lens configuration — when ETA, shapes structural diagnosis with acquisition dimensions */
+  lensConfig?: DiagnosisLensConfig | null;
 }
 
 export interface StrategicAnalysisOutput {
