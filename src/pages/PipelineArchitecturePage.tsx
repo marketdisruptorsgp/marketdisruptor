@@ -1,12 +1,16 @@
 /**
  * Pipeline Architecture Diagram — Detailed system illustration
+ * All stages auto-expanded, PDF download, horizontal flow diagram
  */
 
-import React, { useState } from "react";
+import React, { useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronDown, ChevronRight, Cpu, Database, Brain, Zap, Filter, GitBranch, Layers, Target, Shield, Sparkles, Search, Settings } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, ChevronRight as ChevronRightIcon, Cpu, Database, Brain, Zap, Filter, GitBranch, Layers, Target, Search, Settings, FileDown, RotateCcw } from "lucide-react";
 import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
+import { toast } from "sonner";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 /* ── Stage Data ── */
 
@@ -19,6 +23,7 @@ interface StageConfig {
   id: string;
   number: number;
   name: string;
+  shortName: string;
   subtitle: string;
   icon: React.ElementType;
   trigger: string;
@@ -37,6 +42,7 @@ const STAGES: StageConfig[] = [
     id: "evidence",
     number: 1,
     name: "Evidence Extraction & Normalization",
+    shortName: "Evidence",
     subtitle: "Raw signals → Canonical Evidence objects",
     icon: Search,
     trigger: "Automatic — triggered after each pipeline step completes (report, disrupt, redesign, stress test, pitch)",
@@ -73,6 +79,7 @@ const STAGES: StageConfig[] = [
     id: "structural",
     number: 2,
     name: "Structural Diagnosis",
+    shortName: "Diagnosis",
     subtitle: "Evidence → 10-dimension Structural Profile",
     icon: Layers,
     trigger: "Automatic — fires when evidence count ≥ 5 and at least 1 constraint detected",
@@ -99,6 +106,7 @@ const STAGES: StageConfig[] = [
     id: "pattern",
     number: 3,
     name: "Pattern Qualification",
+    shortName: "Patterns",
     subtitle: "Structural Profile → Qualified Patterns (binary gates)",
     icon: Filter,
     trigger: "Automatic — fires immediately after Stage 2 completes",
@@ -125,6 +133,7 @@ const STAGES: StageConfig[] = [
     id: "deepening",
     number: 4,
     name: "AI-Powered Thesis Deepening",
+    shortName: "AI Deepening",
     subtitle: "Qualified Patterns → Causal chains, economic mechanisms, first moves",
     icon: Brain,
     trigger: "Gated — requires ≥12 evidence items, ≥1 binding constraint, ≥1 qualified pattern. Falls back to deterministic templates if gate fails.",
@@ -138,11 +147,11 @@ const STAGES: StageConfig[] = [
     ],
     aiUsage: {
       model: "Gemini 2.5 Pro (via deepen-thesis edge function)",
-      purpose: "Generates business-specific causal chains, economic mechanisms, feasibility assessments, and first moves. Prompt includes structural profile, evidence summary, operator context, and 6 strategic reasoning lenses (Cross-industry Analogs, Constraint Inversions, Second-Order Effects, Temporal Arbitrage, Negative Space, Three-Lens Mandate).",
+      purpose: "Generates business-specific causal chains, economic mechanisms, feasibility assessments, and first moves. Prompt includes structural profile, evidence summary, operator context, and 6 strategic reasoning lenses.",
       temperature: 0.4,
       unique: true,
     },
-    lensImpact: "Operator context ($250K cash, 3yr horizon, tech-savvy, partnerships) is injected directly into the AI prompt as 'operator_profile'. The AI tailors its thesis, feasibility assessment, and first-move recommendation to the specific operator's capabilities and constraints.",
+    lensImpact: "Operator context ($250K cash, 3yr horizon, tech-savvy, partnerships) is injected directly into the AI prompt as 'operator_profile'. The AI tailors its thesis, feasibility assessment, and first-move recommendation to the specific operator.",
     uniqueLogic: [
       "opportunityDeepening.ts — 822 lines of deepening logic + deterministic fallback",
       "AI Quality Gate: evCount ≥ 12, constraintCount ≥ 1, qualifiedPatternCount ≥ 1",
@@ -160,15 +169,16 @@ const STAGES: StageConfig[] = [
     ],
     processingWeight: "critical",
     edgeFunction: "deepen-thesis",
-    description: "The crown jewel. This is where the AI generates business-specific strategic theses. The prompt is heavily structured with the full structural profile, evidence summary, and operator context. The 6 strategic reasoning lenses (analogies, inversions, second-order effects, etc.) are woven into the system prompt rather than being separate engine calls. Temperature 0.4 ensures stable, structured output. Deterministic fallback guarantees output even without AI.",
+    description: "The crown jewel. This is where the AI generates business-specific strategic theses. The prompt is heavily structured with the full structural profile, evidence summary, and operator context. The 6 strategic reasoning lenses are woven into the system prompt. Temperature 0.4 ensures stable output. Deterministic fallback guarantees output even without AI.",
   },
   {
     id: "pipeline_steps",
     number: 5,
     name: "Pipeline Step Functions (Understand → Pitch)",
+    shortName: "Pipeline Steps",
     subtitle: "5 sequential edge functions generating raw analysis data",
     icon: GitBranch,
-    trigger: "Sequential — orchestrated by usePipelineOrchestrator. Auto-triggers when analysis reaches 'done' state with selected product but no step data.",
+    trigger: "Sequential — orchestrated by usePipelineOrchestrator. Auto-triggers when analysis reaches 'done' state.",
     dataSources: [
       { name: "Selected product/service/business model", type: "user_input" },
       { name: "Adaptive context (user-provided constraints)", type: "user_input" },
@@ -182,7 +192,7 @@ const STAGES: StageConfig[] = [
       temperature: 0.3,
       unique: false,
     },
-    lensImpact: "Adaptive context from user lenses (user_lenses table) is passed to each edge function. ETA lens adds acquisition-specific prompting to disrupt and redesign steps.",
+    lensImpact: "Adaptive context from user lenses (user_lenses table) is passed to each edge function. ETA lens adds acquisition-specific prompting.",
     uniqueLogic: [
       "usePipelineOrchestrator.ts — 255 lines orchestrating sequential execution",
       "Step 1 (Understand): first-principles-analysis — structural deconstruction",
@@ -191,7 +201,6 @@ const STAGES: StageConfig[] = [
       "Step 4 (Pitch): generate-pitch-deck — synthesis of all prior steps",
       "Each step: 180s timeout, error isolation (one step failing doesn't stop pipeline)",
       "Results saved to DB via merge_analysis_step RPC",
-      "Real-time progress tracking via PipelineProgress state",
     ],
     outputs: [
       "disruptData — hidden assumptions, flipped logic, structural analysis",
@@ -201,12 +210,13 @@ const STAGES: StageConfig[] = [
     ],
     processingWeight: "critical",
     edgeFunction: "first-principles-analysis, critical-validation, generate-pitch-deck",
-    description: "The raw material generators. These 5 edge functions produce the analysis data that feeds into evidence extraction. Each uses AI (Gemini Flash/Pro) for generation but the orchestration, error handling, context cascading, and data persistence are custom logic.",
+    description: "The raw material generators. These edge functions produce the analysis data that feeds into evidence extraction. Each uses AI for generation but the orchestration, error handling, context cascading, and data persistence are custom logic.",
   },
   {
     id: "intelligence",
     number: 6,
     name: "Strategic Intelligence Synthesis",
+    shortName: "Synthesis",
     subtitle: "All data → Command Deck intelligence briefing",
     icon: Target,
     trigger: "Automatic — useAutoAnalysis recomputes whenever evidence dataset changes (debounced 2s)",
@@ -220,7 +230,7 @@ const STAGES: StageConfig[] = [
       { name: "System intelligence cache", type: "deterministic" },
     ],
     aiUsage: null,
-    lensImpact: "Active lenses determine which intelligence facets are highlighted. ETA lens surfaces acquisition-specific metrics (owner dependency, acquisition complexity) in the Command Deck.",
+    lensImpact: "Active lenses determine which intelligence facets are highlighted. ETA lens surfaces acquisition-specific metrics in the Command Deck.",
     uniqueLogic: [
       "strategicEngine.ts — Strategic insight generation, narrative synthesis",
       "systemIntelligence.ts — Cross-cutting intelligence aggregation",
@@ -238,12 +248,13 @@ const STAGES: StageConfig[] = [
     ],
     processingWeight: "medium",
     edgeFunction: null,
-    description: "100% deterministic synthesis. Takes all pipeline outputs, evidence, and deepened theses and produces the final intelligence briefing. No AI is used here — it's all custom graph construction, metric aggregation, and narrative assembly.",
+    description: "100% deterministic synthesis. Takes all pipeline outputs, evidence, and deepened theses and produces the final intelligence briefing. No AI is used here.",
   },
   {
     id: "tools",
     number: 7,
     name: "Interactive Simulation Tools",
+    shortName: "Tools",
     subtitle: "User-driven modeling → Evidence feedback loop",
     icon: Settings,
     trigger: "Manual — user opens a tool from the lens toolkit and runs simulations",
@@ -254,7 +265,7 @@ const STAGES: StageConfig[] = [
       { name: "Market signals (market_signals table)", type: "database" },
     ],
     aiUsage: null,
-    lensImpact: "ETA lens provides specialized tools: SBA Loan Calculator, Acquisition ROI Model, Cash Flow Quality Analyzer, Owner Transition Planner. Each tool consumes ETA-specific structural dimensions.",
+    lensImpact: "ETA lens provides specialized tools: SBA Loan Calculator, Acquisition ROI Model, Cash Flow Quality Analyzer, Owner Transition Planner.",
     uniqueLogic: [
       "lensToolkitRegistry.ts — Tool registry mapping lenses to available tools",
       "scenarioEngine.ts — Converts saved scenarios into canonical Evidence objects",
@@ -269,7 +280,7 @@ const STAGES: StageConfig[] = [
     ],
     processingWeight: "low",
     edgeFunction: null,
-    description: "User-facing modeling tools that create a feedback loop. When a user saves a scenario (e.g., SBA loan terms, revenue projections), it generates Evidence objects that flow back into Stage 1, triggering a full recomputation of intelligence. This closed loop is entirely custom.",
+    description: "User-facing modeling tools that create a feedback loop. Saved scenarios generate Evidence objects that flow back into Stage 1, triggering a full recomputation. This closed-loop architecture means the system gets smarter as users explore.",
   },
 ];
 
@@ -281,25 +292,122 @@ const WEIGHT_STYLES: Record<string, { bg: string; text: string; label: string }>
   critical: { bg: "bg-red-500/10", text: "text-red-400", label: "Highest AI/Processing" },
 };
 
-/* ── Stage Card ── */
-function StageCard({ stage }: { stage: StageConfig }) {
-  const [expanded, setExpanded] = useState(false);
+const TYPE_COLORS: Record<string, string> = {
+  user_input: "text-blue-400 bg-blue-500/10",
+  edge_function: "text-violet-400 bg-violet-500/10",
+  database: "text-amber-400 bg-amber-500/10",
+  ai_model: "text-red-400 bg-red-500/10",
+  deterministic: "text-cyan-400 bg-cyan-500/10",
+  browser: "text-green-400 bg-green-500/10",
+};
+
+/* ════════════════════════════════════════════════════════════════
+   HORIZONTAL PIPELINE FLOW DIAGRAM
+   ════════════════════════════════════════════════════════════════ */
+
+function HorizontalPipelineFlow() {
+  const stageColors: Record<string, string> = {
+    evidence: "border-orange-500/40 bg-orange-500/5",
+    structural: "border-cyan-500/40 bg-cyan-500/5",
+    pattern: "border-cyan-500/40 bg-cyan-500/5",
+    deepening: "border-violet-500/40 bg-violet-500/5",
+    pipeline_steps: "border-red-500/40 bg-red-500/5",
+    intelligence: "border-amber-500/40 bg-amber-500/5",
+    tools: "border-emerald-500/40 bg-emerald-500/5",
+  };
+
+  const stageTextColors: Record<string, string> = {
+    evidence: "text-orange-400",
+    structural: "text-cyan-400",
+    pattern: "text-cyan-400",
+    deepening: "text-violet-400",
+    pipeline_steps: "text-red-400",
+    intelligence: "text-amber-400",
+    tools: "text-emerald-400",
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 mb-4 overflow-x-auto">
+      <h3 className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-4">
+        Pipeline Flow — Left to Right
+      </h3>
+
+      {/* Main horizontal flow */}
+      <div className="flex items-stretch gap-0 min-w-[900px]">
+        {STAGES.map((stage, i) => {
+          const Icon = stage.icon;
+          return (
+            <React.Fragment key={stage.id}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.07 }}
+                className={`flex flex-col items-center justify-start rounded-lg border-2 p-3 min-w-[120px] max-w-[140px] flex-1 ${stageColors[stage.id]}`}
+              >
+                <div className={`flex items-center justify-center w-8 h-8 rounded-lg mb-1.5 ${stageColors[stage.id]}`}>
+                  <Icon size={16} className={stageTextColors[stage.id]} />
+                </div>
+                <span className="text-[9px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                  S{stage.number}
+                </span>
+                <span className={`text-[10px] font-bold text-center mt-0.5 ${stageTextColors[stage.id]}`}>
+                  {stage.shortName}
+                </span>
+                <div className="flex flex-col items-center gap-0.5 mt-1.5">
+                  {stage.aiUsage ? (
+                    <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-400">AI</span>
+                  ) : (
+                    <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400">Det.</span>
+                  )}
+                  <span className="text-[8px] text-muted-foreground">{stage.dataSources.length} sources</span>
+                </div>
+              </motion.div>
+              {i < STAGES.length - 1 && (
+                <div className="flex items-center justify-center px-0.5 flex-shrink-0">
+                  <ChevronRightIcon size={16} className="text-muted-foreground/40" />
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {/* Feedback loop arrow */}
+      <div className="flex items-center justify-center mt-3 min-w-[900px]">
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5">
+          <RotateCcw size={12} className="text-primary" />
+          <span className="text-[9px] font-bold text-primary uppercase tracking-wider">
+            Stage 7 → Stage 1 feedback loop — saved scenarios generate new evidence → full recompute
+          </span>
+        </div>
+      </div>
+
+      {/* Data flow annotations */}
+      <div className="grid grid-cols-7 gap-1 mt-3 min-w-[900px]">
+        {STAGES.map(s => (
+          <div key={s.id} className="text-center">
+            <div className="text-[8px] text-muted-foreground leading-tight">
+              {s.outputs[0]?.split("(")[0]?.trim() || "—"}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   STAGE DETAIL CARD (always expanded)
+   ════════════════════════════════════════════════════════════════ */
+
+function StageCardExpanded({ stage }: { stage: StageConfig }) {
   const Icon = stage.icon;
   const weight = WEIGHT_STYLES[stage.processingWeight];
 
   return (
-    <motion.div
-      layout
-      className="rounded-xl border border-border bg-card overflow-hidden"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: stage.number * 0.08 }}
-    >
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
       {/* Header */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-start gap-3 p-4 text-left hover:bg-muted/30 transition-colors"
-      >
+      <div className="flex items-start gap-3 p-4 border-b border-border">
         <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary flex-shrink-0 mt-0.5">
           <Icon size={20} />
         </div>
@@ -324,150 +432,117 @@ function StageCard({ stage }: { stage: StageConfig }) {
           <h3 className="text-sm font-bold text-foreground mt-1">{stage.name}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">{stage.subtitle}</p>
         </div>
-        <div className="flex-shrink-0 mt-2 text-muted-foreground">
-          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </div>
+
+      {/* Always-visible details */}
+      <div className="px-4 pb-4 space-y-4 pt-3">
+        <p className="text-xs text-foreground/80 leading-relaxed">{stage.description}</p>
+
+        <div>
+          <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+            <Zap size={10} className="inline mr-1" />Trigger
+          </h4>
+          <p className="text-xs text-foreground/70">{stage.trigger}</p>
         </div>
-      </button>
 
-      {/* Expanded Details */}
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
-              {/* Description */}
-              <p className="text-xs text-foreground/80 leading-relaxed">{stage.description}</p>
-
-              {/* Trigger */}
-              <div>
-                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                  <Zap size={10} className="inline mr-1" />Trigger
-                </h4>
-                <p className="text-xs text-foreground/70">{stage.trigger}</p>
+        <div>
+          <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+            <Database size={10} className="inline mr-1" />Data Sources ({stage.dataSources.length})
+          </h4>
+          <div className="space-y-1">
+            {stage.dataSources.map((ds, i) => (
+              <div key={i} className="flex items-start gap-2 text-xs">
+                <span className={`text-[9px] font-bold uppercase px-1 py-0.5 rounded flex-shrink-0 ${TYPE_COLORS[ds.type] || "text-muted-foreground"}`}>
+                  {ds.type.replace("_", " ")}
+                </span>
+                <span className="text-foreground/70">{ds.name}</span>
               </div>
+            ))}
+          </div>
+        </div>
 
-              {/* Data Sources */}
-              <div>
-                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                  <Database size={10} className="inline mr-1" />Data Sources ({stage.dataSources.length})
-                </h4>
-                <div className="space-y-1">
-                  {stage.dataSources.map((ds, i) => {
-                    const typeColors: Record<string, string> = {
-                      user_input: "text-blue-400 bg-blue-500/10",
-                      edge_function: "text-violet-400 bg-violet-500/10",
-                      database: "text-amber-400 bg-amber-500/10",
-                      ai_model: "text-red-400 bg-red-500/10",
-                      deterministic: "text-cyan-400 bg-cyan-500/10",
-                      browser: "text-green-400 bg-green-500/10",
-                    };
-                    return (
-                      <div key={i} className="flex items-start gap-2 text-xs">
-                        <span className={`text-[9px] font-bold uppercase px-1 py-0.5 rounded flex-shrink-0 ${typeColors[ds.type] || "text-muted-foreground"}`}>
-                          {ds.type.replace("_", " ")}
-                        </span>
-                        <span className="text-foreground/70">{ds.name}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* AI Usage */}
-              <div>
-                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                  <Brain size={10} className="inline mr-1" />AI Instrumentation
-                </h4>
-                {stage.aiUsage ? (
-                  <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3 space-y-1.5">
-                    <div className="text-xs"><span className="font-bold text-violet-400">Model:</span> <span className="text-foreground/70">{stage.aiUsage.model}</span></div>
-                    <div className="text-xs"><span className="font-bold text-violet-400">Purpose:</span> <span className="text-foreground/70">{stage.aiUsage.purpose}</span></div>
-                    {stage.aiUsage.temperature !== undefined && (
-                      <div className="text-xs"><span className="font-bold text-violet-400">Temperature:</span> <span className="text-foreground/70">{stage.aiUsage.temperature}</span></div>
-                    )}
-                    <div className="text-xs">
-                      <span className="font-bold text-violet-400">Unique vs Generic LLM:</span>{" "}
-                      <span className="text-foreground/70">
-                        {stage.aiUsage.unique
-                          ? "Highly custom — structured prompts with domain-specific schema enforcement, business context injection, and deterministic fallbacks. Not a generic ChatGPT call."
-                          : "Uses LLM for generation but with custom prompt engineering, structured output schemas, and fallback chains. More structured than generic chat but AI-dependent."}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3">
-                    <p className="text-xs text-cyan-400 font-bold">No AI used — 100% deterministic logic</p>
-                    <p className="text-xs text-foreground/60 mt-1">Custom algorithms, pattern matching, and rule-based inference. Works offline, no API costs, instant execution.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Lens Impact */}
-              {stage.lensImpact && (
-                <div>
-                  <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    <Filter size={10} className="inline mr-1" />Lens / Operator Context Impact
-                  </h4>
-                  <p className="text-xs text-foreground/70 leading-relaxed">{stage.lensImpact}</p>
-                </div>
+        <div>
+          <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+            <Brain size={10} className="inline mr-1" />AI Instrumentation
+          </h4>
+          {stage.aiUsage ? (
+            <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3 space-y-1.5">
+              <div className="text-xs"><span className="font-bold text-violet-400">Model:</span> <span className="text-foreground/70">{stage.aiUsage.model}</span></div>
+              <div className="text-xs"><span className="font-bold text-violet-400">Purpose:</span> <span className="text-foreground/70">{stage.aiUsage.purpose}</span></div>
+              {stage.aiUsage.temperature !== undefined && (
+                <div className="text-xs"><span className="font-bold text-violet-400">Temperature:</span> <span className="text-foreground/70">{stage.aiUsage.temperature}</span></div>
               )}
-
-              {/* Unique Logic */}
-              <div>
-                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                  <Cpu size={10} className="inline mr-1" />Unique / Custom Logic
-                </h4>
-                <ul className="space-y-1">
-                  {stage.uniqueLogic.map((item, i) => (
-                    <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
-                      <span className="text-primary mt-1 flex-shrink-0">•</span>
-                      <span className="font-mono text-[11px]">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Edge Functions */}
-              {stage.edgeFunction && (
-                <div>
-                  <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    <Zap size={10} className="inline mr-1" />Edge Functions
-                  </h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {stage.edgeFunction.split(", ").map(fn => (
-                      <span key={fn} className="text-[10px] font-mono font-bold px-2 py-1 rounded bg-muted text-foreground/70 border border-border">
-                        {fn}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Outputs */}
-              <div>
-                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                  Outputs
-                </h4>
-                <ul className="space-y-0.5">
-                  {stage.outputs.map((o, i) => (
-                    <li key={i} className="text-xs text-foreground/70">→ {o}</li>
-                  ))}
-                </ul>
+              <div className="text-xs">
+                <span className="font-bold text-violet-400">Unique vs Generic LLM:</span>{" "}
+                <span className="text-foreground/70">
+                  {stage.aiUsage.unique
+                    ? "Highly custom — structured prompts with domain-specific schema enforcement, business context injection, and deterministic fallbacks. Not a generic ChatGPT call."
+                    : "Uses LLM for generation but with custom prompt engineering, structured output schemas, and fallback chains. More structured than generic chat but AI-dependent."}
+                </span>
               </div>
             </div>
-          </motion.div>
+          ) : (
+            <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3">
+              <p className="text-xs text-cyan-400 font-bold">No AI used — 100% deterministic logic</p>
+              <p className="text-xs text-foreground/60 mt-1">Custom algorithms, pattern matching, and rule-based inference. Zero API costs, instant execution.</p>
+            </div>
+          )}
+        </div>
+
+        {stage.lensImpact && (
+          <div>
+            <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+              <Filter size={10} className="inline mr-1" />Lens / Operator Context Impact
+            </h4>
+            <p className="text-xs text-foreground/70 leading-relaxed">{stage.lensImpact}</p>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+
+        <div>
+          <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+            <Cpu size={10} className="inline mr-1" />Unique / Custom Logic
+          </h4>
+          <ul className="space-y-1">
+            {stage.uniqueLogic.map((item, i) => (
+              <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                <span className="text-primary mt-1 flex-shrink-0">•</span>
+                <span className="font-mono text-[11px]">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {stage.edgeFunction && (
+          <div>
+            <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+              <Zap size={10} className="inline mr-1" />Edge Functions
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {stage.edgeFunction.split(", ").map(fn => (
+                <span key={fn} className="text-[10px] font-mono font-bold px-2 py-1 rounded bg-muted text-foreground/70 border border-border">
+                  {fn}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+            Outputs
+          </h4>
+          <ul className="space-y-0.5">
+            {stage.outputs.map((o, i) => (
+              <li key={i} className="text-xs text-foreground/70">→ {o}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 }
 
-/* ── Flow Arrow Between Stages ── */
+/* ── Flow Arrow ── */
 function FlowArrow({ label }: { label?: string }) {
   return (
     <div className="flex flex-col items-center py-1">
@@ -502,10 +577,10 @@ function SummaryStats() {
   );
 }
 
-/* ── Processing Heatmap ── */
+/* ── Heatmap ── */
 function ProcessingHeatmap() {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 mb-6">
+    <div className="rounded-xl border border-border bg-card p-4 mb-4">
       <h3 className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-3">
         Processing & AI Consumption Heatmap
       </h3>
@@ -516,7 +591,7 @@ function ProcessingHeatmap() {
           return (
             <div key={s.id} className="flex items-center gap-3">
               <span className="text-[10px] font-bold text-muted-foreground w-28 flex-shrink-0 truncate">
-                S{s.number} {s.name.split(" ")[0]}
+                S{s.number} {s.shortName}
               </span>
               <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
                 <div className={`h-full rounded-full ${colors[s.processingWeight]} transition-all`} style={{ width: widths[s.processingWeight] }} />
@@ -529,40 +604,96 @@ function ProcessingHeatmap() {
         })}
       </div>
       <p className="text-[10px] text-muted-foreground mt-3">
-        Most AI/processing consumption: <strong className="text-red-400">Stage 4 (AI Deepening)</strong> and <strong className="text-red-400">Stage 5 (Pipeline Edge Functions)</strong>. 
+        Most AI/processing: <strong className="text-red-400">Stage 4 (AI Deepening)</strong> and <strong className="text-red-400">Stage 5 (Pipeline)</strong>. 
         Stages 2, 3, 6, 7 are deterministic with zero AI cost.
       </p>
     </div>
   );
 }
 
-/* ── Main Page ── */
+/* ════════════════════════════════════════════════════════════════
+   MAIN PAGE
+   ════════════════════════════════════════════════════════════════ */
+
 export default function PipelineArchitecturePage() {
   const navigate = useNavigate();
   useWorkspaceTheme();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = useCallback(async () => {
+    if (!contentRef.current) return;
+    toast.loading("Generating PDF…", { id: "arch-pdf" });
+    try {
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0f1219",
+        logging: false,
+        windowWidth: 1200,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const usableW = pdfW - margin * 2;
+      const imgW = canvas.width;
+      const imgH = canvas.height;
+      const ratio = usableW / imgW;
+      const scaledH = imgH * ratio;
+      const pageContentH = pdfH - margin * 2;
+
+      let yOffset = 0;
+      let page = 0;
+      while (yOffset < scaledH) {
+        if (page > 0) pdf.addPage();
+        pdf.addImage(imgData, "PNG", margin, margin - yOffset, usableW, scaledH);
+        yOffset += pageContentH;
+        page++;
+      }
+      pdf.save("Pipeline-Architecture.pdf");
+      toast.dismiss("arch-pdf");
+      toast.success("PDF downloaded!");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.dismiss("arch-pdf");
+      toast.error("Failed to generate PDF");
+    }
+  }, []);
 
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-2">
+      {/* Sticky header with actions */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-muted transition-colors">
             <ArrowLeft size={16} className="text-foreground" />
           </button>
           <div>
             <h1 className="text-lg font-extrabold text-foreground">Pipeline Architecture</h1>
-            <p className="text-xs text-muted-foreground">7-stage strategic reasoning pipeline — data flow, AI instrumentation, and custom logic</p>
+            <p className="text-xs text-muted-foreground">7-stage strategic reasoning pipeline</p>
           </div>
         </div>
+        <button
+          onClick={handleDownloadPDF}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+        >
+          <FileDown size={14} />
+          Download PDF
+        </button>
+      </div>
 
-        {/* Summary */}
+      {/* PDF-capturable content */}
+      <div ref={contentRef} className="max-w-5xl mx-auto px-4 py-6 space-y-4">
         <SummaryStats />
 
-        {/* Heatmap */}
+        {/* Horizontal flow diagram */}
+        <HorizontalPipelineFlow />
+
         <ProcessingHeatmap />
 
-        {/* Data Flow Legend */}
-        <div className="rounded-xl border border-border bg-card p-4 mb-2">
+        {/* Legend */}
+        <div className="rounded-xl border border-border bg-card p-4">
           <h3 className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">Legend</h3>
           <div className="flex flex-wrap gap-3">
             {[
@@ -578,11 +709,11 @@ export default function PipelineArchitecturePage() {
           </div>
         </div>
 
-        {/* Stages */}
+        {/* All stages — fully expanded */}
         <div className="space-y-0">
           {STAGES.map((stage, i) => (
             <React.Fragment key={stage.id}>
-              <StageCard stage={stage} />
+              <StageCardExpanded stage={stage} />
               {i < STAGES.length - 1 && (
                 <FlowArrow label={
                   i === 0 ? "feeds into" :
@@ -597,7 +728,7 @@ export default function PipelineArchitecturePage() {
           ))}
         </div>
 
-        {/* Feedback Loop Callout */}
+        {/* Feedback Loop */}
         <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 mt-4">
           <h3 className="text-sm font-extrabold text-primary mb-2">↻ Closed-Loop Intelligence</h3>
           <p className="text-xs text-foreground/70 leading-relaxed">
