@@ -908,9 +908,9 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     leverageCount: deepenedOpps.length, opportunityCount: deepenedOpps.length,
     pathwayCount: deepenedOpps.length > 0 ? 1 : 0, insufficientEvidence, message,
     thresholds: [
-      { stage: "Structural Diagnosis", required: 4, current: evCount, met: evCount >= 4 },
-      { stage: "Pattern Qualification", required: 4, current: evCount, met: qualifiedPatternsResult.length > 0 },
-      { stage: "Thesis Construction", required: 4, current: evCount, met: deepenedOpps.length > 0 },
+      { stage: "Structural Diagnosis", required: minEvidenceThreshold, current: evCount, met: evCount >= minEvidenceThreshold },
+      { stage: "Pattern Qualification", required: minEvidenceThreshold, current: evCount, met: qualifiedPatternsResult.length > 0 },
+      { stage: "Thesis Construction", required: minEvidenceThreshold, current: evCount, met: deepenedOpps.length > 0 },
     ],
   };
 
