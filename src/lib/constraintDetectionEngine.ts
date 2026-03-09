@@ -537,8 +537,26 @@ export function rankConstraintCandidates(candidates: ConstraintCandidate[]): Con
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  LAYER 3: COUNTERFACTUAL VALIDATION
+//  LAYER 3: COUNTERFACTUAL VALIDATION + PROBABILISTIC STACK
 // ═══════════════════════════════════════════════════════════════
+
+/** Constraint stack role: binding (primary limit), secondary, or enabling */
+export type ConstraintStackRole = "binding" | "secondary" | "enabling";
+
+/** Confidence interval for probabilistic ranking */
+export interface ConfidenceInterval {
+  point: number;
+  lower: number;
+  upper: number;
+}
+
+/** Factors that contribute to ranking */
+export interface RankingFactors {
+  evidenceDensity: number;
+  evidenceQuality: number;
+  networkCentrality: number;
+  analogFrequency?: number;
+}
 
 export interface ConstraintHypothesis {
   /** Stable constraint type ID */
@@ -561,6 +579,12 @@ export interface ConstraintHypothesis {
   counterfactualImpact: number;
   /** Causal explanation: if removed, what changes */
   counterfactualExplanation: string;
+  /** Stack role: binding, secondary, or enabling */
+  stackRole: ConstraintStackRole;
+  /** Probabilistic confidence interval (0-1 scale) */
+  confidenceInterval: ConfidenceInterval;
+  /** Ranking factors breakdown */
+  rankingFactors: RankingFactors;
 }
 
 /** Structured prompt guiding users to resolve evidence uncertainty */
@@ -584,6 +608,10 @@ export interface ConstraintHypothesisSet {
   evidenceGaps: string[];
   /** Structured evidence requests to resolve gaps */
   evidenceRequests: EvidenceRequest[];
+  /** Whether binding constraint has low confidence (gap < 0.15 to second) */
+  bindingUncertain: boolean;
+  /** Summary of stack state */
+  stackSummary: string;
 }
 
 /**
