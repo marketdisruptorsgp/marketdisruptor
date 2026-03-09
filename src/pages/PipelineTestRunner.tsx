@@ -133,10 +133,13 @@ function ReportView({ report }: { report: PipelineReport }) {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>{report.businessName} — Pipeline Report</span>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Badge variant="outline">{report.totalEvidenceItems} evidence</Badge>
-              <Badge variant="outline">{report.facetedEvidenceCount} faceted</Badge>
+              <Badge variant="outline">{report.facetedEvidenceCount} faceted ({report.facetDiagnostics?.coveragePercent ?? 0}%)</Badge>
               <Badge variant="outline">{report.constraints.length} constraints</Badge>
+              {report.inferredConstraintCount > 0 && (
+                <Badge variant="secondary">{report.inferredConstraintCount} inferred</Badge>
+              )}
               <Badge variant="outline">{report.morphologicalVectors.length} vectors</Badge>
               <Badge variant="outline">{report.stressTests.length} tested</Badge>
             </div>
