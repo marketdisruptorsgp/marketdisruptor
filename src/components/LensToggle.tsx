@@ -57,8 +57,9 @@ export function LensToggle() {
     if (hasAutoLoaded.current) return;
     if (primaryType === "default") { hasAutoLoaded.current = true; return; }
     if (primaryType === "eta") {
-      analysis.setActiveLens(ETA_LENS as UserLens);
+      analysis.setActiveLens(getEtaLensWithContext() as UserLens);
       hasAutoLoaded.current = true;
+      return;
       return;
     }
     if (primaryType === "custom" && primaryId && lenses.length > 0) {
