@@ -49,19 +49,18 @@ export function AppLayout({ children }: AppLayoutProps) {
   const showSidebar = useMemo(() => shouldShowSidebar(pathname), [pathname]);
   const tour = useGuidedTour();
 
-  
-
   if (!showSidebar) {
     return <>{children}</>;
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full">
         <CommandNavigation onOpenTour={tour.open} />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-11 flex items-center border-b-2 border-border bg-sidebar px-2 gap-2 flex-shrink-0 z-10">
-            <SidebarTrigger />
+          {/* Compact global header — always shows sidebar trigger + branding */}
+          <header className="h-10 flex items-center border-b border-border/60 bg-background px-2 gap-2 flex-shrink-0 z-10">
+            <SidebarTrigger className="h-7 w-7 flex-shrink-0" />
             <button
               onClick={() => navigate("/")}
               className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
@@ -69,13 +68,13 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Zap size={14} className="text-primary" />
               <span className="text-xs font-bold hidden sm:inline">Market Disruptor</span>
             </button>
-            <span className="text-border">|</span>
+            <span className="text-border hidden sm:inline">|</span>
             <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => navigate("/workspace")}
+              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors hidden sm:flex"
             >
-              <Home size={13} />
-              <span className="text-[11px] hidden sm:inline">Home</span>
+              <Home size={12} />
+              <span className="text-[11px]">Workspace</span>
             </button>
           </header>
           {children}
