@@ -5,8 +5,8 @@
  * Evaluates pipeline quality at each stage and produces actionable insights.
  */
 
-import type { Evidence } from "@/lib/evidenceEngine";
-import type { StrategicInsight } from "@/lib/strategicEngine";
+import type { Evidence, EvidenceTier, EvidenceType, EvidencePipelineStep } from "@/lib/evidenceEngine";
+import type { StrategicInsight, StrategicInsightType } from "@/lib/strategicEngine";
 import { CONSTRAINT_TAXONOMY, detectCandidateConstraints, type ConstraintCandidate } from "@/lib/constraintDetectionEngine";
 import {
   extractBaseline,
@@ -20,6 +20,29 @@ import {
   type OpportunityZone,
   type DimensionAlternative,
 } from "@/lib/opportunityDesignEngine";
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPER TO CREATE EVIDENCE
+// ═══════════════════════════════════════════════════════════════
+
+function makeEvidence(
+  id: string,
+  label: string,
+  description: string,
+  category: string,
+  sourceCount: number
+): Evidence {
+  return {
+    id,
+    label,
+    description,
+    category,
+    sourceCount,
+    type: "signal" as EvidenceType,
+    pipelineStep: "report" as EvidencePipelineStep,
+    tier: "system" as EvidenceTier,
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  TEST DOMAIN DEFINITIONS
@@ -41,13 +64,13 @@ const TEST_DOMAINS: TestDomainInput[] = [
     expectedConstraints: ["capacity_ceiling", "geographic_constraint", "transactional_revenue", "labor_intensity"],
     expectedTransformations: ["membership pricing", "tele-dentistry triage", "insurance payment cycle smoothing"],
     evidence: [
-      { id: "dent-1", label: "Chair utilization averages 68% with peaks during lunch hours", description: "Most chairs sit idle during off-peak hours; scheduling inefficiency limits revenue capture", category: "cost_structure", domain: "dental", sourceCount: 3 },
-      { id: "dent-2", label: "Insurance reimbursement delays average 45 days", description: "Cash flow gaps between service delivery and payment create working capital pressure", category: "pricing_model", domain: "dental", sourceCount: 4 },
-      { id: "dent-3", label: "Patient acquisition relies on local referrals and walk-ins", description: "No systematic marketing; growth limited by word-of-mouth in 5-mile radius", category: "distribution_channel", domain: "dental", sourceCount: 2 },
-      { id: "dent-4", label: "Hygienist scheduling creates bottleneck", description: "Hygienists fully booked 3 weeks out; dentist time underutilized waiting for cleanings", category: "operational_dependency", domain: "dental", sourceCount: 3 },
-      { id: "dent-5", label: "Per-visit pricing model dominant", description: "Patients pay per procedure; no recurring relationship incentivizes preventive care", category: "pricing_model", domain: "dental", sourceCount: 5 },
-      { id: "dent-6", label: "High no-show rate (15-20%)", description: "Patients frequently miss appointments; no financial commitment reduces reliability", category: "customer_behavior", domain: "dental", sourceCount: 2 },
-      { id: "dent-7", label: "Competition from DSOs intensifying", description: "Corporate dental service organizations acquiring local practices; pricing pressure increasing", category: "competitive_pressure", domain: "dental", sourceCount: 3 },
+      makeEvidence("dent-1", "Chair utilization averages 68% with peaks during lunch hours", "Most chairs sit idle during off-peak hours; scheduling inefficiency limits revenue capture", "cost_structure", 3),
+      makeEvidence("dent-2", "Insurance reimbursement delays average 45 days", "Cash flow gaps between service delivery and payment create working capital pressure", "pricing_model", 4),
+      makeEvidence("dent-3", "Patient acquisition relies on local referrals and walk-ins", "No systematic marketing; growth limited by word-of-mouth in 5-mile radius", "distribution_channel", 2),
+      makeEvidence("dent-4", "Hygienist scheduling creates bottleneck", "Hygienists fully booked 3 weeks out; dentist time underutilized waiting for cleanings", "operational_dependency", 3),
+      makeEvidence("dent-5", "Per-visit pricing model dominant", "Patients pay per procedure; no recurring relationship incentivizes preventive care", "pricing_model", 5),
+      makeEvidence("dent-6", "High no-show rate (15-20%)", "Patients frequently miss appointments; no financial commitment reduces reliability", "customer_behavior", 2),
+      makeEvidence("dent-7", "Competition from DSOs intensifying", "Corporate dental service organizations acquiring local practices; pricing pressure increasing", "competitive_pressure", 3),
     ],
   },
   // ── 2. SAAS PROJECT MANAGEMENT TOOL ──
@@ -57,7 +80,64 @@ const TEST_DOMAINS: TestDomainInput[] = [
     expectedConstraints: ["switching_friction", "commoditized_pricing", "revenue_concentration"],
     expectedTransformations: ["usage-based pricing", "vertical specialization", "workflow automation"],
     evidence: [
-      { id: "saas-1", label: "Free tier users rarely convert to paid", description: "95% of users stay on free tier; conversion bottleneck limits revenue growth", category: "pricing_model", domain: "saas_pm", sourceCount: 4 },
+      makeEvidence("saas-1", "Free tier users rarely convert to paid", "95% of users stay on free tier; conversion bottleneck limits revenue growth", "pricing_model", 4),
+      makeEvidence("saas-2", "Seat-based pricing creates expansion friction", "Customers resist adding seats; per-user model limits adoption within organizations", "pricing_model", 3),
+      makeEvidence("saas-3", "Feature parity with competitors high", "Core features identical to Asana, Monday, ClickUp; no defensible differentiation", "competitive_pressure", 5),
+      makeEvidence("saas-4", "Enterprise deals require 6-month sales cycles", "Large contracts take extended negotiations; CAC payback extends beyond 18 months", "distribution_channel", 2),
+      makeEvidence("saas-5", "Integration ecosystem underdeveloped", "Limited third-party integrations compared to market leaders; reduces stickiness", "technology_dependency", 3),
+      makeEvidence("saas-6", "Monthly churn at 4.5%", "Users switching to alternatives; weak retention indicates low switching costs", "customer_behavior", 4),
+      makeEvidence("saas-7", "Top 10 customers represent 35% of ARR", "Revenue concentration risk; loss of major account would significantly impact growth", "demand_signal", 2),
+    ],
+  },
+  // ── 3. LOCAL RESTAURANT ──
+  {
+    name: "Local Restaurant",
+    description: "Neighborhood casual dining establishment with fixed seating and location-based demand",
+    expectedConstraints: ["capacity_ceiling", "geographic_constraint", "inventory_burden", "labor_intensity"],
+    expectedTransformations: ["ghost kitchen expansion", "subscription meal service", "delivery-first model"],
+    evidence: [
+      makeEvidence("rest-1", "Peak hour waits exceed 45 minutes on weekends", "Lost customers during high-demand periods; capacity ceiling limits revenue capture", "operational_dependency", 3),
+      makeEvidence("rest-2", "Food waste at 12% of inventory", "Perishable ingredients expire before use; variable demand creates spoilage", "cost_structure", 4),
+      makeEvidence("rest-3", "Staff turnover at 80% annually", "High replacement cost and training burden; service quality inconsistent", "operational_dependency", 3),
+      makeEvidence("rest-4", "Delivery platform fees consuming 25% of order value", "Third-party delivery erodes margins; no direct customer relationship", "distribution_channel", 5),
+      makeEvidence("rest-5", "Location draws primarily from 2-mile radius", "Customer base geographically limited; expansion requires new locations", "demand_signal", 2),
+      makeEvidence("rest-6", "Average check declining as customers trade down", "Economic pressure reducing per-visit spend; traffic steady but revenue per guest down", "pricing_model", 3),
+      makeEvidence("rest-7", "Kitchen equipment underutilized during off-peak", "Fixed costs continue during slow periods; 3-4 hour daily utilization gap", "cost_structure", 2),
+    ],
+  },
+  // ── 4. LOGISTICS / TRUCKING COMPANY ──
+  {
+    name: "Logistics / Trucking Company",
+    description: "Regional freight carrier with owner-operator model and spot market exposure",
+    expectedConstraints: ["asset_underutilization", "labor_intensity", "channel_dependency", "margin_compression"],
+    expectedTransformations: ["digital freight matching", "dedicated fleet contracts", "asset-light brokerage"],
+    evidence: [
+      makeEvidence("log-1", "Empty miles at 22% of total distance", "Trucks returning without cargo; deadhead drives up per-load costs", "cost_structure", 5),
+      makeEvidence("log-2", "Driver shortage limiting fleet expansion", "Cannot hire qualified CDL drivers; growth capped by labor availability", "operational_dependency", 4),
+      makeEvidence("log-3", "Spot market rates volatile (±30% quarterly)", "Revenue unpredictable; capacity-demand imbalance creates pricing swings", "pricing_model", 3),
+      makeEvidence("log-4", "Broker relationships capture 15% margin", "Intermediaries take significant cut; direct shipper access limited", "distribution_channel", 4),
+      makeEvidence("log-5", "Fuel costs represent 35% of operating expense", "Commodity price exposure creates margin volatility; hedging complex", "cost_structure", 3),
+      makeEvidence("log-6", "Fleet average age 7 years", "Maintenance costs rising; older trucks less fuel efficient", "technology_dependency", 2),
+      makeEvidence("log-7", "Insurance premiums increasing 12% annually", "Regulatory and liability costs escalating; compressing already thin margins", "regulatory_constraint", 3),
+    ],
+  },
+  // ── 5. GYM / FITNESS STUDIO ──
+  {
+    name: "Gym / Fitness Studio",
+    description: "Boutique fitness studio with class-based model and membership recurring revenue",
+    expectedConstraints: ["capacity_ceiling", "geographic_constraint", "labor_intensity", "switching_friction"],
+    expectedTransformations: ["hybrid digital-physical", "franchise expansion", "corporate wellness B2B"],
+    evidence: [
+      makeEvidence("gym-1", "Peak classes at 95% capacity, off-peak at 40%", "Demand concentrated in morning and evening; midday slots underutilized", "operational_dependency", 4),
+      makeEvidence("gym-2", "Instructor quality drives 70% of member satisfaction", "Key person dependency; popular instructors attract loyal following", "operational_dependency", 3),
+      makeEvidence("gym-3", "Member acquisition cost $150, churn at 5% monthly", "High CAC with moderate retention; LTV:CAC ratio borderline", "customer_behavior", 3),
+      makeEvidence("gym-4", "Members travel max 15 minutes to studio", "Catchment area limited by commute tolerance; expansion requires new locations", "demand_signal", 2),
+      makeEvidence("gym-5", "Equipment refresh cycle every 5 years", "Capital expenditure burden; members expect modern equipment", "cost_structure", 2),
+      makeEvidence("gym-6", "Subscription fatigue reducing new signups", "Market saturated with fitness apps and subscriptions; harder to acquire", "competitive_pressure", 4),
+      makeEvidence("gym-7", "Corporate wellness programs underexplored", "B2B opportunity exists but sales motion undeveloped", "distribution_channel", 2),
+    ],
+  },
+];
       { id: "saas-2", label: "Seat-based pricing creates expansion friction", description: "Customers resist adding seats; per-user model limits adoption within organizations", category: "pricing_model", domain: "saas_pm", sourceCount: 3 },
       { id: "saas-3", label: "Feature parity with competitors high", description: "Core features identical to Asana, Monday, ClickUp; no defensible differentiation", category: "competitive_pressure", domain: "saas_pm", sourceCount: 5 },
       { id: "saas-4", label: "Enterprise deals require 6-month sales cycles", description: "Large contracts take extended negotiations; CAC payback extends beyond 18 months", category: "distribution_channel", domain: "saas_pm", sourceCount: 2 },
