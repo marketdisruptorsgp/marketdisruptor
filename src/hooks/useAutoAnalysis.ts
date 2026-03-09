@@ -58,6 +58,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
     geoData, regulatoryData, activeLens,
+    saveStepData,
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
@@ -202,6 +203,35 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           mechanism: d.economicMechanism.valueCreation,
           firstMove: d.firstMove.action.slice(0, 80),
         })));
+      }
+
+      // ── Persist strategic engine output for thesis auditing ──
+      if (analysisId) {
+        const strategicEnginePayload = {
+          structuralProfile: result.structuralProfile ?? null,
+          qualifiedPatterns: (result.qualifiedPatterns ?? []).map(qp => ({
+            patternName: qp.pattern.name,
+            signalDensity: qp.signalDensity,
+            etaAdjustment: qp.etaAdjustment,
+            strategicBet: qp.strategicBet,
+          })),
+          deepenedOpportunities: (result.deepenedOpportunities ?? []).map(d => ({
+            reconfigurationLabel: d.reconfigurationLabel,
+            causalChain: d.causalChain,
+            economicMechanism: d.economicMechanism,
+            firstMove: d.firstMove,
+            aiDeepened: (d as any).aiDeepened ?? false,
+          })),
+          pipelineEvents: result.events ?? [],
+          evidenceCount: result.flatEvidence.length,
+          constraintCount: result.diagnostic.constraintCount,
+          opportunityCount: result.diagnostic.opportunityCount,
+          aiGateResult: (result.diagnostic as any).aiGateResult ?? null,
+          computedAt: new Date().toISOString(),
+        };
+        saveStepData("strategicEngine", strategicEnginePayload).catch(err => {
+          console.warn("[StrategicEngine] Failed to persist thesis data:", err);
+        });
       }
     };
 
