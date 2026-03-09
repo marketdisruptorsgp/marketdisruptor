@@ -32,7 +32,7 @@ function deriveKeyInsight(
   }
   if (topConstraint) {
     const frictionNote = friction && friction.overall >= 7 ? " amid high system friction" : "";
-    return `The primary structural constraint — "${topConstraint.label}" (impact ${topConstraint.impact}/10) — is the dominant force shaping the opportunity landscape${frictionNote}.`;
+    return `The primary structural constraint — "${topConstraint.label}" — is the dominant force shaping the opportunity landscape${frictionNote}.`;
   }
   if (strategicZone) {
     return `Multiple analytical lenses converge on "${strategicZone.label}", indicating a high-confidence structural leverage zone.`;
