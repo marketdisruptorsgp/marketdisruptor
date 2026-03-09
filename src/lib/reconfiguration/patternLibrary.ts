@@ -253,6 +253,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.distributionControl === "owned" && profile.marginStructure === "high_margin") {
         return { qualifies: false, reason: "Already controls distribution with high margins — limited relocation upside.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: owned distribution with non-thin margins — no chain position problem to solve
+      if (profile.distributionControl === "owned" && profile.marginStructure !== "thin_margin") {
+        return { qualifies: false, reason: "Owns distribution with healthy margins — no chain position problem.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: labor-heavy + owned distribution — the constraint is delivery capacity, not chain position
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.distributionControl === "owned") {
+        return { qualifies: false, reason: "Labor-heavy with owned distribution — constraint is delivery capacity, not chain position.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.distributionControl === "intermediated") strengths.push("Intermediated distribution — bypass or disintermediation opportunity");
       if (profile.marginStructure === "thin_margin") strengths.push("Thin margins suggest margin is captured elsewhere in the chain");
@@ -262,8 +270,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Vendor concentration creates upstream relocation opportunity"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports supply chain relocation." : "Insufficient signals for supply chain relocation.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports supply chain relocation." : "Insufficient signal density for supply chain relocation.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
