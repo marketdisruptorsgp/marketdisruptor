@@ -1039,7 +1039,7 @@ function buildStrategicNarrative(
     // Contextual benchmark for verdict
     verdictBenchmark = deriveVerdictBenchmark(flatEvidence, topConstraint, topOpp);
   } else if (topConstraint) {
-    const constraintPhrase = trimAt(topConstraint.label, 100).toLowerCase();
+    const constraintPhrase = trimAt(topConstraint.label, 200).toLowerCase();
     strategicVerdict = `Resolve the core bottleneck: ${constraintPhrase}`;
     verdictConfidence = topConstraint.confidence;
     verdictRationale = `The dominant bottleneck is ${constraintPhrase}. More evidence is needed to identify the specific strategic move.`;
