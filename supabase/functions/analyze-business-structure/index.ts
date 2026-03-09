@@ -19,7 +19,13 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a structural business analyst. Given a business type, generate a comprehensive structural analysis.
+    const systemPrompt = `You are a structural business analyst. Given a business type (and optionally a geographic market), generate a comprehensive structural analysis.
+
+When a geographic location is provided, incorporate real demographic and economic context:
+- Use known census data for the metro area (population, median household income, age distribution, population growth trends)
+- Factor in local market saturation, cost of living, labor market conditions
+- Reference regional industry patterns, regulatory environment, and competitive density
+- Ground evidence in realistic local numbers (e.g., "St. Louis MSA population ~2.8M, median household income ~$65K")
 
 IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation.
 
@@ -71,6 +77,7 @@ Generate 25-35 evidence items that cover:
 - Technology dependencies
 - Regulatory environment
 - Customer behavior patterns
+- Geographic/demographic factors (when location provided): population density, income levels, insurance coverage rates, commute patterns, local competition density
 
 Be specific and quantitative where possible. Use realistic numbers and percentages.
 Include evidence that explicitly describes constraints, not just neutral observations.
