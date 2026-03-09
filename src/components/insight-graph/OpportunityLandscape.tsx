@@ -73,9 +73,9 @@ function CustomTooltip({ active, payload }: any) {
       <p className="text-sm font-bold text-foreground leading-snug mb-2">{pt.node.label}</p>
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: "Impact", value: `${pt.y}/10` },
-          { label: "Feasibility", value: pt.node.confidence },
-          { label: "Influence", value: String(pt.z) },
+          { label: "Impact", value: pt.y >= 8 ? "Strong" : pt.y >= 5 ? "Moderate" : "Early" },
+          { label: "Feasibility", value: pt.node.confidence === "high" ? "High" : pt.node.confidence === "medium" ? "Medium" : "Low" },
+          { label: "Influence", value: pt.z >= 60 ? "Strong" : pt.z >= 30 ? "Moderate" : "Emerging" },
         ].map(m => (
           <div key={m.label} className="text-center">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{m.label}</p>

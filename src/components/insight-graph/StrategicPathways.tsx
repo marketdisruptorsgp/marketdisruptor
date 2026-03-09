@@ -201,8 +201,8 @@ export const StrategicPathways = memo(function StrategicPathways({
                 {pwIdx === 0 ? "Primary Pathway" : `Pathway ${pwIdx + 1}`}
               </span>
             </div>
-            <span className="text-xs font-bold tabular-nums text-muted-foreground">
-              Σ Influence {pw.totalInfluence}
+            <span className="text-xs font-bold text-muted-foreground">
+              {pw.totalInfluence >= 120 ? "High confidence" : pw.totalInfluence >= 60 ? "Moderate confidence" : "Early signal"}
             </span>
           </div>
 

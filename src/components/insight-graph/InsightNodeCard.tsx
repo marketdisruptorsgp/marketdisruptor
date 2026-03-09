@@ -259,7 +259,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
             </p>
           </div>
           <p className="text-xs text-foreground leading-relaxed">
-            This {node.type === "constraint" ? "constraint" : "risk"} may limit strategic options. Impact: {node.impact}/10.
+            This {node.type === "constraint" ? "constraint" : "risk"} may limit strategic options. {node.impact >= 8 ? "Strong" : node.impact >= 5 ? "Moderate" : "Early"} impact signal.
           </p>
         </div>
       )}
