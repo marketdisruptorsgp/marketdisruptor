@@ -23,6 +23,7 @@ import {
   type MetricDomain,
   type MetricEvidence,
 } from "@/lib/evidenceEngine";
+import type { StructuralProfile } from "@/lib/reconfiguration";
 import {
   buildSystemIntelligence,
   invalidateIntelligence,
@@ -34,6 +35,7 @@ import { type SensitivityReport } from "@/lib/sensitivityEngine";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
+  structuralProfile: StructuralProfile | null;
   graph: InsightGraph | null;
   evidence: Record<MetricDomain, MetricEvidence> | null;
   flatEvidence: Evidence[];
@@ -62,6 +64,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
+  const [structuralProfile, setStructuralProfile] = useState<StructuralProfile | null>(null);
   const [graph, setGraph] = useState<InsightGraph | null>(null);
   const [evidence, setEvidence] = useState<Record<MetricDomain, MetricEvidence> | null>(null);
   const [flatEvidenceState, setFlatEvidenceState] = useState<Evidence[]>([]);
@@ -151,6 +154,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {
       setIntelligence(newIntelligence);
+      setStructuralProfile(result.structuralProfile ?? null);
       setGraph(result.graph);
       setEvidence(result.evidence);
       setFlatEvidenceState(result.flatEvidence);
@@ -282,6 +286,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
   return {
     intelligence,
+    structuralProfile,
     graph,
     evidence,
     flatEvidence: flatEvidenceState,
