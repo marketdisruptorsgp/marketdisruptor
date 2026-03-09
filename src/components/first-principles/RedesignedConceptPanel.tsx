@@ -5,6 +5,7 @@ import {
   StepCanvas, InsightCard, FrameworkPanel, SignalCard, MetricCard,
   VisualGrid, ExpandableDetail, AnalysisPanel,
 } from "@/components/analysis/AnalysisComponents";
+import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import type { RedesignedConcept } from "./types";
 
 interface RedesignedConceptPanelProps {

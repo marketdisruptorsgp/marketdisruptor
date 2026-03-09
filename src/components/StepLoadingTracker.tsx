@@ -19,7 +19,7 @@ const ACTIVITY_MESSAGES: string[] = [
   "Cross-referencing market signals…",
   "Building structured analysis…",
   "Synthesizing insights…",
-  "Scoring and ranking findings…",
+  "Structuring findings…",
   "Generating final output…",
 ];
 

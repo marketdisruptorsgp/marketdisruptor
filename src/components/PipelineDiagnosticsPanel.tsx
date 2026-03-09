@@ -72,7 +72,7 @@ export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel()
 
       {!diag ? (
         <div className="p-3 text-xs text-muted-foreground">
-          No pipeline data yet. Run an analysis first.
+          Pipeline initializing — analysis in progress…
         </div>
       ) : (
         <div className="p-3 space-y-3">
