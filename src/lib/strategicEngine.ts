@@ -406,7 +406,7 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
       // Derive signal label from highest-impact evidence
       const sorted = [...cluster].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
       const primary = sorted[0];
-      const categoryLabel = category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const categoryLabel = category.replace(/_/g, " ").replace(/^./, c => c.toUpperCase());
 
       signals.push({
         id: nextId("signal"),
@@ -424,7 +424,7 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
     const unclustered = items.filter(e => !used.has(e.id));
     if (unclustered.length >= 2) {
       const sorted = [...unclustered].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
-      const categoryLabel = category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const categoryLabel = category.replace(/_/g, " ").replace(/^./, c => c.toUpperCase());
 
       signals.push({
         id: nextId("signal"),
@@ -691,8 +691,8 @@ function discoverLeverage(
 
       if (sharedEvidence.length > 0 || semanticOverlap) {
         // Generate a human-readable leverage label
-        const conText = humanize(constraint.label).slice(0, 40);
-        const drvText = humanize(driver.label).slice(0, 40);
+        const conText = humanize(constraint.label);
+        const drvText = humanize(driver.label);
         const label = `Address ${conText} through ${drvText}`;
         if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
