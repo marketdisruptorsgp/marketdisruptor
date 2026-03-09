@@ -226,7 +226,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           evidenceCount: result.flatEvidence.length,
           constraintCount: result.diagnostic.constraintCount,
           opportunityCount: result.diagnostic.opportunityCount,
-          aiGateResult: result.diagnostic.aiGateResult ?? null,
+          aiGateResult: (result.diagnostic as any).aiGateResult ?? null,
           computedAt: new Date().toISOString(),
         };
         saveStepData("strategicEngine", strategicEnginePayload).catch(err => {
