@@ -195,6 +195,13 @@ export function LensToggle() {
                 <span className="text-[10px] text-muted-foreground">Ownership &amp; value-creation lens</span>
               </div>
             </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowOperatorEditor(true); setShowDropdown(false); }}
+              title="Configure operator profile"
+              className="p-0.5 rounded hover:bg-muted text-muted-foreground/60 hover:text-foreground"
+            >
+              <Settings size={10} />
+            </button>
             <PrimaryButton type="eta" />
           </div>
 
