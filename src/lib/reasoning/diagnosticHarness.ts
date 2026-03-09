@@ -329,6 +329,230 @@ function getDomainSpecificAlternatives(domain: string, category: string, _curren
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  LLM BASELINE SIMULATION
+// ═══════════════════════════════════════════════════════════════
+
+interface LLMBaselineSuggestion {
+  suggestion: string;
+  category: "operational" | "pricing" | "distribution" | "technology" | "diversification";
+  isGeneric: boolean;
+  typicallyProducedByLLM: boolean;
+}
+
+/**
+ * Simulates what a strong general LLM (e.g., ChatGPT) would produce
+ * given a prompt like "Analyze this business and suggest structural improvements"
+ * 
+ * These are common suggestions that appear in most business improvement prompts.
+ */
+function generateLLMBaseline(domain: string): LLMBaselineSuggestion[] {
+  const commonSuggestions: LLMBaselineSuggestion[] = [
+    { suggestion: "Implement loyalty/rewards program", category: "operational", isGeneric: true, typicallyProducedByLLM: true },
+    { suggestion: "Optimize digital marketing/SEO", category: "distribution", isGeneric: true, typicallyProducedByLLM: true },
+    { suggestion: "Expand to new locations/markets", category: "distribution", isGeneric: true, typicallyProducedByLLM: true },
+    { suggestion: "Add subscription/membership model", category: "pricing", isGeneric: true, typicallyProducedByLLM: true },
+    { suggestion: "Leverage technology/automation", category: "technology", isGeneric: true, typicallyProducedByLLM: true },
+    { suggestion: "Improve customer experience", category: "operational", isGeneric: true, typicallyProducedByLLM: true },
+    { suggestion: "Diversify revenue streams", category: "diversification", isGeneric: true, typicallyProducedByLLM: true },
+    { suggestion: "Build strategic partnerships", category: "distribution", isGeneric: true, typicallyProducedByLLM: true },
+  ];
+  
+  const domainSpecificLLMSuggestions: Record<string, LLMBaselineSuggestion[]> = {
+    dental: [
+      { suggestion: "Offer dental membership plans", category: "pricing", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Add cosmetic dentistry services", category: "diversification", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Implement online booking", category: "technology", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Extend hours for convenience", category: "operational", isGeneric: false, typicallyProducedByLLM: true },
+    ],
+    saas: [
+      { suggestion: "Freemium to paid conversion optimization", category: "pricing", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Add integrations with popular tools", category: "technology", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Implement product-led growth", category: "distribution", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Add AI/ML features", category: "technology", isGeneric: false, typicallyProducedByLLM: true },
+    ],
+    restaurant: [
+      { suggestion: "Launch delivery service", category: "distribution", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Create meal prep/catering service", category: "diversification", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Implement reservation system", category: "technology", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Add ghost kitchen for delivery", category: "operational", isGeneric: false, typicallyProducedByLLM: true },
+    ],
+    logistics: [
+      { suggestion: "Invest in fleet management software", category: "technology", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Reduce empty miles with backhaul", category: "operational", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Add last-mile delivery services", category: "diversification", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Implement route optimization", category: "technology", isGeneric: false, typicallyProducedByLLM: true },
+    ],
+    fitness: [
+      { suggestion: "Add virtual/online classes", category: "distribution", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Launch mobile fitness app", category: "technology", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Offer personal training packages", category: "diversification", isGeneric: false, typicallyProducedByLLM: true },
+      { suggestion: "Corporate wellness partnerships", category: "distribution", isGeneric: false, typicallyProducedByLLM: true },
+    ],
+  };
+  
+  const domainKey = domain.toLowerCase().includes("dental") ? "dental" :
+                    domain.toLowerCase().includes("saas") ? "saas" :
+                    domain.toLowerCase().includes("restaurant") ? "restaurant" :
+                    domain.toLowerCase().includes("logistics") ? "logistics" :
+                    domain.toLowerCase().includes("gym") || domain.toLowerCase().includes("fitness") ? "fitness" : "";
+  
+  return [
+    ...commonSuggestions.slice(0, 5),
+    ...(domainSpecificLLMSuggestions[domainKey] || []),
+  ];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BENCHMARK COMPARISON
+// ═══════════════════════════════════════════════════════════════
+
+export interface BenchmarkComparison {
+  pipelineOutput: {
+    suggestion: string;
+    hasConstraintTraceability: boolean;
+    hasEvidenceGrounding: boolean;
+    evidenceCount: number;
+    constraintResolved: string | null;
+  }[];
+  llmBaseline: LLMBaselineSuggestion[];
+  comparison: {
+    noveltyScore: number; // 0-100: % of pipeline outputs NOT in LLM baseline
+    constraintTraceabilityScore: number; // 0-100: % with explicit constraint linkage
+    evidenceGroundingScore: number; // 0-100: % with ≥2 evidence items
+    overallDifferentiation: "strong" | "moderate" | "weak";
+    analysis: string;
+  };
+  matchedSuggestions: {
+    pipelineSuggestion: string;
+    llmMatch: string;
+    similarity: "exact" | "semantic" | "none";
+  }[];
+}
+
+function computeBenchmarkComparison(
+  vectors: OpportunityVector[],
+  constraints: StrategicInsight[],
+  evidence: Evidence[],
+  domain: string
+): BenchmarkComparison {
+  const llmBaseline = generateLLMBaseline(domain);
+  
+  const pipelineOutput = vectors.map(v => {
+    const shiftText = v.changedDimensions.map(d => `${d.dimension}: ${d.to}`).join("; ");
+    const constraintLink = v.explorationMode === "constraint" && v.triggerIds.length > 0
+      ? constraints.find(c => v.triggerIds.includes(c.id))?.label || null
+      : null;
+    
+    return {
+      suggestion: shiftText,
+      hasConstraintTraceability: !!constraintLink,
+      hasEvidenceGrounding: v.evidenceIds.length >= 2,
+      evidenceCount: v.evidenceIds.length,
+      constraintResolved: constraintLink,
+    };
+  });
+  
+  // Check for matches between pipeline and LLM baseline
+  const matchedSuggestions: BenchmarkComparison["matchedSuggestions"] = [];
+  let novelCount = 0;
+  
+  for (const pOut of pipelineOutput) {
+    const suggestionLower = pOut.suggestion.toLowerCase();
+    
+    // Check for semantic overlap with LLM baseline
+    let bestMatch: { llm: LLMBaselineSuggestion; similarity: "exact" | "semantic" | "none" } = {
+      llm: llmBaseline[0],
+      similarity: "none",
+    };
+    
+    for (const llmSugg of llmBaseline) {
+      const llmLower = llmSugg.suggestion.toLowerCase();
+      
+      // Exact match
+      if (suggestionLower.includes(llmLower) || llmLower.includes(suggestionLower)) {
+        bestMatch = { llm: llmSugg, similarity: "exact" };
+        break;
+      }
+      
+      // Semantic similarity (keyword overlap)
+      const llmKeywords = llmLower.split(/\s+/);
+      const pipelineKeywords = suggestionLower.split(/\s+/);
+      const overlap = llmKeywords.filter(k => 
+        pipelineKeywords.some(pk => pk.includes(k) || k.includes(pk))
+      ).length;
+      
+      if (overlap >= 2 && bestMatch.similarity === "none") {
+        bestMatch = { llm: llmSugg, similarity: "semantic" };
+      }
+    }
+    
+    matchedSuggestions.push({
+      pipelineSuggestion: pOut.suggestion,
+      llmMatch: bestMatch.similarity !== "none" ? bestMatch.llm.suggestion : "(no match)",
+      similarity: bestMatch.similarity,
+    });
+    
+    if (bestMatch.similarity === "none") {
+      novelCount++;
+    }
+  }
+  
+  // Calculate scores
+  const noveltyScore = pipelineOutput.length > 0 
+    ? Math.round((novelCount / pipelineOutput.length) * 100) 
+    : 0;
+  
+  const constraintTraceabilityScore = pipelineOutput.length > 0
+    ? Math.round((pipelineOutput.filter(p => p.hasConstraintTraceability).length / pipelineOutput.length) * 100)
+    : 0;
+  
+  const evidenceGroundingScore = pipelineOutput.length > 0
+    ? Math.round((pipelineOutput.filter(p => p.hasEvidenceGrounding).length / pipelineOutput.length) * 100)
+    : 0;
+  
+  // Overall differentiation assessment
+  const avgScore = (noveltyScore + constraintTraceabilityScore + evidenceGroundingScore) / 3;
+  const overallDifferentiation: "strong" | "moderate" | "weak" = 
+    avgScore >= 70 ? "strong" : avgScore >= 40 ? "moderate" : "weak";
+  
+  // Generate analysis
+  const analysisPoints: string[] = [];
+  
+  if (noveltyScore < 30) {
+    analysisPoints.push("LOW NOVELTY: Most pipeline suggestions overlap with generic LLM output. Need more domain-specific constraint-driven transformations.");
+  } else if (noveltyScore >= 60) {
+    analysisPoints.push("GOOD NOVELTY: Pipeline producing suggestions not typically found in generic LLM responses.");
+  }
+  
+  if (constraintTraceabilityScore < 50) {
+    analysisPoints.push("WEAK TRACEABILITY: Less than half of suggestions link to explicit constraints. This is where differentiation should come from.");
+  } else if (constraintTraceabilityScore >= 80) {
+    analysisPoints.push("STRONG TRACEABILITY: Most suggestions clearly resolve identified constraints.");
+  }
+  
+  if (evidenceGroundingScore < 50) {
+    analysisPoints.push("WEAK GROUNDING: Many suggestions lack sufficient evidence support. Strengthening evidence requirements would improve credibility.");
+  }
+  
+  if (overallDifferentiation === "weak") {
+    analysisPoints.push("CRITICAL: Current output barely differentiates from a well-crafted ChatGPT prompt. Priority: integrate analog validation and improve constraint detection.");
+  }
+  
+  return {
+    pipelineOutput,
+    llmBaseline,
+    comparison: {
+      noveltyScore,
+      constraintTraceabilityScore,
+      evidenceGroundingScore,
+      overallDifferentiation,
+      analysis: analysisPoints.join(" | "),
+    },
+    matchedSuggestions,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  DIAGNOSTIC RESULT TYPES
 // ═══════════════════════════════════════════════════════════════
 
@@ -384,6 +608,7 @@ export interface DomainDiagnostic {
     evidenceSupported: number;
     llmDifferentiation: { novel: number; possible: number; generic: number };
   };
+  benchmarkComparison: BenchmarkComparison;
 }
 
 export interface SystemicAnalysis {
@@ -391,6 +616,12 @@ export interface SystemicAnalysis {
   recurringMissedConstraints: string[];
   recurringAnalogIssues: string[];
   recurringReasoningGaps: string[];
+  llmDifferentiationSummary: {
+    avgNovelty: number;
+    avgConstraintTraceability: number;
+    avgEvidenceGrounding: number;
+    overallVerdict: string;
+  };
 }
 
 export interface DiagnosticReport {
@@ -538,6 +769,14 @@ function runDomainDiagnostic(testDomain: TestDomainInput): DomainDiagnostic {
   const gradeA = transformationReview.filter(t => t.grade === "A").length;
   const gradeB = transformationReview.filter(t => t.grade === "B").length;
   
+  // Benchmark comparison
+  const benchmarkComparison = computeBenchmarkComparison(
+    qualifiedVectors,
+    constraints,
+    evidence,
+    testDomain.name
+  );
+  
   return {
     domain: testDomain.name,
     trace,
@@ -565,6 +804,7 @@ function runDomainDiagnostic(testDomain: TestDomainInput): DomainDiagnostic {
         generic: transformationReview.filter(t => t.llmReproducibility === "very_likely_generic").length,
       },
     },
+    benchmarkComparison,
   };
 }
 
@@ -576,6 +816,27 @@ export function runFullDiagnostic(): DiagnosticReport {
   const weakTransformations = domainResults.flatMap(d => 
     d.transformationReview.filter(t => t.grade === "C" || t.grade === "D")
   );
+  
+  // Calculate LLM differentiation summary
+  const avgNovelty = domainResults.length > 0
+    ? Math.round(domainResults.reduce((sum, d) => sum + d.benchmarkComparison.comparison.noveltyScore, 0) / domainResults.length)
+    : 0;
+  const avgConstraintTraceability = domainResults.length > 0
+    ? Math.round(domainResults.reduce((sum, d) => sum + d.benchmarkComparison.comparison.constraintTraceabilityScore, 0) / domainResults.length)
+    : 0;
+  const avgEvidenceGrounding = domainResults.length > 0
+    ? Math.round(domainResults.reduce((sum, d) => sum + d.benchmarkComparison.comparison.evidenceGroundingScore, 0) / domainResults.length)
+    : 0;
+  
+  const avgScore = (avgNovelty + avgConstraintTraceability + avgEvidenceGrounding) / 3;
+  let overallVerdict: string;
+  if (avgScore >= 70) {
+    overallVerdict = "STRONG: Pipeline produces meaningfully differentiated output from generic LLM responses";
+  } else if (avgScore >= 40) {
+    overallVerdict = "MODERATE: Some differentiation but significant overlap with what a ChatGPT prompt would produce";
+  } else {
+    overallVerdict = "WEAK: Pipeline output largely reproducible by a well-crafted ChatGPT prompt. Priority: integrate analog validation and improve constraint detection.";
+  }
   
   const systemicAnalysis: SystemicAnalysis = {
     recurringWeakTransformations: [
@@ -599,6 +860,12 @@ export function runFullDiagnostic(): DiagnosticReport {
       "No constraint stack ranking (primary/secondary/tertiary)",
       "No status quo explanation (why current structure persists)",
     ],
+    llmDifferentiationSummary: {
+      avgNovelty,
+      avgConstraintTraceability,
+      avgEvidenceGrounding,
+      overallVerdict,
+    },
   };
   
   const recommendedFixes: string[] = [
@@ -665,10 +932,34 @@ export function printDiagnosticReport(report: DiagnosticReport): void {
     console.log(`    Possibly Reproducible: ${domain.opportunityQuality.llmDifferentiation.possible}`);
     console.log(`    Very Likely Generic: ${domain.opportunityQuality.llmDifferentiation.generic}`);
     
+    console.log("\n  BENCHMARK COMPARISON vs ChatGPT:");
+    console.log(`    Novelty Score: ${domain.benchmarkComparison.comparison.noveltyScore}%`);
+    console.log(`    Constraint Traceability: ${domain.benchmarkComparison.comparison.constraintTraceabilityScore}%`);
+    console.log(`    Evidence Grounding: ${domain.benchmarkComparison.comparison.evidenceGroundingScore}%`);
+    console.log(`    Overall: ${domain.benchmarkComparison.comparison.overallDifferentiation.toUpperCase()}`);
+    if (domain.benchmarkComparison.comparison.analysis) {
+      console.log(`    Analysis: ${domain.benchmarkComparison.comparison.analysis}`);
+    }
+    
+    console.log("\n  MATCHED SUGGESTIONS (Pipeline vs LLM Baseline):");
+    for (const match of domain.benchmarkComparison.matchedSuggestions.slice(0, 5)) {
+      const icon = match.similarity === "none" ? "✓" : match.similarity === "semantic" ? "~" : "✗";
+      console.log(`    ${icon} "${match.pipelineSuggestion.slice(0, 50)}..." → ${match.similarity === "none" ? "NOVEL" : `matches "${match.llmMatch}"`}`);
+    }
+    
     console.log("\n  GAPS:");
     console.log(`    ${domain.analogValidation.note}`);
     console.log(`    ${domain.structuralImportReview.note}`);
   }
+  
+  console.log("\n" + "═".repeat(80));
+  console.log("  LLM DIFFERENTIATION SUMMARY (CROSS-DOMAIN)");
+  console.log("═".repeat(80));
+  const { llmDifferentiationSummary } = report.systemicAnalysis;
+  console.log(`  Average Novelty: ${llmDifferentiationSummary.avgNovelty}%`);
+  console.log(`  Average Constraint Traceability: ${llmDifferentiationSummary.avgConstraintTraceability}%`);
+  console.log(`  Average Evidence Grounding: ${llmDifferentiationSummary.avgEvidenceGrounding}%`);
+  console.log(`  VERDICT: ${llmDifferentiationSummary.overallVerdict}`);
   
   console.log("\n" + "═".repeat(80));
   console.log("  SYSTEMIC WEAKNESS ANALYSIS");
