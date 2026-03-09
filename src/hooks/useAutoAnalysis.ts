@@ -159,6 +159,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setDiagnostic(result.diagnostic);
       setScenarioComparison(result.scenarioComparison);
       setSensitivityReports(result.sensitivityReports);
+      setDeepenedOpportunities(result.deepenedOpportunities ?? []);
       setHasRun(true);
 
       console.log("[StrategicEngine] Analysis complete:", {
