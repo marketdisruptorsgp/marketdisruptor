@@ -13,6 +13,7 @@ import {
   Lightbulb, TrendingUp, Route, X, Pencil, RotateCcw,
 } from "lucide-react";
 import type { StrategicInsight, StrategicNarrative } from "@/lib/strategicEngine";
+import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import type { Evidence } from "@/lib/evidenceEngine";
 import { humanizeLabel } from "@/lib/humanize";
 
@@ -31,6 +32,7 @@ interface StrategicXRayProps {
   narrative: StrategicNarrative | null;
   insights: StrategicInsight[];
   flatEvidence: Evidence[];
+  thesis?: DeepenedOpportunity | null;
   onChallenge?: (nodeStage: string, currentValue: string) => void;
   onRecompute?: () => void;
 }
@@ -54,6 +56,7 @@ export const StrategicXRay = memo(function StrategicXRay({
   narrative,
   insights,
   flatEvidence,
+  thesis,
   onChallenge,
   onRecompute,
 }: StrategicXRayProps) {
@@ -93,8 +96,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "constraint",
-        label: narrative?.primaryConstraint || "Analyzing constraints…",
-        description: topConstraint?.description || "Waiting for sufficient evidence to identify structural barriers.",
+        label: narrative?.primaryConstraint || thesis?.causalChain?.constraint || "Analyzing constraints…",
+        description: topConstraint?.description || thesis?.causalChain?.reasoning || "Waiting for sufficient evidence to identify structural barriers.",
         icon: Target,
         color: "hsl(var(--destructive))",
         bgColor: "hsl(var(--destructive) / 0.08)",
@@ -103,8 +106,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "driver",
-        label: narrative?.keyDriver || "Identifying root causes…",
-        description: topDriver?.description || "The underlying driver will emerge as more signals are processed.",
+        label: narrative?.keyDriver || thesis?.causalChain?.driver || "Identifying root causes…",
+        description: topDriver?.description || thesis?.strategicBet?.industryAssumption || "The underlying driver will emerge as more signals are processed.",
         icon: Brain,
         color: "hsl(var(--warning))",
         bgColor: "hsl(var(--warning) / 0.08)",
@@ -113,8 +116,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "leverage",
-        label: narrative?.leveragePoint || "Calculating intervention points…",
-        description: topLeverage?.description || "Leverage points require constraint and driver identification.",
+        label: narrative?.leveragePoint || thesis?.strategicBet?.contrarianBelief || "Calculating intervention points…",
+        description: topLeverage?.description || thesis?.strategicBet?.implication || "Leverage points require constraint and driver identification.",
         icon: Lightbulb,
         color: "hsl(var(--primary))",
         bgColor: "hsl(var(--primary) / 0.08)",
@@ -123,8 +126,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "opportunity",
-        label: narrative?.breakthroughOpportunity || "Generating opportunities…",
-        description: topOpp?.description || "Opportunities derive from identified leverage points.",
+        label: narrative?.breakthroughOpportunity || thesis?.reconfigurationLabel || "Generating opportunities…",
+        description: topOpp?.description || thesis?.economicMechanism?.valueCreation || "Opportunities derive from identified leverage points.",
         icon: TrendingUp,
         color: "hsl(var(--success))",
         bgColor: "hsl(var(--success) / 0.08)",
@@ -133,8 +136,8 @@ export const StrategicXRay = memo(function StrategicXRay({
       },
       {
         stage: "move",
-        label: narrative?.strategicVerdict || "Synthesizing strategic move…",
-        description: narrative?.verdictRationale || "The full reasoning chain will converge into a directive once all stages have data.",
+        label: narrative?.strategicVerdict || thesis?.reconfigurationLabel || "Synthesizing strategic move…",
+        description: narrative?.verdictRationale || thesis?.summary || "The full reasoning chain will converge into a directive once all stages have data.",
         icon: Route,
         color: "hsl(var(--primary))",
         bgColor: "hsl(var(--primary) / 0.12)",
@@ -142,7 +145,7 @@ export const StrategicXRay = memo(function StrategicXRay({
         evidenceIds: topPathway?.evidenceIds || [],
       },
     ];
-  }, [narrative, topConstraint, topDriver, topLeverage, topOpp, topPathway, flatEvidence, constraintEvidenceIds]);
+  }, [narrative, topConstraint, topDriver, topLeverage, topOpp, topPathway, flatEvidence, constraintEvidenceIds, thesis]);
 
   const handleNodeClick = useCallback((stage: string) => {
     setSelectedNode(prev => prev === stage ? null : stage);
@@ -163,7 +166,7 @@ export const StrategicXRay = memo(function StrategicXRay({
     }
   }, [challengeNode, challengeValue, onChallenge]);
 
-  const hasContent = narrative?.primaryConstraint || insights.length > 0;
+  const hasContent = narrative?.primaryConstraint || insights.length > 0 || !!thesis;
 
   return (
     <div
