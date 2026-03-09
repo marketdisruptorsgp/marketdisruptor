@@ -204,6 +204,35 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           firstMove: d.firstMove.action.slice(0, 80),
         })));
       }
+
+      // ── Persist strategic engine output for thesis auditing ──
+      if (analysisId) {
+        const strategicEnginePayload = {
+          structuralProfile: result.structuralProfile ?? null,
+          qualifiedPatterns: (result.qualifiedPatterns ?? []).map(qp => ({
+            patternName: qp.pattern.name,
+            signalDensity: qp.signalDensity,
+            etaAdjustment: qp.etaAdjustment,
+            strategicBet: qp.strategicBet,
+          })),
+          deepenedOpportunities: (result.deepenedOpportunities ?? []).map(d => ({
+            reconfigurationLabel: d.reconfigurationLabel,
+            causalChain: d.causalChain,
+            economicMechanism: d.economicMechanism,
+            firstMove: d.firstMove,
+            aiDeepened: d.aiDeepened ?? false,
+          })),
+          pipelineEvents: result.events ?? [],
+          evidenceCount: result.flatEvidence.length,
+          constraintCount: result.diagnostic.constraintCount,
+          opportunityCount: result.diagnostic.opportunityCount,
+          aiGateResult: result.diagnostic.aiGateResult ?? null,
+          computedAt: new Date().toISOString(),
+        };
+        saveStepData("strategicEngine", strategicEnginePayload).catch(err => {
+          console.warn("[StrategicEngine] Failed to persist thesis data:", err);
+        });
+      }
     };
 
     // Run async (AI-powered) pipeline, then apply results
