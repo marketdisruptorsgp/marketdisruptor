@@ -828,8 +828,12 @@ export default function CommandDeckPage() {
             detectedPatterns={detectedPatterns}
           />
 
-          {/* Recommended Move */}
-          <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
+          {/* One Thesis — Causal Chain */}
+          <OneThesisCard
+            thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
+            alternative={autoAnalysis.deepenedOpportunities[1] ?? null}
+            modeAccent={modeAccent}
+          />
 
           {/* Scenario & Challenge Tools */}
           <ValuePillarTabs
