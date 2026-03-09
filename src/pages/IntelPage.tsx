@@ -175,7 +175,7 @@ export default function IntelPage() {
         ) : !hasData ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Radar size={24} className="text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No intel data available yet. Data pipelines run daily — check back soon.</p>
+            <p className="text-sm text-muted-foreground">Intelligence pipelines are processing — data will appear as signals arrive.</p>
           </div>
         ) : (<>
 

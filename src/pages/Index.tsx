@@ -1301,7 +1301,7 @@ export default function Index() {
                   )}
 
                   {detailTab === "supply" && !selectedProduct.supplyChain && (
-                    <p className="text-sm text-muted-foreground text-center py-8">No supply chain data available for this product.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">Supply chain data generates with deeper analysis runs.</p>
                   )}
 
                   {/* TAB: PATENTS */}
