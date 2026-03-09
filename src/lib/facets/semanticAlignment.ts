@@ -564,16 +564,49 @@ export interface SemanticFacetMatch {
 }
 
 /** Minimum similarity threshold for a semantic match */
-const SIMILARITY_THRESHOLD = 0.12;
+const SIMILARITY_THRESHOLD = 0.08;
 
 /** Maximum matches per evidence item */
-const MAX_MATCHES = 5;
+const MAX_MATCHES = 7;
+
+/**
+ * Category-to-concept boost map: if evidence has a `category` field,
+ * matching concepts in related domains get a similarity boost.
+ */
+const CATEGORY_CONCEPT_BOOSTS: Record<string, string[]> = {
+  "operational_dependency": ["labor_high", "labor_high_owner", "bottleneck_capacity", "asset_dependency", "supply_chain_dependency"],
+  "competitive_pressure": ["competitive_fragmented", "competitive_concentrated", "competitive_intelligence", "pricing_weak_power"],
+  "pricing_model": ["pricing_hourly", "pricing_project", "pricing_subscription", "pricing_weak_power", "market_pricing_data"],
+  "cost_structure": ["margin_declining", "margin_strong", "fixed_cost_burden", "cash_flow_pressure"],
+  "demand_signal": ["demand_awareness_gap", "demand_access_geographic", "demand_access_financial", "demand_churn", "market_growing", "market_geographic_opportunity"],
+  "regulatory_constraint": ["regulatory_restrictive"],
+  "distribution_channel": ["distribution_channel", "geographic_constraint"],
+  "technology_dependency": ["ip_constraint", "ip_opportunity", "technology_opportunity", "bottleneck_manual"],
+};
+
+/**
+ * Evidence type-to-domain affinity: certain evidence types are more likely
+ * to map to specific facet domains.
+ */
+const TYPE_DOMAIN_AFFINITY: Record<string, Record<string, number>> = {
+  "constraint": { "business": 0.05, "market": 0.03 },
+  "risk": { "business": 0.04, "market": 0.02 },
+  "opportunity": { "market": 0.04, "business": 0.03 },
+  "leverage": { "business": 0.04 },
+  "friction": { "demand": 0.05, "business": 0.03 },
+  "signal": { "market": 0.03, "business": 0.02 },
+};
 
 /**
  * Compute semantic similarity between evidence text and all facet concepts.
  * Returns ranked matches above the similarity threshold.
+ * Optionally accepts evidence metadata for boosting.
  */
-export function semanticMatch(evidenceText: string): SemanticFacetMatch[] {
+export function semanticMatch(
+  evidenceText: string,
+  evidenceCategory?: string,
+  evidenceType?: string,
+): SemanticFacetMatch[] {
   const idf = getIDF();
   const conceptVecs = getConceptVectors();
 
@@ -586,13 +619,33 @@ export function semanticMatch(evidenceText: string): SemanticFacetMatch[] {
     evidenceVec.set(term, tfVal * idfVal);
   }
 
+  // Determine which concepts get a category boost
+  const boostedConcepts = new Set<string>();
+  if (evidenceCategory && CATEGORY_CONCEPT_BOOSTS[evidenceCategory]) {
+    for (const cid of CATEGORY_CONCEPT_BOOSTS[evidenceCategory]) {
+      boostedConcepts.add(cid);
+    }
+  }
+
   const matches: SemanticFacetMatch[] = [];
 
   for (const concept of FACET_CONCEPTS) {
     const conceptVec = conceptVecs.get(concept.id);
     if (!conceptVec) continue;
 
-    const similarity = cosineSimilarity(evidenceVec, conceptVec);
+    let similarity = cosineSimilarity(evidenceVec, conceptVec);
+
+    // Apply category boost
+    if (boostedConcepts.has(concept.id)) {
+      similarity = similarity * 1.3 + 0.05;
+    }
+
+    // Apply evidence type → domain affinity boost
+    if (evidenceType && TYPE_DOMAIN_AFFINITY[evidenceType]) {
+      const boost = TYPE_DOMAIN_AFFINITY[evidenceType][concept.domain] || 0;
+      similarity += boost;
+    }
+
     if (similarity >= SIMILARITY_THRESHOLD) {
       matches.push({
         conceptId: concept.id,
