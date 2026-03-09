@@ -18,11 +18,7 @@ import {
   TrendingUp, AlertTriangle, Lightbulb,
 } from "lucide-react";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
-import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
-
-const OPPORTUNITY_TYPES: InsightNodeType[] = [
-  "outcome", "leverage_point", "flipped_idea", "concept",
-];
+import { NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 
 const CONF_MAP: Record<string, number> = { high: 8.5, medium: 5.5, low: 2.5 };
 
@@ -356,7 +352,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
 
   const opportunities = useMemo(
     () => graph.nodes
-      .filter(n => OPPORTUNITY_TYPES.includes(n.type))
+      .filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type))
       .sort((a, b) => {
         // Sort by impact desc, then influence desc
         if (b.impact !== a.impact) return b.impact - a.impact;
