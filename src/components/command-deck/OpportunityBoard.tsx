@@ -7,7 +7,7 @@
  */
 
 import { memo, useState } from "react";
-import { Lightbulb, ChevronDown, ChevronUp, BarChart3, Target, Layers, FlaskConical, Zap } from "lucide-react";
+import { Lightbulb, ChevronDown, ChevronUp, BarChart3, Target, Layers, FlaskConical, Zap, Sparkles, Cpu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AggregatedOpportunity } from "@/lib/commandDeckMetrics";
 
@@ -79,10 +79,17 @@ function OpportunityCard({
             </span>
             <div className="min-w-0">
               <p className="text-sm font-bold text-foreground leading-snug">{opp.label}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-                  {opp.source}
-                </span>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {opp.source.startsWith("morphological") ? (
+                  <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full flex items-center gap-1"
+                    style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}>
+                    <Sparkles size={8} /> AI-Enriched
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full flex items-center gap-1 bg-muted text-muted-foreground">
+                    <Cpu size={8} /> {opp.source}
+                  </span>
+                )}
                 <span
                   className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full"
                   style={{ background: `${riskColor}12`, color: riskColor }}
