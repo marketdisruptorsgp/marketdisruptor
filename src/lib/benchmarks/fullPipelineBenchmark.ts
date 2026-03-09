@@ -419,7 +419,9 @@ export function runFullPipelineBenchmark(
       category: "operational_dependency",
     }));
     const exploratory = generateExploratoryOpportunities(mockSignals, facetedEvidence, analysisId);
-    opportunityInsights.push(...exploratory);
+    for (const exp of exploratory) {
+      opportunityInsights.push(exp as typeof opportunityInsights[0]);
+    }
   }
 
   if (opportunityInsights.length > 0) {
