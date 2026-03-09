@@ -265,8 +265,9 @@ export function runFullPipelineBenchmark(
   }));
 
   // Build StrategicInsight-compatible constraints for downstream
+  // Include "limited" confidence constraints at reduced weight — excluding them
+  // starves the morphological search when most detections are low-confidence
   const constraints = constraintHypotheses.hypotheses
-    .filter(h => h.confidence !== "limited")
     .map(h => ({
       id: `c-${h.constraintId}`,
       analysisId,
@@ -275,12 +276,12 @@ export function runFullPipelineBenchmark(
       description: `${h.explanation} [${h.constraintId}: ${h.constraintName}]`,
       evidenceIds: h.evidenceIds,
       relatedInsightIds: [] as string[],
-      impact: h.tier === 1 ? 8 : h.tier === 2 ? 6 : 4,
-      confidence: h.confidence === "strong" ? 0.8 : 0.6,
+      impact: h.tier === 1 ? 8 : h.tier === 2 ? 6 : h.tier === 3 ? 4 : 3,
+      confidence: h.confidence === "strong" ? 0.8 : h.confidence === "moderate" ? 0.6 : 0.4,
       createdAt: Date.now(),
       tier: "structural" as const,
       mode: "business_model" as const,
-      confidenceScore: h.confidence === "strong" ? 0.8 : 0.6,
+      confidenceScore: h.confidence === "strong" ? 0.8 : h.confidence === "moderate" ? 0.6 : 0.4,
       recommendedTools: [] as string[],
     }));
 

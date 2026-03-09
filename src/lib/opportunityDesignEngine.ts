@@ -268,7 +268,7 @@ export function identifyActiveDimensions(
 
     if (newDim.hasConstraint || newDim.hasLeverage) {
       newDim.status = "hot";
-    } else if (newDim.evidenceCount >= 3) {
+    } else if (newDim.evidenceCount >= 2) {
       newDim.status = "warm";
     } else {
       newDim.status = "inactive";
