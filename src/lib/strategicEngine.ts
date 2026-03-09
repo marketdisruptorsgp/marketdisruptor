@@ -874,7 +874,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     impact: i.impact, confidenceScore: i.confidence, evidenceIds: i.evidenceIds, recommendedTools: [] as string[],
   }));
   const { result: graph, stage: sg } = traceStage("Graph Construction", flat.length + insights.length, () =>
-    buildInsightGraph(flat, undefined, undefined, undefined, undefined, insightsForGraph.length > 0 ? insightsForGraph : undefined, scenarioComparison?.scenarios)
+    buildInsightGraph(flat, undefined, undefined, undefined, undefined, insightsForGraph.length > 0 ? insightsForGraph : undefined, scenarioComparison?.scenarios, undefined)
   );
   stages.push(sg);
 
