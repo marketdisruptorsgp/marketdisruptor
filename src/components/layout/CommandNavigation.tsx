@@ -13,7 +13,7 @@ import {
   Lightbulb,
   Shield, Brain,
   FolderOpen, PlusCircle, Zap,
-  Info, HelpCircle, Sparkles, BarChart3,
+  Info, HelpCircle, Sparkles, BarChart3, Map,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
