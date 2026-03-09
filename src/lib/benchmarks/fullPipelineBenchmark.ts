@@ -28,7 +28,7 @@ import {
   generateExploratoryOpportunities,
   type ViabilityReport,
 } from "@/lib/viabilityEngine";
-import { runMorphologicalSearch, type OpportunityVector, type OpportunityZone, type BusinessBaseline } from "@/lib/opportunityDesignEngine";
+import { runMorphologicalSearch, type OpportunityVector, type OpportunityZone, type BusinessBaseline, type MorphologicalSearchDiagnostics, type ConstraintStrength } from "@/lib/opportunityDesignEngine";
 import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/marketStructureEngine";
 import type { EvidenceFacets } from "@/lib/facets";
 import { extractFacetsFromEvidence } from "@/lib/facets";
@@ -182,6 +182,7 @@ export interface PipelineReport {
   facetedEvidenceCount: number;
   facetDiagnostics: FacetDiagnosticReport | null;
   inferredConstraintCount: number;
+  morphologicalDiagnostics: MorphologicalSearchDiagnostics | null;
   pipelineEvents: string[];
 }
 
@@ -352,17 +353,20 @@ export function runFullPipelineBenchmark(
   let vectors: OpportunityVector[] = [];
   let zones: OpportunityZone[] = [];
   let baseline: BusinessBaseline = {};
+  let morphologicalDiagnostics: MorphologicalSearchDiagnostics | null = null;
 
   if (facetedEvidence.length >= 10 && constraints.length > 0) {
     const { result: searchResult, trace: t6 } = traceStage("Morphological Search", facetedEvidence.length, () =>
       runMorphologicalSearch(facetedEvidence, constraints, leveragePoints, [])
     );
-    t6.details = `${searchResult.vectors.length} vectors in ${searchResult.zones.length} zones. Pattern vectors: ${searchResult.patternVectorCount}`;
+    morphologicalDiagnostics = searchResult.diagnostics;
+    const diag = searchResult.diagnostics;
+    t6.details = `${searchResult.vectors.length} vectors in ${searchResult.zones.length} zones. Hot: ${diag.hotDimensionCount}, Warm: ${diag.warmDimensionCount}. Constraints: ${diag.totalActiveConstraints} (top: ${diag.constraintStrengths[0]?.label.slice(0, 40) ?? 'none'}, strength: ${diag.constraintStrengths[0]?.strength.toFixed(2) ?? 0}). Before gates: ${diag.vectorsBeforeGates}, after: ${diag.vectorsAfterGates}`;
     traces.push(t6);
     vectors = searchResult.vectors;
     zones = searchResult.zones;
     baseline = searchResult.baseline;
-    events.push(`${vectors.length} morphological vectors generated`);
+    events.push(`${vectors.length} morphological vectors (${diag.hotDimensionCount} hot, ${diag.warmDimensionCount} warm dims, ${diag.totalActiveConstraints} constraints)`);
   } else {
     events.push(`Morphological search skipped: ${facetedEvidence.length} evidence, ${constraints.length} constraints`);
   }
@@ -537,6 +541,7 @@ export function runFullPipelineBenchmark(
     facetedEvidenceCount: facetedCount,
     facetDiagnostics,
     inferredConstraintCount,
+    morphologicalDiagnostics,
     pipelineEvents: events,
   };
 }
