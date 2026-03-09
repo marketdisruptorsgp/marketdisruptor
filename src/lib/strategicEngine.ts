@@ -1125,9 +1125,9 @@ function buildStrategicNarrative(
   let validationSteps: ValidationStep[] = [];
 
   if (topOpp && topConstraint) {
-    const constraintPhrase = trimAt(topConstraint.label, 80).toLowerCase();
-    const oppPhrase = trimAt(topOpp.label, 80);
-    const driverPhrase = topDriver ? trimAt(topDriver.label, 60).toLowerCase() : null;
+    const constraintPhrase = trimAt(topConstraint.label, 150).toLowerCase();
+    const oppPhrase = trimAt(topOpp.label, 150);
+    const driverPhrase = topDriver ? trimAt(topDriver.label, 120).toLowerCase() : null;
 
     killQuestion = `Can ${oppPhrase.toLowerCase()} actually overcome ${constraintPhrase}, or is this constraint structural and immovable?`;
 
