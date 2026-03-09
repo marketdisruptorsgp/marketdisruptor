@@ -55,6 +55,7 @@ interface IntelligenceFeedProps {
   mode: "product" | "service" | "business";
   modeAccent: string;
   detectedPatterns: DetectedPatternForFeed[];
+  isPipelineRunning?: boolean;
 }
 
 const TAG_CONFIG: Record<Exclude<FeedTag, "all">, { label: string; color: string; bg: string }> = {
