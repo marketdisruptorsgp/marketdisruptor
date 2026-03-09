@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import type { Evidence } from "@/lib/evidenceEngine";
+import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   runStrategicAnalysis,
