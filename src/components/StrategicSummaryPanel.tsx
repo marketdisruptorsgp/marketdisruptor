@@ -58,7 +58,7 @@ function deriveMajorRisk(
     ...constraints.map(c => ({ label: c.label, confidence: c.confidence, impact: c.impact })),
   ];
   const lowConfHigh = allItems.filter(i => i.confidence === "low" && i.impact >= 6).sort((a, b) => b.impact - a.impact)[0];
-  if (lowConfHigh) return `"${lowConfHigh.label}" carries high impact (${lowConfHigh.impact}/10) but low confidence — evidence is sparse.`;
+  if (lowConfHigh) return `"${lowConfHigh.label}" carries high impact but low confidence — evidence is sparse.`;
   const nonConverging = opportunities.find(o => {
     const inZone = convergenceZones?.some(z => z.label.toLowerCase().includes(o.label.toLowerCase().slice(0, 20)));
     return !inZone && o.impact >= 7;
