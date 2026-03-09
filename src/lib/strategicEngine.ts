@@ -424,7 +424,7 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
     const unclustered = items.filter(e => !used.has(e.id));
     if (unclustered.length >= 2) {
       const sorted = [...unclustered].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
-      const categoryLabel = category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const categoryLabel = category.replace(/_/g, " ").replace(/^./, c => c.toUpperCase());
 
       signals.push({
         id: nextId("signal"),
