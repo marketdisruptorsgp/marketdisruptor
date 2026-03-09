@@ -41,6 +41,9 @@ import {
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { extractConstraintShapes, findAnalogs } from "@/lib/analogEngine";
 import { generateInversions } from "@/lib/constraintInverter";
+import { generateSecondOrderUnlocks } from "@/lib/secondOrderEngine";
+import { generateTemporalUnlocks } from "@/lib/temporalArbitrageEngine";
+import { exploreNegativeSpace } from "@/lib/negativeSpaceEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
