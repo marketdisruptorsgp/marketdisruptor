@@ -686,6 +686,33 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
+            SECTION 1.5 — INDUSTRY SYSTEM MAP
+            Visual "machine diagram" of the industry with opportunity overlay.
+           ══════════════════════════════════════════════════════════ */}
+        {(() => {
+          const biz = analysis.businessAnalysisData as Record<string, any> || {};
+          const governed = biz?.governed || analysis.governedData || {};
+          const sp = autoAnalysis.insights.length > 0
+            ? (autoAnalysis as any).structuralProfile ?? null
+            : null;
+          const product = selectedProduct as any || {};
+          return (
+            <IndustrySystemMapView
+              businessName={analysisDisplayName}
+              businessDescription={businessModelInput?.description || product?.description}
+              structuralProfile={sp}
+              opportunities={autoAnalysis.deepenedOpportunities}
+              narrative={narrative}
+              firstPrinciples={governed?.first_principles}
+              constraintMap={governed?.constraint_map}
+              supplyChain={product?.supplyChain}
+              mode={modeKey}
+              modeAccent={modeAccent}
+            />
+          );
+        })()}
+
+        {/* ══════════════════════════════════════════════════════════
             SECTION 2 — THE EVIDENCE (Strategic X-Ray)
             Interactive reasoning chain with challenge mode.
            ══════════════════════════════════════════════════════════ */}
