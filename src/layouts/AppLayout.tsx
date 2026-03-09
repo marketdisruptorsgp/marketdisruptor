@@ -31,11 +31,13 @@ const NO_SIDEBAR_ROUTES = [
 
 function shouldShowSidebar(pathname: string): boolean {
   // Exact matches
-  if (NO_SIDEBAR_ROUTES.includes(pathname)) return false;
+  if (NO_SIDEBAR_ROUTES.includes(pathname)) { console.log("[Sidebar] HIDDEN: exact match", pathname); return false; }
   // Prefix matches
-  if (NO_SIDEBAR_ROUTES.some(r => r.endsWith("/") && pathname.startsWith(r))) return false;
+  const prefixMatch = NO_SIDEBAR_ROUTES.find(r => r.endsWith("/") && pathname.startsWith(r));
+  if (prefixMatch) { console.log("[Sidebar] HIDDEN: prefix match", prefixMatch, pathname); return false; }
   // /analysis/share/:id should not show sidebar
-  if (pathname.startsWith("/analysis/share")) return false;
+  if (pathname.startsWith("/analysis/share")) { console.log("[Sidebar] HIDDEN: analysis/share", pathname); return false; }
+  console.log("[Sidebar] SHOWN for", pathname);
   return true;
 }
 
