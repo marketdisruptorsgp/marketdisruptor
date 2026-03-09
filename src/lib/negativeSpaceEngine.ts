@@ -229,15 +229,15 @@ export function exploreNegativeSpace(
 
   // Extract competitive and demand context
   const competitiveEvidence = evidence.filter(e => 
-    e.type.includes("competitive") || e.description.toLowerCase().includes("competitor")
+    e.type?.includes("competitive") || (e.description || '').toLowerCase().includes("competitor")
   );
   const demandEvidence = evidence.filter(e =>
-    e.type.includes("demand") || e.type.includes("customer")
+    e.type?.includes("demand") || e.type?.includes("customer")
   );
 
-  const competitiveText = competitiveEvidence.map(e => e.description).join(" ").toLowerCase();
-  const demandText = demandEvidence.map(e => e.description).join(" ").toLowerCase();
-  const dimensionText = businessDimensions.map(d => `${d.name} ${d.currentValue}`).join(" ").toLowerCase();
+  const competitiveText = competitiveEvidence.map(e => e.description || '').join(" ").toLowerCase();
+  const demandText = demandEvidence.map(e => e.description || '').join(" ").toLowerCase();
+  const dimensionText = businessDimensions.map(d => `${d.name || ''} ${d.currentValue || ''}`).join(" ").toLowerCase();
 
   const combinedContext = `${competitiveText} ${demandText} ${dimensionText}`;
 
