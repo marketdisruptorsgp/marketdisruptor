@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import type { Evidence } from "@/lib/evidenceEngine";
+import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   runStrategicAnalysis,
@@ -42,6 +43,7 @@ export interface AutoAnalysisResult {
   diagnostic: StrategicDiagnostic | null;
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
+  deepenedOpportunities: DeepenedOpportunity[];
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
@@ -68,6 +70,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [diagnostic, setDiagnostic] = useState<StrategicDiagnostic | null>(null);
   const [scenarioComparison, setScenarioComparison] = useState<ScenarioComparison | null>(null);
   const [sensitivityReports, setSensitivityReports] = useState<SensitivityReport[]>([]);
+  const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
   const [isComputing, setIsComputing] = useState(false);
   const [hasRun, setHasRun] = useState(false);
 
@@ -156,6 +159,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setDiagnostic(result.diagnostic);
       setScenarioComparison(result.scenarioComparison);
       setSensitivityReports(result.sensitivityReports);
+      setDeepenedOpportunities(result.deepenedOpportunities ?? []);
       setHasRun(true);
 
       console.log("[StrategicEngine] Analysis complete:", {
@@ -257,6 +261,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     diagnostic,
     scenarioComparison,
     sensitivityReports,
+    deepenedOpportunities,
     isComputing,
     completedSteps,
     pipelineCompletion,

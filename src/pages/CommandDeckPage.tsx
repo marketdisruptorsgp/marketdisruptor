@@ -32,7 +32,7 @@ import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdi
 import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
 import { ExecutiveSummary } from "@/components/command-deck/ExecutiveSummary";
 import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
-import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
+import { OneThesisCard } from "@/components/command-deck/OneThesisCard";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
@@ -773,7 +773,17 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 2 — INTELLIGENCE FEED
+            TIER 2 — STRATEGIC THESIS
+            Core constraint → contrarian belief → strategic move → economics → first move
+           ══════════════════════════════════════════════════════════ */}
+        <OneThesisCard
+          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
+          alternative={autoAnalysis.deepenedOpportunities[1] ?? null}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            TIER 2b — INTELLIGENCE FEED
             Single scrollable feed with tagged, filterable cards.
            ══════════════════════════════════════════════════════════ */}
         <IntelligenceFeed
@@ -828,8 +838,6 @@ export default function CommandDeckPage() {
             detectedPatterns={detectedPatterns}
           />
 
-          {/* Recommended Move */}
-          <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
 
           {/* Scenario & Challenge Tools */}
           <ValuePillarTabs
