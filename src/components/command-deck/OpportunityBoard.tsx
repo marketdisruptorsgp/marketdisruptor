@@ -7,7 +7,7 @@
  */
 
 import { memo, useState } from "react";
-import { Lightbulb, ChevronDown, ChevronUp, BarChart3, Target, Layers, FlaskConical, Zap } from "lucide-react";
+import { Lightbulb, ChevronDown, ChevronUp, BarChart3, Target, Layers, FlaskConical, Zap, Sparkles, Cpu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AggregatedOpportunity } from "@/lib/commandDeckMetrics";
 
