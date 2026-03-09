@@ -269,6 +269,19 @@ export function LensToggle() {
           }}
         />
       )}
+
+      {/* Operator context editor */}
+      {showOperatorEditor && (
+        <OperatorContextEditor
+          onClose={() => setShowOperatorEditor(false)}
+          onSaved={() => {
+            // Re-activate ETA lens with new context
+            if (activeLensType === "eta") {
+              analysis.setActiveLens(getEtaLensWithContext() as UserLens);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
