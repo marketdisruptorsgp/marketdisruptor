@@ -219,7 +219,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">System Friction Index</span>
-            <span className="text-sm font-bold tabular-nums" style={{ color: overallColor }}>{friction.overall.toFixed(1)}/10</span>
+            <span className="text-sm font-bold" style={{ color: overallColor }}>{friction.overall >= 7 ? "High" : friction.overall >= 4 ? "Moderate" : "Low"}</span>
           </div>
           <ScoreBar value={friction.overall} max={10} color={overallColor} />
         </div>
