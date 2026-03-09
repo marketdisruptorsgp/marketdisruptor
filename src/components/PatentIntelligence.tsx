@@ -91,16 +91,25 @@ const DOMINANCE_CONFIG = {
   low: { color: "hsl(142 70% 38%)", label: "Minor" },
 };
 
-function ScoreMeter({ label, score, color }: { label: string; score: number; color: string }) {
+function qualitativeLabel(score: number): { text: string; tier: "strong" | "moderate" | "limited" } {
+  if (score >= 7) return { text: "Strong", tier: "strong" };
+  if (score >= 4) return { text: "Moderate", tier: "moderate" };
+  return { text: "Limited", tier: "limited" };
+}
+
+const TIER_COLORS: Record<string, string> = {
+  strong: "hsl(142 70% 38%)",
+  moderate: "hsl(38 92% 40%)",
+  limited: "hsl(0 72% 52%)",
+};
+
+function ClarityIndicator({ label, score }: { label: string; score: number }) {
+  const qual = qualitativeLabel(score);
+  const color = TIER_COLORS[qual.tier];
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-foreground">{label}</span>
-        <span className="text-xs font-bold" style={{ color }}>{score}/10</span>
-      </div>
-      <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${score * 10}%`, background: color }} />
-      </div>
+    <div className="flex items-center justify-between py-1">
+      <span className="text-xs font-semibold text-foreground">{label}</span>
+      <span className="text-xs font-extrabold uppercase tracking-wide" style={{ color }}>{qual.text}</span>
     </div>
   );
 }
