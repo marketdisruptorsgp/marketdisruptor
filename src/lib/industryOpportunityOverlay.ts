@@ -127,17 +127,17 @@ export function overlayOpportunities(input: OverlayInput): AnnotatedSystemMap {
   const constraintNodeMap = new Map<string, string>(); // constraintText → nodeId
 
   for (const constraint of constraints) {
-    const text = constraint.constraintName || constraint.description || "";
+    const text = constraint.constraintName || constraint.explanation || "";
     const targetLayer = inferLayerForText(text);
     const layerNodes = findLayerNodes(targetLayer);
 
     if (layerNodes.length > 0) {
-      const targetNode = layerNodes[0]; // Attach to first node in the matching layer
+      const targetNode = layerNodes[0];
       targetNode.markers.push({
         type: "constraint",
         label: text.length > 50 ? text.slice(0, 47) + "…" : text,
         icon: "⚠",
-        explanation: constraint.description || text,
+        explanation: constraint.explanation || text,
       });
       constraintNodeMap.set(text, targetNode.id);
     }

@@ -27,6 +27,7 @@ import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStage
 import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
+import { IndustrySystemMapView } from "@/components/industry-map/IndustrySystemMapView";
 import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
 import { OneThesisCard } from "@/components/command-deck/OneThesisCard";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
