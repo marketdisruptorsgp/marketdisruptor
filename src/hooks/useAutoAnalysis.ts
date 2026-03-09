@@ -154,6 +154,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {
       setIntelligence(newIntelligence);
+      setStructuralProfile(result.structuralProfile ?? null);
       setGraph(result.graph);
       setEvidence(result.evidence);
       setFlatEvidenceState(result.flatEvidence);
