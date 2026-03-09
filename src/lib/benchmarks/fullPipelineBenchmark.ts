@@ -180,6 +180,8 @@ export interface PipelineReport {
   // Diagnostic
   totalEvidenceItems: number;
   facetedEvidenceCount: number;
+  facetDiagnostics: FacetDiagnosticReport | null;
+  inferredConstraintCount: number;
   pipelineEvents: string[];
 }
 
