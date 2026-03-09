@@ -177,7 +177,25 @@ const EVIDENCE_TO_NODE: Record<EvidenceType, InsightNodeType> = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-//  GRAPH BUILDER — Evidence-First
+//  PIPELINE OUTPUT — Single input object for graph construction
+// ═══════════════════════════════════════════════════════════════
+
+/** Consolidated pipeline output — the graph builder's single input */
+export interface PipelineOutput {
+  evidence: Evidence[] | Record<MetricDomain, MetricEvidence>;
+  insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>;
+  scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>;
+  deepenedOpportunities?: DeepOpportunityInput[];
+  /** Legacy fallback args — only used when called from old codepaths */
+  legacyProducts?: any[];
+  legacyIntelligence?: any;
+  legacyDisruptData?: unknown;
+  legacyRedesignData?: unknown;
+  legacyStressTestData?: unknown;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GRAPH BUILDER — Pipeline-Driven
 // ═══════════════════════════════════════════════════════════════
 
 let edgeCounter = 0;
