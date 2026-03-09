@@ -23,6 +23,7 @@ import {
   type MetricDomain,
   type MetricEvidence,
 } from "@/lib/evidenceEngine";
+import type { StructuralProfile } from "@/lib/reconfiguration";
 import {
   buildSystemIntelligence,
   invalidateIntelligence,
