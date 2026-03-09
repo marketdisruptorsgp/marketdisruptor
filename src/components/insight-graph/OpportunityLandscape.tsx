@@ -352,7 +352,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
 
   const opportunities = useMemo(
     () => graph.nodes
-      .filter(n => OPPORTUNITY_TYPES.includes(n.type))
+      .filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type))
       .sort((a, b) => {
         // Sort by impact desc, then influence desc
         if (b.impact !== a.impact) return b.impact - a.impact;
