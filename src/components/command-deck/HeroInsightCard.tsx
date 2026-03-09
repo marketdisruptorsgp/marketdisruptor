@@ -14,6 +14,7 @@ interface HeroInsightCardProps {
   modeAccent: string;
   analysisId: string;
   onNavigateToGraph: () => void;
+  isPipelineRunning?: boolean;
 }
 
 function pickHeroInsight(narrative: StrategicNarrative | null): {
