@@ -13,7 +13,7 @@ import {
   Lightbulb,
   Shield, Brain,
   FolderOpen, PlusCircle, Zap,
-  Info, HelpCircle, Sparkles, BarChart3,
+  Info, HelpCircle, Sparkles, BarChart3, Map,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -73,7 +73,7 @@ const RESOURCE_ITEMS: NavItem[] = [
   { label: "FAQs", icon: HelpCircle, path: "/faqs" },
 ];
 
-export function CommandNavigation() {
+export function CommandNavigation({ onOpenTour }: { onOpenTour?: () => void }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
@@ -100,8 +100,8 @@ export function CommandNavigation() {
             onClick={() => navigate("/")}
             className="flex items-center gap-2 w-full"
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-sidebar-primary text-sidebar-primary-foreground">
-              <Zap size={15} />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-sidebar-primary text-sidebar-primary-foreground">
+              <Zap size={18} />
             </div>
             {!collapsed && (
               <span className="text-sm font-extrabold tracking-tight text-sidebar-foreground">
@@ -229,7 +229,16 @@ export function CommandNavigation() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border bg-sidebar">
+      <SidebarFooter className="p-3 border-t border-sidebar-border bg-sidebar space-y-2">
+        {onOpenTour && (
+          <button
+            onClick={onOpenTour}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-bold text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+          >
+            <Map size={13} />
+            {!collapsed && <span>Guided Tour</span>}
+          </button>
+        )}
         {!collapsed && (
           <div className="flex items-center gap-2 text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-widest">
             <Zap size={10} />

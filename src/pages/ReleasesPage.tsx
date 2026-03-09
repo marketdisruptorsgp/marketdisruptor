@@ -22,6 +22,35 @@ const RELEASE_TAG_CONFIG: Record<string, { label: string; color: string; bg: str
 };
 
 const RELEASES: ReleaseEntry[] = [
+  // ── March 9, 2026 ──
+  {
+    date: "March 9, 2026",
+    title: "Command Deck 2.0 — Single-Scroll Strategic Briefing",
+    description: "Redesigned the Command Deck from a multi-tab layout to a single continuous scroll. The new layout leads with a Hero Insight Card (the single most surprising finding), followed by the Strategic Diagnosis Banner, an Intelligence Feed with tag-based filtering (New Idea / Execution / Iterate), and a clean metrics row — all visible without clicking through tabs.",
+    valueToUser: "You now get the full strategic picture in one scroll instead of hunting through tabs. The hero insight hits you immediately with the biggest finding, the diagnosis explains why it matters, and the intelligence feed gives you actionable next steps — all without a single click.",
+    location: "Command Deck — loads automatically as the default view for any analysis. The Intelligence Feed filter chips let you focus on New Ideas, Execution paths, or Iterate opportunities.",
+    dataSources: "Strategic Engine narrative builder generates the hero insight and diagnosis. Intelligence Feed cards are sourced from insights, playbooks, detected patterns, and validation questions — each with distinct content (no duplication).",
+    tag: "ui",
+  },
+  {
+    date: "March 9, 2026",
+    title: "Text Quality Engine — Consulting-Grade Sentence Generation",
+    description: "Overhauled the entire text generation pipeline to produce clean, complete sentences. Removed Title Case formatting system-wide in favor of sentence case. Eliminated circular logic in strategic verdicts ('Shift from X to resolve X'). Replaced hard character truncation with intelligent sentence-boundary cutting. Stripped all internal IDs (C1, F1) from user-facing text.",
+    valueToUser: "Every piece of generated text now reads like it was written by a human strategist, not assembled by a machine. Sentences are complete, grammatically correct, and never cut off mid-thought. The strategic verdict explains the actual move instead of restating the problem.",
+    location: "Affects all text across the Command Deck, Intelligence Feed, Insight Graph node labels, Evidence Explorer, and PDF exports. The fix is retroactive — all existing analyses automatically render with improved text.",
+    dataSources: "humanizeLabel utility performs system-wide text sanitization. Strategic Engine narrative builder (buildStrategicNarrative) constructs verdicts with anti-circular logic detection. trimAt function cuts at sentence and clause boundaries instead of arbitrary character limits.",
+    tag: "engine",
+  },
+  {
+    date: "March 9, 2026",
+    title: "Intelligence Feed — Deduplicated, Evidence-Rich Cards",
+    description: "Rebuilt the Intelligence Feed to eliminate the duplicate 'breakthrough' card that copied the hero insight. Pattern cards now display real structural characteristics instead of the generic 'Structural pattern detected in evidence.' Added a 'Critical Validation Question' card sourced from the kill question engine. Each card expands inline to reveal deeper context.",
+    valueToUser: "Every card in the feed now provides unique, actionable information. Pattern cards tell you specifically what characteristics define the detected archetype and what transformation paths are common. The validation question gives you the single most important thing to test before committing to the strategy.",
+    location: "Command Deck → Intelligence Feed section (below the Diagnosis Banner). Filter by tag: New Ideas, Execution, or Iterate. Each card expands on click to show additional detail.",
+    dataSources: "Insights from the Strategic Engine (constraints, opportunities, leverage points). Transformation Playbooks from the Playbook Engine. Structural patterns from the Pattern Detection Engine with full characteristics, transformations, and risk factors. Kill questions from the Validation Step Builder.",
+    tag: "intelligence",
+  },
+
   // ── March 8, 2026 ──
   {
     date: "March 8, 2026",

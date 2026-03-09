@@ -68,6 +68,35 @@ const RELEASE_TAG_CONFIG: Record<string, { label: string; color: string; bg: str
 };
 
 const RELEASES: ReleaseEntry[] = [
+  // ── March 9, 2026 ──
+  {
+    date: "March 9, 2026",
+    title: "Command Deck 2.0 — Single-Scroll Strategic Briefing",
+    description: "Redesigned the Command Deck from a multi-tab layout to a single continuous scroll. Hero Insight Card, Strategic Diagnosis Banner, tag-filtered Intelligence Feed, and metrics row — all visible without clicking through tabs.",
+    valueToUser: "Full strategic picture in one scroll. The hero insight hits immediately, the diagnosis explains why, and the intelligence feed gives actionable next steps.",
+    location: "Command Deck — default view for any analysis.",
+    dataSources: "Strategic Engine narrative builder, Intelligence Feed sourced from insights, playbooks, patterns, and validation questions.",
+    tag: "ui",
+  },
+  {
+    date: "March 9, 2026",
+    title: "Text Quality Engine — Consulting-Grade Sentences",
+    description: "Overhauled text generation: sentence case globally, eliminated circular verdicts, intelligent sentence-boundary truncation, stripped internal IDs. Retroactive — all existing analyses benefit.",
+    valueToUser: "Every piece of text reads like it was written by a strategist. Complete sentences, no truncation, no machine artifacts.",
+    location: "All text across Command Deck, Intelligence Feed, Insight Graph, Evidence Explorer, PDF exports.",
+    dataSources: "humanizeLabel utility, Strategic Engine narrative builder with anti-circular logic, trimAt with sentence-boundary cutting.",
+    tag: "engine",
+  },
+  {
+    date: "March 9, 2026",
+    title: "Intelligence Feed — Deduplicated, Evidence-Rich Cards",
+    description: "Rebuilt feed: no duplicate hero card, real pattern characteristics, critical validation question card, inline expansion.",
+    valueToUser: "Every card provides unique, actionable information with real structural details instead of generic placeholders.",
+    location: "Command Deck → Intelligence Feed section.",
+    dataSources: "Strategic Engine insights, Playbook Engine, Pattern Detection Engine, Validation Step Builder.",
+    tag: "intelligence",
+  },
+
   // ── March 8, 2026 ──
   {
     date: "March 8, 2026",

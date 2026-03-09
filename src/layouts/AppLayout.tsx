@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import { useMemo, type ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CommandNavigation } from "@/components/layout/CommandNavigation";
+import { GuidedTour, useGuidedTour } from "@/components/GuidedTour";
 
 /** Routes that should NOT show the sidebar (public/marketing pages) */
 const NO_SIDEBAR_ROUTES = [
@@ -44,6 +45,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { pathname } = useLocation();
   const showSidebar = useMemo(() => shouldShowSidebar(pathname), [pathname]);
+  const tour = useGuidedTour();
 
   if (!showSidebar) {
     return <>{children}</>;
@@ -52,7 +54,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <CommandNavigation />
+        <CommandNavigation onOpenTour={tour.open} />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-11 flex items-center border-b border-border bg-background">
             <SidebarTrigger className="ml-2" />
@@ -60,6 +62,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children}
         </div>
       </div>
+      <GuidedTour isOpen={tour.isOpen} onClose={tour.close} />
     </SidebarProvider>
   );
 }
