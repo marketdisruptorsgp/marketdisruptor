@@ -39,6 +39,8 @@ import {
   flattenEvidence,
 } from "@/lib/evidenceEngine";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
+import { extractConstraintShapes, findAnalogs } from "@/lib/analogEngine";
+import { generateInversions } from "@/lib/constraintInverter";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -185,15 +187,47 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
         baseline, constraints, leveragePoints, input.analysisType
       );
 
+      // ── Layer 2: Inject cross-industry analogs ──────────────────────
+      // Extract constraint shapes and find cross-domain analogs from different industries
+      const constraintShapes = extractConstraintShapes(constraints, flat);
+      const analogMatches = findAnalogs(constraintShapes, 2, 5);
+
+      // ── Layer 3: Inject constraint inversions ───────────────────────
+      // Generate inversions — exploring if constraints can become competitive advantages
+      const inversions = generateInversions(constraintShapes, 2, 4);
+
+      // Enrich payload with analog and inversion context
+      const enrichedPayload = {
+        ...payload,
+        crossIndustryAnalogs: analogMatches.map(m => ({
+          company: m.analog.company,
+          industry: m.analog.industry,
+          constraintShape: m.analog.constraintShape,
+          solutionMechanism: m.analog.solutionMechanism,
+          structuralShift: m.analog.structuralShift,
+          transferInsight: m.analog.transferInsight,
+          targetConstraint: m.targetConstraint.sourceConstraintLabel,
+        })),
+        constraintInversions: inversions.map(inv => ({
+          sourceConstraintLabel: inv.sourceConstraint.sourceConstraintLabel,
+          invertedFrame: inv.invertedFrame,
+          mechanism: inv.mechanism,
+          precedent: inv.precedent,
+          viability: inv.viability,
+        })),
+      };
+
+      console.log(`[Morphological] Injecting ${analogMatches.length} analogs and ${inversions.length} inversions into AI prompt`);
+
       const { data, error } = await invokeWithTimeout<{ alternatives: DimensionAlternative[] }>(
         "generate-opportunity-vectors",
-        { body: payload },
+        { body: enrichedPayload },
         120_000,
       );
 
       if (!error && data?.alternatives && data.alternatives.length > 0) {
         aiAlternatives = data.alternatives;
-        console.log(`[Morphological] Received ${aiAlternatives.length} AI alternatives for ${activeDimCount} dimensions (constraint-informed)`);
+        console.log(`[Morphological] Received ${aiAlternatives.length} AI alternatives for ${activeDimCount} dimensions (constraint-informed + analog-enriched)`);
       } else {
         console.warn("[Morphological] Edge function returned no alternatives", error);
       }
