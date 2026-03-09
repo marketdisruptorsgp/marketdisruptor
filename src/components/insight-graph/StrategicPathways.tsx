@@ -26,6 +26,7 @@ function extractPathways(graph: InsightGraph): Pathway[] {
     .slice(0, 5);
 
   const pathways: Pathway[] = [];
+  const usedLeverageIds = new Set<string>();
 
   for (const constraint of constraints) {
     // Find leverage points connected to this constraint
@@ -34,8 +35,11 @@ function extractPathways(graph: InsightGraph): Pathway[] {
     );
     const levIds = new Set(levEdges.map(e => e.target));
     const leveragePoints = graph.nodes
-      .filter(n => levIds.has(n.id) && (n.type === "leverage_point" || n.type === "driver"))
+      .filter(n => levIds.has(n.id) && !usedLeverageIds.has(n.id) && (n.type === "leverage_point" || n.type === "driver"))
       .slice(0, 2);
+
+    // Skip if this pathway would be redundant (no unique leverage points)
+    if (leveragePoints.length === 0 && pathways.length > 0) continue;
 
     // Find opportunities connected to leverage points
     const oppIds = new Set<string>();
@@ -50,6 +54,8 @@ function extractPathways(graph: InsightGraph): Pathway[] {
       .slice(0, 2);
 
     if (leveragePoints.length > 0 || opportunities.length > 0) {
+      leveragePoints.forEach(lp => usedLeverageIds.add(lp.id));
+
       const totalInfluence = constraint.influence +
         leveragePoints.reduce((s, n) => s + n.influence, 0) +
         opportunities.reduce((s, n) => s + n.influence, 0);
