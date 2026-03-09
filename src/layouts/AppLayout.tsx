@@ -49,9 +49,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const showSidebar = useMemo(() => shouldShowSidebar(pathname), [pathname]);
   const tour = useGuidedTour();
 
-  // DEBUG: Log sidebar decision
-  console.log("[AppLayout] pathname:", pathname, "showSidebar:", showSidebar);
-
   if (!showSidebar) {
     return <>{children}</>;
   }
