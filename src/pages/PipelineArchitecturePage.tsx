@@ -49,31 +49,47 @@ const STAGES: StageConfig[] = [
     dataSources: [
       { name: "User product/service/business input", type: "user_input" },
       { name: "scrape-products edge function (web scraping)", type: "edge_function" },
-      { name: "analyze-products edge function", type: "edge_function" },
+      { name: "analyze-products edge function (structured parsing)", type: "edge_function" },
       { name: "photo-analysis edge function (image→product)", type: "edge_function" },
-      { name: "scrape-url-autofill (URL metadata)", type: "edge_function" },
+      { name: "scrape-url-autofill (URL metadata extraction)", type: "edge_function" },
       { name: "patent-analysis edge function", type: "edge_function" },
+      { name: "scrape-market-news (market headlines)", type: "edge_function" },
+      { name: "scrape-trend-intel (Google Trends velocity)", type: "edge_function" },
+      { name: "scrape-patent-intel (patent landscape)", type: "edge_function" },
+      { name: "geo-market-data (geographic market sizing)", type: "edge_function" },
+      { name: "extract-business-intelligence (financial signals)", type: "edge_function" },
+      { name: "scout-competitors (competitive landscape)", type: "edge_function" },
       { name: "Saved analysis data (saved_analyses table)", type: "database" },
       { name: "Tool scenario simulations (tool_scenarios table)", type: "database" },
+      { name: "Market signals (market_signals table)", type: "database" },
+      { name: "Trend signals (trend_signals table)", type: "database" },
     ],
     aiUsage: {
       model: "Gemini 2.5 Flash (via analyze-products)",
-      purpose: "Parses raw user input into structured product objects with category, pricing, features, audience",
+      purpose: "Parses raw user input into structured product objects with category, pricing, features, audience. Also used in photo-analysis for image-to-product extraction.",
       temperature: 0.3,
       unique: false,
     },
     lensImpact: "ETA lens adds 3 dimensions to evidence: ownerDependency, acquisitionComplexity, improvementRunway. Evidence archetype tagged as 'eta'.",
     uniqueLogic: [
-      "evidenceEngine.ts — 1,100 lines of deterministic normalization, deduplication, and tier classification",
+      "evidenceEngine.ts — 1,100+ lines of deterministic normalization, deduplication, and tier classification",
       "Canonical Evidence type with 20+ fields (tier, lens, archetype, mode, sourceEngine, confidence)",
       "tierDiscoveryEngine.ts — Classifies every signal into Structural / System / Optimization tiers",
       "constraintDetectionEngine.ts — Extracts binding constraints from hidden assumptions and friction patterns",
+      "constraintSeverityEngine.ts — Ranks constraints by severity and interaction effects",
+      "constraintInteractionEngine.ts — Models how constraints amplify/dampen each other",
+      "constraintInverter.ts — Flips constraints into opportunity vectors",
       "frictionEngine.ts — Identifies operational friction points and maps them to evidence",
+      "evidenceAdapters.ts — Adapts raw step data into canonical evidence format",
+      "evidenceBridge.ts — Bridges evidence between pipeline stages",
+      "evidenceRegistry.ts — Central registry for evidence lifecycle tracking",
+      "evidenceFacets.ts — Multi-dimensional faceting and filtering",
+      "dataProvenance.ts — Full lineage tracking for every evidence object",
     ],
-    outputs: ["Evidence[] (20-60 normalized objects per analysis)", "ConstraintCandidate[] (binding constraints)", "Tier classifications (structural/system/optimization)"],
+    outputs: ["Evidence[] (20-60 normalized objects per analysis)", "ConstraintCandidate[] (binding constraints with severity)", "Tier classifications (structural/system/optimization)", "Evidence provenance chain"],
     processingWeight: "high",
-    edgeFunction: "analyze-products, scrape-products, patent-analysis, photo-analysis",
-    description: "All raw signals from every pipeline step are normalized into canonical Evidence objects. Each evidence item carries tier, lens, archetype, mode, source, and confidence metadata. This is entirely custom logic — no LLM is used for evidence normalization itself.",
+    edgeFunction: "analyze-products, scrape-products, patent-analysis, photo-analysis, scrape-url-autofill, scrape-market-news, scrape-trend-intel, scrape-patent-intel, geo-market-data, extract-business-intelligence, scout-competitors",
+    description: "All raw signals from every pipeline step and 11 edge functions are normalized into canonical Evidence objects. Each evidence item carries tier, lens, archetype, mode, source, and confidence metadata. Evidence normalization itself is 100% deterministic custom logic.",
   },
   {
     id: "structural",
@@ -87,6 +103,7 @@ const STAGES: StageConfig[] = [
       { name: "Evidence[] from Stage 1", type: "deterministic" },
       { name: "ConstraintCandidate[] from constraint detection", type: "deterministic" },
       { name: "User lens configuration (ETA fields)", type: "user_input" },
+      { name: "Market signals (market_signals table)", type: "database" },
     ],
     aiUsage: null,
     lensImpact: "ETA lens activates 3 additional dimensions: Owner Dependency (autonomous→critical), Acquisition Complexity (turnkey→prohibitive), Improvement Runway (optimized→transformative). Total: 13 dimensions for ETA vs 10 base.",
@@ -96,11 +113,14 @@ const STAGES: StageConfig[] = [
       "Each dimension inferred from evidence keyword matching + constraint analysis (zero AI)",
       "DiagnosisLensConfig system — pluggable lens configurations change how dimensions are weighted/inferred",
       "ETA-specific: Owner dependency inferred from 'owner', 'founder', 'key person' evidence signals",
+      "marketStructureEngine.ts — Market structure overlay for dimension calibration",
+      "lensWeighting.ts — Dynamic weight adjustment based on active lens profile",
+      "lensAdaptationEngine.ts — Adapts structural dimensions to operator context",
     ],
-    outputs: ["StructuralProfile (10-13 typed dimensions)", "Diagnosis metadata (confidence per dimension, evidence backing)"],
+    outputs: ["StructuralProfile (10-13 typed dimensions)", "Diagnosis metadata (confidence per dimension, evidence backing)", "Lens-adjusted weight vectors"],
     processingWeight: "low",
     edgeFunction: null,
-    description: "100% deterministic. Reads the evidence dataset and infers qualitative values for each structural dimension using keyword matching and constraint analysis. No AI model is called. This is entirely unique custom logic.",
+    description: "100% deterministic. Reads the evidence dataset and infers qualitative values for each structural dimension using keyword matching and constraint analysis. No AI model is called. Entirely custom logic with pluggable lens system.",
   },
   {
     id: "pattern",
@@ -113,6 +133,7 @@ const STAGES: StageConfig[] = [
     dataSources: [
       { name: "StructuralProfile from Stage 2", type: "deterministic" },
       { name: "6 Structural Patterns (hardcoded pattern library)", type: "deterministic" },
+      { name: "Business analogs (business_analogs table)", type: "database" },
     ],
     aiUsage: null,
     lensImpact: "ETA lens applies additional acquisition-aware gates: patterns are filtered/boosted based on owner dependency (prefer 'delegatable'), acquisition complexity (prefer 'manageable'), and improvement runway (prefer 'significant'). Signal density ranking adjusted by etaAdjustment score.",
@@ -122,12 +143,15 @@ const STAGES: StageConfig[] = [
       "Each pattern has a binary qualification gate function (profile → qualifies/disqualified)",
       "patternQualification.ts — 174 lines of gate evaluation + signal density ranking",
       "Typically produces 1-2 qualified patterns from 6 candidates",
+      "strategicPatternLibrary.ts — Extended strategic pattern definitions",
+      "strategicPatternEngine.ts — Cross-references patterns against historical analogs",
+      "analogEngine.ts — Matches structural profile to known business analog outcomes",
       "ETA gates: additional filtering based on acquisition-specific structural dimensions",
     ],
-    outputs: ["QualifiedPattern[] (1-2 patterns, ranked by signal density)", "Qualification reasons and strength signals per pattern"],
+    outputs: ["QualifiedPattern[] (1-2 patterns, ranked by signal density)", "Qualification reasons and strength signals per pattern", "Analog matches with outcome data"],
     processingWeight: "low",
     edgeFunction: null,
-    description: "100% deterministic. Evaluates each of 6 hardcoded structural innovation patterns against the diagnosed profile. Binary pass/fail gates — no probability scores, no AI. The pattern library and qualification logic are entirely custom strategic reasoning.",
+    description: "100% deterministic. Evaluates each of 6 hardcoded structural innovation patterns against the diagnosed profile. Binary pass/fail gates — no probability scores, no AI. Pattern library, analog matching, and qualification logic are entirely custom strategic reasoning.",
   },
   {
     id: "deepening",
@@ -143,7 +167,8 @@ const STAGES: StageConfig[] = [
       { name: "Evidence[] summary (top 15 signals)", type: "deterministic" },
       { name: "ConstraintCandidate[] (binding constraints)", type: "deterministic" },
       { name: "Operator context (ETA: cash available, time horizon, skills, strategy)", type: "user_input" },
-      { name: "Active lens configuration", type: "user_input" },
+      { name: "Active lens configuration (user_lenses table)", type: "user_input" },
+      { name: "Business analogs for grounding", type: "database" },
     ],
     aiUsage: {
       model: "Gemini 2.5 Pro (via deepen-thesis edge function)",
@@ -161,56 +186,71 @@ const STAGES: StageConfig[] = [
       "deepen-thesis edge function: ~400 lines including prompt construction, response parsing, fallback handling",
       "Context truncation to 12,000 chars to prevent token overflow",
       "Deterministic fallback: builds thesis from pattern templates + constraint descriptions",
+      "hypothesisRanking.ts — Ranks competing hypotheses by evidence strength",
+      "convergenceEngine.ts — Detects convergence across multiple deepening iterations",
+      "secondOrderEngine.ts — Models second-order effects of strategic moves",
     ],
     outputs: [
       "DeepenedOpportunity[] (1-2 fully reasoned theses)",
       "Each contains: CausalChain, EconomicMechanism, FeasibilityAssessment, FirstMove",
       "Confidence scores derived from evidence density + qualification strength",
+      "Second-order effect projections",
     ],
     processingWeight: "critical",
     edgeFunction: "deepen-thesis",
-    description: "The crown jewel. This is where the AI generates business-specific strategic theses. The prompt is heavily structured with the full structural profile, evidence summary, and operator context. The 6 strategic reasoning lenses are woven into the system prompt. Temperature 0.4 ensures stable output. Deterministic fallback guarantees output even without AI.",
+    description: "The crown jewel. AI generates business-specific strategic theses with full structural context. The prompt is heavily structured with structural profile, evidence summary, and operator context. 6 strategic reasoning lenses woven into system prompt. Temperature 0.4 for stable output. Deterministic fallback guarantees output even without AI.",
   },
   {
     id: "pipeline_steps",
     number: 5,
     name: "Pipeline Step Functions (Understand → Pitch)",
     shortName: "Pipeline Steps",
-    subtitle: "5 sequential edge functions generating raw analysis data",
+    subtitle: "8+ sequential edge functions generating raw analysis data",
     icon: GitBranch,
-    trigger: "Sequential — orchestrated by usePipelineOrchestrator. Auto-triggers when analysis reaches 'done' state.",
+    trigger: "Sequential — orchestrated by usePipelineOrchestrator. Auto-triggers when analysis begins.",
     dataSources: [
       { name: "Selected product/service/business model", type: "user_input" },
       { name: "Adaptive context (user-provided constraints)", type: "user_input" },
       { name: "Prior step results (cascading)", type: "deterministic" },
       { name: "Governed data (reasoning synopsis, constraint map)", type: "deterministic" },
       { name: "Patent data (if available)", type: "edge_function" },
+      { name: "Market intel data", type: "database" },
     ],
     aiUsage: {
-      model: "Gemini 2.5 Flash (primary) → Gemini 2.5 Pro (fallback)",
-      purpose: "Each step calls a dedicated edge function that uses AI to generate analysis artifacts. Flash-first for speed/cost, Pro fallback for complex schemas.",
+      model: "Gemini 2.5 Flash (primary) → Gemini 2.5 Pro (fallback for complex schemas)",
+      purpose: "Each step calls a dedicated edge function that uses AI to generate analysis artifacts. Flash-first for speed/cost, Pro fallback for complex reasoning.",
       temperature: 0.3,
       unique: false,
     },
-    lensImpact: "Adaptive context from user lenses (user_lenses table) is passed to each edge function. ETA lens adds acquisition-specific prompting.",
+    lensImpact: "Adaptive context from user lenses (user_lenses table) is passed to each edge function. ETA lens adds acquisition-specific prompting. Business mode activates business-model-analysis and analyze-business-structure functions.",
     uniqueLogic: [
       "usePipelineOrchestrator.ts — 255 lines orchestrating sequential execution",
       "Step 1 (Understand): first-principles-analysis — structural deconstruction",
       "Step 2 (Disrupt): first-principles-analysis (redesign mode) — with disruptContext + governedContext",
       "Step 3 (Stress Test): critical-validation — risk/vulnerability analysis",
       "Step 4 (Pitch): generate-pitch-deck — synthesis of all prior steps",
+      "Business Mode: business-model-analysis — operational audit, revenue reinvention, disruption analysis",
+      "Business Mode: analyze-business-structure — structural decomposition of business models",
+      "Idea Generation: generate-flip-ideas — assumption-flipped product concepts with unit economics",
+      "Concept Space: generate-concept-space — explores adjacent concept variants",
+      "Opportunity Vectors: generate-opportunity-vectors — directional opportunity mapping",
+      "Problem Framing: analyze-problem, generate-problem-statements — problem space decomposition",
+      "Action Items: generate-action-items — AI-generated strategic to-do lists",
+      "Visual Mockups: generate-product-visual — AI concept visualizations",
       "Each step: 180s timeout, error isolation (one step failing doesn't stop pipeline)",
       "Results saved to DB via merge_analysis_step RPC",
     ],
     outputs: [
       "disruptData — hidden assumptions, flipped logic, structural analysis",
-      "redesignData — reimagined product/service concepts",
+      "redesignData — reimagined product/service concepts with scoring",
       "stressTestData — vulnerability assessment, risk signals",
-      "pitchDeckData — synthesized pitch narrative",
+      "pitchDeckData — synthesized pitch narrative (5-slide deck)",
+      "businessModelData — operational audit, revenue models, disruption paths",
+      "flippedIdeas — assumption-inverted product concepts with unit economics",
     ],
     processingWeight: "critical",
-    edgeFunction: "first-principles-analysis, critical-validation, generate-pitch-deck",
-    description: "The raw material generators. These edge functions produce the analysis data that feeds into evidence extraction. Each uses AI for generation but the orchestration, error handling, context cascading, and data persistence are custom logic.",
+    edgeFunction: "first-principles-analysis, critical-validation, generate-pitch-deck, business-model-analysis, analyze-business-structure, generate-flip-ideas, generate-concept-space, generate-opportunity-vectors, analyze-problem, generate-problem-statements, generate-action-items, generate-product-visual",
+    description: "The raw material generators. 12+ edge functions produce the analysis data that feeds into evidence extraction. Each uses AI for generation but orchestration, error handling, context cascading, governed reasoning, and data persistence are custom logic.",
   },
   {
     id: "intelligence",
@@ -226,17 +266,27 @@ const STAGES: StageConfig[] = [
       { name: "StructuralProfile from Stage 2", type: "deterministic" },
       { name: "QualifiedPattern[] from Stage 3", type: "deterministic" },
       { name: "Pipeline step data (disrupt, redesign, stress test, pitch)", type: "deterministic" },
-      { name: "Tool scenario simulations", type: "database" },
+      { name: "Tool scenario simulations (tool_scenarios table)", type: "database" },
+      { name: "Concept evaluations (concept_evaluations table)", type: "database" },
+      { name: "Market signals & opportunity zones", type: "database" },
       { name: "System intelligence cache", type: "deterministic" },
     ],
     aiUsage: null,
-    lensImpact: "Active lenses determine which intelligence facets are highlighted. ETA lens surfaces acquisition-specific metrics in the Command Deck.",
+    lensImpact: "Active lenses determine which intelligence facets are highlighted. ETA lens surfaces acquisition-specific metrics (SDE, deal economics, owner risk). Business lens surfaces operational audit metrics.",
     uniqueLogic: [
       "strategicEngine.ts — Strategic insight generation, narrative synthesis",
       "systemIntelligence.ts — Cross-cutting intelligence aggregation",
-      "insightGraph.ts — Graph construction for visual reasoning map",
-      "scenarioComparisonEngine.ts — Side-by-side scenario evaluation",
+      "insightGraph.ts — Graph construction for visual reasoning map (nodes + edges)",
+      "insightGovernance.ts — Enforces insight quality: no filler, evidence-backed only",
+      "insightProvenance.ts — Traces every insight back to source evidence",
+      "insightLayer.ts — Layered insight composition for progressive disclosure",
+      "scenarioComparisonEngine.ts — Side-by-side scenario evaluation and ranking",
+      "scenarioLabEngine.ts — What-if scenario laboratory with parameter sweeps",
       "recomputeIntelligence.ts — Orchestrates full recomputation cycle",
+      "commandDeckMetrics.ts — Computes all Command Deck card metrics",
+      "modeIntelligence.ts — Mode-specific intelligence (product vs business vs ETA)",
+      "convergenceEngine.ts — Detects when intelligence stabilizes across iterations",
+      "visualStoryCompiler.ts — Compiles intelligence into visual narrative sequences",
       "All deterministic — no AI calls in synthesis layer",
     ],
     outputs: [
@@ -245,42 +295,63 @@ const STAGES: StageConfig[] = [
       "StrategicNarrative — executive summary text",
       "ScenarioComparison — what-if scenario rankings",
       "Command Deck metrics and intelligence feed cards",
+      "Mode-specific intelligence overlays",
     ],
     processingWeight: "medium",
     edgeFunction: null,
-    description: "100% deterministic synthesis. Takes all pipeline outputs, evidence, and deepened theses and produces the final intelligence briefing. No AI is used here.",
+    description: "100% deterministic synthesis. Takes all pipeline outputs, evidence, and deepened theses and produces the final intelligence briefing. 14+ custom engines with zero AI calls. The Command Deck is entirely driven by deterministic computation.",
   },
   {
     id: "tools",
     number: 7,
-    name: "Interactive Simulation Tools",
+    name: "Interactive Tools & AI Interrogation",
     shortName: "Tools",
-    subtitle: "User-driven modeling → Evidence feedback loop",
+    subtitle: "User-driven modeling + AI reasoning partner → Evidence feedback loop",
     icon: Settings,
-    trigger: "Manual — user opens a tool from the lens toolkit and runs simulations",
+    trigger: "Manual — user opens a tool from the lens toolkit, runs simulations, or starts an interrogation conversation",
     dataSources: [
       { name: "Analysis artifacts (disrupt, redesign, stress test data)", type: "deterministic" },
       { name: "User-provided simulation inputs", type: "user_input" },
       { name: "Saved scenarios (tool_scenarios table)", type: "database" },
       { name: "Market signals (market_signals table)", type: "database" },
+      { name: "Interrogation conversation history", type: "database" },
+      { name: "Concept evaluations & outcomes", type: "database" },
     ],
-    aiUsage: null,
-    lensImpact: "ETA lens provides specialized tools: SBA Loan Calculator, Acquisition ROI Model, Cash Flow Quality Analyzer, Owner Transition Planner.",
+    aiUsage: {
+      model: "Gemini 2.5 Flash (reasoning-interrogation) + Gemini 2.5 Pro (hypothesis-interrogation)",
+      purpose: "AI reasoning partner for challenging assumptions, exploring alternatives, and suggesting revisions. Maintains conversation context with full analysis data injection.",
+      temperature: 0.4,
+      unique: true,
+    },
+    lensImpact: "ETA lens provides specialized tools: SBA Loan Calculator, Acquisition ROI Model, Cash Flow Quality Analyzer, Owner Transition Planner. Business lens provides operational modeling tools.",
     uniqueLogic: [
       "lensToolkitRegistry.ts — Tool registry mapping lenses to available tools",
       "scenarioEngine.ts — Converts saved scenarios into canonical Evidence objects",
-      "financialModelingEngine.ts — Unit economics modeling",
+      "financialModelingEngine.ts — Unit economics and deal modeling",
+      "sensitivityEngine.ts — Parameter sensitivity analysis",
+      "viabilityEngine.ts — Business viability scoring",
+      "outcomeSimulatorEngine.ts — Monte Carlo-style outcome simulation",
+      "temporalArbitrageEngine.ts — Time-based opportunity arbitrage modeling",
+      "negativeSpaceEngine.ts — Identifies what's missing from the analysis",
+      "toolReasoningEngine.ts — Reasoning chain construction for tool outputs",
+      "reasoning-interrogation edge function — Streaming AI conversation with full analysis context",
+      "hypothesis-interrogation edge function — Deep hypothesis challenge and revision suggestions",
+      "generate-market-intel edge function — On-demand market intelligence synthesis",
+      "bundle-deep-dive edge function — Deep-dive into specific insight bundles",
+      "help-assistant edge function — Contextual help and guidance",
       "Each saved scenario generates evidence that feeds back into Stage 1",
       "Closed loop: Tool → Scenario → Evidence → Recompute → Updated Intelligence",
     ],
     outputs: [
       "ToolScenario — saved simulation results",
       "Simulation Evidence — canonical evidence objects from scenario results",
+      "AI interrogation responses with revision suggestions",
+      "Concept evaluations with TAM estimates and analog matching",
       "Automatic intelligence recomputation triggered",
     ],
-    processingWeight: "low",
-    edgeFunction: null,
-    description: "User-facing modeling tools that create a feedback loop. Saved scenarios generate Evidence objects that flow back into Stage 1, triggering a full recomputation. This closed-loop architecture means the system gets smarter as users explore.",
+    processingWeight: "medium",
+    edgeFunction: "reasoning-interrogation, hypothesis-interrogation, generate-market-intel, bundle-deep-dive, help-assistant, compute-platform-intel",
+    description: "User-facing modeling tools and AI reasoning partner creating a closed feedback loop. Saved scenarios and interrogation insights generate Evidence objects that flow back into Stage 1, triggering full recomputation. 8+ custom engines + 6 edge functions. The system gets smarter as users explore.",
   },
 ];
 
@@ -556,12 +627,12 @@ function FlowArrow({ label }: { label?: string }) {
 /* ── Summary Stats ── */
 function SummaryStats() {
   const stats = [
-    { label: "Custom Code", value: "~5,000 lines", desc: "Deterministic logic (no AI)" },
-    { label: "AI Stages", value: "2 of 7", desc: "Stage 4 (Deepening) + Stage 5 (Pipeline)" },
-    { label: "Edge Functions", value: "48", desc: "Backend serverless functions" },
+    { label: "Custom Engines", value: "90+", desc: "Deterministic lib files (no AI)" },
+    { label: "AI Stages", value: "3 of 7", desc: "Stages 1 (partial), 4, 5 + 7" },
+    { label: "Edge Functions", value: "47", desc: "Backend serverless functions" },
     { label: "Structural Patterns", value: "6", desc: "Hardcoded strategic moves" },
     { label: "Evidence Dimensions", value: "20+", desc: "Per canonical Evidence object" },
-    { label: "Structural Dimensions", value: "10-13", desc: "10 base + 3 ETA-specific" },
+    { label: "Database Tables", value: "27", desc: "Structured data persistence" },
   ];
 
   return (
@@ -604,8 +675,8 @@ function ProcessingHeatmap() {
         })}
       </div>
       <p className="text-[10px] text-muted-foreground mt-3">
-        Most AI/processing: <strong className="text-red-400">Stage 4 (AI Deepening)</strong> and <strong className="text-red-400">Stage 5 (Pipeline)</strong>. 
-        Stages 2, 3, 6, 7 are deterministic with zero AI cost.
+        Most AI/processing: <strong className="text-red-400">Stage 4 (AI Deepening)</strong> and <strong className="text-red-400">Stage 5 (Pipeline Steps)</strong>. 
+        Stages 2, 3, 6 are 100% deterministic with zero AI cost. Stage 7 uses AI for interrogation conversations only.
       </p>
     </div>
   );
@@ -743,29 +814,40 @@ export default function PipelineArchitecturePage() {
           <h3 className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-3">Unique Custom Logic vs Generic LLM Usage</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-cyan-400">100% Custom / Unique</h4>
+              <h4 className="text-xs font-bold text-cyan-400">100% Custom / Unique (90+ engines)</h4>
               <ul className="space-y-1 text-xs text-foreground/70">
-                <li>• Evidence normalization & tier classification (~1,100 lines)</li>
+                <li>• Evidence normalization, adapters, bridge, registry, facets (~1,100+ lines)</li>
                 <li>• Structural profile diagnosis — 10-13 dimensions (~333 lines)</li>
                 <li>• Pattern library — 6 hardcoded strategic moves (~387 lines)</li>
                 <li>• Pattern qualification — binary gates (~174 lines)</li>
-                <li>• Constraint detection engine</li>
-                <li>• Friction engine</li>
-                <li>• Intelligence synthesis & graph construction</li>
-                <li>• Scenario → Evidence feedback loop</li>
-                <li>• Pipeline orchestration & error isolation</li>
-                <li>• ETA lens dimensions & acquisition gates</li>
+                <li>• Constraint detection, severity, interaction, inversion engines</li>
+                <li>• Friction engine + data provenance tracking</li>
+                <li>• Intelligence synthesis — 14 deterministic engines</li>
+                <li>• Insight governance, provenance, and layering</li>
+                <li>• Scenario lab, comparison, and outcome simulation</li>
+                <li>• Financial modeling, sensitivity analysis, viability scoring</li>
+                <li>• Temporal arbitrage + negative space engines</li>
+                <li>• Pipeline orchestration, error isolation, governed persistence</li>
+                <li>• ETA lens dimensions, acquisition gates, lens adaptation</li>
+                <li>• Analog engine — historical business outcome matching</li>
+                <li>• Visual story compiler + enforcement helpers</li>
+                <li>• Command Deck metrics computation</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-violet-400">AI-Assisted (Structured, Not Generic)</h4>
               <ul className="space-y-1 text-xs text-foreground/70">
-                <li>• Thesis deepening — Gemini 2.5 Pro with full structural context</li>
-                <li>• Pipeline step generation — Gemini Flash/Pro with structured schemas</li>
+                <li>• Thesis deepening — Gemini 2.5 Pro with full structural context + deterministic fallback</li>
+                <li>• Pipeline step generation — Gemini 2.5 Flash/Pro with structured schemas (12+ edge functions)</li>
                 <li>• Product analysis — structured parsing from user input</li>
                 <li>• Patent analysis — structured extraction</li>
-                <li>• Concept space generation — variant exploration</li>
-                <li className="text-foreground/50 italic mt-2">All AI calls use: custom prompts, structured output schemas, temperature control, deterministic fallbacks, context truncation</li>
+                <li>• Business model analysis — operational audit, revenue reinvention</li>
+                <li>• Concept space generation — variant exploration with scoring</li>
+                <li>• Reasoning interrogation — streaming AI conversation with analysis context</li>
+                <li>• Hypothesis interrogation — deep challenge and revision suggestions</li>
+                <li>• Market intel synthesis — on-demand intelligence generation</li>
+                <li>• Photo analysis — image-to-product extraction</li>
+                <li className="text-foreground/50 italic mt-2">All 47 edge functions use: custom prompts, structured output schemas, temperature control, deterministic fallbacks, context truncation, and governed reasoning</li>
               </ul>
             </div>
           </div>
