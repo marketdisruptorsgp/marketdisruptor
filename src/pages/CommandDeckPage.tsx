@@ -754,6 +754,7 @@ export default function CommandDeckPage() {
           modeAccent={modeAccent}
           analysisId={analysisId || ""}
           onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
+          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
         />
 
         {/* ── EXECUTIVE SUMMARY — One-paragraph CEO brief ── */}
