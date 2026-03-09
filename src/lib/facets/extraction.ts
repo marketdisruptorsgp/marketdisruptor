@@ -62,7 +62,7 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
     matched = true;
   }
 
-  if (text.match(/hourly|per[\s-]?hour|time[\s-]?and[\s-]?material|billable[\s-]?hour/)) {
+  if (text.match(/hourly[\s-]?(?:rate|billing|charge|fee|pricing)|(?:bill|charg|pric)[\w]*[\s-]?(?:per|by)[\s-]?(?:the[\s-]?)?hour|time[\s-]?and[\s-]?material|billable[\s-]?hour/)) {
     facets.pricingArchitecture = { model: "hourly", priceSettingPower: "weak", switchingCost: "low" };
     matched = true;
   } else if (text.match(/project[\s-]?based|per[\s-]?project|fixed[\s-]?bid|quote[\s-]?based/)) {
