@@ -91,16 +91,25 @@ const DOMINANCE_CONFIG = {
   low: { color: "hsl(142 70% 38%)", label: "Minor" },
 };
 
-function ScoreMeter({ label, score, color }: { label: string; score: number; color: string }) {
+function qualitativeLabel(score: number): { text: string; tier: "strong" | "moderate" | "limited" } {
+  if (score >= 7) return { text: "Strong", tier: "strong" };
+  if (score >= 4) return { text: "Moderate", tier: "moderate" };
+  return { text: "Limited", tier: "limited" };
+}
+
+const TIER_COLORS: Record<string, string> = {
+  strong: "hsl(142 70% 38%)",
+  moderate: "hsl(38 92% 40%)",
+  limited: "hsl(0 72% 52%)",
+};
+
+function ClarityIndicator({ label, score }: { label: string; score: number }) {
+  const qual = qualitativeLabel(score);
+  const color = TIER_COLORS[qual.tier];
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-foreground">{label}</span>
-        <span className="text-xs font-bold" style={{ color }}>{score}/10</span>
-      </div>
-      <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${score * 10}%`, background: color }} />
-      </div>
+    <div className="flex items-center justify-between py-1">
+      <span className="text-xs font-semibold text-foreground">{label}</span>
+      <span className="text-xs font-extrabold uppercase tracking-wide" style={{ color }}>{qual.text}</span>
     </div>
   );
 }
@@ -192,8 +201,8 @@ export function PatentIntelligence({ product, onSave }: Props) {
       {/* Scorecards — concise top-level */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="p-3 rounded-xl space-y-2" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <ScoreMeter label="IP Landscape Clarity" score={patentData.landscapeScore} color="hsl(271 81% 55%)" />
-          <ScoreMeter label="Innovation Opportunity" score={patentData.opportunityScore} color="hsl(142 70% 38%)" />
+          <ClarityIndicator label="IP Landscape Clarity" score={patentData.landscapeScore} />
+          <ClarityIndicator label="Innovation Opportunity" score={patentData.opportunityScore} />
         </div>
         <div className="p-3 rounded-xl flex flex-col gap-1.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Patent Thicket Risk</p>

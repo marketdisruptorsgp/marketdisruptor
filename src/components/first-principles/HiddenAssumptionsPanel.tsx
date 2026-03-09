@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Brain, Flame } from "lucide-react";
+import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 import { StructuralDiagnosisPanel } from "@/components/StructuralDiagnosisPanel";
@@ -132,11 +133,7 @@ export function HiddenAssumptionsPanel({ data, governedData, onRerun, loading, r
 
       {assumptions.length === 0 ? (
         <StepCanvas>
-          <div className="text-center py-10 space-y-3">
-            <Brain size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
-            <p className="text-sm font-bold text-foreground">No assumption data available</p>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto">Click <strong>Re-run</strong> above to regenerate.</p>
-          </div>
+          <PipelineProcessingState stepKey="disrupt" title="Mapping hidden assumptions and leverage points" />
         </StepCanvas>
       ) : (
         <StepCanvas>

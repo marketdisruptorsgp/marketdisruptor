@@ -60,7 +60,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
     geoData, regulatoryData, activeLens,
-    saveStepData,
+    saveStepData, loadedFromSaved,
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
@@ -257,6 +257,33 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
     geoData, regulatoryData, activeLens,
   ]);
+
+  // ── Hydrate strategic engine from persisted state on reload ──
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (!loadedFromSaved || !analysisId || hydratedRef.current || hasRun) return;
+
+    // Try to restore persisted strategic engine state from DB
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      Promise.resolve(
+        supabase.from("saved_analyses").select("analysis_data").eq("id", analysisId).maybeSingle()
+      ).then(({ data }) => {
+          const se = (data?.analysis_data as any)?.strategicEngine;
+          if (se && se.structuralProfile) {
+            hydratedRef.current = true;
+            setStructuralProfile(se.structuralProfile);
+            if (se.deepenedOpportunities?.length > 0) {
+              setDeepenedOpportunities(se.deepenedOpportunities);
+            }
+            setHasRun(true);
+            console.log("[StrategicEngine] Hydrated from persisted strategicEngine state");
+            setTimeout(() => runAnalysis(), 1500);
+          }
+        })
+        .catch(() => { /* non-critical */ });
+    });
+  }, [loadedFromSaved, analysisId, hasRun]);
 
   // ── Auto-recompute whenever evidence dataset changes ──
   const evidenceHashRef = useRef<string>("");
