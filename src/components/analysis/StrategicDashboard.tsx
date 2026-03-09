@@ -319,7 +319,7 @@ function BreakthroughHighlight({ graph, commandDeck, analysisId, onNavigate }: {
           <p className="text-base font-extrabold text-foreground mt-1 leading-snug">{item.label}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-xs font-extrabold tabular-nums" style={{ color: "hsl(152 60% 44%)" }}>
-              Impact {item.impact}/10
+              {item.impact >= 8 ? "High impact" : item.impact >= 5 ? "Significant" : "Moderate"}
             </span>
             <span className="text-xs font-bold text-muted-foreground capitalize">{item.confidence}</span>
             {"leverageScore" in item && (
