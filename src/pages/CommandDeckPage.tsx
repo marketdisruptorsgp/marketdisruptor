@@ -631,7 +631,7 @@ export default function CommandDeckPage() {
     }
     // Hydrating from DB — show simple spinner
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex-1 bg-background flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
       </div>
     );
