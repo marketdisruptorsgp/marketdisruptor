@@ -3,3 +3,6 @@
  */
 export * from "./types";
 export * from "./extraction";
+export * from "./semanticAlignment";
+export * from "./latentInference";
+export * from "./diagnostics";

@@ -133,10 +133,13 @@ function ReportView({ report }: { report: PipelineReport }) {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>{report.businessName} — Pipeline Report</span>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Badge variant="outline">{report.totalEvidenceItems} evidence</Badge>
-              <Badge variant="outline">{report.facetedEvidenceCount} faceted</Badge>
+              <Badge variant="outline">{report.facetedEvidenceCount} faceted ({report.facetDiagnostics?.coveragePercent ?? 0}%)</Badge>
               <Badge variant="outline">{report.constraints.length} constraints</Badge>
+              {report.inferredConstraintCount > 0 && (
+                <Badge variant="secondary">{report.inferredConstraintCount} inferred</Badge>
+              )}
               <Badge variant="outline">{report.morphologicalVectors.length} vectors</Badge>
               <Badge variant="outline">{report.stressTests.length} tested</Badge>
             </div>
@@ -162,6 +165,58 @@ function ReportView({ report }: { report: PipelineReport }) {
           ))}
         </div>
       </ReportSection>
+
+      {/* Facet Diagnostics */}
+      {report.facetDiagnostics && (
+        <ReportSection title="Facet Extraction Diagnostics" icon={<Layers className="w-4 h-4" />} defaultOpen>
+          <div className="grid grid-cols-3 gap-4 text-sm mb-4">
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{report.facetDiagnostics.coveragePercent}%</div>
+              <div className="text-xs text-muted-foreground">Coverage ({report.facetDiagnostics.mappedCount}/{report.facetDiagnostics.totalEvidence})</div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{report.facetDiagnostics.patternMatchCount} / {report.facetDiagnostics.semanticOnlyMatchCount}</div>
+              <div className="text-xs text-muted-foreground">Pattern / Semantic-only</div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{report.facetDiagnostics.avgMatchesPerItem}</div>
+              <div className="text-xs text-muted-foreground">Avg matches/item (confidence: {report.facetDiagnostics.avgSemanticConfidence})</div>
+            </div>
+          </div>
+          {report.facetDiagnostics.topConcepts.length > 0 && (
+            <div className="mb-3">
+              <h4 className="font-semibold text-sm mb-1">Top Concepts</h4>
+              <div className="flex flex-wrap gap-1">
+                {report.facetDiagnostics.topConcepts.slice(0, 8).map((c, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs">
+                    {c.name} ({c.frequency}×, {(c.avgSimilarity * 100).toFixed(0)}%)
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          {report.facetDiagnostics.inferredConstraints.length > 0 && (
+            <div className="mb-3">
+              <h4 className="font-semibold text-sm mb-1">Latent Constraints Inferred</h4>
+              {report.facetDiagnostics.inferredConstraints.map((ic, i) => (
+                <div key={i} className="text-xs text-muted-foreground py-0.5">
+                  • <span className="font-medium text-foreground">{ic.name}</span> — {ic.constraintId} (confidence: {ic.confidence})
+                </div>
+              ))}
+            </div>
+          )}
+          {report.facetDiagnostics.unmappedEvidence.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1 text-destructive">Unmapped Evidence ({report.facetDiagnostics.unmappedEvidence.length})</h4>
+              {report.facetDiagnostics.unmappedEvidence.slice(0, 5).map((u, i) => (
+                <div key={i} className="text-xs text-muted-foreground py-0.5 truncate">
+                  • {u.snippet}
+                </div>
+              ))}
+            </div>
+          )}
+        </ReportSection>
+      )}
 
       {/* Section 1: System Decomposition */}
       <ReportSection title="1. Business System Decomposition" icon={<Layers className="w-4 h-4" />}>

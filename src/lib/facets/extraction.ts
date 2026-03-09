@@ -20,13 +20,35 @@ import type {
 } from "./types";
 import { FACET_SCHEMA_VERSION, SIGNAL_LIFECYCLE } from "./types";
 
+import { extractMultiFacets, type MultiFacetResult, type SemanticFacetMatch } from "./semanticAlignment";
+
 // ═══════════════════════════════════════════════════════════════
-//  TIER 1: STRUCTURED FACET EXTRACTION
+//  UNIFIED EXTRACTION — Pattern + Semantic
 // ═══════════════════════════════════════════════════════════════
 
-export function extractFacetsFromEvidence(evidence: Evidence): EvidenceFacets | null {
+/**
+ * Extract facets using combined pattern + semantic matching.
+ * Returns multi-facet result with confidence scores.
+ */
+export function extractFacetsUnified(evidence: Evidence): MultiFacetResult {
   const text = `${evidence.label} ${evidence.description || ""}`.toLowerCase();
+  const patternFacets = extractPatternFacets(text);
+  return extractMultiFacets(text, patternFacets);
+}
 
+/**
+ * Legacy API — returns a single EvidenceFacets or null.
+ * Now backed by the unified extraction engine.
+ */
+export function extractFacetsFromEvidence(evidence: Evidence): EvidenceFacets | null {
+  const result = extractFacetsUnified(evidence);
+  return result.primaryFacets;
+}
+
+/**
+ * Pattern-based extraction (original logic, now internal).
+ */
+function extractPatternFacets(text: string): EvidenceFacets | null {
   // Try business facets first (most important for constraint detection)
   const businessFacets = tryExtractBusinessFacets(text);
   if (businessFacets) return businessFacets;
