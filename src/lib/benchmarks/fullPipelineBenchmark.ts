@@ -541,6 +541,7 @@ export function runFullPipelineBenchmark(
     facetedEvidenceCount: facetedCount,
     facetDiagnostics,
     inferredConstraintCount,
+    morphologicalDiagnostics,
     pipelineEvents: events,
   };
 }
