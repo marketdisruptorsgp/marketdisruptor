@@ -19,6 +19,7 @@ import type { QualifiedPattern } from "./patternQualification";
 import type { StrategicBetTemplate } from "./patternLibrary";
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { ConstraintCandidate } from "@/lib/constraintDetectionEngine";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 
 // ═══════════════════════════════════════════════════════════════
 //  DEEPENED OPPORTUNITY — Stage 4 Output
