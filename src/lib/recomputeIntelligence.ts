@@ -114,6 +114,7 @@ function buildEngineInput(
     aiAlternatives,
     geoMarketData: input.geoMarketData,
     regulatoryData: input.regulatoryData,
+    lensConfig: input.lensConfig,
   };
 }
 
