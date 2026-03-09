@@ -276,12 +276,12 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
     console.warn("[Morphological] Failed to fetch AI alternatives:", err);
   }
 
-  // If no AI alternatives, return the sync result
+  // If no AI alternatives, return the async result
   if (!aiAlternatives || aiAlternatives.length === 0) {
-    return syncOutput;
+    return asyncOutput;
   }
 
   // Pass 2: Re-run full pipeline with AI alternatives injected
-  const enhancedResult = runStrategicAnalysis(buildEngineInput(input, aiAlternatives));
+  const enhancedResult = await runStrategicAnalysisAsync(buildEngineInput(input, aiAlternatives));
   return buildOutput(enhancedResult);
 }
