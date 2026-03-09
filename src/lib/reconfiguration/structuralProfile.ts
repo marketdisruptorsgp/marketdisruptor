@@ -76,18 +76,33 @@ export interface StructuralProfile {
 // ═══════════════════════════════════════════════════════════════
 
 /**
+ * Lens configuration passed into structural diagnosis.
+ * When ETA lens is active, additional dimensions are computed.
+ */
+export interface DiagnosisLensConfig {
+  lensType: "default" | "eta" | "custom";
+  name?: string;
+  risk_tolerance?: string;
+  constraints?: string;
+}
+
+/**
  * Build a StructuralProfile from the evidence dataset and detected constraints.
  * Pure deterministic inference — no AI calls.
+ * When lensConfig.lensType === "eta", adds owner-dependency, acquisition complexity,
+ * and improvement runway dimensions that shape downstream pattern qualification.
  */
 export function diagnoseStructuralProfile(
   evidence: Evidence[],
   constraints: ConstraintCandidate[],
+  lensConfig?: DiagnosisLensConfig | null,
 ): StructuralProfile {
   const corpus = evidence.map(e => `${e.label} ${e.description ?? ""}`).join(" ").toLowerCase();
   const categories = [...new Set(evidence.map(e => e.category).filter(Boolean))] as string[];
   const constraintNames = new Set(constraints.map(c => c.constraintName));
+  const isEta = lensConfig?.lensType === "eta";
 
-  return {
+  const baseProfile = {
     supplyFragmentation: inferFragmentation(corpus, constraintNames),
     marginStructure: inferMarginStructure(corpus, constraintNames),
     switchingCosts: inferSwitchingCosts(corpus, constraintNames),
@@ -98,6 +113,14 @@ export function diagnoseStructuralProfile(
     assetUtilization: inferAssetUtilization(corpus, constraintNames),
     regulatorySensitivity: inferRegulatorySensitivity(corpus, constraintNames),
     valueChainPosition: inferValueChainPosition(corpus),
+  };
+
+  return {
+    ...baseProfile,
+    ownerDependency: isEta ? inferOwnerDependency(corpus, constraintNames, baseProfile) : null,
+    acquisitionComplexity: isEta ? inferAcquisitionComplexity(corpus, constraintNames, baseProfile) : null,
+    improvementRunway: isEta ? inferImprovementRunway(corpus, constraintNames, baseProfile) : null,
+    etaActive: isEta,
     bindingConstraints: constraints.slice(0, 3),
     evidenceDepth: evidence.length,
     evidenceCategories: categories,
