@@ -762,7 +762,7 @@ export default function CommandDeckPage() {
         <MetricRow
           opportunityScore={metrics.opportunityScore}
           riskScore={metrics.riskScore}
-          confidence={metrics.confidence}
+          confidence={narrative?.verdictConfidence ?? Math.min(1, metrics.totalEvidenceCount / 30)}
           evidenceCount={totalSignals}
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
