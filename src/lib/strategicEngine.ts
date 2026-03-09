@@ -40,6 +40,7 @@ import {
   type StructuralProfile,
   type QualifiedPattern,
   type DeepenedOpportunity,
+  type DiagnosisLensConfig,
 } from "@/lib/reconfiguration";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
