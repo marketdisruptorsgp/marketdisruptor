@@ -204,13 +204,35 @@ function scoreOpportunityViability(
     }
   }
 
-  // If no pattern matched, score based on evidence and constraint data
+  // If no pattern matched, score based on evidence density and constraint linkage
   if (sourcePatternIds.length === 0) {
     const evidenceItems = allEvidence.filter(e => opportunity.evidenceIds.includes(e.id));
-    feasibility = Math.min(1, 0.3 + evidenceItems.length * 0.05);
-    capitalRequirement = 0.5;
-    marketReadiness = 0.5;
-    implementationComplexity = 0.5;
+    const evidenceDensity = evidenceItems.length;
+
+    // Feasibility scales with evidence — more evidence = more feasible
+    feasibility = Math.min(0.9, 0.25 + evidenceDensity * 0.08);
+
+    // Constraint linkage strength — opportunities tied to more/stronger constraints score better
+    const linkedConstraints = constraints.filter(c =>
+      opportunity.relatedInsightIds.includes(c.id)
+    );
+    const constraintLinkageScore = linkedConstraints.length > 0
+      ? Math.min(1, linkedConstraints.reduce((s, c) => s + (c.impact / 10) * (c.confidenceScore ?? (typeof c.confidence === "number" ? c.confidence : 0.5)), 0) / linkedConstraints.length)
+      : 0.3;
+
+    // Capital requirement inferred from constraint severity (higher severity = likely more capital)
+    const avgSeverity = linkedConstraints.length > 0
+      ? linkedConstraints.reduce((s, c) => s + (severityScores.find(sv => sv.constraintId === c.id)?.severity ?? 0.5), 0) / linkedConstraints.length
+      : 0.5;
+    capitalRequirement = Math.min(0.85, 0.2 + avgSeverity * 0.5);
+
+    // Market readiness from evidence breadth — diverse evidence categories suggest market maturity
+    const uniqueCategories = new Set(evidenceItems.map(e => e.category).filter(Boolean));
+    marketReadiness = Math.min(0.85, 0.3 + uniqueCategories.size * 0.12);
+
+    // Implementation complexity from constraint count and tier depth
+    const tier1Count = linkedConstraints.filter(c => c.label?.toLowerCase().includes("tier 1") || c.impact >= 8).length;
+    implementationComplexity = Math.min(0.85, 0.3 + tier1Count * 0.15 + (linkedConstraints.length > 2 ? 0.1 : 0));
   }
 
   // Propagate confidence through the chain (bounded weighted aggregation)

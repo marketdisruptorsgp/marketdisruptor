@@ -28,11 +28,19 @@ import {
   generateExploratoryOpportunities,
   type ViabilityReport,
 } from "@/lib/viabilityEngine";
-import { runMorphologicalSearch, type OpportunityVector, type OpportunityZone, type BusinessBaseline, type MorphologicalSearchDiagnostics, type ConstraintStrength } from "@/lib/opportunityDesignEngine";
+import { runMorphologicalSearch, extractBaseline, identifyActiveDimensions, getDimensionsByStatus, type OpportunityVector, type OpportunityZone, type BusinessBaseline, type MorphologicalSearchDiagnostics, type ConstraintStrength } from "@/lib/opportunityDesignEngine";
 import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/marketStructureEngine";
 import type { EvidenceFacets } from "@/lib/facets";
 import { extractFacetsFromEvidence } from "@/lib/facets";
 import { humanizeLabel } from "@/lib/humanize";
+import {
+  synthesizeRecommendationNarrative,
+  synthesizeWhyItWins,
+  generateContextualAssumptions,
+  generateContextualRisks,
+  generateDeterministicAlternatives,
+  getBusinessAssumptions,
+} from "@/lib/benchmarks/narrativeSynthesis";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES — AI-generated business structure
@@ -184,6 +192,8 @@ export interface PipelineReport {
   inferredConstraintCount: number;
   morphologicalDiagnostics: MorphologicalSearchDiagnostics | null;
   pipelineEvents: string[];
+  /** Business-specific strategic assumptions */
+  businessAssumptions: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -342,7 +352,7 @@ export function runFullPipelineBenchmark(
 
   // ── Stage 6: Morphological Search ──
   // Build leverage points from constraints for morphological search
-  const leveragePoints = constraints.slice(0, 3).map(c => ({
+  const leveragePoints = constraints.slice(0, 5).map(c => ({
     ...c,
     insightType: "leverage_point" as const,
     id: `lev-${c.id}`,
@@ -356,8 +366,22 @@ export function runFullPipelineBenchmark(
   let morphologicalDiagnostics: MorphologicalSearchDiagnostics | null = null;
 
   if (facetedEvidence.length >= 10 && constraints.length > 0) {
+    // Pre-compute baseline to generate deterministic alternatives for benchmark mode
+    // Use statically imported functions from opportunityDesignEngine
+    const preBaseline = identifyActiveDimensions(
+      extractBaseline(facetedEvidence, constraints, leveragePoints),
+      constraints,
+      leveragePoints,
+    );
+    const activeDims = [...getDimensionsByStatus(preBaseline, "hot"), ...getDimensionsByStatus(preBaseline, "warm")];
+    const deterministicAlts = generateDeterministicAlternatives(
+      activeDims.map(d => ({ id: d.id, name: d.name, category: d.category, currentValue: d.currentValue, status: d.status })),
+      constraints.map(c => ({ id: c.id, label: c.label, description: c.description })),
+    );
+    events.push(`Generated ${deterministicAlts.length} deterministic alternatives for ${activeDims.length} active dimensions`);
+
     const { result: searchResult, trace: t6 } = traceStage("Morphological Search", facetedEvidence.length, () =>
-      runMorphologicalSearch(facetedEvidence, constraints, leveragePoints, [])
+      runMorphologicalSearch(facetedEvidence, constraints, leveragePoints, deterministicAlts)
     );
     morphologicalDiagnostics = searchResult.diagnostics;
     const diag = searchResult.diagnostics;
@@ -502,20 +526,27 @@ export function runFullPipelineBenchmark(
   if (rankedOpportunities.length > 0) {
     const top = rankedOpportunities[0];
     const topConstraint = constraintReports[0];
+    // (unused vector lookup removed)
+    
+    // Synthesize a human-readable strategic narrative
+    const shifts = top.shifts || top.label;
+    const constraintName = topConstraint?.constraintName?.replace(/_/g, " ") || "primary structural constraint";
+    const constraintExplanation = topConstraint?.explanation || "";
+    
+    // Build contextual narrative from constraint + opportunity link
+    const selectedIdea = synthesizeRecommendationNarrative(shifts, constraintName, businessName);
+    const whyItWins = synthesizeWhyItWins(shifts, constraintName, constraintExplanation, top.viabilityLabel);
+    
+    // Context-aware assumptions based on the specific shifts
+    const keyAssumptions = generateContextualAssumptions(shifts, constraintName, businessName);
+    const biggestRisks = generateContextualRisks(shifts, constraintName, businessName);
+
     recommendation = {
-      selectedIdea: top.label,
-      whyItWins: `Highest viability score (${top.viabilityLabel}) with ${top.viabilityScore.toFixed(2)} combined score. ${top.shifts}`,
-      constraintExploited: topConstraint?.constraintName || "primary structural constraint",
-      keyAssumptions: [
-        "Market willingness to adopt structural change",
-        "Operational feasibility within current resource constraints",
-        "Competitive response does not neutralize advantage within 12 months",
-      ],
-      biggestRisks: [
-        "Execution complexity may exceed available capabilities",
-        "Market timing risk — structural shifts take time to materialize",
-        "Capital requirements may be underestimated",
-      ],
+      selectedIdea,
+      whyItWins,
+      constraintExploited: constraintName,
+      keyAssumptions,
+      biggestRisks,
     };
   }
 
@@ -543,5 +574,6 @@ export function runFullPipelineBenchmark(
     inferredConstraintCount,
     morphologicalDiagnostics,
     pipelineEvents: events,
+    businessAssumptions: getBusinessAssumptions(businessName),
   };
 }
