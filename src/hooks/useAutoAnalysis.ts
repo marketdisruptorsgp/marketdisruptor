@@ -34,6 +34,7 @@ import { type SensitivityReport } from "@/lib/sensitivityEngine";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
+  structuralProfile: StructuralProfile | null;
   graph: InsightGraph | null;
   evidence: Record<MetricDomain, MetricEvidence> | null;
   flatEvidence: Evidence[];
