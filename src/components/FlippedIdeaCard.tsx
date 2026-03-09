@@ -99,7 +99,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
               }}
             >
               <TrendingUp size={10} />
-              Avg {avgScore.toFixed(1)}/10
+              {avgScore >= 8 ? "Strong potential" : avgScore >= 5 ? "Moderate potential" : "Early stage"}
             </span>
           </div>
           <p className="typo-card-body text-muted-foreground mt-1 leading-relaxed">{idea.description}</p>

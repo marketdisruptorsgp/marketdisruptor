@@ -32,7 +32,7 @@ function deriveKeyInsight(
   }
   if (topConstraint) {
     const frictionNote = friction && friction.overall >= 7 ? " amid high system friction" : "";
-    return `The primary structural constraint — "${topConstraint.label}" (impact ${topConstraint.impact}/10) — is the dominant force shaping the opportunity landscape${frictionNote}.`;
+    return `The primary structural constraint — "${topConstraint.label}" — is the dominant force shaping the opportunity landscape${frictionNote}.`;
   }
   if (strategicZone) {
     return `Multiple analytical lenses converge on "${strategicZone.label}", indicating a high-confidence structural leverage zone.`;
@@ -58,7 +58,7 @@ function deriveMajorRisk(
     ...constraints.map(c => ({ label: c.label, confidence: c.confidence, impact: c.impact })),
   ];
   const lowConfHigh = allItems.filter(i => i.confidence === "low" && i.impact >= 6).sort((a, b) => b.impact - a.impact)[0];
-  if (lowConfHigh) return `"${lowConfHigh.label}" carries high impact (${lowConfHigh.impact}/10) but low confidence — evidence is sparse.`;
+  if (lowConfHigh) return `"${lowConfHigh.label}" carries high impact but low confidence — evidence is sparse.`;
   const nonConverging = opportunities.find(o => {
     const inZone = convergenceZones?.some(z => z.label.toLowerCase().includes(o.label.toLowerCase().slice(0, 20)));
     return !inZone && o.impact >= 7;
@@ -225,13 +225,13 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
               <p className="text-sm font-bold text-foreground leading-snug truncate">{opp.label}</p>
             </div>
             <span
-              className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-full flex-shrink-0"
+              className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
               style={{
-                background: opp.impact >= 8 ? "hsl(var(--success) / 0.15)" : "hsl(var(--muted))",
-                color: opp.impact >= 8 ? "hsl(var(--success))" : "hsl(var(--foreground) / 0.6)",
+                background: opp.impact >= 8 ? "hsl(var(--success) / 0.15)" : opp.impact >= 5 ? "hsl(38 92% 50% / 0.12)" : "hsl(var(--muted))",
+                color: opp.impact >= 8 ? "hsl(var(--success))" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--foreground) / 0.6)",
               }}
             >
-              {opp.impact}/10
+              {opp.impact >= 8 ? "High leverage" : opp.impact >= 5 ? "Significant" : "Moderate"}
             </span>
           </div>
         ))}

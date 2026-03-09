@@ -155,7 +155,7 @@ function RadarChart({ dimensions }: { dimensions: Dimension[] }) {
             className="absolute bottom-0 left-0 right-0 rounded-lg p-3 text-center"
             style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
           >
-            <p className="text-xs font-bold text-foreground">{dimensions[hoveredIdx].label}: {dimensions[hoveredIdx].value}/10</p>
+            <p className="text-xs font-bold text-foreground">{dimensions[hoveredIdx].label}: {dimensions[hoveredIdx].value >= 7 ? "Strong" : dimensions[hoveredIdx].value >= 4 ? "Moderate" : "Low"}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">{dimensions[hoveredIdx].detail}</p>
           </motion.div>
         )}

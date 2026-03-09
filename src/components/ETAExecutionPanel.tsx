@@ -49,8 +49,8 @@ function GaugeBar({ metric }: { metric: MetricGauge }) {
             style={{ width: `${pct}%`, background: metric.color }}
           />
         </div>
-        <p className="text-right text-[11px] font-bold tabular-nums" style={{ color: metric.color }}>
-          {metric.value.toFixed(1)}/10
+        <p className="text-right text-[11px] font-bold" style={{ color: metric.color }}>
+          {metric.value >= 7 ? "High" : metric.value >= 4 ? "Moderate" : "Low"}
         </p>
       </div>
     </div>

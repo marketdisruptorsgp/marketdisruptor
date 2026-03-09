@@ -39,7 +39,7 @@ function deriveSignal(
   // Priority 1: High-score opportunity
   if (topOpp && (topOpp.opportunityScore ?? 0) >= 5) {
     return {
-      message: `High ${labels.opportunity} detected: "${topOpp.label}" — Score ${(topOpp.opportunityScore ?? 0).toFixed(1)}/10`,
+      message: `High ${labels.opportunity} detected: "${topOpp.label}"`,
       type: "opportunity",
       icon: TrendingUp,
     };
@@ -73,7 +73,7 @@ function deriveSignal(
   // Priority 4: General opportunity
   if (topOpp) {
     return {
-      message: `Top ${labels.opportunity}: "${topOpp.label}" — Impact ${topOpp.impact}/10`,
+      message: `Top ${labels.opportunity}: "${topOpp.label}"`,
       type: "opportunity",
       icon: TrendingUp,
     };

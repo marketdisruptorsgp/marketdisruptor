@@ -506,7 +506,7 @@ export function SystemLeverageMapView({
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-foreground">{node.label}</p>
               <p className="text-xs text-muted-foreground">
-                {layerLabel} · Impact {node.impact}/10 · {node.evidence?.[0] || ""}
+                {layerLabel} · {node.impact >= 8 ? "High impact" : node.impact >= 5 ? "Moderate impact" : "Low impact"} · {node.evidence?.[0] || ""}
               </p>
             </div>
             <button

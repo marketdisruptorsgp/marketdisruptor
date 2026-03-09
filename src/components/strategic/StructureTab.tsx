@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame, Gauge } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame, Gauge, GitBranch } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 import { type LensType } from "@/lib/multiLensEngine";
@@ -11,6 +11,7 @@ import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 import { OpportunityMatrix } from "@/components/OpportunityMatrix";
 import { FrictionHeatmap } from "@/components/FrictionHeatmap";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
+import { CausalConstraintMap } from "@/components/CausalConstraintMap";
 
 export type StructureViewMode = "assumptions" | "deconstruct" | "all";
 
@@ -344,7 +345,7 @@ function AssumptionCard({ item, leverageColor, reasonColor, status, hasDeepInsig
         {/* Tags row — always visible */}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           <span className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-full" style={{ background: leverageColor + "18", color: leverageColor }}>
-            Leverage: {item.leverage}/10
+            Leverage: {item.leverage >= 8 ? "High" : item.leverage >= 5 ? "Moderate" : "Low"}
           </span>
           {status && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: status.bg, color: status.text }}>
@@ -553,7 +554,16 @@ export function StructureTab({
                   />
                 </StructureSection>
 
-                {/* Cross-Lens Friction Heatmap */}
+                {/* Causal Constraint Flow Map */}
+                <StructureSection
+                  title="Causal Constraint Flow"
+                  icon={GitBranch}
+                  defaultOpen={true}
+                >
+                  <CausalConstraintMap commandDeck={systemIntelligence.commandDeck} />
+                </StructureSection>
+
+
                 {systemIntelligence.leverageMap && intelligenceInput.activeLenses.length >= 2 && (
                   <StructureSection
                     title="Cross-Lens Friction Heatmap"

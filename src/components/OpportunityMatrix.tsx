@@ -219,7 +219,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">System Friction Index</span>
-            <span className="text-sm font-bold tabular-nums" style={{ color: overallColor }}>{friction.overall.toFixed(1)}/10</span>
+            <span className="text-sm font-bold" style={{ color: overallColor }}>{friction.overall >= 7 ? "High" : friction.overall >= 4 ? "Moderate" : "Low"}</span>
           </div>
           <ScoreBar value={friction.overall} max={10} color={overallColor} />
         </div>
@@ -238,7 +238,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {CATEGORY_LABELS[key] || key}
               </p>
-              <p className="text-lg font-extrabold tabular-nums" style={{ color: catColor }}>{value.toFixed(1)}</p>
+              <p className="text-sm font-extrabold" style={{ color: catColor }}>{value >= 7 ? "High friction" : value >= 4 ? "Moderate" : "Low friction"}</p>
               <ScoreBar value={value} max={10} color={catColor} />
             </div>
           );
@@ -258,8 +258,8 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
               <div className="flex-1">
                 <ScoreBar value={value} max={10} color={dimColor} />
               </div>
-              <span className="text-xs font-bold tabular-nums w-6 text-right" style={{ color: dimColor }}>
-                {value}
+              <span className="text-xs font-bold w-16 text-right" style={{ color: dimColor }}>
+                {value >= 7 ? "High" : value >= 4 ? "Moderate" : "Low"}
               </span>
             </div>
           );

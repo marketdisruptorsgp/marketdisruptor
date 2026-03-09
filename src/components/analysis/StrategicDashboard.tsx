@@ -319,7 +319,7 @@ function BreakthroughHighlight({ graph, commandDeck, analysisId, onNavigate }: {
           <p className="text-base font-extrabold text-foreground mt-1 leading-snug">{item.label}</p>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-xs font-extrabold tabular-nums" style={{ color: "hsl(152 60% 44%)" }}>
-              Impact {item.impact}/10
+              {item.impact >= 8 ? "High impact" : item.impact >= 5 ? "Significant" : "Moderate"}
             </span>
             <span className="text-xs font-bold text-muted-foreground capitalize">{item.confidence}</span>
             {"leverageScore" in item && (
@@ -429,7 +429,7 @@ function PathwayChip({ node, onClick }: { node: InsightGraphNode; onClick: () =>
     >
       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
       <span className="text-foreground max-w-[120px] truncate">{node.label}</span>
-      <span className="tabular-nums opacity-70">{node.impact}/10</span>
+      <span className="opacity-70">{node.impact >= 8 ? "Strong" : node.impact >= 5 ? "Moderate" : "Early"}</span>
     </button>
   );
 }
