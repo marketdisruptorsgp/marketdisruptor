@@ -261,7 +261,7 @@ export function runFullPipelineBenchmark(
       const ev = facetedEvidence.find(e => e.id === eid);
       return ev ? ev.label : eid;
     }),
-    facetBasis: h.candidates[0]?.facetBasis ?? [],
+    facetBasis: h.facetBasis ?? [],
   }));
 
   // Build StrategicInsight-compatible constraints for downstream
