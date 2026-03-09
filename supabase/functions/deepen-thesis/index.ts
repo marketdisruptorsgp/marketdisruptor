@@ -377,3 +377,33 @@ function buildToolSchema() {
     },
   };
 }
+
+/** Attempt to recover a truncated JSON response (works for objects containing arrays) */
+function parseWithRecovery(content: string): unknown {
+  try {
+    return JSON.parse(content);
+  } catch {
+    // Try wrapping with closing braces for truncated tool call args like {"theses":[{...},{...
+    // Strategy 1: Find last complete object in the theses array
+    const thesesStart = content.indexOf('"theses"');
+    if (thesesStart > 0) {
+      const lastBrace = content.lastIndexOf("}");
+      if (lastBrace > thesesStart) {
+        // Try closing the array and wrapper object
+        const candidates = [
+          content.substring(0, lastBrace + 1) + "]}",
+          content.substring(0, lastBrace + 1) + "]",
+        ];
+        for (const candidate of candidates) {
+          try {
+            const result = JSON.parse(candidate);
+            return result;
+          } catch {
+            // try next candidate
+          }
+        }
+      }
+    }
+    throw new Error("Cannot repair truncated JSON");
+  }
+}
