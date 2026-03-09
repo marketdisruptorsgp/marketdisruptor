@@ -52,7 +52,7 @@ function FrictionMeter({ friction }: { friction: FrictionScore }) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Friction</span>
-        <span className="text-xs font-bold tabular-nums" style={{ color }}>{friction.index.toFixed(1)}/5</span>
+        <span className="text-xs font-bold" style={{ color }}>{friction.index <= 2.5 ? "Low" : friction.index <= 3.5 ? "Moderate" : "High"}</span>
       </div>
       {DIMS.map(d => (
         <div key={d.key} className="flex items-center gap-2">
