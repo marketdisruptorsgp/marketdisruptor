@@ -7,7 +7,9 @@
  */
 
 import type { Evidence, EvidenceTier, EvidenceType } from "@/lib/evidenceEngine";
-import { populateFacets } from "@/lib/evidenceFacets";
+import { populateFacetsEnhanced } from "@/lib/evidenceFacets";
+import { generateDiagnosticReport, type FacetDiagnosticReport } from "@/lib/facets/diagnostics";
+import { inferredConstraintsToRawSignals } from "@/lib/facets/latentInference";
 import {
   detectConstraintHypotheses,
   type ConstraintHypothesisSet,
