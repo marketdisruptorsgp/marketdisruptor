@@ -469,7 +469,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   if (evCount >= 4) {
     const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () =>
-      diagnoseStructuralProfile(flat, candidatesForProfile)
+      diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig)
     );
     stages.push(s4);
     structuralProfile = profile;

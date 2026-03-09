@@ -230,3 +230,104 @@ function inferValueChainPosition(corpus: string): ValueChainPosition {
   if (max === serviceSignals) return "end_service";
   return "application";
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  ETA-SPECIFIC INFERENCE HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+interface BaseProfileDims {
+  laborIntensity: LaborIntensity;
+  revenueModel: RevenueModel;
+  customerConcentration: CustomerConcentration;
+  marginStructure: MarginStructure;
+  regulatorySensitivity: RegulatorySensitivity;
+  switchingCosts: SwitchingCostLevel;
+  distributionControl: DistributionControl;
+  assetUtilization: AssetUtilization;
+  supplyFragmentation: FragmentationLevel;
+}
+
+/**
+ * Owner Dependency: How much does this business rely on a single owner/operator?
+ * Critical for ETA — owner_critical businesses are risky acquisitions.
+ */
+function inferOwnerDependency(corpus: string, constraints: Set<string>, base: BaseProfileDims): OwnerDependencyLevel {
+  if (constraints.has("owner_dependency")) return "owner_critical";
+  if (constraints.has("skill_scarcity") && base.laborIntensity === "artisan") return "owner_critical";
+
+  const criticalSignals = hits(corpus, /founder.?led|owner.?operat|key.?person|single.?point|irreplaceable|personal\s*brand|sole\s*propri/g);
+  const delegatableSignals = hits(corpus, /team|staff|employee|manager|delegation|process|system|sop|documented/g);
+
+  if (criticalSignals >= 2) return "owner_critical";
+  if (criticalSignals >= 1 && delegatableSignals < 2) return "owner_reliant";
+  if (delegatableSignals >= 3) return "autonomous";
+  if (base.laborIntensity === "artisan") return "owner_reliant";
+  return "delegatable";
+}
+
+/**
+ * Acquisition Complexity: How hard is this business to acquire?
+ * Considers regulatory, customer concentration, asset complexity.
+ */
+function inferAcquisitionComplexity(corpus: string, constraints: Set<string>, base: BaseProfileDims): AcquisitionComplexityLevel {
+  let complexityScore = 0;
+
+  // Regulatory burden adds complexity
+  if (base.regulatorySensitivity === "heavy") complexityScore += 3;
+  else if (base.regulatorySensitivity === "moderate") complexityScore += 1;
+
+  // Customer concentration = risky acquisition
+  if (base.customerConcentration === "concentrated") complexityScore += 2;
+
+  // High switching costs = harder to transition
+  if (base.switchingCosts === "high") complexityScore += 1;
+
+  // Complex asset structures
+  const complexSignals = hits(corpus, /real\s*estate|intellectual\s*property|patent|franchise|multi.?location|complex\s*asset|legacy\s*system/g);
+  complexityScore += Math.min(complexSignals, 2);
+
+  // Simple business signals
+  const simpleSignals = hits(corpus, /asset.?light|simple|straightforward|cash\s*flow|recurring|subscription/g);
+  complexityScore -= Math.min(simpleSignals, 2);
+
+  if (complexityScore >= 5) return "prohibitive";
+  if (complexityScore >= 3) return "complex";
+  if (complexityScore <= 0) return "turnkey";
+  return "manageable";
+}
+
+/**
+ * Improvement Runway: How much operational upside exists post-acquisition?
+ * High runway = more value creation potential for an acquirer.
+ */
+function inferImprovementRunway(corpus: string, constraints: Set<string>, base: BaseProfileDims): ImprovementRunwayLevel {
+  let runwayScore = 0;
+
+  // Manual processes = automation opportunity
+  if (constraints.has("manual_process")) runwayScore += 2;
+  if (constraints.has("linear_scaling")) runwayScore += 2;
+  if (constraints.has("owner_dependency")) runwayScore += 1;
+
+  // Labor-heavy with thin margins = operational improvement opportunity
+  if (base.laborIntensity === "labor_heavy" && base.marginStructure === "thin_margin") runwayScore += 2;
+  if (base.laborIntensity === "artisan") runwayScore += 1;
+
+  // Transactional revenue = recurring conversion opportunity
+  if (base.revenueModel === "transactional" || base.revenueModel === "project_based") runwayScore += 1;
+
+  // Underutilized assets = capacity unlock
+  if (base.assetUtilization === "underutilized" || base.assetUtilization === "idle") runwayScore += 2;
+
+  // Already optimized signals
+  const optimizedSignals = hits(corpus, /optimiz|efficien|lean|automat|systemat|well.?run|best.?in.?class/g);
+  runwayScore -= Math.min(optimizedSignals, 2);
+
+  // Improvement opportunity signals
+  const improvementSignals = hits(corpus, /manual|paper|spreadsheet|outdated|legacy|inefficien|bottleneck|waste|underperform/g);
+  runwayScore += Math.min(improvementSignals, 2);
+
+  if (runwayScore >= 5) return "transformative";
+  if (runwayScore >= 3) return "significant";
+  if (runwayScore <= 0) return "optimized";
+  return "incremental";
+}

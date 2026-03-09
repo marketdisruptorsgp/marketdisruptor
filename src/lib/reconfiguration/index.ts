@@ -10,6 +10,7 @@
 export { diagnoseStructuralProfile } from "./structuralProfile";
 export type {
   StructuralProfile,
+  DiagnosisLensConfig,
   FragmentationLevel,
   MarginStructure,
   SwitchingCostLevel,
@@ -20,6 +21,9 @@ export type {
   AssetUtilization,
   RegulatorySensitivity,
   ValueChainPosition,
+  OwnerDependencyLevel,
+  AcquisitionComplexityLevel,
+  ImprovementRunwayLevel,
 } from "./structuralProfile";
 
 export { STRUCTURAL_PATTERNS } from "./patternLibrary";
