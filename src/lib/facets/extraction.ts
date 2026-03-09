@@ -277,28 +277,8 @@ function tryExtractMarketFacets(text: string): MarketFacets | null {
   return matched ? facets : null;
 }
 
-function tryExtractMarketFacets(text: string): MarketFacets | null {
-  const facets: MarketFacets = { domain: "market" };
-  let matched = false;
 
-  if (text.match(/declining[\s-]?market|shrinking[\s-]?demand|sunset|commoditized[\s-]?market/)) {
-    facets.marketGrowth = "declining"; matched = true;
-  } else if (text.match(/high[\s-]?growth|rapid[\s-]?growth|booming|emerging[\s-]?market/)) {
-    facets.marketGrowth = "high"; matched = true;
-  }
 
-  if (text.match(/fragmented|many[\s-]?small|cottage|dispersed[\s-]?player/)) {
-    facets.competitiveDensity = "fragmented"; matched = true;
-  } else if (text.match(/monopol|dominat|single[\s-]?player|duopoly/)) {
-    facets.competitiveDensity = "monopolistic"; matched = true;
-  }
-
-  if (text.match(/heavily[\s-]?regulat|strict[\s-]?compliance|regulatory[\s-]?burden|license[\s-]?required/)) {
-    facets.regulatoryEnvironment = "restrictive"; matched = true;
-  }
-
-  return matched ? facets : null;
-}
 
 // ═══════════════════════════════════════════════════════════════
 //  TIER 2: DERIVED METRIC EXTRACTION
