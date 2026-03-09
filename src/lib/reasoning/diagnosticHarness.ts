@@ -769,6 +769,14 @@ function runDomainDiagnostic(testDomain: TestDomainInput): DomainDiagnostic {
   const gradeA = transformationReview.filter(t => t.grade === "A").length;
   const gradeB = transformationReview.filter(t => t.grade === "B").length;
   
+  // Benchmark comparison
+  const benchmarkComparison = computeBenchmarkComparison(
+    qualifiedVectors,
+    constraints,
+    evidence,
+    testDomain.name
+  );
+  
   return {
     domain: testDomain.name,
     trace,
@@ -796,6 +804,7 @@ function runDomainDiagnostic(testDomain: TestDomainInput): DomainDiagnostic {
         generic: transformationReview.filter(t => t.llmReproducibility === "very_likely_generic").length,
       },
     },
+    benchmarkComparison,
   };
 }
 
