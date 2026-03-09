@@ -764,8 +764,8 @@ function discoverLeverage(
 
       if (sharedEvidence.length > 0 || semanticOverlap) {
         // Generate a human-readable leverage label
-        const conText = humanize(constraint.label);
-        const drvText = humanize(driver.label);
+        const conText = lowerFirst(cleanStrategicPhrase(constraint.label));
+        const drvText = lowerFirst(cleanStrategicPhrase(driver.label));
         const label = `Address ${conText} through ${drvText}`;
         if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
