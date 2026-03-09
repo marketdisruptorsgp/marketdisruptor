@@ -239,25 +239,48 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
 
       <div className="h-px mx-5" style={{ background: "hsl(var(--border))" }} />
 
-      {/* Direction + Risk — compact grid */}
-      <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5">
-            <TrendingUp size={12} style={{ color: "hsl(var(--success))" }} />
-            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
-              Strategic Direction
-            </p>
+      {/* Direction + Risk — visual insight cards */}
+      <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div
+          className="rounded-xl p-4 flex gap-3 items-start"
+          style={{
+            background: "hsl(var(--success) / 0.06)",
+            border: "1px solid hsl(var(--success) / 0.15)",
+          }}
+        >
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ background: "hsl(var(--success) / 0.15)" }}
+          >
+            <TrendingUp size={15} style={{ color: "hsl(var(--success))" }} />
           </div>
-          <p className="text-sm text-foreground leading-relaxed">{synthesis.direction}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--success))" }}>
+              Direction
+            </p>
+            <p className="text-sm font-bold text-foreground leading-snug">{synthesis.direction}</p>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5">
-            <AlertTriangle size={12} style={{ color: "hsl(var(--destructive))" }} />
-            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>
-              Critical Uncertainty
-            </p>
+
+        <div
+          className="rounded-xl p-4 flex gap-3 items-start"
+          style={{
+            background: "hsl(var(--destructive) / 0.06)",
+            border: "1px solid hsl(var(--destructive) / 0.15)",
+          }}
+        >
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ background: "hsl(var(--destructive) / 0.15)" }}
+          >
+            <AlertTriangle size={15} style={{ color: "hsl(var(--destructive))" }} />
           </div>
-          <p className="text-sm text-foreground leading-relaxed">{synthesis.risk}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>
+              Uncertainty
+            </p>
+            <p className="text-sm font-bold text-foreground leading-snug">{synthesis.risk}</p>
+          </div>
         </div>
       </div>
     </div>
