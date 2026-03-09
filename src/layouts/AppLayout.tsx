@@ -32,8 +32,8 @@ const NO_SIDEBAR_ROUTES = [
 function shouldShowSidebar(pathname: string): boolean {
   // Exact matches
   if (NO_SIDEBAR_ROUTES.includes(pathname)) return false;
-  // Prefix matches
-  if (NO_SIDEBAR_ROUTES.some(r => r.endsWith("/") && pathname.startsWith(r))) return false;
+  // Prefix matches (only for routes with 2+ chars ending in "/", e.g. "/admin/")
+  if (NO_SIDEBAR_ROUTES.some(r => r.length > 1 && r.endsWith("/") && pathname.startsWith(r))) return false;
   // /analysis/share/:id should not show sidebar
   if (pathname.startsWith("/analysis/share")) return false;
   return true;
