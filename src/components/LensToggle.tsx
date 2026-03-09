@@ -104,7 +104,7 @@ export function LensToggle() {
   };
 
   const handleSelectEta = () => {
-    analysis.setActiveLens(ETA_LENS as UserLens);
+    analysis.setActiveLens(getEtaLensWithContext() as UserLens);
     setShowDropdown(false);
     toast.success("ETA Acquisition Lens activated");
   };
