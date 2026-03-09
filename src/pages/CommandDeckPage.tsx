@@ -746,36 +746,18 @@ export default function CommandDeckPage() {
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 0 — HERO INSIGHT
-            The single most surprising finding. Full-width, large type.
+            SECTION 0 — "SO WHAT?" DECISION HEADER
+            Binary consequence of inaction vs action.
            ══════════════════════════════════════════════════════════ */}
-        <HeroInsightCard
+        <SoWhatHeader
           narrative={narrative}
+          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
           modeAccent={modeAccent}
-          analysisId={analysisId || ""}
-          onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
-          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
-        />
-
-        {/* ── EXECUTIVE SUMMARY — One-paragraph CEO brief ── */}
-        <ExecutiveSummary narrative={narrative} modeAccent={modeAccent} />
-
-        {/* ══════════════════════════════════════════════════════════
-            TIER 1 — EXECUTIVE METRICS
-            4 compact metric cards. Glanceable.
-           ══════════════════════════════════════════════════════════ */}
-        <MetricRow
-          opportunityScore={metrics.opportunityScore}
-          riskScore={metrics.riskScore}
-          confidence={narrative?.verdictConfidence ?? Math.min(1, metrics.totalEvidenceCount / 30)}
-          evidenceCount={totalSignals}
-          completedSteps={completedSteps.size}
-          totalSteps={PIPELINE_STEPS.length}
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 2 — STRATEGIC THESIS
-            Core constraint → contrarian belief → strategic move → economics → first move
+            SECTION 1 — THE THESIS
+            Core product: constraint → belief → move → economics → first move
            ══════════════════════════════════════════════════════════ */}
         <OneThesisCard
           thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
@@ -784,26 +766,32 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 2b — INTELLIGENCE FEED
-            Single scrollable feed with tagged, filterable cards.
+            SECTION 2 — THE EVIDENCE (Strategic X-Ray)
+            Interactive reasoning chain with challenge mode.
            ══════════════════════════════════════════════════════════ */}
-        <IntelligenceFeed
+        <StrategicXRay
           narrative={narrative}
-          flatEvidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
-          topPlaybook={topPlaybook}
-          deepenedOpportunities={autoAnalysis.deepenedOpportunities}
-          mode={modeKey}
-          modeAccent={modeAccent}
-          detectedPatterns={detectedPatterns}
-          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
+          flatEvidence={autoAnalysis.flatEvidence}
+          onRecompute={handleRecomputeAll}
+          onChallenge={handleChallenge}
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 3 — POWER TOOLS
-            Collapsed by default. Scenario Lab, Challenge Mode, etc.
+            SECTION 3 — WHAT'S NEXT
+            Kill question + first move + scenario trigger
            ══════════════════════════════════════════════════════════ */}
-        <PowerToolsPanel toolCount={5}>
+        <WhatsNextPanel
+          narrative={narrative}
+          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
+          modeAccent={modeAccent}
+          onChallenge={handleChallenge}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            POWER TOOLS — Collapsed advanced tools
+           ══════════════════════════════════════════════════════════ */}
+        <PowerToolsPanel toolCount={6}>
           {/* Problem Statement */}
           {(() => {
             const p = selectedProduct as any || {};
@@ -841,39 +829,34 @@ export default function CommandDeckPage() {
             detectedPatterns={detectedPatterns}
           />
 
-
-          {/* Scenario & Challenge Tools */}
-          <ValuePillarTabs
+          {/* Scenario Simulator */}
+          <StrategicScenarioSimulator
+            evidence={autoAnalysis.flatEvidence}
             narrative={narrative}
-            flatEvidence={autoAnalysis.flatEvidence}
-            insights={autoAnalysis.insights}
-            mode={modeKey}
-            modeAccent={modeAccent}
-            completedSteps={completedSteps.size}
-            totalSteps={PIPELINE_STEPS.length}
-            totalSignals={totalSignals}
-            topPlaybook={topPlaybook}
-            strategicStory={strategicStory}
-            evidenceAttribution={evidenceAttribution}
-            confidenceExplanation={confidenceExplanation}
-            benchmark={benchmark}
-            opportunityRadar={opportunityRadar}
-            detectedPatterns={detectedPatterns}
-            engineComputing={engineComputing}
-            savedLabScenarios={savedLabScenarios}
-            activeLabScenarioId={activeLabScenarioId}
-            filteredOpps={filteredOpps}
+          />
+
+          {/* Scenario Lab */}
+          <ScenarioLab
+            scenarios={savedLabScenarios}
+            activeScenarioId={activeLabScenarioId}
+            onLoadScenario={handleLoadLabScenario}
+            onDeleteScenario={handleDeleteLabScenario}
+          />
+
+          {/* Outcome Simulator */}
+          <StrategicOutcomeSimulator
+            playbook={topPlaybook}
+            evidence={autoAnalysis.flatEvidence}
+            narrative={narrative}
+          />
+
+          {/* Lens Intelligence */}
+          <LensIntelligencePanel
             analysisMode={analysis.activeMode || "product"}
             signalKeywords={lensSignalKeywords}
             analysisId={analysisId || ""}
-            reasoningToolRecs={reasoningToolRecs}
-            baseUrl={baseUrl}
-            onRecomputeAll={handleRecomputeAll}
-            onChallenge={handleChallenge}
-            onLoadScenario={handleLoadLabScenario}
-            onDeleteScenario={handleDeleteLabScenario}
+            recommendedToolIds={reasoningToolRecs}
             onScenarioSaved={handleScenarioSaved}
-            onNavigate={(path) => navigate(path)}
           />
         </PowerToolsPanel>
 
