@@ -70,6 +70,12 @@ export interface TrendDataPoint {
   hasData: boolean;
 }
 
+export interface StrategicBetSummary {
+  assumption: string;
+  contrarian: string;
+  implication: string;
+}
+
 export interface AggregatedOpportunity {
   id: string;
   label: string;
@@ -82,12 +88,37 @@ export interface AggregatedOpportunity {
   opportunityScore?: number;
   simulationCount?: number;
   riskLevel?: "low" | "moderate" | "high";
+  /** Parsed strategic bet framing (if pattern-guided) */
+  strategicBet?: StrategicBetSummary;
+  /** First move action (if pattern-guided) */
+  firstMove?: string;
   // Multi-factor scoring components
   marketAttractiveness?: number;
   structuralAdvantage?: number;
   simulationFeasibility?: number;
   strategicLeverage?: number;
   executionDifficulty?: number;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STRATEGIC BET PARSING
+// ═══════════════════════════════════════════════════════════════
+
+function parseStrategicBet(desc: string): StrategicBetSummary | undefined {
+  const assumptionMatch = desc.match(/Industry assumes:\s*"([^"]+)"/);
+  const contrarianMatch = desc.match(/Contrarian belief:\s*"([^"]+)"/);
+  const implicationMatch = desc.match(/Implication:\s*([^|]+)/);
+  if (!assumptionMatch || !contrarianMatch) return undefined;
+  return {
+    assumption: assumptionMatch[1].trim(),
+    contrarian: contrarianMatch[1].trim(),
+    implication: implicationMatch ? implicationMatch[1].trim() : "",
+  };
+}
+
+function parseFirstMove(desc: string): string | undefined {
+  const match = desc.match(/First move:\s*([^|]+)/);
+  return match ? match[1].trim() : undefined;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -397,6 +428,11 @@ export function aggregateOpportunities(input: CommandDeckMetricsInput): Aggregat
         const riskLevel: "low" | "moderate" | "high" =
           opportunityScore >= 6 ? "low" : opportunityScore >= 3 ? "moderate" : "high";
 
+        // Parse strategic bet from description if present
+        const desc = e.description ?? "";
+        const strategicBet = parseStrategicBet(desc);
+        const firstMove = parseFirstMove(desc);
+
         return {
           id: e.id,
           label: e.label,
@@ -411,6 +447,8 @@ export function aggregateOpportunities(input: CommandDeckMetricsInput): Aggregat
           opportunityScore,
           simulationCount: simCount,
           riskLevel,
+          strategicBet,
+          firstMove,
           marketAttractiveness: Math.round(marketAttractiveness * 100) / 10,
           structuralAdvantage: Math.round(structuralAdvantage * 100) / 10,
           simulationFeasibility: Math.round(simulationFeasibility * 100) / 10,

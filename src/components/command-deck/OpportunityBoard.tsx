@@ -1,32 +1,19 @@
 /**
  * Strategic Opportunity Board — Command Deck Module 3
  *
- * Visual cards for top opportunities with multi-factor scores:
- * upside, difficulty, leverage, simulation feasibility.
- * Expandable for deeper detail.
+ * Visual cards for top opportunities with strategic bet framing,
+ * multi-factor scores, and expandable detail.
  */
 
 import { memo, useState } from "react";
-import { Lightbulb, ChevronDown, ChevronUp, BarChart3, Target, Layers, FlaskConical, Zap, Sparkles, Cpu } from "lucide-react";
+import { Lightbulb, ChevronDown, ChevronUp, BarChart3, FlaskConical, Sparkles, Cpu, ArrowRight, Crosshair } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AggregatedOpportunity } from "@/lib/commandDeckMetrics";
+import { humanizeLabel } from "@/lib/humanize";
 
 interface OpportunityBoardProps {
   opportunities: AggregatedOpportunity[];
   onViewInGraph?: (id: string) => void;
-}
-
-function ScorePill({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg" style={{ background: `${color}08` }}>
-      <span className="text-lg font-extrabold tabular-nums leading-none" style={{ color }}>
-        {value.toFixed(1)}
-      </span>
-      <span className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground text-center leading-tight">
-        {label}
-      </span>
-    </div>
-  );
 }
 
 function OpportunityCard({
@@ -39,12 +26,7 @@ function OpportunityCard({
   onViewInGraph?: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-
-  const scoreColor = (opp.opportunityScore ?? 0) >= 6
-    ? "hsl(var(--success))"
-    : (opp.opportunityScore ?? 0) >= 3
-      ? "hsl(var(--warning))"
-      : "hsl(var(--muted-foreground))";
+  const hasStrategicBet = !!opp.strategicBet;
 
   const riskColor = opp.riskLevel === "low"
     ? "hsl(var(--success))"
@@ -60,30 +42,39 @@ function OpportunityCard({
       className="rounded-xl overflow-hidden"
       style={{
         background: "hsl(var(--muted) / 0.4)",
-        border: "1px solid hsl(var(--border))",
+        border: hasStrategicBet
+          ? "1px solid hsl(var(--primary) / 0.25)"
+          : "1px solid hsl(var(--border))",
       }}
     >
       {/* Main card */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left p-4 space-y-3 transition-colors hover:bg-muted/30"
+        className="w-full text-left p-4 space-y-2.5 transition-colors hover:bg-muted/30"
       >
         {/* Header row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <span
               className="text-xs font-extrabold tabular-nums w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{ background: `${scoreColor}15`, color: scoreColor }}
+              style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}
             >
               {index + 1}
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-foreground leading-snug">{opp.label}</p>
+              <p className="text-sm font-bold text-foreground leading-snug">
+                {humanizeLabel(opp.label)}
+              </p>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 {opp.source.startsWith("morphological") ? (
                   <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full flex items-center gap-1"
                     style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}>
                     <Sparkles size={8} /> AI-Enriched
+                  </span>
+                ) : hasStrategicBet ? (
+                  <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full flex items-center gap-1"
+                    style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}>
+                    <Crosshair size={8} /> Pattern-guided
                   </span>
                 ) : (
                   <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full flex items-center gap-1 bg-muted text-muted-foreground">
@@ -100,23 +91,31 @@ function OpportunityCard({
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xl font-extrabold tabular-nums" style={{ color: scoreColor }}>
-              {(opp.opportunityScore ?? 0).toFixed(1)}
-            </span>
             {expanded ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
           </div>
         </div>
 
-        {/* Quick score bar */}
-        <div className="h-1.5 rounded-full overflow-hidden bg-muted">
-          <motion.div
-            className="h-full rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min(((opp.opportunityScore ?? 0) / 10) * 100, 100)}%` }}
-            transition={{ duration: 0.6 }}
-            style={{ background: scoreColor }}
-          />
-        </div>
+        {/* Strategic bet preview — visible even when collapsed */}
+        {hasStrategicBet && (
+          <div
+            className="rounded-lg px-3 py-2.5 ml-9"
+            style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.1)" }}
+          >
+            <div className="flex items-start gap-2">
+              <ArrowRight size={10} className="text-primary mt-1 flex-shrink-0" />
+              <div className="space-y-1 min-w-0">
+                <p className="text-xs text-muted-foreground leading-snug">
+                  <span className="font-bold text-foreground">Industry assumes</span>{" "}
+                  {opp.strategicBet!.assumption}
+                </p>
+                <p className="text-xs leading-snug">
+                  <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Contrarian view</span>{" "}
+                  <span className="text-foreground">{opp.strategicBet!.contrarian}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </button>
 
       {/* Expanded detail */}
@@ -130,14 +129,31 @@ function OpportunityCard({
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
-              {/* Multi-factor score grid */}
-              <div className="grid grid-cols-5 gap-2">
-                <ScorePill label="Market" value={opp.marketAttractiveness ?? 0} color="hsl(var(--success))" />
-                <ScorePill label="Structure" value={opp.structuralAdvantage ?? 0} color="hsl(var(--primary))" />
-                <ScorePill label="Sim. Feas." value={opp.simulationFeasibility ?? 0} color="hsl(172 66% 50%)" />
-                <ScorePill label="Leverage" value={opp.strategicLeverage ?? 0} color="hsl(var(--warning))" />
-                <ScorePill label="Difficulty" value={opp.executionDifficulty ?? 0} color="hsl(var(--destructive))" />
-              </div>
+              {/* Implication + first move */}
+              {hasStrategicBet && (
+                <div className="space-y-2">
+                  {opp.strategicBet!.implication && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground whitespace-nowrap mt-0.5">
+                        So what
+                      </span>
+                      <p className="text-xs text-foreground leading-relaxed">
+                        {opp.strategicBet!.implication}
+                      </p>
+                    </div>
+                  )}
+                  {opp.firstMove && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground whitespace-nowrap mt-0.5">
+                        First move
+                      </span>
+                      <p className="text-xs text-foreground leading-relaxed">
+                        {opp.firstMove}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Meta row */}
               <div className="flex items-center justify-between gap-2">
@@ -173,6 +189,8 @@ export const OpportunityBoard = memo(function OpportunityBoard({
 }: OpportunityBoardProps) {
   if (opportunities.length === 0) return null;
 
+  const patternCount = opportunities.filter(o => !!o.strategicBet).length;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -192,7 +210,11 @@ export const OpportunityBoard = memo(function OpportunityBoard({
           </div>
           <div>
             <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Strategic Opportunity Board</p>
-            <p className="text-[10px] text-muted-foreground">Ranked by multi-factor scoring</p>
+            <p className="text-[10px] text-muted-foreground">
+              {patternCount > 0
+                ? `${patternCount} pattern-guided · ${opportunities.length - patternCount} structural`
+                : "Ranked by multi-factor scoring"}
+            </p>
           </div>
         </div>
         <span className="text-xs font-bold text-muted-foreground">{opportunities.length} opportunities</span>
