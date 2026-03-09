@@ -54,6 +54,12 @@ import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pip
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import { runMorphologicalSearch } from "@/lib/opportunityDesignEngine";
 import { populateFacets } from "@/lib/evidenceFacets";
+import {
+  diagnoseStructuralProfile,
+  qualifyPatterns,
+  type StructuralProfile,
+  type QualifiedPattern,
+} from "@/lib/reconfiguration";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import {
   discoverConstraintInteractions,
