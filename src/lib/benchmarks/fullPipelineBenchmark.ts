@@ -510,7 +510,7 @@ export function runFullPipelineBenchmark(
   if (rankedOpportunities.length > 0) {
     const top = rankedOpportunities[0];
     const topConstraint = constraintReports[0];
-    const topVector = vectors.find(v => v.id === top.label.includes("→") ? vectors.find(vec => vec.changedDimensions.some(d => top.label.includes(d.to)))?.id : undefined);
+    // (unused vector lookup removed)
     
     // Synthesize a human-readable strategic narrative
     const shifts = top.shifts || top.label;
