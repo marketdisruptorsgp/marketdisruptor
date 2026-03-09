@@ -5,6 +5,7 @@ import { InsightRating } from "@/components/InsightRating";
 import {
   StepCanvas, InsightCard, MetricCard, VisualGrid,
 } from "@/components/analysis/AnalysisComponents";
+import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import type { FlippedLogicItem, HiddenAssumption } from "./types";
 
 /* ── Flip Card List ── */

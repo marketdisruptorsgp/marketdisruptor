@@ -237,7 +237,7 @@ export const STRESS_TEST_TASKS: StepTask[] = [
   { label: "Green Team Defense", detail: "Counter-arguments & proof" },
   { label: "Precedent Research", detail: "Historical comparisons" },
   { label: "Feasibility Check", detail: "Technical & cost viability" },
-  { label: "Confidence Scoring", detail: "Overall viability score" },
+  { label: "Confidence Assessment", detail: "Overall viability assessment" },
 ];
 
 export const PITCH_DECK_TASKS: StepTask[] = [
