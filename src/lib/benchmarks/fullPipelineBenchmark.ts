@@ -182,6 +182,7 @@ export interface PipelineReport {
   facetedEvidenceCount: number;
   facetDiagnostics: FacetDiagnosticReport | null;
   inferredConstraintCount: number;
+  morphologicalDiagnostics: MorphologicalSearchDiagnostics | null;
   pipelineEvents: string[];
 }
 
