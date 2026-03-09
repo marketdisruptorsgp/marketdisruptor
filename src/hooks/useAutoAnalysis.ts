@@ -92,58 +92,55 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     return "product" as const;
   }, [(analysis as any).activeMode]);
 
-  // Run the full strategic analysis
+  // Run the full strategic analysis (async — AI-powered deepening)
   const runAnalysis = useCallback(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
     if (!analysisId || !hasComputableData) return;
 
     setIsComputing(true);
 
-    try {
-      // Build system intelligence (for legacy compat)
-      invalidateIntelligence(analysisId);
-      const siInput: SystemIntelligenceInput = {
-        analysisId,
-        governedData,
-        disruptData: disruptData as Record<string, unknown> | null,
-        businessAnalysisData: businessAnalysisData as Record<string, unknown> | null,
-        intelData: null,
-        flipIdeas: null,
-        activeLenses: [],
-      };
-      const newIntelligence = buildSystemIntelligence(siInput);
+    // Build system intelligence (for legacy compat)
+    invalidateIntelligence(analysisId);
+    const siInput: SystemIntelligenceInput = {
+      analysisId,
+      governedData,
+      disruptData: disruptData as Record<string, unknown> | null,
+      businessAnalysisData: businessAnalysisData as Record<string, unknown> | null,
+      intelData: null,
+      flipIdeas: null,
+      activeLenses: [],
+    };
+    const newIntelligence = buildSystemIntelligence(siInput);
 
-      // Build lens config for structural diagnosis
-      const lensConfig = activeLens
-        ? {
-            lensType: (activeLens.id === "__eta__" ? "eta" : "custom") as "default" | "eta" | "custom",
-            name: activeLens.name,
-            risk_tolerance: activeLens.risk_tolerance ?? undefined,
-            constraints: activeLens.constraints ?? undefined,
-          }
-        : null;
+    // Build lens config for structural diagnosis
+    const lensConfig = activeLens
+      ? {
+          lensType: (activeLens.id === "__eta__" ? "eta" : "custom") as "default" | "eta" | "custom",
+          name: activeLens.name,
+          risk_tolerance: activeLens.risk_tolerance ?? undefined,
+          constraints: activeLens.constraints ?? undefined,
+        }
+      : null;
 
-      // Run the strategic engine
-      const input: StrategicAnalysisInput = {
-        products,
-        selectedProduct,
-        disruptData,
-        redesignData,
-        stressTestData,
-        pitchDeckData,
-        governedData,
-        businessAnalysisData,
-        intelligence: newIntelligence,
-        analysisType: analysisMode,
-        analysisId,
-        completedSteps,
-        geoMarketData: geoData,
-        regulatoryData,
-        lensConfig,
-      };
+    const input: StrategicAnalysisInput = {
+      products,
+      selectedProduct,
+      disruptData,
+      redesignData,
+      stressTestData,
+      pitchDeckData,
+      governedData,
+      businessAnalysisData,
+      intelligence: newIntelligence,
+      analysisType: analysisMode,
+      analysisId,
+      completedSteps,
+      geoMarketData: geoData,
+      regulatoryData,
+      lensConfig,
+    };
 
-      const result = runStrategicAnalysis(input);
-
+    const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {
       setIntelligence(newIntelligence);
       setGraph(result.graph);
       setEvidence(result.evidence);
@@ -163,7 +160,6 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         events: result.events,
       });
 
-      // ── Reconfiguration Pipeline Trace ──
       if (result.structuralProfile) {
         const sp = result.structuralProfile;
         console.log("[Reconfiguration] Structural Profile:", {
@@ -198,11 +194,21 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           firstMove: d.firstMove.action.slice(0, 80),
         })));
       }
-    } catch (err) {
-      console.warn("[StrategicEngine] Computation error:", err);
-    } finally {
-      setIsComputing(false);
-    }
+    };
+
+    // Run async (AI-powered) pipeline, then apply results
+    runStrategicAnalysisAsync(input)
+      .then(applyResult)
+      .catch((err) => {
+        console.warn("[StrategicEngine] Async failed, running sync fallback:", err);
+        try {
+          const syncResult = runStrategicAnalysis(input);
+          applyResult(syncResult);
+        } catch (syncErr) {
+          console.warn("[StrategicEngine] Sync fallback also failed:", syncErr);
+        }
+      })
+      .finally(() => setIsComputing(false));
   }, [
     analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
