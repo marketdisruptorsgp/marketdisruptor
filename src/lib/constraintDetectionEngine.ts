@@ -643,6 +643,7 @@ export function rankConstraintCandidates(
     // Priority 4: Evidence count (more evidence = stronger signal)
     return b.evidenceIds.length - a.evidenceIds.length;
   });
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  LAYER 3: COUNTERFACTUAL VALIDATION + PROBABILISTIC STACK
