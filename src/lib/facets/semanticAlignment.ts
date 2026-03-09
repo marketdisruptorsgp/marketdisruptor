@@ -685,8 +685,10 @@ export interface MultiFacetResult {
 export function extractMultiFacets(
   evidenceText: string,
   patternFacets: EvidenceFacets | null,
+  evidenceCategory?: string,
+  evidenceType?: string,
 ): MultiFacetResult {
-  const semanticMatches = semanticMatch(evidenceText);
+  const semanticMatches = semanticMatch(evidenceText, evidenceCategory, evidenceType);
 
   if (patternFacets) {
     // Boost confidence of semantic matches that agree with patterns
