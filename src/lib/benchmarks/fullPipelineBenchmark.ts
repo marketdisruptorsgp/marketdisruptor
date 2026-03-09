@@ -192,6 +192,8 @@ export interface PipelineReport {
   inferredConstraintCount: number;
   morphologicalDiagnostics: MorphologicalSearchDiagnostics | null;
   pipelineEvents: string[];
+  /** Business-specific strategic assumptions */
+  businessAssumptions: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════
