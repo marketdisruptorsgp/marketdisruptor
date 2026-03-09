@@ -2,17 +2,15 @@
  * COMMAND NAVIGATION — Unified Sidebar
  *
  * Renders inside all authenticated routes (controlled by AppLayout).
- * Top: Logo + project list. Middle: Analysis journey (contextual).
- * Bottom: Resources/settings.
+ * Three sections: Discovery, Analysis Pipeline, System.
+ * Matches the clean, minimal reference design.
  */
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, GitBranch, Search,
-  Lightbulb,
-  Shield, Brain,
-  FolderOpen, PlusCircle, Zap,
-  Info, HelpCircle, Sparkles, BarChart3, Map,
+  LayoutDashboard, GitBranch,
+  Search, Brain, Lightbulb, Shield, Sparkles,
+  FolderOpen, PlusCircle, Zap, Map,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -38,40 +36,27 @@ function useAnalysisId(): string | null {
 /* ── Nav config ── */
 interface NavItem {
   label: string;
-  shortLabel?: string;
   icon: React.ElementType;
   path: string | ((id: string | null) => string);
   requiresAnalysis?: boolean;
-  step?: number;
 }
 
-interface NavSection {
-  label: string;
-  items: NavItem[];
-}
+const DISCOVERY_ITEMS: NavItem[] = [
+  { label: "Command Deck", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace", requiresAnalysis: true },
+  { label: "Insight Graph", icon: GitBranch, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
+];
 
-const JOURNEY_SECTION: NavSection = {
-  label: "Analysis Journey",
-  items: [
-    { label: "Command Deck", shortLabel: "Deck", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace", requiresAnalysis: true },
-    { label: "Insight Graph", shortLabel: "Graph", icon: GitBranch, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
-    { label: "1 · Understand", shortLabel: "1", icon: Search, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true, step: 1 },
-    { label: "2 · Disrupt", shortLabel: "2", icon: Brain, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true, step: 2 },
-    { label: "3 · Reimagine", shortLabel: "3", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true, step: 3 },
-    { label: "4 · Stress Test", shortLabel: "4", icon: Shield, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true, step: 4 },
-    { label: "5 · Pitch", shortLabel: "5", icon: Sparkles, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true, step: 5 },
-  ],
-};
+const PIPELINE_ITEMS: NavItem[] = [
+  { label: "Report", icon: Search, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true },
+  { label: "Disrupt", icon: Brain, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
+  { label: "Redesign", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
+  { label: "Stress Test", icon: Shield, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
+  { label: "Pitch", icon: Sparkles, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
+];
 
 const SYSTEM_ITEMS: NavItem[] = [
   { label: "My Workspace", icon: FolderOpen, path: "/workspace" },
   { label: "New Analysis", icon: PlusCircle, path: "/analysis/new" },
-];
-
-const RESOURCE_ITEMS: NavItem[] = [
-  { label: "About", icon: Info, path: "/about" },
-  { label: "Methodology", icon: BarChart3, path: "/methodology" },
-  { label: "FAQs", icon: HelpCircle, path: "/faqs" },
 ];
 
 export function CommandNavigation({ onOpenTour }: { onOpenTour?: () => void }) {
@@ -92,8 +77,39 @@ export function CommandNavigation({ onOpenTour }: { onOpenTour?: () => void }) {
     return currentPath === resolved || currentPath.startsWith(resolved + "/");
   };
 
+  const renderSection = (label: string, items: NavItem[], show = true) => {
+    if (!show) return null;
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-sidebar-foreground/40 px-3">
+          {label}
+        </SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {items.map((item) => {
+              const disabled = item.requiresAnalysis && !analysisId;
+              const active = isActive(item);
+              const path = disabled ? "#" : resolvePath(item);
+              return (
+                <NavMenuItem
+                  key={item.label}
+                  item={item}
+                  active={active}
+                  path={path}
+                  collapsed={collapsed}
+                  disabled={disabled}
+                  onClick={disabled ? (e: React.MouseEvent) => e.preventDefault() : undefined}
+                />
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  };
+
   return (
-    <Sidebar collapsible="icon" className="border-r-2 border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarContent className="pt-2">
         {/* Logo */}
         <div className="px-3 py-2 mb-1">
@@ -112,72 +128,14 @@ export function CommandNavigation({ onOpenTour }: { onOpenTour?: () => void }) {
           </button>
         </div>
 
-        {/* ── Projects ── */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-sidebar-foreground/50 px-3">
-            Projects
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {SYSTEM_ITEMS.map((item) => (
-                <NavMenuItem
-                  key={item.label}
-                  item={item}
-                  active={isActive(item)}
-                  path={resolvePath(item)}
-                  collapsed={collapsed}
-                />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* ── Discovery (always visible when in an analysis) ── */}
+        {renderSection("Discovery", DISCOVERY_ITEMS, !!analysisId)}
 
-        {/* ── Analysis Journey (only when inside an analysis) ── */}
-        {analysisId && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-sidebar-foreground/50 px-3">
-              {JOURNEY_SECTION.label}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {JOURNEY_SECTION.items.map((item) => {
-                  const disabled = item.requiresAnalysis && !analysisId;
-                  return (
-                    <NavMenuItem
-                      key={item.label}
-                      item={item}
-                      active={isActive(item)}
-                      path={disabled ? "#" : resolvePath(item)}
-                      collapsed={collapsed}
-                      disabled={disabled}
-                      onClick={disabled ? (e: React.MouseEvent) => e.preventDefault() : undefined}
-                    />
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {/* ── Analysis Pipeline ── */}
+        {renderSection("Analysis Pipeline", PIPELINE_ITEMS, !!analysisId)}
 
-        {/* ── Resources ── */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-sidebar-foreground/50 px-3">
-            Resources
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {RESOURCE_ITEMS.map((item) => (
-                <NavMenuItem
-                  key={item.label}
-                  item={item}
-                  active={isActive(item)}
-                  path={resolvePath(item)}
-                  collapsed={collapsed}
-                />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* ── System ── */}
+        {renderSection("System", SYSTEM_ITEMS)}
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">
@@ -191,7 +149,7 @@ export function CommandNavigation({ onOpenTour }: { onOpenTour?: () => void }) {
           </button>
         )}
         {!collapsed && (
-          <div className="flex items-center gap-2 text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-sidebar-foreground/40 uppercase tracking-widest">
             <Zap size={10} />
             Strategic Discovery OS
           </div>
@@ -226,7 +184,7 @@ function NavMenuItem({
           end
           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors min-h-[36px] ${
             disabled
-              ? "opacity-40 cursor-not-allowed"
+              ? "opacity-30 cursor-not-allowed"
               : active
                 ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                 : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
@@ -237,7 +195,7 @@ function NavMenuItem({
           <Icon
             size={16}
             className={`flex-shrink-0 ${
-              active ? "text-primary" : "text-sidebar-foreground/70"
+              active ? "text-primary" : "text-sidebar-foreground/60"
             }`}
           />
           {!collapsed && <span>{item.label}</span>}
