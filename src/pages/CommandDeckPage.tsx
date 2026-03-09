@@ -30,6 +30,7 @@ import { TransformationPaths } from "@/components/command-deck/TransformationPat
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
 import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
+import { ExecutiveSummary } from "@/components/command-deck/ExecutiveSummary";
 import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
 import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
@@ -754,6 +755,9 @@ export default function CommandDeckPage() {
           analysisId={analysisId || ""}
           onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
         />
+
+        {/* ── EXECUTIVE SUMMARY — One-paragraph CEO brief ── */}
+        <ExecutiveSummary narrative={narrative} modeAccent={modeAccent} />
 
         {/* ══════════════════════════════════════════════════════════
             TIER 1 — EXECUTIVE METRICS

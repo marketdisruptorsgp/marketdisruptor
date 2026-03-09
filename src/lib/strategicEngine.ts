@@ -157,6 +157,8 @@ export interface StrategicNarrative {
   validationSteps: ValidationStep[];
   /** Industry benchmark context for the verdict */
   verdictBenchmark: string | null;
+  /** 30-second CEO-readable executive summary paragraph */
+  executiveSummary: string | null;
 }
 
 export interface StrategicDiagnostic {
@@ -1145,6 +1147,53 @@ function buildStrategicNarrative(
     validationSteps = buildValidationSteps(constraintPhrase, oppPhrase, driverPhrase, validationTimeframe);
   }
 
+  // ── Executive Summary: one paragraph, 30-second CEO brief ──
+  let executiveSummary: string | null = null;
+  if (topConstraint || topOpp) {
+    const constraintText = topConstraint ? trimAt(topConstraint.label, 120).toLowerCase() : null;
+    const oppText = topOpp ? trimAt(topOpp.label, 120).toLowerCase() : null;
+    const leverageText = topLeverage ? trimAt(topLeverage.label, 100).toLowerCase() : null;
+    const driverText = topDriver ? trimAt(topDriver.label, 100).toLowerCase() : null;
+    const evTotal = flatEvidence.length;
+    const conCount = constraints.length;
+    const oppCount = opportunities.length;
+
+    const confLabel = verdictConfidence >= 0.7 ? "high" : verdictConfidence >= 0.4 ? "moderate" : "early";
+
+    const sentences: string[] = [];
+
+    // Sentence 1: The core finding
+    if (constraintText && oppText) {
+      sentences.push(`This analysis identified ${constraintText} as the primary structural bottleneck, with ${oppText} as the highest-leverage opportunity to resolve it.`);
+    } else if (constraintText) {
+      sentences.push(`The analysis identified ${constraintText} as the dominant structural bottleneck limiting growth and margin.`);
+    } else if (oppText) {
+      sentences.push(`The analysis surfaced ${oppText} as the primary strategic opportunity.`);
+    }
+
+    // Sentence 2: The mechanism / driver
+    if (driverText && driverText !== constraintText) {
+      sentences.push(`The root cause is ${driverText}${leverageText ? `, and the critical intervention point is ${leverageText}` : ""}.`);
+    } else if (leverageText) {
+      sentences.push(`The recommended intervention point is ${leverageText}.`);
+    }
+
+    // Sentence 3: Scale and confidence
+    if (conCount > 1 || oppCount > 1) {
+      sentences.push(`Across ${evTotal} evidence signals, the engine detected ${conCount} constraint${conCount !== 1 ? "s" : ""} and ${oppCount} opportunity path${oppCount !== 1 ? "s" : ""} (${confLabel} confidence).`);
+    } else {
+      sentences.push(`Based on ${evTotal} evidence signals at ${confLabel} confidence.`);
+    }
+
+    // Sentence 4: The action implication
+    if (killQuestion) {
+      const shortKill = trimAt(killQuestion, 120);
+      sentences.push(`The critical question to validate before acting: ${shortKill.charAt(0).toLowerCase() + shortKill.slice(1)}`);
+    }
+
+    executiveSummary = sentences.join(" ");
+  }
+
   return {
     primaryConstraint: h(topConstraint?.label) ?? null,
     keyDriver: h(topDriver?.label) ?? null,
@@ -1166,6 +1215,7 @@ function buildStrategicNarrative(
     validationTimeframe,
     validationSteps,
     verdictBenchmark,
+    executiveSummary,
   };
 }
 
