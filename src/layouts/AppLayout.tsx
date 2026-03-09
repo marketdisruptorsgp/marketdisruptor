@@ -1,6 +1,7 @@
 /**
- * AppLayout — Centralized layout that conditionally renders the workspace sidebar.
- * Sidebar only appears on workspace/analysis routes, never on public pages.
+ * AppLayout — Unified layout with persistent sidebar for all authenticated routes.
+ * Public pages (/, /about, /pricing, /methodology, /faqs, /releases, /api) render
+ * WITHOUT sidebar. Analysis & workspace routes render WITH sidebar.
  */
 
 import { useLocation } from "react-router-dom";
@@ -8,23 +9,32 @@ import { useMemo, type ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CommandNavigation } from "@/components/layout/CommandNavigation";
 
-const WORKSPACE_PREFIXES = [
-  "/analysis/",    // /analysis/:id/* but NOT /analysis/new
-  "/command-deck",
-  "/insight-graph",
-  "/evidence-explorer",
-  "/intelligence",
-  "/business/",
-];
-
-const EXCLUDED_WORKSPACE = [
-  "/analysis/new",
+/** Routes that should NOT show the sidebar (public/marketing pages) */
+const NO_SIDEBAR_ROUTES = [
+  "/",
+  "/pricing",
+  "/about",
+  "/methodology",
+  "/faqs",
+  "/releases",
+  "/api",
+  "/resources",
+  "/pipeline",
+  "/demo",
+  "/instant-analysis",
+  "/share",
   "/analysis/share",
+  "/admin/",
 ];
 
-function isWorkspaceRoute(pathname: string): boolean {
-  if (EXCLUDED_WORKSPACE.some((ex) => pathname.startsWith(ex))) return false;
-  return WORKSPACE_PREFIXES.some((p) => pathname.startsWith(p));
+function shouldShowSidebar(pathname: string): boolean {
+  // Exact matches
+  if (NO_SIDEBAR_ROUTES.includes(pathname)) return false;
+  // Prefix matches
+  if (NO_SIDEBAR_ROUTES.some(r => r.endsWith("/") && pathname.startsWith(r))) return false;
+  // /analysis/share/:id should not show sidebar
+  if (pathname.startsWith("/analysis/share")) return false;
+  return true;
 }
 
 interface AppLayoutProps {
@@ -33,7 +43,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { pathname } = useLocation();
-  const showSidebar = useMemo(() => isWorkspaceRoute(pathname), [pathname]);
+  const showSidebar = useMemo(() => shouldShowSidebar(pathname), [pathname]);
 
   if (!showSidebar) {
     return <>{children}</>;
