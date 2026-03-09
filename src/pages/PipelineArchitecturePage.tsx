@@ -814,29 +814,40 @@ export default function PipelineArchitecturePage() {
           <h3 className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-3">Unique Custom Logic vs Generic LLM Usage</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-cyan-400">100% Custom / Unique</h4>
+              <h4 className="text-xs font-bold text-cyan-400">100% Custom / Unique (90+ engines)</h4>
               <ul className="space-y-1 text-xs text-foreground/70">
-                <li>• Evidence normalization & tier classification (~1,100 lines)</li>
+                <li>• Evidence normalization, adapters, bridge, registry, facets (~1,100+ lines)</li>
                 <li>• Structural profile diagnosis — 10-13 dimensions (~333 lines)</li>
                 <li>• Pattern library — 6 hardcoded strategic moves (~387 lines)</li>
                 <li>• Pattern qualification — binary gates (~174 lines)</li>
-                <li>• Constraint detection engine</li>
-                <li>• Friction engine</li>
-                <li>• Intelligence synthesis & graph construction</li>
-                <li>• Scenario → Evidence feedback loop</li>
-                <li>• Pipeline orchestration & error isolation</li>
-                <li>• ETA lens dimensions & acquisition gates</li>
+                <li>• Constraint detection, severity, interaction, inversion engines</li>
+                <li>• Friction engine + data provenance tracking</li>
+                <li>• Intelligence synthesis — 14 deterministic engines</li>
+                <li>• Insight governance, provenance, and layering</li>
+                <li>• Scenario lab, comparison, and outcome simulation</li>
+                <li>• Financial modeling, sensitivity analysis, viability scoring</li>
+                <li>• Temporal arbitrage + negative space engines</li>
+                <li>• Pipeline orchestration, error isolation, governed persistence</li>
+                <li>• ETA lens dimensions, acquisition gates, lens adaptation</li>
+                <li>• Analog engine — historical business outcome matching</li>
+                <li>• Visual story compiler + enforcement helpers</li>
+                <li>• Command Deck metrics computation</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-violet-400">AI-Assisted (Structured, Not Generic)</h4>
               <ul className="space-y-1 text-xs text-foreground/70">
-                <li>• Thesis deepening — Gemini 2.5 Pro with full structural context</li>
-                <li>• Pipeline step generation — Gemini Flash/Pro with structured schemas</li>
+                <li>• Thesis deepening — Gemini 2.5 Pro with full structural context + deterministic fallback</li>
+                <li>• Pipeline step generation — Gemini 2.5 Flash/Pro with structured schemas (12+ edge functions)</li>
                 <li>• Product analysis — structured parsing from user input</li>
                 <li>• Patent analysis — structured extraction</li>
-                <li>• Concept space generation — variant exploration</li>
-                <li className="text-foreground/50 italic mt-2">All AI calls use: custom prompts, structured output schemas, temperature control, deterministic fallbacks, context truncation</li>
+                <li>• Business model analysis — operational audit, revenue reinvention</li>
+                <li>• Concept space generation — variant exploration with scoring</li>
+                <li>• Reasoning interrogation — streaming AI conversation with analysis context</li>
+                <li>• Hypothesis interrogation — deep challenge and revision suggestions</li>
+                <li>• Market intel synthesis — on-demand intelligence generation</li>
+                <li>• Photo analysis — image-to-product extraction</li>
+                <li className="text-foreground/50 italic mt-2">All 47 edge functions use: custom prompts, structured output schemas, temperature control, deterministic fallbacks, context truncation, and governed reasoning</li>
               </ul>
             </div>
           </div>
