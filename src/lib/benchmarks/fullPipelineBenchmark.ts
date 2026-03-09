@@ -337,7 +337,7 @@ export function runFullPipelineBenchmark(
   let zones: OpportunityZone[] = [];
   let baseline: BusinessBaseline = {};
 
-  if (facetedEvidence.length >= 18 && constraints.length > 0) {
+  if (facetedEvidence.length >= 10 && constraints.length > 0) {
     const { result: searchResult, trace: t6 } = traceStage("Morphological Search", facetedEvidence.length, () =>
       runMorphologicalSearch(facetedEvidence, constraints, leveragePoints, [])
     );
