@@ -33,7 +33,7 @@ import { extractMultiFacets, type MultiFacetResult, type SemanticFacetMatch } fr
 export function extractFacetsUnified(evidence: Evidence): MultiFacetResult {
   const text = `${evidence.label} ${evidence.description || ""}`.toLowerCase();
   const patternFacets = extractPatternFacets(text);
-  return extractMultiFacets(text, patternFacets);
+  return extractMultiFacets(text, patternFacets, evidence.category, evidence.type);
 }
 
 /**
