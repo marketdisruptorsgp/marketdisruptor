@@ -1577,10 +1577,66 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`Leverage: need ${THRESHOLDS.leverage} evidence + constraints/drivers`);
   }
 
-  // ── Stage 8: Generate Opportunities (Pattern Library + Morphological Search or Fallback) ──
+  // ── Stage 2R: Structural Diagnosis (Reconfiguration Pipeline) ──
+  let structuralProfile: StructuralProfile | null = null;
+  let qualifiedPatternsResult: QualifiedPattern[] = [];
+
+  if (constraints.length > 0) {
+    // Convert StrategicInsight constraints to ConstraintCandidate format for the profile
+    const candidatesForProfile = (constraintHypotheses?.hypotheses ?? []).slice(0, 5);
+
+    const { result: profile, stage: s2r } = traceStage("Structural Diagnosis", flat.length, () =>
+      diagnoseStructuralProfile(flat, candidatesForProfile)
+    );
+    stages.push(s2r);
+    structuralProfile = profile;
+    events.push(`Structural profile: ${profile.supplyFragmentation} fragmentation, ${profile.laborIntensity} labor, ${profile.revenueModel} revenue, ${profile.distributionControl} distribution`);
+
+    // ── Stage 3R: Pattern Qualification ──
+    const { result: qPatterns, stage: s3r } = traceStage("Pattern Qualification", 6, () =>
+      qualifyPatterns(profile)
+    );
+    stages.push(s3r);
+    qualifiedPatternsResult = qPatterns;
+    events.push(`${qPatterns.length} structural patterns qualified: ${qPatterns.map(p => p.pattern.name).join(", ") || "none"}`);
+  }
+
+  // ── Stage 8: Generate Opportunities (Pattern-Guided + Morphological Search or Fallback) ──
   let opportunities: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.opportunities && leveragePoints.length > 0) {
     const { result: opps, stage: s8opp } = traceStage("Opportunity Generation", leveragePoints.length, () => {
+      const patternOpps: StrategicInsight[] = [];
+
+      // Generate opportunities from qualified structural patterns
+      for (const qp of qualifiedPatternsResult) {
+        const bet = qp.strategicBet;
+        const label = `${qp.pattern.name}: ${qp.pattern.transformation.slice(0, 80)}`;
+        if (patternOpps.some(i => jaccard(i.label, label) >= 0.5)) continue;
+
+        patternOpps.push(makeInsight({
+          id: nextId("reconfig-opp"),
+          analysisId: input.analysisId,
+          insightType: "emerging_opportunity",
+          label,
+          description: [
+            qp.pattern.mechanism,
+            `Strategic bet — Industry assumes: "${bet.industryAssumption}"`,
+            `Contrarian belief: "${bet.contrarianBelief}"`,
+            `Implication: ${bet.implication}`,
+            qp.qualification.resolvesConstraints.length > 0
+              ? `Resolves: ${qp.qualification.resolvesConstraints.join(", ")}`
+              : "",
+            `Precedents: ${qp.pattern.precedents.slice(0, 2).join("; ")}`,
+          ].filter(Boolean).join(" | "),
+          evidenceIds: flat.slice(0, 5).map(e => e.id), // Link to top evidence
+          relatedInsightIds: constraints.slice(0, 2).map(c => c.id),
+          impact: Math.min(5 + qp.signalDensity, 10),
+          confidence: Math.min(0.4 + qp.signalDensity * 0.1, 0.9),
+          createdAt: Date.now(),
+        }));
+      }
+
+      // Also run morphological search if AI alternatives available
       if (input.aiAlternatives && input.aiAlternatives.length > 0) {
         const searchResult = runMorphologicalSearch(
           flat, constraints, leveragePoints, input.aiAlternatives
@@ -1588,7 +1644,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
         if (searchResult.vectors.length > 0) {
           events.push(`${searchResult.patternVectorCount} pattern vectors + ${searchResult.vectors.length - searchResult.patternVectorCount} morphological vectors`);
-          return generateOpportunitiesFromVectors(
+          const morphOpps = generateOpportunitiesFromVectors(
             searchResult.vectors,
             searchResult.zones,
             searchResult.baseline,
@@ -1596,14 +1652,20 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
             leveragePoints,
             input.analysisId,
           );
+          // Merge: pattern-guided first, then morphological (deduped)
+          return [...patternOpps, ...morphOpps];
         }
       }
+
+      if (patternOpps.length > 0) return patternOpps;
 
       return generateOpportunitiesFallback(leveragePoints, constraints, input.analysisId);
     });
     stages.push(s8opp);
     opportunities = dedupeStrategicInsightsByLabel(opps);
-    events.push(`${opportunities.length} opportunities generated${input.aiAlternatives?.length ? " (morphological+patterns)" : " (fallback)"}`);
+    const reconfCount = opportunities.filter(o => o.id.includes("reconfig")).length;
+    const legacyCount = opportunities.length - reconfCount;
+    events.push(`${opportunities.length} opportunities (${reconfCount} pattern-guided, ${legacyCount} morphological/fallback)`);
   } else {
     events.push(`Opportunities: need ${THRESHOLDS.opportunities} evidence + leverage`);
   }
