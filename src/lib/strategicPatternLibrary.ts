@@ -956,6 +956,7 @@ export function applyPatterns(
         changedDimensions: [shift],
         triggerIds,
         explorationMode: dim.hasConstraint ? "constraint" : "adjacency",
+        explorationType: "pattern_import",
         rationale: pattern.rationaleTemplate,
         evidenceIds: dim.evidenceIds,
         surfaceId: undefined, // Reserved for future opportunity surface detection

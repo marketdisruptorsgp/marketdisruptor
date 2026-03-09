@@ -73,11 +73,22 @@ export interface DimensionShift {
 
 export type ExplorationMode = "constraint" | "adjacency";
 
+/** Exploration type label for UI transparency */
+export type ExplorationType = "constraint_resolution" | "pattern_import" | "structural_exploration";
+
+export interface DimensionShift {
+  dimension: string;
+  from: string;
+  to: string;
+}
+
 export interface OpportunityVector {
   id: string;
   changedDimensions: DimensionShift[];
   triggerIds: string[];
   explorationMode: ExplorationMode;
+  /** UI-facing exploration type label for explainability */
+  explorationType: ExplorationType;
   rationale: string;
   evidenceIds: string[];
   /** Reserved for future opportunity surface detection */
@@ -316,11 +327,17 @@ export function generateOpportunityVectors(
     ];
 
     for (const alt of dimAlts) {
+      // Determine exploration type for UI transparency
+      const explorationType: ExplorationType = mode === "constraint"
+        ? "constraint_resolution"
+        : "structural_exploration";
+
       vectors.push({
         id: nextVectorId(),
         changedDimensions: [{ dimension: dim.name, from: dim.currentValue, to: alt.value }],
         triggerIds,
         explorationMode: mode,
+        explorationType,
         rationale: alt.rationale,
         evidenceIds: dim.evidenceIds,
       });
@@ -359,6 +376,7 @@ export function generateOpportunityVectors(
           ],
           triggerIds,
           explorationMode: "constraint",
+          explorationType: "constraint_resolution",
           rationale: `${altA.rationale} Combined with: ${altB.rationale}`,
           evidenceIds: [...new Set([...dimA.evidenceIds, ...dimB.evidenceIds])],
         });
