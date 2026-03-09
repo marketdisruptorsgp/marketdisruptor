@@ -236,15 +236,27 @@ export function runFullPipelineBenchmark(
   traces.push(t1);
   events.push(`${rawEvidence.length} evidence items ingested`);
 
-  // ── Stage 2: Facet Population ──
-  const { result: facetedEvidence, trace: t2 } = traceStage("Facet Population", rawEvidence.length, () =>
-    populateFacets(rawEvidence)
+  // ── Stage 2: Facet Population (Enhanced: pattern + semantic + latent inference) ──
+  let facetDiagnostics: FacetDiagnosticReport | null = null;
+  let inferredConstraintCount = 0;
+  const { result: enhancedResult, trace: t2 } = traceStage("Facet Population", rawEvidence.length, () =>
+    populateFacetsEnhanced(rawEvidence)
   );
+  const facetedEvidence = enhancedResult.evidence;
   const facetedCount = facetedEvidence.filter((e: any) => e.facets).length;
-  t2.details = `${facetedCount}/${facetedEvidence.length} evidence items received facets`;
+  inferredConstraintCount = enhancedResult.inferredConstraints.length;
+  
+  // Generate diagnostic report
+  facetDiagnostics = generateDiagnosticReport(
+    rawEvidence,
+    enhancedResult.matchData,
+    enhancedResult.inferredConstraints,
+  );
+
+  t2.details = `${facetedCount}/${facetedEvidence.length} items faceted (${facetDiagnostics.coveragePercent}% coverage). Pattern: ${facetDiagnostics.patternMatchCount}, Semantic-only: ${facetDiagnostics.semanticOnlyMatchCount}. ${inferredConstraintCount} latent constraints inferred.`;
   t2.outputCount = facetedCount;
   traces.push(t2);
-  events.push(`Facets extracted on ${facetedCount}/${facetedEvidence.length} items`);
+  events.push(`Facets: ${facetedCount}/${facetedEvidence.length} (${facetDiagnostics.coveragePercent}% coverage, ${facetDiagnostics.semanticOnlyMatchCount} semantic-only, ${inferredConstraintCount} inferred constraints)`);
 
   // ── Stage 3: Constraint Detection ──
   const { result: constraintHypotheses, trace: t3 } = traceStage("Constraint Detection", facetedEvidence.length, () =>
