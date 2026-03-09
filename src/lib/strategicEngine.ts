@@ -735,8 +735,9 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   events.push(`${flat.length} evidence objects (normalized from ${rawFlat.length} raw)`);
   const evCount = flat.length;
 
+  const minEvidenceThreshold = input.analysisType === "business_model" ? 2 : 4;
   let facetedEvidence: Evidence[] = flat;
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: faceted, stage: s2b } = traceStage("Facet Population", flat.length, () => populateFacets(flat));
     stages.push(s2b);
     facetedEvidence = faceted;
