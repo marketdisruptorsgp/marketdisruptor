@@ -37,7 +37,7 @@ import { CurrentStateIntelligence } from "@/components/command-deck/CurrentState
 import { ProblemStatementCard } from "@/components/command-deck/ProblemStatementCard";
 import { PowerToolsPanel } from "@/components/command-deck/PowerToolsPanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
-import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
+import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine"; // TODO: remove unused
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
   type ScenarioSnapshot,
