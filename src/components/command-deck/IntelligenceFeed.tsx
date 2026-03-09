@@ -28,6 +28,15 @@ interface FeedCard {
   priority: number; // higher = shows first
 }
 
+export interface DetectedPatternForFeed {
+  name?: string;
+  label?: string;
+  description?: string;
+  characteristics?: string[];
+  commonTransformations?: string[];
+  riskFactors?: string[];
+}
+
 interface IntelligenceFeedProps {
   narrative: StrategicNarrative | null;
   flatEvidence: Array<any>;
@@ -35,7 +44,7 @@ interface IntelligenceFeedProps {
   topPlaybook: TransformationPlaybook | null;
   mode: "product" | "service" | "business";
   modeAccent: string;
-  detectedPatterns: Array<{ name?: string; label?: string; description?: string }>;
+  detectedPatterns: DetectedPatternForFeed[];
 }
 
 const TAG_CONFIG: Record<Exclude<FeedTag, "all">, { label: string; color: string; bg: string }> = {
@@ -44,21 +53,75 @@ const TAG_CONFIG: Record<Exclude<FeedTag, "all">, { label: string; color: string
   "iterate": { label: "Iterate", color: "hsl(var(--warning))", bg: "hsl(var(--warning) / 0.08)" },
 };
 
+/**
+ * Build a meaningful description for a structural pattern instead of
+ * the generic "Structural pattern detected in evidence."
+ */
+function buildPatternDescription(p: DetectedPatternForFeed): string {
+  const parts: string[] = [];
+
+  // Use characteristics to build a real description
+  if (p.characteristics && p.characteristics.length > 0) {
+    parts.push(p.characteristics[0]);
+    if (p.characteristics.length > 1) {
+      parts.push(p.characteristics[1]);
+    }
+  }
+
+  // Add transformation direction
+  if (p.commonTransformations && p.commonTransformations.length > 0) {
+    parts.push(`Common transformation paths: ${p.commonTransformations.slice(0, 2).join(", ")}.`);
+  }
+
+  if (parts.length > 0) return parts.join(". ");
+
+  // Fallback — still better than "Structural pattern detected"
+  if (p.description && p.description.toLowerCase() !== "structural pattern detected in evidence.") {
+    return humanizeLabel(p.description);
+  }
+
+  return `This analysis matches the ${humanizeLabel(p.name || p.label || "detected")} archetype based on evidence signals.`;
+}
+
+/**
+ * Build a meaningful detail (expanded) for a pattern
+ */
+function buildPatternDetail(p: DetectedPatternForFeed): string | undefined {
+  const parts: string[] = [];
+
+  if (p.riskFactors && p.riskFactors.length > 0) {
+    parts.push(`Key risks: ${p.riskFactors.join("; ")}.`);
+  }
+  if (p.characteristics && p.characteristics.length > 2) {
+    parts.push(...p.characteristics.slice(2));
+  }
+
+  return parts.length > 0 ? parts.join(" ") : undefined;
+}
+
 function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
   const { narrative, flatEvidence, insights, topPlaybook, detectedPatterns } = props;
   const cards: FeedCard[] = [];
 
+  // Track the hero text so we don't duplicate it
+  const heroText = narrative?.breakthroughOpportunity || narrative?.primaryConstraint || "";
+
   // New Ideas: from insights with type opportunity/leverage_point
+  // But skip any that match the hero text to avoid duplication
   const ideaInsights = insights.filter(i =>
     i.type === "opportunity" || i.type === "leverage_point" || i.type === "disruption_vector"
   );
   ideaInsights.forEach((insight, idx) => {
+    const label = insight.label || insight.description || "Opportunity";
+    // Skip if this is basically the same as the hero
+    if (heroText && label.slice(0, 40) === heroText.slice(0, 40)) return;
+
     cards.push({
       id: `idea-${idx}`,
       tag: "new-idea",
       tagLabel: "New Idea",
       icon: Lightbulb,
-      title: humanizeLabel(insight.label || insight.description || "Opportunity"),
+      title: humanizeLabel(label),
       summary: humanizeLabel(insight.description || insight.label || ""),
       detail: insight.rationale ? humanizeLabel(insight.rationale) : undefined,
       accentColor: TAG_CONFIG["new-idea"].color,
@@ -66,17 +129,21 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
     });
   });
 
-  // Breakthrough opportunity as top new idea
-  if (narrative?.breakthroughOpportunity) {
+  // DO NOT add a "breakthrough" card that duplicates the hero insight.
+  // Instead, if we have a kill question or validation experiment, surface that as actionable
+  if (narrative?.killQuestion) {
     cards.push({
-      id: "breakthrough",
+      id: "kill-question",
       tag: "new-idea",
       tagLabel: "New Idea",
       icon: Sparkles,
-      title: humanizeLabel(narrative.breakthroughOpportunity),
-      summary: narrative.strategicVerdict ? humanizeLabel(narrative.strategicVerdict) : "Strategic breakthrough identified by the reasoning engine.",
+      title: "Critical validation question",
+      summary: humanizeLabel(narrative.killQuestion),
+      detail: narrative.validationExperiment
+        ? `Experiment: ${humanizeLabel(narrative.validationExperiment)}. Timeframe: ${narrative.validationTimeframe || "30 days"}.`
+        : undefined,
       accentColor: TAG_CONFIG["new-idea"].color,
-      priority: 10,
+      priority: 9,
     });
   }
 
@@ -95,7 +162,7 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
     });
   }
 
-  // Execution: constraint to address
+  // Execution: constraint to address (but use verdictRationale for the summary, not the raw constraint)
   if (narrative?.primaryConstraint) {
     cards.push({
       id: "constraint",
@@ -103,13 +170,17 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
       tagLabel: "Execution",
       icon: Zap,
       title: `Address: ${humanizeLabel(narrative.primaryConstraint)}`,
-      summary: narrative.narrativeSummary ? humanizeLabel(narrative.narrativeSummary) : "This is the primary structural constraint limiting growth.",
+      summary: narrative.verdictRationale
+        ? humanizeLabel(narrative.verdictRationale)
+        : narrative.narrativeSummary
+          ? humanizeLabel(narrative.narrativeSummary)
+          : "This is the primary structural constraint limiting growth.",
       accentColor: TAG_CONFIG["execution"].color,
       priority: 8,
     });
   }
 
-  // Iterate: patterns detected
+  // Iterate: patterns detected — with REAL descriptions from characteristics
   detectedPatterns.forEach((p, idx) => {
     cards.push({
       id: `pattern-${idx}`,
@@ -117,7 +188,8 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
       tagLabel: "Iterate",
       icon: Brain,
       title: humanizeLabel(p.label || p.name || "Pattern"),
-      summary: humanizeLabel(p.description || "Structural pattern detected in evidence."),
+      summary: buildPatternDescription(p),
+      detail: buildPatternDetail(p),
       accentColor: TAG_CONFIG["iterate"].color,
       priority: 4,
     });
@@ -130,7 +202,7 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
       tag: "iterate",
       tagLabel: "Iterate",
       icon: RefreshCw,
-      title: "Trapped Value Identified",
+      title: "Trapped value identified",
       summary: humanizeLabel(narrative.trappedValue),
       detail: narrative.trappedValueEstimate ? `Estimated: ${narrative.trappedValueEstimate}` : undefined,
       accentColor: TAG_CONFIG["iterate"].color,
@@ -173,7 +245,7 @@ function FeedCardItem({ card }: { card: FeedCard }) {
             </span>
           </div>
           <p className="text-sm font-bold text-foreground leading-snug">{card.title}</p>
-          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">{card.summary}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{card.summary}</p>
         </div>
         {card.detail && (
           <div className="flex-shrink-0 mt-1">
