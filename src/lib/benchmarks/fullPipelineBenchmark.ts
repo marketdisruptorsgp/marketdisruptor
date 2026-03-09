@@ -350,7 +350,7 @@ export function runFullPipelineBenchmark(
 
   // ── Stage 6: Morphological Search ──
   // Build leverage points from constraints for morphological search
-  const leveragePoints = constraints.slice(0, 3).map(c => ({
+  const leveragePoints = constraints.slice(0, 5).map(c => ({
     ...c,
     insightType: "leverage_point" as const,
     id: `lev-${c.id}`,
@@ -364,8 +364,22 @@ export function runFullPipelineBenchmark(
   let morphologicalDiagnostics: MorphologicalSearchDiagnostics | null = null;
 
   if (facetedEvidence.length >= 10 && constraints.length > 0) {
+    // Pre-compute baseline to generate deterministic alternatives for benchmark mode
+    const { extractBaseline, identifyActiveDimensions, getDimensionsByStatus } = await import("@/lib/opportunityDesignEngine");
+    const preBaseline = identifyActiveDimensions(
+      extractBaseline(facetedEvidence, constraints, leveragePoints),
+      constraints,
+      leveragePoints,
+    );
+    const activeDims = [...getDimensionsByStatus(preBaseline, "hot"), ...getDimensionsByStatus(preBaseline, "warm")];
+    const deterministicAlts = generateDeterministicAlternatives(
+      activeDims.map(d => ({ id: d.id, name: d.name, category: d.category, currentValue: d.currentValue, status: d.status })),
+      constraints.map(c => ({ id: c.id, label: c.label, description: c.description })),
+    );
+    events.push(`Generated ${deterministicAlts.length} deterministic alternatives for ${activeDims.length} active dimensions`);
+
     const { result: searchResult, trace: t6 } = traceStage("Morphological Search", facetedEvidence.length, () =>
-      runMorphologicalSearch(facetedEvidence, constraints, leveragePoints, [])
+      runMorphologicalSearch(facetedEvidence, constraints, leveragePoints, deterministicAlts)
     );
     morphologicalDiagnostics = searchResult.diagnostics;
     const diag = searchResult.diagnostics;
