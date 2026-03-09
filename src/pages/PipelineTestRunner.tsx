@@ -216,6 +216,58 @@ function ReportView({ report }: { report: PipelineReport }) {
         </ReportSection>
       )}
 
+      {/* Morphological Search Diagnostics */}
+      {report.morphologicalDiagnostics && (
+        <ReportSection title="Morphological Search Diagnostics" icon={<Target className="w-4 h-4" />} defaultOpen>
+          <div className="grid grid-cols-4 gap-3 text-sm mb-4">
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{report.morphologicalDiagnostics.totalActiveConstraints}</div>
+              <div className="text-xs text-muted-foreground">Active Constraints</div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{report.morphologicalDiagnostics.hotDimensionCount} / {report.morphologicalDiagnostics.warmDimensionCount}</div>
+              <div className="text-xs text-muted-foreground">Hot / Warm Dimensions</div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{report.morphologicalDiagnostics.vectorsBeforeGates} → {report.morphologicalDiagnostics.vectorsAfterGates}</div>
+              <div className="text-xs text-muted-foreground">Vectors (before → after gates)</div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="text-2xl font-bold">{report.morphologicalDiagnostics.patternVectorCount} / {report.morphologicalDiagnostics.morphologicalVectorCount}</div>
+              <div className="text-xs text-muted-foreground">Pattern / Morphological</div>
+            </div>
+          </div>
+          {report.morphologicalDiagnostics.constraintStrengths.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Constraint Strength Scores</h4>
+              <div className="space-y-1.5">
+                {report.morphologicalDiagnostics.constraintStrengths.map((cs, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs">
+                    <span className="font-mono w-6 text-muted-foreground">{i + 1}.</span>
+                    <span className="flex-1 truncate">{cs.label}</span>
+                    <Badge variant="outline" className="text-xs">
+                      strength: {cs.strength.toFixed(2)}
+                    </Badge>
+                    <span className="text-muted-foreground">
+                      impact:{cs.impact} × conf:{cs.confidence.toFixed(1)} × ev:{cs.evidenceVolume}
+                    </span>
+                    <div className="w-20 bg-muted rounded-full h-1.5">
+                      <div
+                        className="bg-primary rounded-full h-1.5"
+                        style={{ width: `${Math.min(100, cs.priorityWeight * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-muted-foreground text-xs w-10 text-right">
+                      {(cs.priorityWeight * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </ReportSection>
+      )}
+
       {/* Section 1: System Decomposition */}
       <ReportSection title="1. Business System Decomposition" icon={<Layers className="w-4 h-4" />}>
         <div className="grid grid-cols-2 gap-4 text-sm">
