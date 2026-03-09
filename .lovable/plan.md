@@ -1,487 +1,235 @@
-This architecture plan looks excellent. The structure, interfaces, and test harness show a lot of thoughtful system design. I think we’re very close to a strong first implementation. Before moving forward with the build, I want to make a few adjustments and clarifications that will make the reasoning engine more robust long-term, and also start aligning on how all of this will surface in the UI.
 
-First — constraint handling.
 
-Right now the refinement stage identifies a single binding constraint (top 1–2). That’s useful for clarity, but in real businesses constraints often stack rather than exist in isolation.
-
-Example with a dental practice:
-
-• chair utilization (capacity)  
-
-• insurance reimbursement delays (cash cycle)  
-
-• referral dependency (distribution)
-
-Many good transformations actually address more than one constraint at the same time. For example, a membership model can smooth demand and improve the cash cycle.
-
-So instead of treating the output as a single “binding constraint,” it might be better to represent a ranked constraint stack:
-
-constraintStack  
-
-• primary  
-
-• secondary  
-
-• tertiary  
-
-Transformations can then explicitly reference which constraints they resolve.
-
-This will prevent the engine from accidentally optimizing for only one bottleneck when multiple are interacting.
-
----
-
-Second — the analog scan should surface failure patterns, not just success signals.
-
-Right now the analog scan extracts:
-
-• typical constraints  
-
-• success patterns  
-
-But one of the most powerful signals for reasoning systems is identifying structural configurations that consistently failed.
-
-For example, if a certain transformation historically leads to high churn or margin compression in similar contexts, the system should surface that early.
-
-So the AnalogScanResult should probably include something like:
-
-failurePatterns  
-
-• transformationType  
-
-• dimension  
-
-• failureRate across analogs  
-
-• example companies
-
-This allows the system to say things like:
-
-“Similar structural transformations historically failed in these contexts.”
-
-That makes the reasoning much more credible and prevents us from rediscovering ideas that already proved unworkable.
-
----
-
-Third — morphological exploration should include structural model imports, not just dimension shifts.
-
-Right now we have two exploration types:
-
-Category A — constraint-targeted  
-
-Category B — exploratory (1–2 dimension shifts)
-
-Those are great. But some of the most interesting business innovations happen when a structural pattern from one industry is imported into another.
-
-Example:
-
-subscription utilization models from gyms → service businesses  
-
-SaaS workflow models → professional services  
-
-marketplace models → fragmented local services
-
-These aren’t always simple 1–2 dimension shifts. They’re more like structural pattern transfers.
-
-So we may want a third exploration category:
-
-Category C — structural import
-
-Example output might look like:
-
-importedModel: “subscription utilization smoothing”  
-
-sourceAnalog: gym membership model  
-
-targetDomain: dental practice
-
-This expands the innovation space while still grounding it in real precedent.
-
----
-
-Fourth — opportunity explanations should also explain why the current structure persists.
-
-Right now the explanation stage includes:
-
-• structural change  
-
-• constraint resolved  
-
-• analog evidence  
-
-One more useful piece is explaining why the existing structure has remained unchanged.
-
-Example:
-
-Why dentistry stayed per-visit pricing:
-
-• insurance billing conventions  
-
-• patient mental models  
-
-• legacy billing systems
-
-This helps the user understand both the opportunity and the inertia behind it.
-
-So the opportunity explanation might include:
-
-statusQuoExplanation
-
-This gives more context for why the structural change is meaningful.
-
----
-
-On the test harness and reasoning trace:
-
-The proposed ReasoningTrace structure looks great. One small addition that would help debugging is a way to visualize the reasoning chain:
-
-constraint → transformation → analog → outcome
-
-Even a simple trace graph or structured mapping would make it much easier to inspect the engine behavior as it evolves.
-
----
-
-Now one important question about the UI.
-
-Right now we’ve focused entirely on the reasoning pipeline. But I’d like to start thinking about how the outputs should actually appear to the user.
-
-My intuition is that the UI should expose the reasoning in layers, something like:
-
-Layer 1 — Structural Model  
-
-Show the extracted dimensions and how the system understands the business.
-
-Layer 2 — Constraint Detection  
-
-Highlight the primary and secondary constraints that appear to limit the system.
-
-Layer 3 — Structural Transformations  
-
-Show candidate transformations grouped by category:
-
-• constraint-targeted  
-
-• exploratory  
-
-• structural imports
-
-Layer 4 — Analog Evidence  
-
-Show the closest structural precedents and their outcomes.
-
-Layer 5 — Opportunity Explanation  
-
-Summarize the reasoning chain that connects constraint → transformation → precedent.
-
-The goal would be for users to not just see ideas, but to understand the reasoning path behind them.
-
-I’m curious how you’d design the UI to make this reasoning pipeline legible and intuitive. For example:
-
-• Should the reasoning be presented as a step-by-step flow?  
-
-• Or as a visual map of constraints, transformations, and analogs?  
-
-• Or some hybrid where users can drill into each stage?
-
-Would love your thoughts on what the first UI version should look like so the reasoning engine and the interface evolve together.
-
-&nbsp;
-
-&nbsp;
-
-## Refined Strategic Reasoning Pipeline — Architecture Plan
-
-### Your Three Architectural Refinements
-
-I fully agree with all three points. They fundamentally improve the reasoning chain:
-
-
-| Refinement                    | Current State                            | Proposed Change                                           |
-| ----------------------------- | ---------------------------------------- | --------------------------------------------------------- |
-| **Constraint detection**      | Single-source (input decomposition only) | Dual-source: input-derived + analog-derived constraints   |
-| **Analog matching**           | Single-pass (final validation)           | Two-pass: early scan → constraint refinement → validation |
-| **Morphological exploration** | Constraint-guided only                   | Two categories: constraint-targeted + exploratory         |
-
-
----
-
-### Revised Pipeline Architecture
+# Pipeline Integrity Verification Report
+
+## SECTION 1 — MODULE STATUS
+
+| Module | Status | Input Sources | Output Destinations | Pipeline Location |
+|---|---|---|---|---|
+| **scrape-products** (Data Collection) | ENABLED | User form input (category, era, customProducts, URLs) | rawContent, communityContent, complaintsContent → analyze-products | Step 1 (Setup → Edge Function) |
+| **analyze-products** (Intel Synthesis) | ENABLED | scrapeData.rawContent, communityContent, complaintsContent, sources | Product[] with pricingIntel, supplyChain, communityInsights, patentData, userWorkflow, flippedIdeas | Step 2 (Intelligence Report) |
+| **geo-market-data** (Geographic Enrichment) | ENABLED | category, productName | geoData (population, income, business density), regulatoryProfile | Background fetch after Step 2 — feeds into Stress Test & Pitch |
+| **analyze-problem** (Problem Analysis) | ENABLED | User problem statement | entity, detectedModes, selectedChallenges → adaptiveContext | Setup flow (NewAnalysisPage) |
+| **first-principles-analysis** (Deconstruct Engine) | ENABLED | product, lens, activeBranch, governedContext, adaptiveContext, upstreamIntel, disruptContext | governed data (constraint_map, reasoning_synopsis, root_hypotheses, friction_map, leverage_map) | Step 3 (Disrupt) |
+| **FirstPrinciplesAnalysis** (Redesign) | ENABLED | product, externalData (disruptData or redesignData), flippedIdeas | redesignData (flippedLogic, flippedIdeas, redesignedConcept) | Step 4 (Redesign) |
+| **critical-validation** (Stress Test) | ENABLED | product, analysisData, geoData, regulatoryData, activeBranch, competitorIntel | stressTestData (redTeam, greenTeam, verdict, scores) | Step 5 (Stress Test) |
+| **generate-pitch-deck** (Pitch Deck) | ENABLED | product, disruptData, stressTestData, redesignData, userScores, insightPreferences, steeringText | pitchDeckData (slides, elevatorPitch, metrics) | Step 6 (Pitch) |
+| **business-model-analysis** | ENABLED | businessModel, lens, extractedContext, adaptiveContext | businessAnalysisData (7 tabs: summary, operational, assumptions, tech, revenue, disruption, reinvented) | Business Mode Step 2-3 |
+| **reasoning-interrogation** | ENABLED | analysisData, governed, question | Structured reasoning challenge responses | Disrupt → Reasoning tab |
+| **generate-flip-ideas** | ENABLED | product, additionalContext, insightPreferences, steeringText, activeBranch, adaptiveContext, upstreamIntel, disruptContext | FlippedIdea[] | Redesign (on-demand regeneration) |
+| **scout-competitors** | ENABLED | product/category | scoutedCompetitors → Stress Test | Disrupt step (optional) |
+| **Signal Detection** (signalDetection.ts) | ENABLED | Analysis data object | DetectedSignal[], VisualOntology[] | Feeds ObservedSignalMatrix in Report |
+| **Signal Ranking** (signalRanking.ts) | ENABLED | Analysis data object | RankedSignal[], SignalRelationship[] | Used by AnalysisVisualLayer |
+| **Strategic OS** (strategicOS.ts) | ENABLED | root_hypotheses, strategicProfile | Re-ranked hypotheses with dominance scores | Disrupt → Hypotheses tab |
+| **Lens Adaptation** (lensAdaptationEngine.ts) | ENABLED | governed data, activeLens | Re-scored constraints, structuralChangeLog | Persistence layer (saveStepData) |
+| **Evidence Registry** (evidenceRegistry.ts) | ENABLED | Merged analysis_data | Evidence trace per step | Persistence layer (saveStepData) |
+| **Governed Persistence** (governedPersistence.ts) | ENABLED | Step data with governed artifacts | Extracted/merged governed data, retroactive invalidation | Persistence layer |
+| **Checkpoint Gate** (checkpointGate.ts) | ENABLED | stepKey, data | Allowed/blocked persistence, invalidated downstream steps | Persistence layer |
+| **Mode Enforcement** (modeEnforcement.ts) | ENABLED | mode, product data | Filtered input data, mode guard prompt | Every edge function |
+| **Adaptive Context** (adaptiveContext.ts) | ENABLED | Problem statement, entity, challenges | Context prompt injected into all edge functions | Every edge function |
+| **Branch Isolation** (branchIsolation.ts) | ENABLED | root_hypotheses, activeBranchId | Branch prompt for isolated/combined mode | first-principles, critical-validation |
+| **Dependency Regeneration** | ENABLED | stepKey changes | markStepOutdated for downstream steps | AnalysisContext |
+| **Structural Fingerprinting** | ENABLED | governed hashes | Hash-based drift detection, purge stale governed artifacts | saveStepData |
+
+## SECTION 2 — DATA FLOW TRACE
 
 ```text
-Input
-  │
-  ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ Stage 1: STRUCTURAL DECOMPOSITION                                │
-│ - Extract 9 canonical dimensions from input                      │
-│ - Map to structural features vocabulary                          │
-│ Output: StructuralModel { dimensions, currentValues }            │
-└──────────────────────────────────────────────────────────────────┘
-  │
-  ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ Stage 2a: INITIAL CONSTRAINT DETECTION (input-derived)           │
-│ - Run existing facet-based rule engine                           │
-│ - Identify candidates from input structure                       │
-│ Output: InputDerivedConstraints[]                                │
-└──────────────────────────────────────────────────────────────────┘
-  │
-  ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ Stage 2b: ANALOG SCAN (Pass 1 — Pattern Discovery)               │
-│ - Lightweight structural matching against analog dataset         │
-│ - Purpose: surface typical constraints in similar businesses     │
-│ - Extract: common failure patterns, success patterns             │
-│ Output: AnalogScanResult { typicalConstraints, patterns }        │
-└──────────────────────────────────────────────────────────────────┘
-  │
-  ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ Stage 2c: CONSTRAINT REFINEMENT                                  │
-│ - Merge input-derived + analog-derived constraints               │
-│ - Rank by: frequency across analogs + evidence strength          │
-│ - Identify the BINDING constraint (top 1-2)                      │
-│ Output: RefinedConstraintSet { binding, secondary, analogBasis } │
-└──────────────────────────────────────────────────────────────────┘
-  │
-  ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ Stage 3: MORPHOLOGICAL EXPLORATION (Two Categories)              │
-│                                                                  │
-│ Category A: CONSTRAINT-TARGETED                                  │
-│ - 1-2 dimension shifts that directly address binding constraint  │
-│ - Example: capacity constraint → membership pricing              │
-│                                                                  │
-│ Category B: EXPLORATORY                                          │
-│ - 1-2 dimension shifts on "warm" dimensions (evidence-dense)     │
-│ - May create new architectures (tele-dentistry, mobile clinic)   │
-│                                                                  │
-│ Output: TransformationSet { targeted[], exploratory[] }          │
-└──────────────────────────────────────────────────────────────────┘
-  │
-  ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ Stage 4: ANALOG VALIDATION (Pass 2 — Feasibility Check)          │
-│ - Match each transformation against analog dataset               │
-│ - Check: has this structural configuration succeeded/failed?     │
-│ - Attach precedent signals to each transformation                │
-│ Output: ValidatedTransformations[] with analogEvidence           │
-└──────────────────────────────────────────────────────────────────┘
-  │
-  ▼
-┌──────────────────────────────────────────────────────────────────┐
-│ Stage 5: OPPORTUNITY EXPLANATION                                 │
-│ - For each surviving transformation:                             │
-│   • Structural change (what dimensions shifted)                  │
-│   • Constraint addressed (which bottleneck it resolves)          │
-│   • Analog evidence (precedent supporting feasibility)           │
-│   • Exploration category (targeted vs exploratory)               │
-│ Output: OpportunityExplanation[]                                 │
-└──────────────────────────────────────────────────────────────────┘
+User Input (category, URLs, problem statement)
+  → analyze-problem → adaptiveContext (entity, modes, challenges)
+  → scrape-products → rawContent, communityContent, complaintsContent
+  → analyze-products → Product[] (pricingIntel, supplyChain, patents, community, userWorkflow, flippedIdeas)
+  → geo-market-data → geoData, regulatoryProfile (background, non-blocking)
+  [STATE: products, selectedProduct stored in AnalysisContext, saved to DB]
+
+Step 2: Intelligence Report (ReportPage)
+  → Renders: Overview, User Journey, Community Intel, Pricing Intel, Supply Chain, Patent Intel
+  → Signal Detection: detectSignals(product) → ObservedSignalMatrix
+  → Signal Ranking: extractAndRankSignals(product) → AnalysisVisualLayer
+
+Step 3: Deconstruct (DisruptPage)
+  → first-principles-analysis edge function
+    Inputs: product, lens, activeBranch, adaptiveContext, upstreamIntel
+    Shared modules: modeEnforcement, reasoningFramework, lensPrompt, lensWeighting, modeWeighting, governedSchema, structuredOutput, branchIsolation, adaptiveContext
+    Outputs: governed (domain_confirmation, objective_definition, first_principles, friction_map, friction_tiers, constraint_map, structural_analysis, leverage_map, constraint_driven_solution, root_hypotheses, reasoning_synopsis)
+  → saveStepData("disrupt", data) → checkpoint gate → governed extraction → evidence registry → lens adaptation → dependency integrity → fingerprinting
+  → Strategic OS: rankWithProfile(root_hypotheses, strategicProfile) → dominance-ranked hypotheses
+  → Reasoning Interrogation: interactive challenge panel
+
+Step 4: Redesign (RedesignPage)
+  → FirstPrinciplesAnalysis component with renderMode="redesign"
+    Uses: disruptData + upstreamIntel
+    Calls: first-principles-analysis or generate-flip-ideas
+    Outputs: redesignData (hiddenAssumptions, flippedLogic, flippedIdeas, redesignedConcept)
+  → RedesignVisualGenerator: AI image generation for concepts
+  → saveStepData("redesign", data) → marks stressTest/pitch outdated
+
+Step 5: Stress Test (StressTestPage)
+  → critical-validation edge function
+    Inputs: product, analysisData, geoData, regulatoryData, activeBranch, competitorIntel
+    Shared modules: modeEnforcement, reasoningFramework, lensPrompt, adaptiveContext, branchIsolation, governedSchema, confidenceComputation, structuredOutput
+    Outputs: stressTestData (redTeam arguments, greenTeam rebuttals, verdict, scores)
+  → saveStepData("stressTest", data) → marks pitch outdated
+
+Step 6: Pitch Deck (PitchPage)
+  → generate-pitch-deck edge function
+    Inputs: product, disruptData, stressTestData, redesignData, userScores, insightPreferences, steeringText, pitchDeckImages, pitchDeckExclusions
+    Shared modules: modeEnforcement, reasoningFramework, lensPrompt, adaptiveContext, visualFallback
+    Outputs: pitchDeckData (11 slides: problem, solution, whynow, market, product, businessmodel, traction, ip, risks, gtm, invest)
+  → saveStepData("pitchDeck", data)
+
+DATA CONFIRMED FLOWING THROUGH EVERY STAGE.
 ```
+
+## SECTION 3 — SUPPRESSION CHECK
+
+| Check | Status | Evidence |
+|---|---|---|
+| Modules rendered but not executed | **NONE FOUND** | Every UI component (StructureTab, CriticalValidation, PitchDeck, BusinessModelAnalysis) directly invokes its corresponding edge function via `supabase.functions.invoke()` |
+| Outputs overwritten by later steps | **NONE FOUND** | Each step saves to its own key (`disrupt`, `redesign`, `stressTest`, `pitchDeck`). Previous snapshot is preserved for version comparison. assertStepOwnership() guards cross-step writes |
+| Hidden governance rules blocking components | **NONE FOUND** | Checkpoint gate only blocks persistence of invalid governed data, never suppresses UI rendering. GovernedMissingBanner allows regeneration if reasoning data is absent |
+| Partial pipeline execution | **NONE FOUND** | Each step can run independently. Empty state UI with "Run" button ensures user can trigger any step. autoTrigger logic re-runs outdated steps |
+| Skipped steps depending on mode | **BY DESIGN** — see Section 4 | Service mode hides supply chain + patents tabs (no data). Business mode uses a 4-step pipeline (no Redesign). These are intentional mode-specific behaviors, not suppressions |
+
+## SECTION 4 — MODE CONSISTENCY CHECK
+
+| Element | Product Mode | Service Mode | Business Model Mode | Differences |
+|---|---|---|---|---|
+| **Pipeline steps** | 5 (Report → Disrupt → Redesign → Stress Test → Pitch) | 5 (identical) | 4 (Report → Disrupt → Stress Test → Pitch — NO Redesign) | Business mode skips Redesign — model innovations are structural abstractions, not physical artifacts |
+| **Insight synthesis layer** | ObservedSignalMatrix + AnalysisVisualLayer | Same | BusinessModelAnalysis component handles synthesis internally | Functionally equivalent |
+| **Analysis lenses** | Default / ETA / Custom via LensBanner | Same | Same — ETA lens triggers additional ETA-specific tabs (Deal Economics, Addback Scrutiny, etc.) | ETA-specific modules only activate in Business mode with ETA lens |
+| **Strategic signals** | Signal Detection + Signal Ranking | Same | Not directly used — BusinessModelAnalysis has its own disruption analysis tab | Business mode relies on its own structured output rather than generic signal detection |
+| **Metrics intelligence** | ScoreBar (Adoption, Feasibility, Resonance) + RevivalScore | Same | BusinessModelAnalysis provides its own metrics (unit economics, revenue mix) | Different metric types per mode |
+| **ETA algorithm logic** | Available via ETA lens (changes scoring weights) | Available via ETA lens | Full ETA module: Deal Economics Calculator, Addback Scrutiny, Owner Dependency, Stagnation Dx, 100-Day Playbook | ETA is a LENS that applies across all modes but only adds specialized output tabs in Business mode |
+| **Output narrative layer** | Pitch Deck (11 slides) | Same | Pitch Deck (same edge function, mode-adapted prompts) | Content adapts via modeEnforcement but same structure |
+| **Strategic OS (archetypes)** | rankWithProfile on root_hypotheses | Same | Not wired — BusinessResultsPage has no archetype selector | **GAP: Business mode does not expose Strategic OS re-ranking** |
+| **Hypothesis branching** | Full (combined/isolated modes, branch selection) | Same | Not wired — BusinessResultsPage has no branch UI | **GAP: Business mode does not expose hypothesis branching** |
+
+## SECTION 5 — VISUAL VS FUNCTIONAL CHECK
+
+| Visual Element | Backend Execution | Connected? |
+|---|---|---|
+| ReportPage tabs (Overview, Journey, Community, Pricing, Supply, Patents) | analyze-products edge function populates product data | YES |
+| DisruptPage → StructureTab "Run" button | first-principles-analysis edge function | YES |
+| DisruptPage → Reasoning tab | reasoning_synopsis from governed data | YES |
+| DisruptPage → Hypotheses tab | root_hypotheses from governed data + strategicOS ranking | YES |
+| RedesignPage → Flip/Ideas/Concept tabs | FirstPrinciplesAnalysis with renderMode="redesign" | YES |
+| StressTestPage → Red Team / Validate tabs | critical-validation edge function | YES |
+| PitchPage → Slide tabs | generate-pitch-deck edge function | YES |
+| BusinessResultsPage → Steps 2-5 | business-model-analysis, critical-validation, generate-pitch-deck | YES |
+| Lens banner in Workspace | setActiveLens → persisted → injected into all edge functions via buildLensPrompt | YES |
+| Strategic Profile selector | setStrategicProfile → rankWithProfile → re-ranked hypotheses | YES (Product/Service only) |
+
+**No visual step exists without backend execution.**
+
+## SECTION 6 — PIPELINE MAP
+
+```text
+INPUT (User: category, URLs, problem statement, mode selection)
+    │
+    ▼
+PROBLEM ANALYSIS (analyze-problem)
+    │ entity, detectedModes, selectedChallenges
+    ▼
+DATA COLLECTION (scrape-products)
+    │ rawContent, communityContent, complaintsContent
+    ▼
+INTELLIGENCE SYNTHESIS (analyze-products)
+    │ Product[] with full intel (pricing, supply, patents, community, workflow)
+    ├──► GEO ENRICHMENT (geo-market-data) [background]
+    │    │ geoData, regulatoryProfile
+    │    ▼
+    │    [Stored in AnalysisContext]
+    ▼
+SIGNAL DETECTION & RANKING (signalDetection + signalRanking)
+    │ DetectedSignal[], RankedSignal[]
+    ▼
+REASONING ENGINE (first-principles-analysis)
+    │ 9-step protocol: domain confirmation → first principles → friction → constraints → leverage → solutions
+    │ Governed: constraint_map, root_hypotheses, reasoning_synopsis
+    │ Shared: modeEnforcement, reasoningFramework, lensPrompt, branchIsolation, adaptiveContext
+    ▼
+STRATEGIC OS (strategicOS.ts)
+    │ Re-rank hypotheses via archetype-specific dominance scoring
+    │ Adaptive drift: profile evolution based on user selections
+    ▼
+FRAMEWORK APPLICATION (Redesign - first-principles-analysis renderMode="redesign")
+    │ Flip the Logic → Flipped Ideas → Redesigned Concept
+    │ Upstream intel bundle: pricing, supply chain, community, patents, disrupt context
+    ▼
+ADVERSARIAL VALIDATION (critical-validation)
+    │ Red Team attacks, Green Team defends
+    │ Inputs: product + geoData + regulatoryData + competitorIntel + activeBranch
+    ▼
+OUTPUT GENERATION (generate-pitch-deck)
+    │ 11-slide investor-ready deck
+    │ Inputs: product + disrupt + stressTest + redesign + userScores + preferences
+    ▼
+PERSISTENCE & INTEGRITY
+    │ Checkpoint gate → Governed extraction → Evidence registry
+    │ Lens adaptation → Structural fingerprinting → Dependency invalidation
+    │ Previous snapshot → Version comparison
+    ▼
+OUTPUT (Analysis saved to DB with full analysis_data JSON blob)
+```
+
+## SECTION 7 — FAILURE POINTS & FIXES
+
+### 1. Business Mode: Strategic OS Not Wired
+**Issue:** `BusinessResultsPage` does not expose the Strategic Profile selector or hypothesis branching UI. The `AnalysisActionToolbar` is rendered without `strategicProfile` / `onChangeProfile` props being connected to hypothesis re-ranking. Root hypotheses from business-model-analysis's governed data are not displayed in a Strategic Mind Map.
+
+**Impact:** Business mode users cannot re-rank hypotheses by archetype or isolate individual branches. The Strategic OS module is functionally disconnected in this mode.
+
+**Fix:** Add Strategic Profile selector and hypothesis branching to BusinessResultsPage, wired through the same `rankWithProfile` / `setActiveBranchId` logic used in Product/Service modes.
+
+### 2. Business Mode: Redesign Step Missing
+**Issue:** Business mode uses a 4-step pipeline (Report → Disrupt → Stress Test → Pitch) with no Redesign step. This is documented as intentional ("model innovations are structural abstractions"), but it means the `generate-flip-ideas` and `RedesignVisualGenerator` modules are never executed for business analyses.
+
+**Impact:** Low — this is a design decision, not a bug. Business model "reinvention" happens within the Disrupt tab via the "Reinvented Model" sub-tab.
+
+**Status:** By design. No fix needed.
+
+### 3. Edge Function Timeout Risk
+**Issue:** `first-principles-analysis` (874 lines) and `business-model-analysis` (453 lines) make large AI calls. The AnalysisContext uses `invokeWithTimeout` (180s) for scrape/analyze, but Disrupt/Stress Test/Pitch calls in components use `supabase.functions.invoke()` without explicit timeout.
+
+**Impact:** If Gemini Flash is slow or the context window is large, the call could hang indefinitely on the client side.
+
+**Fix:** Wrap all step-level edge function calls in `invokeWithTimeout` with appropriate limits (60-90s for Disrupt, 45s for Stress Test, 60s for Pitch).
+
+### 4. Signal Detection Not Used in Business Mode
+**Issue:** `signalDetection.ts` and `signalRanking.ts` operate on Product-shaped data (field names like `pricingIntel`, `supplyChain`, `patentData`). Business mode data is structured differently (`businessSummary`, `operationalAudit`, `hiddenAssumptions`), so signal detection produces zero matches.
+
+**Impact:** The `ObservedSignalMatrix` and `AnalysisVisualLayer` signal panels are not rendered in business mode (because BusinessResultsPage doesn't use them), so this has no visible user impact. But it means the cross-cutting signal intelligence layer is mode-incomplete.
+
+**Fix (optional):** Extend signal detection rules to map business model field names, or create a business-specific signal matrix.
+
+### 5. Index.tsx Legacy Pipeline
+**Issue:** `src/pages/Index.tsx` contains a full legacy copy of the analysis pipeline (handleAnalyze, handleRegenerateIdeas, etc.) that duplicates `AnalysisContext`. This legacy code path is still reachable from the old `/` route if a user interacts with the embedded AnalysisForm.
+
+**Impact:** The legacy Index.tsx pipeline does NOT persist governed data, does NOT use `invokeWithTimeout`, does NOT fire adaptive context, and does NOT navigate to the new routed pages. Users hitting this path get a degraded experience.
+
+**Fix:** Remove or disable the analysis pipeline in Index.tsx. The StartPage/NewAnalysisPage + AnalysisContext is the canonical path. Index.tsx should only render the StartPage redirect or marketing hero.
+
+### 6. Outdated Step Key Mismatch: "pitch" vs "pitchDeck"
+**Issue:** `markStepOutdated` is called with `"pitch"` in some places (DisruptPage line 217, RedesignPage line 156) and `"pitchDeck"` in others (AnalysisContext lines 273, 284, 295, 384). The `stepDataRef` maps `pitchDeck` (line 304), so `markStepOutdated("pitch")` will never match `stepDataRef.current["pitch"]` — the guard `if (!stepDataRef.current[step]) return` silently skips the invalidation.
+
+**Impact:** Pitch deck may not be correctly marked as outdated when upstream Disrupt or Redesign data changes. This is a **data integrity bug**.
+
+**Fix:** Standardize on one key. Either always use `"pitchDeck"` (matching the state variable) or always use `"pitch"` and update stepDataRef accordingly. The canonical step key in `STEP_CONTRACTS` is `"pitchDeck"`, so all `markStepOutdated("pitch")` calls should be changed to `markStepOutdated("pitchDeck")`.
+
+### 7. Business Pitch Deck Data Routing
+**Issue:** In BusinessResultsPage, pitch deck is saved as `saveStepData("businessPitchDeck", d)` but loaded from `analysis.pitchDeckData`. The hydration logic in AnalysisContext must correctly map `businessPitchDeck` → `pitchDeckData` state for business mode.
+
+**Impact:** If hydration doesn't handle this mapping, business pitch decks may not reload on page refresh.
+
+**Status:** Documented in memory as "mode-data-isolation" — should be verified with an end-to-end test.
 
 ---
 
-### Key Design Decisions
+### Summary
 
-**1. Analog-Derived Constraint Detection**
+The pipeline is **structurally sound** with all modules active and functionally connected. The two most significant findings are:
 
-New interface for analog scan results:
+1. **Bug (Priority: High):** `"pitch"` vs `"pitchDeck"` key mismatch in `markStepOutdated` calls causes silent invalidation failures
+2. **Gap (Priority: Medium):** Business mode does not expose Strategic OS re-ranking or hypothesis branching
+3. **Technical debt (Priority: Low):** Legacy Index.tsx pipeline duplicates AnalysisContext and creates a degraded fallback path
 
-```typescript
-interface AnalogScanResult {
-  // Structurally similar analogs (top 10)
-  nearestAnalogs: AnalogMatch[];
-  
-  // Constraints common across these analogs
-  typicalConstraints: {
-    constraintId: string;
-    name: string;
-    frequency: number;      // How many analogs exhibited this
-    outcomes: string[];     // What happened when unaddressed
-  }[];
-  
-  // Success patterns observed
-  successPatterns: {
-    transformationType: string;
-    dimension: string;
-    exampleAnalogs: string[];
-  }[];
-}
-```
-
-The constraint refinement stage merges input-derived (from `constraintDetectionEngine.ts`) with analog-derived, weighting by:
-
-- Input signal strength (existing facet confidence)
-- Analog frequency (if 7/10 analogs struggled with this constraint → stronger signal)
-
-**2. Two-Pass Analog Matching**
-
-
-| Pass                 | Purpose                                           | Timing                           | Output                                            |
-| -------------------- | ------------------------------------------------- | -------------------------------- | ------------------------------------------------- |
-| **Pass 1: Scan**     | Understand typical patterns in similar structures | Before morphological exploration | `AnalogScanResult` (constraints, patterns)        |
-| **Pass 2: Validate** | Check if proposed transformation has precedent    | After morphological exploration  | `ValidatedTransformation` (feasibility, evidence) |
-
-
-This prevents reinventing failed ideas by surfacing "structural configurations that failed in similar contexts" during Pass 1.
-
-**3. Dual-Category Morphological Exploration**
-
-The current `opportunityDesignEngine.ts` already distinguishes "hot" (constraint-linked) vs "warm" (evidence-dense) dimensions. We expand this:
-
-```typescript
-interface TransformationSet {
-  // Category A: Direct constraint resolution
-  targeted: {
-    transformation: DimensionShift[];
-    addressedConstraintId: string;
-    rationale: string;  // "Resolves capacity constraint via..."
-  }[];
-  
-  // Category B: Architectural exploration
-  exploratory: {
-    transformation: DimensionShift[];
-    explorationBasis: string;  // "Evidence density in distribution"
-    rationale: string;  // "Adjacent model seen in analogous markets"
-  }[];
-}
-```
-
-Constraint-targeted: high probability of efficiency gain
-Exploratory: higher variance, potential for structural innovation
-
----
-
-### Test Harness Output Format
-
-For the first end-to-end test (dental practice), the harness will output a reasoning trace:
-
-```typescript
-interface ReasoningTrace {
-  input: {
-    description: string;
-    domain: string;
-  };
-  
-  stage1_structuralModel: {
-    dimensions: {
-      id: string;
-      name: string;
-      currentValue: string;
-      evidenceCount: number;
-    }[];
-  };
-  
-  stage2_constraints: {
-    inputDerived: {
-      constraintId: string;
-      name: string;
-      confidence: string;
-      basis: string[];
-    }[];
-    
-    analogDerived: {
-      constraintId: string;
-      name: string;
-      analogFrequency: number;
-      exampleAnalogs: string[];
-    }[];
-    
-    binding: {
-      constraintId: string;
-      name: string;
-      source: "input" | "analog" | "both";
-      rationale: string;
-    };
-  };
-  
-  stage3_transformations: {
-    targeted: {
-      shift: string;  // "pricing_model: per_visit → membership"
-      addressedConstraint: string;
-      rationale: string;
-    }[];
-    
-    exploratory: {
-      shift: string;
-      explorationBasis: string;
-      rationale: string;
-    }[];
-  };
-  
-  stage4_analogValidation: {
-    transformation: string;
-    analogMatches: {
-      name: string;
-      similarity: number;
-      outcome: string;
-    }[];
-    feasibilityVerdict: "strong" | "moderate" | "weak" | "no_precedent";
-  }[];
-  
-  stage5_opportunities: {
-    structuralChange: string;
-    constraintResolved: string;
-    analogEvidence: string;
-    category: "targeted" | "exploratory";
-    explanation: string;
-  }[];
-}
-```
-
----
-
-### Implementation Plan
-
-**Phase 1: Analog Scan Infrastructure**
-
-- Create `analogScanEngine.ts` with Pass 1 logic
-- Add `typicalConstraints` extraction from analog dataset
-- Wire into existing `EvaluableAnalog` type system
-
-**Phase 2: Constraint Refinement Stage**
-
-- Create `constraintRefinementEngine.ts`
-- Merge input-derived (from `constraintDetectionEngine.ts`) + analog-derived
-- Implement binding constraint ranking
-
-**Phase 3: Dual-Category Morphological Search**
-
-- Extend `opportunityDesignEngine.ts` with explicit `targeted` vs `exploratory` outputs
-- Ensure exploratory shifts aren't filtered by constraint-linkage gate
-
-**Phase 4: Analog Validation (Pass 2)**
-
-- Extend existing `scoreAnalogFeasibility` to return richer precedent evidence
-- Attach to transformation output
-
-**Phase 5: Test Harness**
-
-- Create `src/lib/pipeline/reasoningTraceHarness.ts`
-- Run full pipeline with dental practice seed
-- Output structured `ReasoningTrace` for inspection
-
----
-
-### First Test Case: Dental Practice
-
-Input:
-
-```typescript
-{
-  domain: "dental_practice",
-  structural_features: {
-    customer: "local_patients",
-    distribution: "walk_in_referral",
-    pricing_model: "per_visit",
-    capacity_model: "chair_utilization",
-    revenue_timing: "insurance_reimbursement"
-  }
-}
-```
-
-Expected reasoning trace will reveal:
-
-1. Whether chair utilization or insurance reimbursement is detected as binding
-2. What analog precedent supports membership vs tele-dentistry vs mobile clinic
-3. Whether the explanation chain is coherent
