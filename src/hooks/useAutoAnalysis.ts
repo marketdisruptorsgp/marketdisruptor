@@ -119,6 +119,11 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           name: activeLens.name,
           risk_tolerance: activeLens.risk_tolerance ?? undefined,
           constraints: activeLens.constraints ?? undefined,
+          primary_objective: activeLens.primary_objective ?? undefined,
+          target_outcome: activeLens.target_outcome ?? undefined,
+          time_horizon: activeLens.time_horizon ?? undefined,
+          available_resources: activeLens.available_resources ?? undefined,
+          evaluation_priorities: activeLens.evaluation_priorities ?? undefined,
         }
       : null;
 
