@@ -82,6 +82,8 @@ export interface DeepenedOpportunity {
   patternName: string;
   /** Human-readable label (action-oriented, sentence case) */
   label: string;
+  /** Concrete business reconfiguration — the specific structural move, not the pattern name */
+  reconfigurationLabel: string;
   /** One-paragraph summary of the opportunity */
   summary: string;
   /** Full causal chain: constraint → driver → pattern → outcome */
