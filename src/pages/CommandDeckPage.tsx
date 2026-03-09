@@ -583,7 +583,7 @@ export default function CommandDeckPage() {
     // If hydration is done but data is still missing, show error state
     if (analysis.step === "done" && !isHydrating) {
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="flex-1 bg-background flex items-center justify-center px-4">
           <div className="text-center space-y-3 max-w-md">
             <p className="text-sm font-bold text-foreground">Analysis data incomplete</p>
             <p className="text-xs text-muted-foreground">This analysis may need to be re-run to populate missing data.</p>
@@ -631,14 +631,14 @@ export default function CommandDeckPage() {
     }
     // Hydrating from DB — show simple spinner
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex-1 bg-background flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex-1 bg-background overflow-y-auto">
       <main className="max-w-[1100px] mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3">
 
         {/* ══════════════════════════════════════════════════════════
