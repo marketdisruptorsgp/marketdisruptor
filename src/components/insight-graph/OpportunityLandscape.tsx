@@ -1,92 +1,61 @@
 /**
- * Opportunity Landscape — Strategic Move Cards + Scatter Plot
+ * Opportunity Landscape — Narrative Strategic Move Cards
  *
- * For ≤5 opportunities: ranked insight cards showing the full reasoning.
- * For 6+ opportunities: 2-axis scatter chart with density visualization.
+ * Each card tells a story:
+ *   "We found [constraint] → This suggests [move] → Because [reasoning]"
  *
- * Each card answers: What's the move? Why does it matter? What makes it hard?
+ * No internal jargon (CONCEPT, LEVERAGE, etc.) — users see strategic narratives.
+ * Cards are always shown (no scatter chart) since density is rarely >10.
  */
 
 import { memo, useMemo, useState } from "react";
-import {
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, ReferenceLine, Label,
-} from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap, Target, Shield, ArrowRight, ChevronDown, ChevronUp,
-  TrendingUp, AlertTriangle, Lightbulb,
+  Zap, ArrowRight, ChevronDown, ChevronUp,
+  TrendingUp, Lightbulb, Search, ArrowDown,
 } from "lucide-react";
-import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
+import type { InsightGraph, InsightGraphNode } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 
-const CONF_MAP: Record<string, number> = { high: 8.5, medium: 5.5, low: 2.5 };
+/* ═══════════════════════════════════════════════════════
+   HELPERS — trace the reasoning chain for each opportunity
+   ═══════════════════════════════════════════════════════ */
 
-const CARD_THRESHOLD = 6; // Show cards below this count, chart at or above
-
-interface PlotPoint {
-  x: number;
-  y: number;
-  z: number;
-  node: InsightGraphNode;
-}
-
-function toPlot(n: InsightGraphNode): PlotPoint {
-  return {
-    x: CONF_MAP[n.confidence] ?? 5,
-    y: n.impact,
-    z: n.influence,
-    node: n,
-  };
-}
-
-function impactLabel(impact: number): { text: string; color: string } {
-  if (impact >= 8) return { text: "High impact", color: "hsl(var(--success))" };
-  if (impact >= 5) return { text: "Moderate impact", color: "hsl(var(--warning))" };
-  return { text: "Emerging signal", color: "hsl(var(--muted-foreground))" };
-}
-
-function feasibilityLabel(confidence: string): { text: string; color: string; explanation: string } {
-  if (confidence === "high") return { text: "High feasibility", color: "hsl(var(--success))", explanation: "Strong evidence supports this direction" };
-  if (confidence === "medium") return { text: "Moderate feasibility", color: "hsl(var(--warning))", explanation: "Some validation needed before committing" };
-  return { text: "Needs validation", color: "hsl(var(--destructive))", explanation: "Early signal — requires further evidence" };
-}
-
-function influenceLabel(influence: number): string {
-  if (influence >= 60) return "Influences multiple parts of the system";
-  if (influence >= 30) return "Moderate structural influence";
-  return "Focused impact area";
-}
-
-/** Find constraints this node is connected to */
-function findConnectedConstraints(node: InsightGraphNode, graph: InsightGraph): InsightGraphNode[] {
-  // Walk backwards through edges to find constraint sources
-  const constraintIds = new Set<string>();
+/** Walk backwards through the graph to find the constraint/signal that led to this opportunity */
+function findSourceChain(node: InsightGraphNode, graph: InsightGraph): {
+  sourceConstraint: InsightGraphNode | null;
+  sourceSignal: InsightGraphNode | null;
+  leveragePoint: InsightGraphNode | null;
+} {
   const visited = new Set<string>();
   const queue = [node.id];
+  let sourceConstraint: InsightGraphNode | null = null;
+  let sourceSignal: InsightGraphNode | null = null;
+  let leveragePoint: InsightGraphNode | null = null;
 
   while (queue.length > 0) {
     const current = queue.shift()!;
     if (visited.has(current)) continue;
     visited.add(current);
 
-    // Find edges pointing TO this node
     const incomingEdges = graph.edges.filter(e => e.target === current);
     for (const edge of incomingEdges) {
-      const sourceNode = graph.nodes.find(n => n.id === edge.source);
-      if (sourceNode?.type === "constraint") {
-        constraintIds.add(sourceNode.id);
-      } else if (sourceNode && visited.size < 10) {
-        queue.push(sourceNode.id);
-      }
+      const src = graph.nodes.find(n => n.id === edge.source);
+      if (!src) continue;
+
+      if (src.type === "constraint" && !sourceConstraint) sourceConstraint = src;
+      else if ((src.type === "signal" || src.type === "evidence" || src.type === "friction") && !sourceSignal) sourceSignal = src;
+      else if (src.type === "leverage_point" && !leveragePoint) leveragePoint = src;
+
+      if (visited.size < 12) queue.push(src.id);
     }
   }
 
-  return graph.nodes.filter(n => constraintIds.has(n.id));
+  return { sourceConstraint, sourceSignal, leveragePoint };
 }
 
 /* ═══════════════════════════════════════════════════════
-   CARD VIEW — Rich insight cards for ≤5 opportunities
+   CARD — One strategic move, told as a narrative
    ═══════════════════════════════════════════════════════ */
 
 function OpportunityCard({
@@ -99,17 +68,23 @@ function OpportunityCard({
   onToggle: () => void;
   onSelect?: (id: string) => void;
 }) {
-  const cfg = NODE_TYPE_CONFIG[node.type];
-  const impact = impactLabel(node.impact);
-  const feasibility = feasibilityLabel(node.confidence);
-  const constraints = useMemo(() => findConnectedConstraints(node, graph), [node, graph]);
+  const { sourceConstraint, sourceSignal } = useMemo(
+    () => findSourceChain(node, graph), [node, graph]
+  );
   const isPrimary = rank === 1;
+
+  // Build a one-line "origin" sentence — WHERE did this idea come from?
+  const originText = sourceConstraint?.label
+    ? `Based on: ${sourceConstraint.label}`
+    : sourceSignal?.label
+      ? `Based on: ${sourceSignal.label}`
+      : null;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: rank * 0.1, duration: 0.4 }}
+      transition={{ delay: rank * 0.08, duration: 0.35 }}
       className="rounded-xl overflow-hidden"
       style={{
         background: "hsl(var(--card))",
@@ -121,12 +96,11 @@ function OpportunityCard({
           : "none",
       }}
     >
-      {/* Main card header — always visible */}
       <button
         onClick={onToggle}
         className="w-full text-left px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-muted/30 transition-colors"
       >
-        {/* Rank badge */}
+        {/* Rank */}
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
           style={{
@@ -137,47 +111,28 @@ function OpportunityCard({
           <span className="text-xs font-extrabold">{rank}</span>
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Type + confidence badges */}
-          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <div className="flex items-center gap-1">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{ background: cfg.color, boxShadow: `0 0 6px ${cfg.color}60` }}
-              />
-              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
-                {cfg.label}
-              </span>
-            </div>
-            <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: `${impact.color}15`, color: impact.color }}
-            >
-              {impact.text}
-            </span>
-            <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: `${feasibility.color}15`, color: feasibility.color }}
-            >
-              {feasibility.text}
-            </span>
-          </div>
+          {/* Origin — WHERE this idea came from (always visible, replaces jargon badges) */}
+          {originText && (
+            <p className="text-[11px] text-muted-foreground leading-snug mb-1 flex items-center gap-1">
+              <Search size={10} className="flex-shrink-0 opacity-60" />
+              <span className="line-clamp-1">{originText}</span>
+            </p>
+          )}
 
-          {/* Full label — NO truncation */}
+          {/* The strategic move itself */}
           <p className="text-sm font-bold text-foreground leading-snug">
             {node.label}
           </p>
 
-          {/* Quick context line */}
+          {/* Reasoning preview — WHY this matters (always visible, not hidden) */}
           {node.reasoning && !isExpanded && (
-            <p className="text-xs text-muted-foreground leading-relaxed mt-1 line-clamp-2">
+            <p className="text-xs text-muted-foreground leading-relaxed mt-1.5 line-clamp-2">
               {node.reasoning}
             </p>
           )}
         </div>
 
-        {/* Expand indicator */}
         <div className="flex-shrink-0 mt-1">
           {isExpanded
             ? <ChevronUp size={14} className="text-muted-foreground" />
@@ -186,7 +141,7 @@ function OpportunityCard({
         </div>
       </button>
 
-      {/* Expanded detail — the reasoning behind this opportunity */}
+      {/* Expanded: full reasoning chain */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -197,67 +152,45 @@ function OpportunityCard({
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid hsl(var(--border) / 0.5)" }}>
-              {/* Why this matters */}
-              {node.reasoning && (
-                <div
-                  className="rounded-lg p-3 mt-3"
-                  style={{ background: `${cfg.color}08`, border: `1px solid ${cfg.color}15` }}
-                >
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Lightbulb size={11} style={{ color: cfg.color }} />
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
-                      Why this matters
-                    </span>
-                  </div>
-                  <p className="text-xs text-foreground leading-relaxed">{node.reasoning}</p>
-                </div>
-              )}
 
-              {/* Connected constraints — what problem this solves */}
-              {constraints.length > 0 && (
-                <div
-                  className="rounded-lg p-3"
-                  style={{ background: "hsl(var(--destructive) / 0.04)", border: "1px solid hsl(var(--destructive) / 0.1)" }}
-                >
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Target size={11} style={{ color: "hsl(var(--destructive))" }} />
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>
-                      Constraint it unlocks
-                    </span>
-                  </div>
-                  {constraints.slice(0, 3).map(c => (
-                    <p key={c.id} className="text-xs text-foreground leading-relaxed mb-1">
-                      {c.label}
-                    </p>
-                  ))}
-                </div>
-              )}
+              {/* Reasoning chain visualization */}
+              <div className="mt-3 space-y-0">
+                {/* Step 1: What we found (constraint/signal) */}
+                {sourceConstraint && (
+                  <ReasoningStep
+                    step="We found"
+                    content={sourceConstraint.label}
+                    color="hsl(var(--destructive))"
+                    isFirst
+                  />
+                )}
 
-              {/* Feasibility assessment */}
-              <div
-                className="rounded-lg p-3"
-                style={{ background: `${feasibility.color}06`, border: `1px solid ${feasibility.color}12` }}
-              >
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <Shield size={11} style={{ color: feasibility.color }} />
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: feasibility.color }}>
-                    Feasibility
-                  </span>
-                </div>
-                <p className="text-xs text-foreground leading-relaxed">{feasibility.explanation}</p>
-                <p className="text-xs text-muted-foreground mt-1">{influenceLabel(node.influence)}</p>
+                {/* Step 2: The strategic move */}
+                <ReasoningStep
+                  step="This suggests"
+                  content={node.label}
+                  color="hsl(var(--primary))"
+                  isFirst={!sourceConstraint}
+                />
+
+                {/* Step 3: Why it matters */}
+                {node.reasoning && (
+                  <ReasoningStep
+                    step="Because"
+                    content={node.reasoning}
+                    color="hsl(var(--success))"
+                  />
+                )}
               </div>
 
-              {/* Evidence count */}
+              {/* Evidence basis */}
               {node.evidenceCount > 0 && (
-                <div className="flex items-center gap-2 px-1">
-                  <span className="text-[10px] font-bold text-muted-foreground">
-                    Based on {node.evidenceCount} evidence signal{node.evidenceCount !== 1 ? "s" : ""}
-                  </span>
-                </div>
+                <p className="text-[10px] font-bold text-muted-foreground px-1">
+                  Derived from {node.evidenceCount} evidence signal{node.evidenceCount !== 1 ? "s" : ""} in the analysis
+                </p>
               )}
 
-              {/* CTA to explore in graph */}
+              {/* CTA */}
               {onSelect && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onSelect(node.id); }}
@@ -269,7 +202,7 @@ function OpportunityCard({
                   }}
                 >
                   <TrendingUp size={10} />
-                  Explore in reasoning map
+                  Trace reasoning in map
                   <ArrowRight size={10} />
                 </button>
               )}
@@ -281,57 +214,33 @@ function OpportunityCard({
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   SCATTER VIEW — For 6+ opportunities
-   ═══════════════════════════════════════════════════════ */
-
-const QUADRANTS = [
-  { label: "Long Bets",                 x: 2.2, y: 8.5 },
-  { label: "Breakthrough Opportunities", x: 7,   y: 8.5 },
-  { label: "Low Priority",              x: 2.2, y: 2   },
-  { label: "Incremental Wins",          x: 7,   y: 2   },
-] as const;
-
-function ScatterTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null;
-  const pt: PlotPoint = payload[0].payload;
-  const cfg = NODE_TYPE_CONFIG[pt.node.type];
-  const impact = impactLabel(pt.y);
-  const feasibility = feasibilityLabel(pt.node.confidence);
+/** Single step in the reasoning chain */
+function ReasoningStep({ step, content, color, isFirst = false }: {
+  step: string;
+  content: string;
+  color: string;
+  isFirst?: boolean;
+}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl px-4 py-3 shadow-2xl max-w-80"
-      style={{
-        background: "hsl(var(--card))",
-        border: `2px solid ${cfg.borderColor}`,
-        boxShadow: `0 8px 32px hsl(0 0% 0% / 0.15), 0 0 0 1px ${cfg.borderColor}`,
-      }}
-    >
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ background: cfg.color, boxShadow: `0 0 8px ${cfg.color}60` }}
-        />
-        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
-          {cfg.label}
+    <div className="flex items-start gap-2">
+      {/* Vertical connector line */}
+      <div className="flex flex-col items-center flex-shrink-0 w-4">
+        {!isFirst && (
+          <ArrowDown size={10} className="text-muted-foreground opacity-40 mb-0.5" />
+        )}
+        <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: color }} />
+      </div>
+
+      <div
+        className="rounded-lg p-2.5 flex-1 mb-1"
+        style={{ background: `${color}08`, border: `1px solid ${color}18` }}
+      >
+        <span className="text-[10px] font-extrabold uppercase tracking-widest block mb-0.5" style={{ color }}>
+          {step}
         </span>
+        <p className="text-xs text-foreground leading-relaxed">{content}</p>
       </div>
-      <p className="text-sm font-bold text-foreground leading-snug mb-2">{pt.node.label}</p>
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          { label: "Impact", value: impact.text, color: impact.color },
-          { label: "Feasibility", value: feasibility.text, color: feasibility.color },
-          { label: "Influence", value: pt.z >= 60 ? "Strong" : pt.z >= 30 ? "Moderate" : "Emerging", color: cfg.color },
-        ].map(m => (
-          <div key={m.label} className="text-center">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{m.label}</p>
-            <p className="text-[10px] font-bold" style={{ color: m.color }}>{m.value}</p>
-          </div>
-        ))}
-      </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -354,20 +263,12 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
     () => graph.nodes
       .filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type))
       .sort((a, b) => {
-        // Sort by impact desc, then influence desc
+        // Sort by impact desc, then evidence count desc, then influence desc
         if (b.impact !== a.impact) return b.impact - a.impact;
+        if (b.evidenceCount !== a.evidenceCount) return b.evidenceCount - a.evidenceCount;
         return b.influence - a.influence;
       }),
     [graph.nodes],
-  );
-
-  const points = useMemo(() => opportunities.map(toPlot), [opportunities]);
-
-  const breakthrough = useMemo(
-    () => opportunities.reduce<InsightGraphNode | null>(
-      (best, n) => (!best || n.influence > best.influence ? n : best), null,
-    ),
-    [opportunities],
   );
 
   if (opportunities.length === 0) {
@@ -380,8 +281,6 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
     );
   }
 
-  const useCards = opportunities.length < CARD_THRESHOLD;
-
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -390,104 +289,32 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
           className="w-7 h-7 rounded-lg flex items-center justify-center"
           style={{ background: "hsl(var(--primary) / 0.1)" }}
         >
-          <TrendingUp size={14} style={{ color: "hsl(var(--primary))" }} />
+          <Lightbulb size={14} style={{ color: "hsl(var(--primary))" }} />
         </div>
         <div>
           <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
             Strategic Moves
           </p>
           <p className="text-xs text-muted-foreground">
-            {opportunities.length} opportunit{opportunities.length === 1 ? "y" : "ies"} identified — ranked by impact and evidence strength
+            {opportunities.length} idea{opportunities.length !== 1 ? "s" : ""} derived from structural analysis — expand any card to see the full reasoning chain
           </p>
         </div>
       </div>
 
-      {useCards ? (
-        /* ── CARD VIEW ── */
-        <div className="space-y-2">
-          {opportunities.map((opp, idx) => (
-            <OpportunityCard
-              key={opp.id}
-              node={opp}
-              rank={idx + 1}
-              graph={graph}
-              isExpanded={expandedId === opp.id}
-              onToggle={() => setExpandedId(prev => prev === opp.id ? null : opp.id)}
-              onSelect={onSelectNode}
-            />
-          ))}
-        </div>
-      ) : (
-        /* ── SCATTER VIEW ── */
-        <>
-          <div
-            className="rounded-xl overflow-hidden"
-            style={{
-              background: "hsl(var(--card))",
-              border: "1.5px solid hsl(var(--border))",
-            }}
-          >
-            <ResponsiveContainer width="100%" height={compact ? 320 : 440}>
-              <ScatterChart margin={{ top: 30, right: 30, bottom: 30, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                <XAxis type="number" dataKey="x" domain={[0, 10]} ticks={[0, 2.5, 5, 7.5, 10]}
-                  tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }}
-                  tickLine={false} axisLine={{ stroke: "hsl(var(--border))" }}>
-                  <Label value="Feasibility →" position="insideBottom" offset={-15}
-                    style={{ fontSize: 12, fontWeight: 700, fill: "hsl(var(--foreground))" }} />
-                </XAxis>
-                <YAxis type="number" dataKey="y" domain={[0, 10]} ticks={[0, 2.5, 5, 7.5, 10]}
-                  tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }}
-                  tickLine={false} axisLine={{ stroke: "hsl(var(--border))" }}>
-                  <Label value="Strategic Impact →" angle={-90} position="insideLeft" offset={5}
-                    style={{ fontSize: 12, fontWeight: 700, fill: "hsl(var(--foreground))" }} />
-                </YAxis>
-                <ReferenceLine x={5} stroke="hsl(var(--border))" strokeDasharray="6 4" />
-                <ReferenceLine y={5} stroke="hsl(var(--border))" strokeDasharray="6 4" />
-                <Tooltip content={<ScatterTooltip />} cursor={false} />
-                <Scatter data={points} onClick={(pt: any) => onSelectNode?.(pt.node.id)} cursor="pointer">
-                  {points.map((pt, i) => {
-                    const cfg = NODE_TYPE_CONFIG[pt.node.type];
-                    const isBreakthrough = breakthrough && pt.node.id === breakthrough.id;
-                    const radius = Math.max(7, Math.min(24, pt.z / 3.5));
-                    return (
-                      <Cell key={i} fill={cfg.color} fillOpacity={isBreakthrough ? 1 : 0.75}
-                        stroke={isBreakthrough ? "hsl(38 92% 50%)" : cfg.borderColor}
-                        strokeWidth={isBreakthrough ? 3 : 1.5} r={radius} />
-                    );
-                  })}
-                </Scatter>
-              </ScatterChart>
-            </ResponsiveContainer>
-
-            {/* Quadrant labels */}
-            <div className="relative" style={{ marginTop: -(compact ? 320 : 440), height: compact ? 320 : 440, pointerEvents: "none" }}>
-              {QUADRANTS.map(q => (
-                <span key={q.label}
-                  className="absolute text-xs font-extrabold uppercase tracking-widest select-none"
-                  style={{
-                    left: `${(q.x / 10) * 100}%`, top: `${100 - (q.y / 10) * 100}%`,
-                    transform: "translate(-50%, -50%)",
-                    color: "hsl(var(--muted-foreground))", opacity: 0.3,
-                  }}>
-                  {q.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 px-1">
-            <span className="text-xs font-bold text-muted-foreground">
-              {points.length} opportunities plotted
-            </span>
-            {breakthrough && (
-              <span className="text-xs font-bold" style={{ color: NODE_TYPE_CONFIG[breakthrough.type].color }}>
-                ★ {breakthrough.label}
-              </span>
-            )}
-          </div>
-        </>
-      )}
+      {/* Cards — always cards, narrative-driven */}
+      <div className="space-y-2">
+        {opportunities.map((opp, idx) => (
+          <OpportunityCard
+            key={opp.id}
+            node={opp}
+            rank={idx + 1}
+            graph={graph}
+            isExpanded={expandedId === opp.id}
+            onToggle={() => setExpandedId(prev => prev === opp.id ? null : opp.id)}
+            onSelect={onSelectNode}
+          />
+        ))}
+      </div>
     </div>
   );
 });
