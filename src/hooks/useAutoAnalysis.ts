@@ -261,6 +261,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     diagnostic,
     scenarioComparison,
     sensitivityReports,
+    deepenedOpportunities,
     isComputing,
     completedSteps,
     pipelineCompletion,
