@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Focus, ChevronDown, Plus, Pencil, Trash2, Building2, Star } from "lucide-react";
+import { Focus, ChevronDown, Plus, Pencil, Trash2, Building2, Star, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { LensEditor } from "@/components/LensEditor";
-import { ETA_LENS, getLensType } from "@/lib/etaLens";
+import { ETA_LENS, getEtaLensWithContext, getLensType } from "@/lib/etaLens";
+import { OperatorContextEditor } from "@/components/OperatorContextEditor";
 import { toast } from "sonner";
 
 const PRIMARY_LENS_KEY = "primary-lens-type";
@@ -30,6 +31,7 @@ export function LensToggle() {
   const [lenses, setLenses] = useState<UserLens[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [showOperatorEditor, setShowOperatorEditor] = useState(false);
   const [editingLens, setEditingLens] = useState<UserLens | null>(null);
   const [primaryType, setPrimaryType] = useState<string>(() => localStorage.getItem(PRIMARY_LENS_KEY) || "default");
   const [primaryId, setPrimaryId] = useState<string | null>(() => localStorage.getItem(PRIMARY_LENS_ID_KEY));
@@ -55,8 +57,9 @@ export function LensToggle() {
     if (hasAutoLoaded.current) return;
     if (primaryType === "default") { hasAutoLoaded.current = true; return; }
     if (primaryType === "eta") {
-      analysis.setActiveLens(ETA_LENS as UserLens);
+      analysis.setActiveLens(getEtaLensWithContext() as UserLens);
       hasAutoLoaded.current = true;
+      return;
       return;
     }
     if (primaryType === "custom" && primaryId && lenses.length > 0) {
@@ -101,7 +104,7 @@ export function LensToggle() {
   };
 
   const handleSelectEta = () => {
-    analysis.setActiveLens(ETA_LENS as UserLens);
+    analysis.setActiveLens(getEtaLensWithContext() as UserLens);
     setShowDropdown(false);
     toast.success("ETA Acquisition Lens activated");
   };
@@ -192,6 +195,13 @@ export function LensToggle() {
                 <span className="text-[10px] text-muted-foreground">Ownership &amp; value-creation lens</span>
               </div>
             </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowOperatorEditor(true); setShowDropdown(false); }}
+              title="Configure operator profile"
+              className="p-0.5 rounded hover:bg-muted text-muted-foreground/60 hover:text-foreground"
+            >
+              <Settings size={10} />
+            </button>
             <PrimaryButton type="eta" />
           </div>
 
@@ -256,6 +266,19 @@ export function LensToggle() {
             setEditingLens(null);
             analysis.setActiveLens({ ...saved, lensType: "custom" });
             toast.success(editingLens ? "Lens updated" : "Lens created & activated");
+          }}
+        />
+      )}
+
+      {/* Operator context editor */}
+      {showOperatorEditor && (
+        <OperatorContextEditor
+          onClose={() => setShowOperatorEditor(false)}
+          onSaved={() => {
+            // Re-activate ETA lens with new context
+            if (activeLensType === "eta") {
+              analysis.setActiveLens(getEtaLensWithContext() as UserLens);
+            }
           }}
         />
       )}

@@ -1,18 +1,19 @@
 /**
  * IntelligenceFeed — Tier 2: Single scrollable feed replacing the 3-tab system
+ * Now consumes DeepenedOpportunity thesis format alongside legacy cards.
  * Cards are tagged (New Idea / Execution / Iterate) and sorted by impact.
- * Users filter by tag. Each card expands inline.
  */
 
 import { memo, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lightbulb, Rocket, RefreshCw, ChevronDown, ChevronUp,
-  Sparkles, Target, Zap, Brain,
+  Sparkles, Target, Zap, Brain, AlertTriangle, DollarSign, Play,
 } from "lucide-react";
 import { humanizeLabel } from "@/lib/humanize";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 import type { TransformationPlaybook } from "@/lib/playbookEngine";
+import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 
 type FeedTag = "all" | "new-idea" | "execution" | "iterate";
 
@@ -24,8 +25,16 @@ interface FeedCard {
   title: string;
   summary: string;
   detail?: string;
+  /** Optional causal chain for thesis cards */
+  causalChain?: {
+    constraint: string;
+    belief: string;
+    move: string;
+    economics: string;
+    firstMove: string;
+  };
   accentColor: string;
-  priority: number; // higher = shows first
+  priority: number;
 }
 
 export interface DetectedPatternForFeed {
@@ -42,6 +51,7 @@ interface IntelligenceFeedProps {
   flatEvidence: Array<any>;
   insights: Array<any>;
   topPlaybook: TransformationPlaybook | null;
+  deepenedOpportunities?: DeepenedOpportunity[];
   mode: "product" | "service" | "business";
   modeAccent: string;
   detectedPatterns: DetectedPatternForFeed[];
@@ -53,69 +63,79 @@ const TAG_CONFIG: Record<Exclude<FeedTag, "all">, { label: string; color: string
   "iterate": { label: "Iterate", color: "hsl(var(--warning))", bg: "hsl(var(--warning) / 0.08)" },
 };
 
-/**
- * Build a meaningful description for a structural pattern instead of
- * the generic "Structural pattern detected in evidence."
- */
 function buildPatternDescription(p: DetectedPatternForFeed): string {
   const parts: string[] = [];
-
-  // Use characteristics to build a real description
   if (p.characteristics && p.characteristics.length > 0) {
     parts.push(p.characteristics[0]);
-    if (p.characteristics.length > 1) {
-      parts.push(p.characteristics[1]);
-    }
+    if (p.characteristics.length > 1) parts.push(p.characteristics[1]);
   }
-
-  // Add transformation direction
   if (p.commonTransformations && p.commonTransformations.length > 0) {
     parts.push(`Common transformation paths: ${p.commonTransformations.slice(0, 2).join(", ")}.`);
   }
-
   if (parts.length > 0) return parts.join(". ");
-
-  // Fallback — still better than "Structural pattern detected"
   if (p.description && p.description.toLowerCase() !== "structural pattern detected in evidence.") {
     return humanizeLabel(p.description);
   }
-
   return `This analysis matches the ${humanizeLabel(p.name || p.label || "detected")} archetype based on evidence signals.`;
 }
 
-/**
- * Build a meaningful detail (expanded) for a pattern
- */
 function buildPatternDetail(p: DetectedPatternForFeed): string | undefined {
   const parts: string[] = [];
-
-  if (p.riskFactors && p.riskFactors.length > 0) {
-    parts.push(`Key risks: ${p.riskFactors.join("; ")}.`);
-  }
-  if (p.characteristics && p.characteristics.length > 2) {
-    parts.push(...p.characteristics.slice(2));
-  }
-
+  if (p.riskFactors && p.riskFactors.length > 0) parts.push(`Key risks: ${p.riskFactors.join("; ")}.`);
+  if (p.characteristics && p.characteristics.length > 2) parts.push(...p.characteristics.slice(2));
   return parts.length > 0 ? parts.join(" ") : undefined;
 }
 
 function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
-  const { narrative, flatEvidence, insights, topPlaybook, detectedPatterns } = props;
+  const { narrative, flatEvidence, insights, topPlaybook, deepenedOpportunities, detectedPatterns } = props;
   const cards: FeedCard[] = [];
-
-  // Track the hero text so we don't duplicate it
   const heroText = narrative?.breakthroughOpportunity || narrative?.primaryConstraint || "";
 
-  // New Ideas: from insights with type opportunity/leverage_point
-  // But skip any that match the hero text to avoid duplication
+  // ═══ THESIS CARDS (from deepened opportunities) — replace generic playbook cards ═══
+  if (deepenedOpportunities && deepenedOpportunities.length > 0) {
+    deepenedOpportunities.forEach((thesis, idx) => {
+      cards.push({
+        id: `thesis-${idx}`,
+        tag: idx === 0 ? "new-idea" : "execution",
+        tagLabel: idx === 0 ? "Strategic Thesis" : "Alternative Thesis",
+        icon: idx === 0 ? Sparkles : Target,
+        title: thesis.reconfigurationLabel,
+        summary: `${thesis.strategicBet.contrarianBelief}`,
+        causalChain: {
+          constraint: thesis.causalChain.constraint,
+          belief: thesis.strategicBet.contrarianBelief,
+          move: thesis.reconfigurationLabel,
+          economics: thesis.economicMechanism.valueCreation,
+          firstMove: thesis.firstMove.action,
+        },
+        accentColor: idx === 0 ? TAG_CONFIG["new-idea"].color : TAG_CONFIG["execution"].color,
+        priority: 10 - idx,
+      });
+    });
+  } else if (topPlaybook) {
+    // Fallback: use legacy playbook card if no theses available
+    cards.push({
+      id: "playbook",
+      tag: "execution",
+      tagLabel: "Execution",
+      icon: Target,
+      title: topPlaybook.title,
+      summary: topPlaybook.strategicThesis,
+      detail: `Timeline: ${topPlaybook.impact.executionDifficulty <= 3 ? "1–3 months" : topPlaybook.impact.executionDifficulty <= 5 ? "3–6 months" : "6–18 months"}`,
+      accentColor: TAG_CONFIG["execution"].color,
+      priority: 9,
+    });
+  }
+
+  // New Ideas from insights (skip duplicates with thesis cards)
+  const thesisTitles = new Set((deepenedOpportunities || []).map(t => t.reconfigurationLabel.toLowerCase()));
   const ideaInsights = insights.filter(i =>
     i.type === "opportunity" || i.type === "leverage_point" || i.type === "disruption_vector"
   );
   ideaInsights.forEach((insight, idx) => {
     const label = insight.label || insight.description || "Opportunity";
-    // Skip if this is basically the same as the hero
     if (heroText && label.slice(0, 40) === heroText.slice(0, 40)) return;
-
+    if (thesisTitles.has(label.toLowerCase())) return;
     cards.push({
       id: `idea-${idx}`,
       tag: "new-idea",
@@ -129,8 +149,7 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
     });
   });
 
-  // DO NOT add a "breakthrough" card that duplicates the hero insight.
-  // Instead, if we have a kill question or validation experiment, surface that as actionable
+  // Kill question
   if (narrative?.killQuestion) {
     cards.push({
       id: "kill-question",
@@ -147,22 +166,7 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
     });
   }
 
-  // Execution: top playbook
-  if (topPlaybook) {
-    cards.push({
-      id: "playbook",
-      tag: "execution",
-      tagLabel: "Execution",
-      icon: Target,
-      title: topPlaybook.title,
-      summary: topPlaybook.strategicThesis,
-      detail: `Timeline: ${topPlaybook.impact.executionDifficulty <= 3 ? "1–3 months" : topPlaybook.impact.executionDifficulty <= 5 ? "3–6 months" : "6–18 months"}`,
-      accentColor: TAG_CONFIG["execution"].color,
-      priority: 9,
-    });
-  }
-
-  // Execution: constraint to address (but use verdictRationale for the summary, not the raw constraint)
+  // Constraint
   if (narrative?.primaryConstraint) {
     cards.push({
       id: "constraint",
@@ -180,7 +184,7 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
     });
   }
 
-  // Iterate: patterns detected — with REAL descriptions from characteristics
+  // Patterns
   detectedPatterns.forEach((p, idx) => {
     cards.push({
       id: `pattern-${idx}`,
@@ -195,7 +199,7 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
     });
   });
 
-  // Iterate: trapped value
+  // Trapped value
   if (narrative?.trappedValue) {
     cards.push({
       id: "trapped-value",
@@ -210,14 +214,40 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
     });
   }
 
-  // Sort by priority descending
   return cards.sort((a, b) => b.priority - a.priority);
+}
+
+/** Mini causal chain inside a feed card */
+function ThesisChainDetail({ chain, accent }: { chain: FeedCard["causalChain"]; accent: string }) {
+  if (!chain) return null;
+  const steps = [
+    { label: "Constraint", value: chain.constraint, icon: AlertTriangle },
+    { label: "Belief", value: chain.belief, icon: Lightbulb },
+    { label: "Economics", value: chain.economics, icon: DollarSign },
+    { label: "First Move", value: chain.firstMove, icon: Play },
+  ];
+  return (
+    <div className="space-y-1.5 pt-2">
+      {steps.map((s, i) => (
+        <div key={s.label} className="flex items-start gap-2">
+          <s.icon size={11} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div>
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">
+              {s.label}
+            </span>
+            <p className="text-xs text-foreground leading-snug">{s.value}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function FeedCardItem({ card }: { card: FeedCard }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = card.icon;
   const tagConf = TAG_CONFIG[card.tag as Exclude<FeedTag, "all">];
+  const hasExpandable = !!(card.detail || card.causalChain);
 
   return (
     <motion.div
@@ -226,7 +256,7 @@ function FeedCardItem({ card }: { card: FeedCard }) {
       className="rounded-lg border border-border bg-card overflow-hidden"
     >
       <button
-        onClick={() => card.detail && setExpanded(!expanded)}
+        onClick={() => hasExpandable && setExpanded(!expanded)}
         className="w-full text-left px-4 py-3 flex items-start gap-3"
       >
         <div
@@ -247,7 +277,7 @@ function FeedCardItem({ card }: { card: FeedCard }) {
           <p className="text-sm font-bold text-foreground leading-snug">{card.title}</p>
           <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{card.summary}</p>
         </div>
-        {card.detail && (
+        {hasExpandable && (
           <div className="flex-shrink-0 mt-1">
             {expanded ? (
               <ChevronUp size={14} className="text-muted-foreground" />
@@ -258,7 +288,7 @@ function FeedCardItem({ card }: { card: FeedCard }) {
         )}
       </button>
       <AnimatePresence>
-        {expanded && card.detail && (
+        {expanded && hasExpandable && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -267,7 +297,11 @@ function FeedCardItem({ card }: { card: FeedCard }) {
             className="overflow-hidden"
           >
             <div className="px-4 pb-3 pt-0 border-t border-border">
-              <p className="text-xs text-muted-foreground leading-relaxed pt-2">{card.detail}</p>
+              {card.causalChain ? (
+                <ThesisChainDetail chain={card.causalChain} accent={card.accentColor} />
+              ) : card.detail ? (
+                <p className="text-xs text-muted-foreground leading-relaxed pt-2">{card.detail}</p>
+              ) : null}
             </div>
           </motion.div>
         )}
@@ -311,14 +345,12 @@ export const IntelligenceFeed = memo(function IntelligenceFeed(props: Intelligen
 
   return (
     <div className="space-y-3">
-      {/* Section header */}
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-extrabold uppercase tracking-[0.15em] text-muted-foreground">
           Intelligence Feed
         </h3>
       </div>
 
-      {/* Filter chips */}
       <div className="flex items-center gap-1.5 flex-wrap">
         {tags.map(t => (
           <button
@@ -335,7 +367,6 @@ export const IntelligenceFeed = memo(function IntelligenceFeed(props: Intelligen
         ))}
       </div>
 
-      {/* Cards */}
       <div className="space-y-2">
         {filtered.map(card => (
           <FeedCardItem key={card.id} card={card} />
