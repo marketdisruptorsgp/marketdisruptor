@@ -677,11 +677,33 @@ export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): Cons
   // Layer 2: Rank candidates
   const ranked = rankConstraintCandidates(candidates);
 
-  // Layer 3: Counterfactual validation on top candidates
+  // Layer 3: Counterfactual validation + probabilistic stack on top candidates
   const topCandidates = ranked.slice(0, 3);
-  const hypotheses: ConstraintHypothesis[] = topCandidates.map(candidate => {
+  const hypotheses: ConstraintHypothesis[] = topCandidates.map((candidate, idx) => {
     const def = CONSTRAINT_BY_NAME.get(candidate.constraintName)!;
     const { impact, explanation: cfExplanation } = computeCounterfactualImpact(candidate, evidence);
+
+    // Compute ranking factors
+    const evidenceDensity = Math.min(1, candidate.evidenceIds.length / 10);
+    const evidenceQuality = candidate.confidence === "strong" ? 1 : candidate.confidence === "moderate" ? 0.7 : 0.4;
+    const networkCentrality = Math.min(1, impact / 20);
+
+    const rankingFactors: RankingFactors = { evidenceDensity, evidenceQuality, networkCentrality };
+
+    // Compute confidence interval
+    const point = (evidenceDensity * 0.4 + evidenceQuality * 0.35 + networkCentrality * 0.25);
+    const spread = (1 - evidenceQuality) * 0.15; // Lower quality = wider interval
+    const confidenceInterval: ConfidenceInterval = {
+      point,
+      lower: Math.max(0, point - spread),
+      upper: Math.min(1, point + spread),
+    };
+
+    // Assign stack role
+    let stackRole: ConstraintStackRole;
+    if (idx === 0) stackRole = "binding";
+    else if (idx === 1) stackRole = "secondary";
+    else stackRole = "enabling";
 
     return {
       constraintId: candidate.constraintId,
@@ -694,6 +716,9 @@ export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): Cons
       explanation: candidate.explanation,
       counterfactualImpact: impact,
       counterfactualExplanation: cfExplanation,
+      stackRole,
+      confidenceInterval,
+      rankingFactors,
     };
   });
 
@@ -705,11 +730,24 @@ export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): Cons
   // Generate structured evidence requests from gaps
   const evidenceRequests = generateEvidenceRequests(evidenceGaps);
 
+  // Determine binding uncertainty
+  const bindingUncertain = hypotheses.length >= 2 &&
+    (hypotheses[0].confidenceInterval.point - hypotheses[1].confidenceInterval.point) < 0.15;
+
+  // Generate stack summary
+  const stackSummary = hypotheses.length === 0
+    ? "No constraints detected"
+    : bindingUncertain
+      ? `Binding constraint uncertain: ${hypotheses[0].constraintName} (${(hypotheses[0].confidenceInterval.point * 100).toFixed(0)}%) vs ${hypotheses[1].constraintName} (${(hypotheses[1].confidenceInterval.point * 100).toFixed(0)}%)`
+      : `Binding: ${hypotheses[0].constraintName} (${(hypotheses[0].confidenceInterval.point * 100).toFixed(0)}% confidence)`;
+
   return {
     hypotheses,
     totalCandidates: candidates.length,
     evidenceGaps,
     evidenceRequests,
+    bindingUncertain,
+    stackSummary,
   };
 }
 
