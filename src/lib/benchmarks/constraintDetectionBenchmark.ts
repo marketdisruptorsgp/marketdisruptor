@@ -301,7 +301,7 @@ function runSingleTestCase(testCase: BenchmarkTestCase): BenchmarkResult {
   const candidates = detectCandidateConstraints(evidenceWithFacets);
 
   // Step 4: Rank candidates
-  const ranked = rankConstraintCandidates(candidates);
+  const ranked = rankConstraintCandidates(candidates, testCase.evidence);
 
   // Step 5: Extract top predictions
   const predictedTop1 = ranked[0]?.constraintName || null;

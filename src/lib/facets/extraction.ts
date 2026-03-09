@@ -62,7 +62,7 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
     matched = true;
   }
 
-  if (text.match(/hourly|per[\s-]?hour|time[\s-]?and[\s-]?material|billable[\s-]?hour/)) {
+  if (text.match(/hourly[\s-]?(?:rate|billing|charge|fee|pricing)|(?:bill|charg|pric)[\w]*[\s-]?(?:per|by)[\s-]?(?:the[\s-]?)?hour|time[\s-]?and[\s-]?material|billable[\s-]?hour/)) {
     facets.pricingArchitecture = { model: "hourly", priceSettingPower: "weak", switchingCost: "low" };
     matched = true;
   } else if (text.match(/project[\s-]?based|per[\s-]?project|fixed[\s-]?bid|quote[\s-]?based/)) {
@@ -70,6 +70,16 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
     matched = true;
   } else if (text.match(/subscription|recurring|monthly[\s-]?fee|annual[\s-]?contract/)) {
     facets.pricingArchitecture = { model: "subscription", priceSettingPower: "moderate", switchingCost: "moderate" };
+    matched = true;
+  }
+
+  // Detect weak price-setting power independently (may overlap with pricing model)
+  if (text.match(/weak[\s-]?price[\s-]?setting|no[\s-]?pricing[\s-]?power|race[\s-]?to[\s-]?(?:the[\s-]?)?bottom|commoditized[\s-]?pric|price[\s-]?taker/)) {
+    if (!facets.pricingArchitecture) {
+      facets.pricingArchitecture = { model: "fixed", priceSettingPower: "weak", switchingCost: "low" };
+    } else {
+      facets.pricingArchitecture = { ...facets.pricingArchitecture, priceSettingPower: "weak" };
+    }
     matched = true;
   }
 

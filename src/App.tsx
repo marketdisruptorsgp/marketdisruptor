@@ -150,6 +150,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
         <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
+        <Route path="/admin/benchmark" element={<LazyRoute><BenchmarkRunner /></LazyRoute>} />
         <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
         <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
         <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
