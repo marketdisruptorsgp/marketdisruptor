@@ -57,8 +57,10 @@ import { populateFacets } from "@/lib/evidenceFacets";
 import {
   diagnoseStructuralProfile,
   qualifyPatterns,
+  deepenOpportunities,
   type StructuralProfile,
   type QualifiedPattern,
+  type DeepenedOpportunity,
 } from "@/lib/reconfiguration";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import {
