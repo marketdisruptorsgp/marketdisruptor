@@ -594,6 +594,25 @@ export function clusterIntoZones(vectors: OpportunityVector[]): OpportunityZone[
 //  ORCHESTRATOR — Full morphological search pipeline
 // ═══════════════════════════════════════════════════════════════
 
+export interface MorphologicalSearchDiagnostics {
+  /** Active constraint count */
+  totalActiveConstraints: number;
+  /** Constraint strength scores */
+  constraintStrengths: ConstraintStrength[];
+  /** Number of warm dimensions activated */
+  warmDimensionCount: number;
+  /** Number of hot dimensions activated */
+  hotDimensionCount: number;
+  /** Total vectors before qualification gates */
+  vectorsBeforeGates: number;
+  /** Total vectors after qualification gates */
+  vectorsAfterGates: number;
+  /** Pattern-sourced vector count */
+  patternVectorCount: number;
+  /** Morphological-sourced vector count */
+  morphologicalVectorCount: number;
+}
+
 export interface MorphologicalSearchResult {
   baseline: BusinessBaseline;
   vectors: OpportunityVector[];
@@ -606,6 +625,8 @@ export interface MorphologicalSearchResult {
   /** Interaction map between vectors (reinforcing/conflicting/orthogonal) */
   vectorInteractions: Map<string, import("@/lib/strategicPatternLibrary").VectorInteraction[]>;
   patternVectorCount: number;
+  /** Diagnostic report for the search process */
+  diagnostics: MorphologicalSearchDiagnostics;
 }
 
 /**
@@ -615,11 +636,12 @@ export interface MorphologicalSearchResult {
  * Execution order:
  *   1. Extract baseline
  *   2. Identify active dimensions
- *   3. Apply structural patterns (pattern library) → candidate vectors
- *   4. Generate AI alternative vectors (morphological shifts)
- *   5. Merge all vectors
- *   6. Qualification gates (uniform)
- *   7. Cluster into zones
+ *   3. Compute constraint strengths
+ *   4. Apply structural patterns (pattern library) → candidate vectors
+ *   5. Generate AI alternative vectors (morphological shifts, strength-biased)
+ *   6. Merge all vectors
+ *   7. Qualification gates (uniform)
+ *   8. Cluster into zones
  */
 export function runMorphologicalSearch(
   flatEvidence: Evidence[],
@@ -638,6 +660,9 @@ export function runMorphologicalSearch(
   const hotDims = getDimensionsByStatus(baseline, "hot");
   const warmDims = getDimensionsByStatus(baseline, "warm");
 
+  // Stage 2.5: Compute constraint strengths
+  const constraintStrengths = computeConstraintStrengths(constraints);
+
   // Stage 3a: Apply structural patterns FIRST (deterministic, mechanism-tagged)
   const constraintInputs = constraints.map(c => ({ id: c.id, evidenceIds: c.evidenceIds }));
   const leverageInputs = leveragePoints.map(l => ({ id: l.id, evidenceIds: l.evidenceIds }));
@@ -645,16 +670,18 @@ export function runMorphologicalSearch(
     baseline, constraintInputs, leverageInputs, flatEvidence
   );
 
-  // Stage 3b: Generate AI alternative vectors (morphological shifts)
-  const aiVectors = generateOpportunityVectors(baseline, aiAlternatives, constraints, leveragePoints);
+  // Stage 3b: Generate AI alternative vectors (morphological shifts, strength-biased)
+  const aiVectors = generateOpportunityVectors(
+    baseline, aiAlternatives, constraints, leveragePoints, constraintStrengths
+  );
 
-  // Tag AI vectors with morphological origin (default safeguard metadata)
+  // Tag AI vectors with morphological origin
   const allOrigins = new Map(patternOrigins);
   for (const v of aiVectors) {
     allOrigins.set(v.id, {
       source: "morphological" as const,
       noveltyTag: "structural" as const,
-      mechanismStrength: 2, // Default for AI-generated — lower than pattern-derived
+      mechanismStrength: 2,
       feasibilityFlags: {
         regulatoryRisk: "low" as const,
         implementationComplexity: "moderate" as const,
@@ -674,6 +701,7 @@ export function runMorphologicalSearch(
 
   // Stage 4: Merge all vectors, pattern-first
   const allVectors = [...patternVectors, ...aiVectors];
+  const vectorsBeforeGates = allVectors.length;
 
   // Stage 5: Apply qualification gates (uniform across all sources)
   const qualifiedVectors = applyQualificationGates(allVectors, constraints, flatEvidence, baseline);
@@ -683,6 +711,18 @@ export function runMorphologicalSearch(
 
   // Stage 7: Cluster into zones
   const zones = clusterIntoZones(qualifiedVectors);
+
+  // Build diagnostics
+  const diagnostics: MorphologicalSearchDiagnostics = {
+    totalActiveConstraints: constraints.length,
+    constraintStrengths,
+    warmDimensionCount: warmDims.length,
+    hotDimensionCount: hotDims.length,
+    vectorsBeforeGates,
+    vectorsAfterGates: qualifiedVectors.length,
+    patternVectorCount: patternVectors.length,
+    morphologicalVectorCount: aiVectors.length,
+  };
 
   return {
     baseline,
@@ -694,6 +734,7 @@ export function runMorphologicalSearch(
     vectorOrigins: allOrigins,
     vectorInteractions,
     patternVectorCount: patternVectors.length,
+    diagnostics,
   };
 }
 
