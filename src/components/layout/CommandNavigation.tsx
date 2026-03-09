@@ -100,8 +100,8 @@ export function CommandNavigation() {
             onClick={() => navigate("/")}
             className="flex items-center gap-2 w-full"
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-sidebar-primary text-sidebar-primary-foreground">
-              <Zap size={15} />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-sidebar-primary text-sidebar-primary-foreground">
+              <Zap size={18} />
             </div>
             {!collapsed && (
               <span className="text-sm font-extrabold tracking-tight text-sidebar-foreground">
