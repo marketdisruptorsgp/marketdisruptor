@@ -540,8 +540,8 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Governed: counterfactual removal as leverage signal (business model OR product disrupt) ──
-  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
+  // ── Governed: counterfactual removal as leverage signal (business model OR product disrupt OR top-level governed) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed || (input.governedData as any);
   if (bizGov?.constraint_map?.counterfactual_removal_result) {
     const cfText = String(bizGov.constraint_map.counterfactual_removal_result);
     // Use the actual counterfactual text as the label (trimmed to readable length)
