@@ -214,7 +214,7 @@ export const OpportunityRadar = memo(function OpportunityRadar({
                     <ScoreRow label="Execution Difficulty" value={selectedOpp.executionDifficulty ?? 0} color="hsl(var(--destructive))" icon={ShieldAlert} />
                     <div className="flex items-center gap-2 pt-1">
                       <BarChart3 size={11} className="text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">Impact: <span className="font-bold text-foreground">{selectedOpp.impact}/10</span></span>
+                      <span className="text-[10px] text-muted-foreground">Impact: <span className="font-bold text-foreground">{(selectedOpp.impact ?? 0) >= 7 ? "High" : (selectedOpp.impact ?? 0) >= 4 ? "Moderate" : "Low"}</span></span>
                       <span className="text-[10px] text-muted-foreground">· Sims: <span className="font-bold text-foreground">{selectedOpp.simulationCount ?? 0}</span></span>
                     </div>
                   </div>

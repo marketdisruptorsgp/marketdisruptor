@@ -278,7 +278,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
                 color: f.score >= 7 ? "hsl(0 72% 50%)" : "hsl(38 92% 50%)",
               }}
             >
-              {EXPANDED_DIM_LABELS[f.dimension] || f.dimension}: {f.score}/10
+              {EXPANDED_DIM_LABELS[f.dimension] || f.dimension}: {f.score >= 7 ? "High" : f.score >= 4 ? "Moderate" : "Low"}
             </span>
           ))}
         </div>
