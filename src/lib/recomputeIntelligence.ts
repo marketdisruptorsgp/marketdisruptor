@@ -39,8 +39,8 @@ import {
   flattenEvidence,
 } from "@/lib/evidenceEngine";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
-import { extractConstraintShapes, findAnalogs, formatAnalogsForPrompt } from "@/lib/analogEngine";
-import { generateInversions, formatInversionsForPrompt } from "@/lib/constraintInverter";
+import { extractConstraintShapes, findAnalogs } from "@/lib/analogEngine";
+import { generateInversions } from "@/lib/constraintInverter";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
