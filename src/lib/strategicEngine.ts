@@ -790,9 +790,9 @@ function discoverLeverage(
     ["demand_signal", "distribution_channel", "pricing_model"].includes(s.category) && s.strength >= 5
   );
   for (const gs of growthSignals.slice(0, 3)) {
-    const oppLabel = humanize(gs.label.replace(/^[^:]+:\s*/, ""));
+    const oppLabel = lowerFirst(cleanStrategicPhrase(gs.label.replace(/^[^:]+:\s*/, "")));
     const dimVerb = DIMENSION_ACTION_VERBS[gs.category] || "Capitalize on";
-    const label = `${dimVerb} ${oppLabel.charAt(0).toLowerCase() + oppLabel.slice(1)}`;
+    const label = `${dimVerb} ${oppLabel}`;
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
     insights.push(makeInsight({
