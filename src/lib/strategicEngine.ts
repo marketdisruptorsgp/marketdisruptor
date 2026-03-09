@@ -74,6 +74,56 @@ import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/market
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 
 // ═══════════════════════════════════════════════════════════════
+//  STRATEGIC LABEL HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+/** Maps evidence categories to action-oriented verbs for opportunity labels */
+const DIMENSION_ACTION_VERBS: Record<string, string> = {
+  demand_signal: "Capture unmet demand in",
+  distribution_channel: "Go direct through",
+  pricing_model: "Reprice around",
+  customer_segment: "Expand into",
+  cost_structure: "Cut costs by addressing",
+  competitive_landscape: "Outflank competitors via",
+  supply_chain: "Streamline supply of",
+  technology_platform: "Upgrade to",
+  regulatory_environment: "Navigate regulation around",
+};
+
+/** Maps dimension names to strategic action verbs for morphological vectors */
+const SHIFT_VERBS: Record<string, string> = {
+  pricing_model: "Reprice",
+  distribution_channel: "Go direct",
+  customer_segment: "Reposition for",
+  revenue_model: "Monetize via",
+  cost_structure: "Restructure costs",
+  technology_platform: "Migrate to",
+  supply_chain: "Reroute supply",
+  service_model: "Shift delivery to",
+  geographic_market: "Expand into",
+};
+
+function formatStrategicLabel(
+  dims: { dimension: string; from: string; to: string }[],
+): string {
+  if (dims.length === 1) {
+    const d = dims[0];
+    const dimKey = d.dimension.toLowerCase().replace(/\s+/g, "_");
+    const verb = SHIFT_VERBS[dimKey];
+    const toClean = d.to.charAt(0).toLowerCase() + d.to.slice(1);
+    if (verb) {
+      return `${verb}: ${toClean} to capture margin`;
+    }
+    return `Move to ${toClean} — bypass ${d.from.toLowerCase()}`;
+  }
+  // Multi-dimension: use first as primary, second as modifier
+  const primary = dims[0];
+  const secondary = dims[1];
+  const verb = SHIFT_VERBS[primary.dimension.toLowerCase().replace(/\s+/g, "_")] || "Shift";
+  return `${verb}: ${primary.to.charAt(0).toLowerCase() + primary.to.slice(1)} + ${secondary.to.charAt(0).toLowerCase() + secondary.to.slice(1)}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  TYPES
 // ═══════════════════════════════════════════════════════════════
 
