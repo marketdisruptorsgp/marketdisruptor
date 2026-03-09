@@ -215,7 +215,7 @@ export default function PipelineObservabilityPage() {
       executionNotes: intelData ? [
         `Product: ${(intelData as any)?.name || "Unknown"}`,
         `Category: ${(intelData as any)?.category || "Unknown"}`,
-        `Revival Score: ${(intelData as any)?.revivalScore || "N/A"}/10`,
+        `Potential: ${(intelData as any)?.revivalScore >= 8 ? "Strong" : (intelData as any)?.revivalScore >= 5 ? "Moderate" : "Early"}`,
       ] : ["Not yet generated"],
     });
 
