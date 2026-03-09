@@ -57,8 +57,10 @@ import { populateFacets } from "@/lib/evidenceFacets";
 import {
   diagnoseStructuralProfile,
   qualifyPatterns,
+  deepenOpportunities,
   type StructuralProfile,
   type QualifiedPattern,
+  type DeepenedOpportunity,
 } from "@/lib/reconfiguration";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import {
@@ -284,6 +286,8 @@ export interface StrategicAnalysisOutput {
   structuralProfile: StructuralProfile | null;
   /** Stage 3R: Qualified structural patterns */
   qualifiedPatterns: QualifiedPattern[];
+  /** Stage 4R: Deepened opportunity candidates */
+  deepenedOpportunities: DeepenedOpportunity[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1601,49 +1605,58 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`${qPatterns.length} structural patterns qualified: ${qPatterns.map(p => p.pattern.name).join(", ") || "none"}`);
   }
 
-  // ── Stage 8: Generate Opportunities (Pattern-Guided + Morphological Search or Fallback) ──
+  // ── Stage 4R: Opportunity Deepening (Reconfiguration Pipeline) ──
+  let deepenedOpps: DeepenedOpportunity[] = [];
+  if (structuralProfile && qualifiedPatternsResult.length > 0) {
+    const { result: deepened, stage: s4r } = traceStage("Opportunity Deepening", qualifiedPatternsResult.length, () =>
+      deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat)
+    );
+    stages.push(s4r);
+    deepenedOpps = deepened;
+    events.push(`${deepened.length} deepened opportunities: ${deepened.map(d => d.patternName).join(", ")}`);
+  }
+
+  // ── Stage 8: Generate Opportunities (Deepened patterns → StrategicInsight + Morphological fallback) ──
   let opportunities: StrategicInsight[] = [];
-  if (evCount >= THRESHOLDS.opportunities && leveragePoints.length > 0) {
-    const { result: opps, stage: s8opp } = traceStage("Opportunity Generation", leveragePoints.length, () => {
+  if (evCount >= THRESHOLDS.opportunities && (leveragePoints.length > 0 || deepenedOpps.length > 0)) {
+    const { result: opps, stage: s8opp } = traceStage("Opportunity Generation", leveragePoints.length + deepenedOpps.length, () => {
       const patternOpps: StrategicInsight[] = [];
 
-      // Generate opportunities from qualified structural patterns
-      for (const qp of qualifiedPatternsResult) {
-        const bet = qp.strategicBet;
-        const label = `${qp.pattern.name}: ${qp.pattern.transformation.slice(0, 80)}`;
-        if (patternOpps.some(i => jaccard(i.label, label) >= 0.5)) continue;
+      // Convert deepened opportunities into StrategicInsights for downstream compat
+      for (const deep of deepenedOpps) {
+        if (patternOpps.some(i => jaccard(i.label, deep.label) >= 0.5)) continue;
 
         patternOpps.push(makeInsight({
           id: nextId("reconfig-opp"),
           analysisId: input.analysisId,
           insightType: "emerging_opportunity",
-          label,
+          label: deep.label,
           description: [
-            qp.pattern.mechanism,
-            `Strategic bet — Industry assumes: "${bet.industryAssumption}"`,
-            `Contrarian belief: "${bet.contrarianBelief}"`,
-            `Implication: ${bet.implication}`,
-            qp.qualification.resolvesConstraints.length > 0
-              ? `Resolves: ${qp.qualification.resolvesConstraints.join(", ")}`
+            deep.summary,
+            `Strategic bet — Industry assumes: "${deep.strategicBet.industryAssumption}"`,
+            `Contrarian belief: "${deep.strategicBet.contrarianBelief}"`,
+            `Implication: ${deep.strategicBet.implication}`,
+            deep.resolvesConstraints.length > 0
+              ? `Resolves: ${deep.resolvesConstraints.join(", ")}`
               : "",
-            `Precedents: ${qp.pattern.precedents.slice(0, 2).join("; ")}`,
+            `First move: ${deep.firstMove.action.slice(0, 100)}`,
           ].filter(Boolean).join(" | "),
-          evidenceIds: flat.slice(0, 5).map(e => e.id), // Link to top evidence
+          evidenceIds: deep.evidenceIds,
           relatedInsightIds: constraints.slice(0, 2).map(c => c.id),
-          impact: Math.min(5 + qp.signalDensity, 10),
-          confidence: Math.min(0.4 + qp.signalDensity * 0.1, 0.9),
+          impact: Math.min(5 + deep.signalDensity, 10),
+          confidence: Math.min(0.4 + deep.signalDensity * 0.1, 0.9),
           createdAt: Date.now(),
         }));
       }
 
-      // Also run morphological search if AI alternatives available
-      if (input.aiAlternatives && input.aiAlternatives.length > 0) {
+      // Also run morphological search if AI alternatives available (supplementary)
+      if (input.aiAlternatives && input.aiAlternatives.length > 0 && leveragePoints.length > 0) {
         const searchResult = runMorphologicalSearch(
           flat, constraints, leveragePoints, input.aiAlternatives
         );
 
         if (searchResult.vectors.length > 0) {
-          events.push(`${searchResult.patternVectorCount} pattern vectors + ${searchResult.vectors.length - searchResult.patternVectorCount} morphological vectors`);
+          events.push(`${searchResult.patternVectorCount} pattern vectors + ${searchResult.vectors.length - searchResult.patternVectorCount} morphological vectors (supplementary)`);
           const morphOpps = generateOpportunitiesFromVectors(
             searchResult.vectors,
             searchResult.zones,
@@ -1652,7 +1665,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
             leveragePoints,
             input.analysisId,
           );
-          // Merge: pattern-guided first, then morphological (deduped)
           return [...patternOpps, ...morphOpps];
         }
       }
@@ -1873,5 +1885,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     marketStructure,
     structuralProfile,
     qualifiedPatterns: qualifiedPatternsResult,
+    deepenedOpportunities: deepenedOpps,
   };
 }
