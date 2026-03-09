@@ -32,6 +32,7 @@ interface StrategicXRayProps {
   narrative: StrategicNarrative | null;
   insights: StrategicInsight[];
   flatEvidence: Evidence[];
+  thesis?: DeepenedOpportunity | null;
   onChallenge?: (nodeStage: string, currentValue: string) => void;
   onRecompute?: () => void;
 }
