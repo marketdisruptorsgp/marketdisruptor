@@ -151,7 +151,7 @@ export function detectStructuralPattern(
   // Build per-category corpus for attribution
   const categoryCorpus = new Map<string, string>();
   for (const e of evidence) {
-    const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    const cat = (e.category || "general").replace(/_/g, " ");
     categoryCorpus.set(cat, (categoryCorpus.get(cat) || "") + ` ${e.label} ${e.description || ""}`);
   }
 
