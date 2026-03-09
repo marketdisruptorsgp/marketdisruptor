@@ -412,7 +412,7 @@ function buildGraphFromPipeline(
         id: `scenario-${sc.scenarioId}`,
         type: "scenario",
         label: sc.scenarioName.slice(0, 120),
-        detail: `${sc.toolId.replace(/-/g, " ")} · Return ${sc.projectedReturn.toFixed(1)}% · Risk ${sc.riskScore.toFixed(1)}`,
+        detail: `${sc.toolId.replace(/-/g, " ")} · ${sc.strategicImpact || "Strategic scenario"}`,
         impact: Math.round(sc.overallScore),
         confidence: sc.feasibilityScore >= 7 ? "high" : sc.feasibilityScore >= 4 ? "medium" : "low",
         evidenceCount: 1,
