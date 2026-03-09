@@ -641,7 +641,7 @@ export default function CommandDeckPage() {
       <main className="max-w-[1100px] mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3">
 
         {/* ══════════════════════════════════════════════════════════
-            COMPACT HEADER — Name, Mode, Progress
+            COMPACT HEADER — Name, Mode, Actions
            ══════════════════════════════════════════════════════════ */}
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -745,112 +745,122 @@ export default function CommandDeckPage() {
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
         {/* ══════════════════════════════════════════════════════════
-            PROBLEM STATEMENT — Editable, stays at top
+            TIER 0 — HERO INSIGHT
+            The single most surprising finding. Full-width, large type.
            ══════════════════════════════════════════════════════════ */}
-        {(() => {
-          const p = selectedProduct as any || {};
-          const biz = analysis.businessAnalysisData as Record<string, any> || {};
-          const governed = (biz as any)?.governed || {};
-          const trend = p.trendAnalysis || (biz as any)?.trend || null;
-          const marketSize = p.marketSizeEstimate || null;
-          return (
-            <ProblemStatementCard
-              product={selectedProduct as Record<string, any> | null}
-              businessData={analysis.businessAnalysisData as Record<string, any> | null}
-              narrative={narrative}
-              governed={governed}
-              modeAccent={modeAccent}
-              evidenceCount={totalSignals}
-              completedSteps={completedSteps.size}
-              totalSteps={PIPELINE_STEPS.length}
-              marketSize={marketSize}
-              trend={trend}
-              mode={modeKey}
-              onProblemLocked={(statement) => {
-                toast.success("Problem statement locked — downstream analysis will adapt");
-              }}
-            />
-          );
-        })()}
-
-        {/* ══════════════════════════════════════════════════════════
-            CURRENT STATE INTELLIGENCE — 10-15 distilled SWOT bullets
-           ══════════════════════════════════════════════════════════ */}
-        <CurrentStateIntelligence
-          product={selectedProduct as any}
-          businessData={analysis.businessAnalysisData as Record<string, any> | null}
+        <HeroInsightCard
           narrative={narrative}
-          governedData={analysis.governedData as Record<string, any> | null}
-          flatEvidence={autoAnalysis.flatEvidence}
-          detectedPatterns={detectedPatterns}
+          modeAccent={modeAccent}
+          analysisId={analysisId || ""}
+          onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
         />
 
-        {/* ── User Journey Map (inline if data exists) ── */}
-        {(() => {
-          const p = selectedProduct as any;
-          const uj = p?.userJourney || p?.userWorkflow;
-          const steps = uj?.steps || uj?.stepByStep || [];
-          const fps = uj?.frictionPoints || [];
-          if (steps.length > 0) {
-            return (
-              <BriefingSection
-                title="Customer Journey"
-                icon={Map}
-                preview={`${steps.length} steps · ${fps.length} friction points`}
-                defaultOpen
-              >
-                <AdaptiveJourneyMap
-                  steps={steps}
-                  frictionPoints={fps}
-                  cognitiveLoad={uj?.cognitiveLoad}
-                  contextOfUse={uj?.contextOfUse}
-                  category={p?.category}
-                  productName={p?.name}
-                />
-              </BriefingSection>
-            );
-          }
-          return null;
-        })()}
-
-        {/* ── Recommended Move ── */}
-        <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
+        {/* ══════════════════════════════════════════════════════════
+            TIER 1 — EXECUTIVE METRICS
+            4 compact metric cards. Glanceable.
+           ══════════════════════════════════════════════════════════ */}
+        <MetricRow
+          opportunityScore={metrics.opportunityScore}
+          riskScore={metrics.riskScore}
+          confidence={metrics.confidence}
+          evidenceCount={totalSignals}
+          completedSteps={completedSteps.size}
+          totalSteps={PIPELINE_STEPS.length}
+        />
 
         {/* ══════════════════════════════════════════════════════════
-            THREE VALUE PILLARS — New Ideas | Execution Path | Iterate
+            TIER 2 — INTELLIGENCE FEED
+            Single scrollable feed with tagged, filterable cards.
            ══════════════════════════════════════════════════════════ */}
-        <ValuePillarTabs
+        <IntelligenceFeed
           narrative={narrative}
           flatEvidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
+          topPlaybook={topPlaybook}
           mode={modeKey}
           modeAccent={modeAccent}
-          completedSteps={completedSteps.size}
-          totalSteps={PIPELINE_STEPS.length}
-          totalSignals={totalSignals}
-          topPlaybook={topPlaybook}
-          strategicStory={strategicStory}
-          evidenceAttribution={evidenceAttribution}
-          confidenceExplanation={confidenceExplanation}
-          benchmark={benchmark}
-          opportunityRadar={opportunityRadar}
           detectedPatterns={detectedPatterns}
-          engineComputing={engineComputing}
-          savedLabScenarios={savedLabScenarios}
-          activeLabScenarioId={activeLabScenarioId}
-          filteredOpps={filteredOpps}
-          analysisMode={analysis.activeMode || "product"}
-          signalKeywords={lensSignalKeywords}
-          analysisId={analysisId || ""}
-          reasoningToolRecs={reasoningToolRecs}
-          baseUrl={baseUrl}
-          onRecomputeAll={handleRecomputeAll}
-          onChallenge={handleChallenge}
-          onLoadScenario={handleLoadLabScenario}
-          onDeleteScenario={handleDeleteLabScenario}
-          onScenarioSaved={handleScenarioSaved}
-          onNavigate={(path) => navigate(path)}
         />
+
+        {/* ══════════════════════════════════════════════════════════
+            TIER 3 — POWER TOOLS
+            Collapsed by default. Scenario Lab, Challenge Mode, etc.
+           ══════════════════════════════════════════════════════════ */}
+        <PowerToolsPanel toolCount={5}>
+          {/* Problem Statement */}
+          {(() => {
+            const p = selectedProduct as any || {};
+            const biz = analysis.businessAnalysisData as Record<string, any> || {};
+            const governed = (biz as any)?.governed || {};
+            const trend = p.trendAnalysis || (biz as any)?.trend || null;
+            const marketSize = p.marketSizeEstimate || null;
+            return (
+              <ProblemStatementCard
+                product={selectedProduct as Record<string, any> | null}
+                businessData={analysis.businessAnalysisData as Record<string, any> | null}
+                narrative={narrative}
+                governed={governed}
+                modeAccent={modeAccent}
+                evidenceCount={totalSignals}
+                completedSteps={completedSteps.size}
+                totalSteps={PIPELINE_STEPS.length}
+                marketSize={marketSize}
+                trend={trend}
+                mode={modeKey}
+                onProblemLocked={(statement) => {
+                  toast.success("Problem statement locked — downstream analysis will adapt");
+                }}
+              />
+            );
+          })()}
+
+          {/* Current State Intelligence */}
+          <CurrentStateIntelligence
+            product={selectedProduct as any}
+            businessData={analysis.businessAnalysisData as Record<string, any> | null}
+            narrative={narrative}
+            governedData={analysis.governedData as Record<string, any> | null}
+            flatEvidence={autoAnalysis.flatEvidence}
+            detectedPatterns={detectedPatterns}
+          />
+
+          {/* Recommended Move */}
+          <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
+
+          {/* Scenario & Challenge Tools */}
+          <ValuePillarTabs
+            narrative={narrative}
+            flatEvidence={autoAnalysis.flatEvidence}
+            insights={autoAnalysis.insights}
+            mode={modeKey}
+            modeAccent={modeAccent}
+            completedSteps={completedSteps.size}
+            totalSteps={PIPELINE_STEPS.length}
+            totalSignals={totalSignals}
+            topPlaybook={topPlaybook}
+            strategicStory={strategicStory}
+            evidenceAttribution={evidenceAttribution}
+            confidenceExplanation={confidenceExplanation}
+            benchmark={benchmark}
+            opportunityRadar={opportunityRadar}
+            detectedPatterns={detectedPatterns}
+            engineComputing={engineComputing}
+            savedLabScenarios={savedLabScenarios}
+            activeLabScenarioId={activeLabScenarioId}
+            filteredOpps={filteredOpps}
+            analysisMode={analysis.activeMode || "product"}
+            signalKeywords={lensSignalKeywords}
+            analysisId={analysisId || ""}
+            reasoningToolRecs={reasoningToolRecs}
+            baseUrl={baseUrl}
+            onRecomputeAll={handleRecomputeAll}
+            onChallenge={handleChallenge}
+            onLoadScenario={handleLoadLabScenario}
+            onDeleteScenario={handleDeleteLabScenario}
+            onScenarioSaved={handleScenarioSaved}
+            onNavigate={(path) => navigate(path)}
+          />
+        </PowerToolsPanel>
 
       </main>
     </div>
