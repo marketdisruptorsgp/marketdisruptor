@@ -238,7 +238,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {CATEGORY_LABELS[key] || key}
               </p>
-              <p className="text-lg font-extrabold tabular-nums" style={{ color: catColor }}>{value.toFixed(1)}</p>
+              <p className="text-sm font-extrabold" style={{ color: catColor }}>{value >= 7 ? "High friction" : value >= 4 ? "Moderate" : "Low friction"}</p>
               <ScoreBar value={value} max={10} color={catColor} />
             </div>
           );
