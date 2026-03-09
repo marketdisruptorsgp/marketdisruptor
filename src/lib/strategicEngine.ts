@@ -332,6 +332,7 @@ function cleanStrategicPhrase(text: string | null | undefined): string {
   return humanize(text)
     .replace(/\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\b/gi, "")
     .replace(/[.,]?\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\.?$/i, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
