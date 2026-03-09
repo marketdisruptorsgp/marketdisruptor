@@ -157,6 +157,8 @@ export interface StrategicNarrative {
   validationSteps: ValidationStep[];
   /** Industry benchmark context for the verdict */
   verdictBenchmark: string | null;
+  /** 30-second CEO-readable executive summary paragraph */
+  executiveSummary: string | null;
 }
 
 export interface StrategicDiagnostic {
