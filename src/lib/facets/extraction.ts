@@ -73,7 +73,7 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
     matched = true;
   }
 
-  if (text.match(/margin[\s-]?compress|margin[\s-]?declin|shrinking[\s-]?margin|race[\s-]?to[\s-]?bottom/) && !text.match(/commission[\s-]?compress|commission[\s-]?declin/)) {
+  if (text.match(/margin[\s-]?compress|margin[\s-]?declin|shrinking[\s-]?margin|race[\s-]?to[\s-]?bottom/)) {
     facets.marginStructure = { marginTrend: "declining", marginDriver: "competitive pressure" };
     matched = true;
   }
