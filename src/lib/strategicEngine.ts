@@ -1591,7 +1591,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
       return generateOpportunitiesFallback(leveragePoints, constraints, input.analysisId);
     });
     stages.push(s8opp);
-    opportunities = opps;
+    opportunities = dedupeStrategicInsightsByLabel(opps);
     events.push(`${opportunities.length} opportunities generated${input.aiAlternatives?.length ? " (morphological+patterns)" : " (fallback)"}`);
   } else {
     events.push(`Opportunities: need ${THRESHOLDS.opportunities} evidence + leverage`);
@@ -1600,7 +1600,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // ── Graceful Degradation: Never return zero opportunities ──
   if (opportunities.length === 0 && signals.length > 0) {
     const exploratory = generateExploratoryOpportunities(signals, flat, input.analysisId);
-    opportunities = exploratory;
+    opportunities = dedupeStrategicInsightsByLabel(exploratory);
     events.push(`${exploratory.length} exploratory opportunities generated (graceful degradation)`);
   }
 
