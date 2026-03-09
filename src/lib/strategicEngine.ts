@@ -327,6 +327,31 @@ function jaccard(a: string, b: string): number {
   return inter / (tokA.size + tokB.size - inter);
 }
 
+function cleanStrategicPhrase(text: string | null | undefined): string {
+  if (!text) return "";
+  return humanize(text)
+    .replace(/[.,]?\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\.?$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function lowerFirst(text: string): string {
+  return text ? text.charAt(0).toLowerCase() + text.slice(1) : text;
+}
+
+function dedupeStrategicInsightsByLabel(items: StrategicInsight[]): StrategicInsight[] {
+  const unique: StrategicInsight[] = [];
+  for (const item of items) {
+    const canonical = cleanStrategicPhrase(item.label).toLowerCase();
+    const isDup = unique.some(existing => {
+      const existingCanonical = cleanStrategicPhrase(existing.label).toLowerCase();
+      return existingCanonical === canonical || jaccard(existingCanonical, canonical) >= 0.85;
+    });
+    if (!isDup) unique.push(item);
+  }
+  return unique;
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  STRATEGIC CATEGORIES — For evidence classification
 // ═══════════════════════════════════════════════════════════════
