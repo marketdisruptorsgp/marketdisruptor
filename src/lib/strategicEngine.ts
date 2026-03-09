@@ -744,7 +744,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   }
 
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () => detectConstraintHypotheses(facetedEvidence));
     stages.push(s3);
     constraintHypotheses = hypotheses;
