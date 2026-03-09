@@ -112,6 +112,16 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       };
       const newIntelligence = buildSystemIntelligence(siInput);
 
+      // Build lens config for structural diagnosis
+      const lensConfig = activeLens
+        ? {
+            lensType: (activeLens.id === "__eta__" ? "eta" : "custom") as "default" | "eta" | "custom",
+            name: activeLens.name,
+            risk_tolerance: activeLens.risk_tolerance ?? undefined,
+            constraints: activeLens.constraints ?? undefined,
+          }
+        : null;
+
       // Run the strategic engine
       const input: StrategicAnalysisInput = {
         products,
@@ -128,6 +138,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         completedSteps,
         geoMarketData: geoData,
         regulatoryData,
+        lensConfig,
       };
 
       const result = runStrategicAnalysis(input);
