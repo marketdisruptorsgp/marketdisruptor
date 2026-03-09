@@ -502,20 +502,27 @@ export function runFullPipelineBenchmark(
   if (rankedOpportunities.length > 0) {
     const top = rankedOpportunities[0];
     const topConstraint = constraintReports[0];
+    const topVector = vectors.find(v => v.id === top.label.includes("→") ? vectors.find(vec => vec.changedDimensions.some(d => top.label.includes(d.to)))?.id : undefined);
+    
+    // Synthesize a human-readable strategic narrative
+    const shifts = top.shifts || top.label;
+    const constraintName = topConstraint?.constraintName?.replace(/_/g, " ") || "primary structural constraint";
+    const constraintExplanation = topConstraint?.explanation || "";
+    
+    // Build contextual narrative from constraint + opportunity link
+    const selectedIdea = synthesizeRecommendationNarrative(shifts, constraintName, businessName);
+    const whyItWins = synthesizeWhyItWins(shifts, constraintName, constraintExplanation, top.viabilityLabel);
+    
+    // Context-aware assumptions based on the specific shifts
+    const keyAssumptions = generateContextualAssumptions(shifts, constraintName, businessName);
+    const biggestRisks = generateContextualRisks(shifts, constraintName, businessName);
+
     recommendation = {
-      selectedIdea: top.label,
-      whyItWins: `Highest viability score (${top.viabilityLabel}) with ${top.viabilityScore.toFixed(2)} combined score. ${top.shifts}`,
-      constraintExploited: topConstraint?.constraintName || "primary structural constraint",
-      keyAssumptions: [
-        "Market willingness to adopt structural change",
-        "Operational feasibility within current resource constraints",
-        "Competitive response does not neutralize advantage within 12 months",
-      ],
-      biggestRisks: [
-        "Execution complexity may exceed available capabilities",
-        "Market timing risk — structural shifts take time to materialize",
-        "Capital requirements may be underestimated",
-      ],
+      selectedIdea,
+      whyItWins,
+      constraintExploited: constraintName,
+      keyAssumptions,
+      biggestRisks,
     };
   }
 

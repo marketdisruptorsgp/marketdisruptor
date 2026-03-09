@@ -787,7 +787,7 @@ export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): Cons
   const ranked = rankConstraintCandidates(candidates, evidence);
 
   // Layer 3: Counterfactual validation + probabilistic stack on top candidates
-  const topCandidates = ranked.slice(0, 3);
+  const topCandidates = ranked.slice(0, 5);
   const hypotheses: ConstraintHypothesis[] = topCandidates.map((candidate, idx) => {
     const def = CONSTRAINT_BY_NAME.get(candidate.constraintName)!;
     const { impact, explanation: cfExplanation } = computeCounterfactualImpact(candidate, evidence);
