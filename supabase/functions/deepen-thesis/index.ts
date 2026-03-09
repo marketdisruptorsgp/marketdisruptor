@@ -123,7 +123,27 @@ Generate one deepened thesis per qualified pattern. Each thesis MUST be specific
       });
     }
 
-    const data = await response.json();
+    // Defensively read response body as text first to handle truncation
+    let rawText: string;
+    try {
+      rawText = await response.text();
+    } catch (readErr) {
+      console.error("Failed to read response body:", readErr);
+      return new Response(JSON.stringify({ theses: [], fallback: true, reason: "response_read_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(rawText);
+    } catch (jsonErr) {
+      console.error("Failed to parse AI response JSON, attempting recovery. Raw length:", rawText.length, "Tail:", rawText.slice(-200));
+      // Attempt recovery — not possible for top-level structure, return fallback
+      return new Response(JSON.stringify({ theses: [], fallback: true, reason: "truncated_response" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Extract tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
@@ -145,14 +165,23 @@ Generate one deepened thesis per qualified pattern. Each thesis MUST be specific
     }
 
     let theses: any[];
+    const argsStr = toolCall.function.arguments;
     try {
-      const parsed = JSON.parse(toolCall.function.arguments);
+      const parsed = JSON.parse(argsStr);
       theses = parsed.theses || [];
     } catch (e) {
-      console.error("Failed to parse tool call arguments:", e);
-      return new Response(JSON.stringify({ theses: [], fallback: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.warn("Tool call JSON parse failed, attempting recovery. Args length:", argsStr?.length);
+      // Try to recover truncated tool call arguments
+      try {
+        const recovered = parseWithRecovery(argsStr);
+        theses = (recovered as any).theses || (Array.isArray(recovered) ? recovered : []);
+        console.warn(`[deepen-thesis] Recovered ${theses.length} theses from truncated tool call`);
+      } catch (recoveryErr) {
+        console.error("Tool call JSON recovery also failed:", recoveryErr);
+        return new Response(JSON.stringify({ theses: [], fallback: true, reason: "truncated_tool_call" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     console.log(`[deepen-thesis] Generated ${theses.length} AI theses for ${qualifiedPatterns.length} patterns`);
@@ -347,4 +376,34 @@ function buildToolSchema() {
       },
     },
   };
+}
+
+/** Attempt to recover a truncated JSON response (works for objects containing arrays) */
+function parseWithRecovery(content: string): unknown {
+  try {
+    return JSON.parse(content);
+  } catch {
+    // Try wrapping with closing braces for truncated tool call args like {"theses":[{...},{...
+    // Strategy 1: Find last complete object in the theses array
+    const thesesStart = content.indexOf('"theses"');
+    if (thesesStart > 0) {
+      const lastBrace = content.lastIndexOf("}");
+      if (lastBrace > thesesStart) {
+        // Try closing the array and wrapper object
+        const candidates = [
+          content.substring(0, lastBrace + 1) + "]}",
+          content.substring(0, lastBrace + 1) + "]",
+        ];
+        for (const candidate of candidates) {
+          try {
+            const result = JSON.parse(candidate);
+            return result;
+          } catch {
+            // try next candidate
+          }
+        }
+      }
+    }
+    throw new Error("Cannot repair truncated JSON");
+  }
 }
