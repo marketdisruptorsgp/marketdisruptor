@@ -58,6 +58,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
     geoData, regulatoryData, activeLens,
+    saveStepData,
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
