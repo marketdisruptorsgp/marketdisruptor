@@ -26,6 +26,11 @@ export type AssetUtilization = "high" | "moderate" | "underutilized" | "idle";
 export type RegulatorySensitivity = "none" | "light" | "moderate" | "heavy";
 export type ValueChainPosition = "infrastructure" | "platform" | "application" | "end_service";
 
+// ── ETA-Specific Dimension Types ──
+export type OwnerDependencyLevel = "autonomous" | "delegatable" | "owner_reliant" | "owner_critical";
+export type AcquisitionComplexityLevel = "turnkey" | "manageable" | "complex" | "prohibitive";
+export type ImprovementRunwayLevel = "optimized" | "incremental" | "significant" | "transformative";
+
 export interface StructuralProfile {
   /** How fragmented is the supply side of this market? */
   supplyFragmentation: FragmentationLevel;
