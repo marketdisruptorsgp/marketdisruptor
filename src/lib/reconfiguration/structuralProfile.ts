@@ -48,6 +48,16 @@ export interface StructuralProfile {
   /** Where in the value chain does the business sit? */
   valueChainPosition: ValueChainPosition;
 
+  // ── ETA-Specific Dimensions (populated when ETA lens is active) ──
+  /** How dependent is the business on a single owner/operator? */
+  ownerDependency: OwnerDependencyLevel | null;
+  /** How complex would an acquisition of this business be? */
+  acquisitionComplexity: AcquisitionComplexityLevel | null;
+  /** How much room for operational improvement exists post-acquisition? */
+  improvementRunway: ImprovementRunwayLevel | null;
+  /** Whether ETA lens shaped this profile */
+  etaActive: boolean;
+
   /** Top 2-3 binding constraints from constraint detection */
   bindingConstraints: ConstraintCandidate[];
   /** Raw evidence count for diagnosis confidence */
