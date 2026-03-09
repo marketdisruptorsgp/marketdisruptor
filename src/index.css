@@ -163,13 +163,13 @@
     --shadow-card: 0 2px 8px 0 hsl(0 0% 0% / 0.3);
     --shadow-card-hover: 0 8px 32px -4px hsl(0 0% 0% / 0.5);
 
-    --sidebar-background: 222 28% 7%;
+    --sidebar-background: 222 24% 11%;
     --sidebar-foreground: 210 20% 92%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 18% 14%;
+    --sidebar-accent: 217 30% 18%;
     --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 222 15% 22%;
+    --sidebar-border: 222 15% 25%;
     --sidebar-ring: 217 91% 60%;
 
     --vi-surface: 222 24% 9%;
