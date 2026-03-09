@@ -554,7 +554,16 @@ export function StructureTab({
                   />
                 </StructureSection>
 
-                {/* Cross-Lens Friction Heatmap */}
+                {/* Causal Constraint Flow Map */}
+                <StructureSection
+                  title="Causal Constraint Flow"
+                  icon={GitBranch}
+                  defaultOpen={true}
+                >
+                  <CausalConstraintMap commandDeck={systemIntelligence.commandDeck} />
+                </StructureSection>
+
+
                 {systemIntelligence.leverageMap && intelligenceInput.activeLenses.length >= 2 && (
                   <StructureSection
                     title="Cross-Lens Friction Heatmap"
