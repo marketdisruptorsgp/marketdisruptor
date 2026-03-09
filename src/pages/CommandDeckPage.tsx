@@ -51,6 +51,10 @@ import { PipelineJourneyCards } from "@/components/command-deck/PipelineJourneyC
 import { CurrentStateIntelligence } from "@/components/command-deck/CurrentStateIntelligence";
 import { ValuePillarTabs } from "@/components/command-deck/ValuePillarTabs";
 import { ProblemStatementCard } from "@/components/command-deck/ProblemStatementCard";
+import { HeroInsightCard } from "@/components/command-deck/HeroInsightCard";
+import { MetricRow } from "@/components/command-deck/MetricRow";
+import { IntelligenceFeed } from "@/components/command-deck/IntelligenceFeed";
+import { PowerToolsPanel } from "@/components/command-deck/PowerToolsPanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
 import {
