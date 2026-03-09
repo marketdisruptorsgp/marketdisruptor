@@ -1,5 +1,5 @@
 /**
- * AUTO-ANALYSIS ENGINE — Progressive Strategic Intelligence
+ * AUTO-ANALYSIS ENGINE — Strategic Intelligence Hook
  *
  * Automatically recomputes strategic intelligence whenever the
  * evidence dataset changes (new pipeline steps complete).
@@ -14,13 +14,10 @@ import {
   type StrategicInsight,
   type StrategicNarrative,
   type StrategicAnalysisInput,
-  type StrategicAnalysisOutput,
   type StrategicDiagnostic,
 } from "@/lib/strategicEngine";
-import { buildInsightGraph, type InsightGraph } from "@/lib/insightGraph";
+import { type InsightGraph } from "@/lib/insightGraph";
 import {
-  extractAllEvidence,
-  flattenEvidence,
   type MetricDomain,
   type MetricEvidence,
 } from "@/lib/evidenceEngine";
@@ -32,10 +29,6 @@ import {
 } from "@/lib/systemIntelligence";
 import { type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
 import { type SensitivityReport } from "@/lib/sensitivityEngine";
-import {
-  computeCommandDeckMetrics,
-  type CommandDeckMetrics,
-} from "@/lib/commandDeckMetrics";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
@@ -51,9 +44,7 @@ export interface AutoAnalysisResult {
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
-  /** Manually trigger the full strategic analysis */
   runAnalysis: () => void;
-  /** Whether analysis has been run at least once */
   hasRun: boolean;
 }
 
@@ -108,7 +99,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     setIsComputing(true);
 
     try {
-      // Build system intelligence first (for legacy compat)
+      // Build system intelligence (for legacy compat)
       invalidateIntelligence(analysisId);
       const siInput: SystemIntelligenceInput = {
         analysisId,
@@ -156,52 +147,36 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       console.log("[StrategicEngine] Analysis complete:", {
         evidence: result.flatEvidence.length,
         constraints: result.diagnostic.constraintCount,
-        drivers: result.diagnostic.driverCount,
-        leverage: result.diagnostic.leverageCount,
         opportunities: result.diagnostic.opportunityCount,
-        pathways: result.diagnostic.pathwayCount,
         events: result.events,
       });
 
       // ── Reconfiguration Pipeline Trace ──
       if (result.structuralProfile) {
         const sp = result.structuralProfile;
-        console.log("[Reconfiguration] Stage 2R — Structural Profile:", {
+        console.log("[Reconfiguration] Structural Profile:", {
           supplyFragmentation: sp.supplyFragmentation,
           marginStructure: sp.marginStructure,
           switchingCosts: sp.switchingCosts,
           distributionControl: sp.distributionControl,
           laborIntensity: sp.laborIntensity,
           revenueModel: sp.revenueModel,
-          customerConcentration: sp.customerConcentration,
-          assetUtilization: sp.assetUtilization,
-          regulatorySensitivity: sp.regulatorySensitivity,
-          valueChainPosition: sp.valueChainPosition,
           bindingConstraints: sp.bindingConstraints.map(c => c.constraintName),
-          evidenceDepth: sp.evidenceDepth,
         });
       }
       if (result.qualifiedPatterns.length > 0) {
-        console.log("[Reconfiguration] Stage 3R — Qualified Patterns:", result.qualifiedPatterns.map(qp => ({
+        console.log("[Reconfiguration] Qualified Patterns:", result.qualifiedPatterns.map(qp => ({
           pattern: qp.pattern.name,
           signalDensity: qp.signalDensity,
-          strengthSignals: qp.qualification.strengthSignals,
-          resolvesConstraints: qp.qualification.resolvesConstraints,
           bet: `"${qp.strategicBet.contrarianBelief}"`,
         })));
       }
       if (result.deepenedOpportunities.length > 0) {
-        console.log("[Reconfiguration] Stage 4R — Deepened Opportunities:", result.deepenedOpportunities.map(d => ({
-          pattern: d.patternName,
-          label: d.label,
-          causalChain: d.causalChain.reasoning,
-          economicMechanism: d.economicMechanism.valueCreation,
-          feasibility: d.feasibility.level,
-          firstMove: d.firstMove.action,
-          strategicBet: {
-            assumption: d.strategicBet.industryAssumption,
-            contrarian: d.strategicBet.contrarianBelief,
-          },
+        console.log("[Reconfiguration] Theses:", result.deepenedOpportunities.map(d => ({
+          reconfiguration: d.reconfigurationLabel,
+          constraint: d.causalChain.constraint,
+          mechanism: d.economicMechanism.valueCreation,
+          firstMove: d.firstMove.action.slice(0, 80),
         })));
       }
     } catch (err) {
@@ -216,8 +191,6 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   ]);
 
   // ── Auto-recompute whenever evidence dataset changes ──
-  // Tracks a hash of completed steps so the engine re-runs each time
-  // new pipeline data arrives (progressive intelligence).
   const evidenceHashRef = useRef<string>("");
 
   useEffect(() => {
@@ -236,7 +209,6 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     if (hash === evidenceHashRef.current) return;
     evidenceHashRef.current = hash;
 
-    // Small delay to batch rapid state updates from pipeline
     const timer = setTimeout(() => {
       console.log("[StrategicEngine] Auto-recompute triggered — evidence changed:", hash);
       runAnalysis();
