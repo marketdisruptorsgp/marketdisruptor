@@ -122,12 +122,18 @@ export function overlayOpportunities(input: OverlayInput): AnnotatedSystemMap {
   const findLayerNodes = (layerId: SystemLayerType) =>
     annotatedLayers.find(l => l.id === layerId)?.nodes || [];
 
-  // ── 1. Add constraint markers from binding constraints ──
+  // ── 1. Add constraint markers from binding constraints or opportunity causal chains ──
   const constraints = structuralProfile?.bindingConstraints || [];
   const constraintNodeMap = new Map<string, string>(); // constraintText → nodeId
 
-  for (const constraint of constraints) {
-    const text = constraint.constraintName || constraint.explanation || "";
+  // If no binding constraints exist, extract them from opportunity causal chains
+  const constraintTexts: Array<{ text: string; explanation: string }> = constraints.length > 0
+    ? constraints.map(c => ({ text: c.constraintName || c.explanation || "", explanation: c.explanation || "" }))
+    : opportunities.map(o => ({ text: o.causalChain?.constraint || "", explanation: o.causalChain?.reasoning || "" })).filter(c => c.text.length > 0);
+
+  for (const constraint of constraintTexts) {
+    const text = constraint.text;
+    if (!text) continue;
     const targetLayer = inferLayerForText(text);
     const layerNodes = findLayerNodes(targetLayer);
 
