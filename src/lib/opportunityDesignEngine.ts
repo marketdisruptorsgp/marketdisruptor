@@ -288,6 +288,59 @@ export function getDimensionsByStatus(baseline: BusinessBaseline, status: Dimens
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  CONSTRAINT STRENGTH SCORING
+// ═══════════════════════════════════════════════════════════════
+
+export interface ConstraintStrength {
+  constraintId: string;
+  label: string;
+  /** impact × confidence × log(1 + evidenceVolume) */
+  strength: number;
+  impact: number;
+  confidence: number;
+  evidenceVolume: number;
+  /** Normalized priority weight (0–1, sums to 1 across all constraints) */
+  priorityWeight: number;
+}
+
+/**
+ * Compute composite strength scores for constraints.
+ * strength = impact × confidence × log2(1 + evidenceVolume)
+ * 
+ * This biases morphological exploration toward well-evidenced, high-impact
+ * constraints while still allowing weaker ones to contribute.
+ */
+export function computeConstraintStrengths(
+  constraints: StrategicInsight[],
+): ConstraintStrength[] {
+  const scored = constraints.map(c => {
+    const evidenceVolume = c.evidenceIds.length;
+    const strength = c.impact * (c.confidenceScore ?? c.confidence) * Math.log2(1 + evidenceVolume);
+    return {
+      constraintId: c.id,
+      label: c.label,
+      strength,
+      impact: c.impact,
+      confidence: c.confidenceScore ?? (typeof c.confidence === "number" ? c.confidence : 0.5),
+      evidenceVolume,
+      priorityWeight: 0, // computed below
+    };
+  });
+
+  // Normalize to priority weights
+  const totalStrength = scored.reduce((s, c) => s + c.strength, 0);
+  if (totalStrength > 0) {
+    for (const s of scored) {
+      s.priorityWeight = s.strength / totalStrength;
+    }
+  }
+
+  // Sort descending by strength
+  scored.sort((a, b) => b.strength - a.strength);
+  return scored;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  STAGE 3: COMBINE BASELINE WITH AI ALTERNATIVES → VECTORS
 // ═══════════════════════════════════════════════════════════════
 
@@ -295,21 +348,32 @@ export function getDimensionsByStatus(baseline: BusinessBaseline, status: Dimens
  * Generates opportunity vectors by combining baseline dimensions with
  * AI-generated alternative values. Each vector represents a 1–2 dimension
  * shift from the current configuration.
+ * 
+ * Constraint strength biases how many vectors are generated per dimension:
+ * stronger constraints get more exploration budget.
  */
 export function generateOpportunityVectors(
   baseline: BusinessBaseline,
   alternatives: DimensionAlternative[],
   constraints: StrategicInsight[],
   leveragePoints: StrategicInsight[],
+  constraintStrengths?: ConstraintStrength[],
 ): OpportunityVector[] {
   const vectors: OpportunityVector[] = [];
   const hotDims = getDimensionsByStatus(baseline, "hot");
   const warmDims = getDimensionsByStatus(baseline, "warm");
 
-  // Group alternatives by dimension — normalize IDs (AI may return "pricing_model" or "dim-pricing_model")
+  // Build strength lookup for priority biasing
+  const strengthMap = new Map<string, number>();
+  if (constraintStrengths) {
+    for (const cs of constraintStrengths) {
+      strengthMap.set(cs.constraintId, cs.priorityWeight);
+    }
+  }
+
+  // Group alternatives by dimension — normalize IDs
   const altsByDim: Record<string, DimensionAlternative[]> = {};
   for (const alt of alternatives) {
-    // Try exact match first, then with "dim-" prefix, then without prefix
     const normalizedId = alt.dimensionId.startsWith("dim-") ? alt.dimensionId : `dim-${alt.dimensionId}`;
     if (!altsByDim[normalizedId]) altsByDim[normalizedId] = [];
     altsByDim[normalizedId].push(alt);
@@ -326,8 +390,16 @@ export function generateOpportunityVectors(
       ...leveragePoints.filter(l => l.evidenceIds.some(eid => dim.evidenceIds.includes(eid))).map(l => l.id),
     ];
 
-    for (const alt of dimAlts) {
-      // Determine exploration type for UI transparency
+    // Compute dimension priority weight from linked constraints
+    const dimPriority = triggerIds.reduce((sum, tid) => sum + (strengthMap.get(tid) || 0), 0);
+
+    // Priority-biased cap: stronger constraint-linked dims get more vectors
+    const maxAlts = mode === "constraint"
+      ? Math.max(2, Math.ceil(dimAlts.length * Math.min(1, 0.5 + dimPriority)))
+      : Math.min(2, dimAlts.length);
+
+    for (let ai = 0; ai < Math.min(maxAlts, dimAlts.length); ai++) {
+      const alt = dimAlts[ai];
       const explorationType: ExplorationType = mode === "constraint"
         ? "constraint_resolution"
         : "structural_exploration";
@@ -345,17 +417,27 @@ export function generateOpportunityVectors(
   }
 
   // ── Two-dimension shifts (hot × hot only, max 2 changes) ──
-  if (hotDims.length >= 2) {
-    for (let i = 0; i < hotDims.length && i < 3; i++) {
-      for (let j = i + 1; j < hotDims.length && j < 4; j++) {
-        const dimA = hotDims[i];
-        const dimB = hotDims[j];
+  // Priority-order hot dims by constraint strength
+  const sortedHot = [...hotDims].sort((a, b) => {
+    const aPriority = constraints
+      .filter(c => c.evidenceIds.some(eid => a.evidenceIds.includes(eid)))
+      .reduce((sum, c) => sum + (strengthMap.get(c.id) || 0), 0);
+    const bPriority = constraints
+      .filter(c => c.evidenceIds.some(eid => b.evidenceIds.includes(eid)))
+      .reduce((sum, c) => sum + (strengthMap.get(c.id) || 0), 0);
+    return bPriority - aPriority;
+  });
+
+  if (sortedHot.length >= 2) {
+    for (let i = 0; i < sortedHot.length && i < 3; i++) {
+      for (let j = i + 1; j < sortedHot.length && j < 4; j++) {
+        const dimA = sortedHot[i];
+        const dimB = sortedHot[j];
         const altsA = altsByDim[dimA.id] || [];
         const altsB = altsByDim[dimB.id] || [];
 
         if (altsA.length === 0 || altsB.length === 0) continue;
 
-        // Take first alternative from each for the combination
         const altA = altsA[0];
         const altB = altsB[0];
 
