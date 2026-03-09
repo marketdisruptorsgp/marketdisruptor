@@ -104,13 +104,13 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
                   className="overflow-hidden"
                 >
                   <ol className="mt-2 space-y-1.5 pl-1">
-                    {validationSteps.map((step, i) => (
+                    {validationSteps.map((vs, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                         <span className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold mt-0.5"
                           style={{ background: `${modeAccent}12`, color: modeAccent }}>
-                          {i + 1}
+                          {vs.step ?? i + 1}
                         </span>
-                        <span className="leading-relaxed">{step}</span>
+                        <span className="leading-relaxed">{vs.action}</span>
                       </li>
                     ))}
                   </ol>
