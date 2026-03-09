@@ -692,9 +692,7 @@ export default function CommandDeckPage() {
         {(() => {
           const biz = analysis.businessAnalysisData as Record<string, any> || {};
           const governed = biz?.governed || analysis.governedData || {};
-          const sp = autoAnalysis.insights.length > 0
-            ? (autoAnalysis as any).structuralProfile ?? null
-            : null;
+          const sp = autoAnalysis.structuralProfile;
           const product = selectedProduct as any || {};
           return (
             <IndustrySystemMapView

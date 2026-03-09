@@ -286,6 +286,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
   return {
     intelligence,
+    structuralProfile,
     graph,
     evidence,
     flatEvidence: flatEvidenceState,
