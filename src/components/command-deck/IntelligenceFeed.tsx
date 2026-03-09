@@ -88,7 +88,7 @@ function buildFeedCards(props: IntelligenceFeedProps): FeedCard[] {
       tagLabel: "Execution",
       icon: Target,
       title: topPlaybook.title,
-      summary: topPlaybook.thesis,
+      summary: topPlaybook.strategicThesis,
       detail: `Timeline: ${topPlaybook.impact.executionDifficulty <= 3 ? "1–3 months" : topPlaybook.impact.executionDifficulty <= 5 ? "3–6 months" : "6–18 months"}`,
       accentColor: TAG_CONFIG["execution"].color,
       priority: 9,
