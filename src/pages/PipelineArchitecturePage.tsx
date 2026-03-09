@@ -627,12 +627,12 @@ function FlowArrow({ label }: { label?: string }) {
 /* ── Summary Stats ── */
 function SummaryStats() {
   const stats = [
-    { label: "Custom Code", value: "~5,000 lines", desc: "Deterministic logic (no AI)" },
-    { label: "AI Stages", value: "2 of 7", desc: "Stage 4 (Deepening) + Stage 5 (Pipeline)" },
-    { label: "Edge Functions", value: "48", desc: "Backend serverless functions" },
+    { label: "Custom Engines", value: "90+", desc: "Deterministic lib files (no AI)" },
+    { label: "AI Stages", value: "3 of 7", desc: "Stages 1 (partial), 4, 5 + 7" },
+    { label: "Edge Functions", value: "47", desc: "Backend serverless functions" },
     { label: "Structural Patterns", value: "6", desc: "Hardcoded strategic moves" },
     { label: "Evidence Dimensions", value: "20+", desc: "Per canonical Evidence object" },
-    { label: "Structural Dimensions", value: "10-13", desc: "10 base + 3 ETA-specific" },
+    { label: "Database Tables", value: "27", desc: "Structured data persistence" },
   ];
 
   return (
