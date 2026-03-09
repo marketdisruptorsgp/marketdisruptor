@@ -305,7 +305,7 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
         data: {
           id: n.id,
           ...(variantToCluster.has(n.id) ? { parent: variantToCluster.get(n.id) } : {}),
-          label: n.label.length > 60 ? n.label.slice(0, 57) + "…" : n.label,
+          label: n.label.length > 90 ? n.label.slice(0, 87) + "…" : n.label,
           fullLabel: n.label,
           nodeType: n.type,
           typeName: cfg.label,
