@@ -796,6 +796,7 @@ export default function CommandDeckPage() {
           mode={modeKey}
           modeAccent={modeAccent}
           detectedPatterns={detectedPatterns}
+          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
         />
 
         {/* ══════════════════════════════════════════════════════════
