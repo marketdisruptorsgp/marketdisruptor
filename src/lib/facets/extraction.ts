@@ -46,35 +46,52 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
   const facets: BusinessFacets = { domain: "business" };
   let matched = false;
 
-  if (text.match(/owner[\s-]?depend|key[\s-]?person|founder[\s-]?driven|single[\s-]?point/)) {
+  // ── Labor Profile ──
+  if (text.match(/owner[\s-]?depend|key[\s-]?person|founder[\s-]?driven|single[\s-]?point|practitioner[\s-]?depend|solo[\s-]?practitioner/)) {
     facets.laborProfile = { intensity: "high", ownerDependency: true };
     matched = true;
-  } else if (text.match(/labor[\s-]?intensive|headcount|staffing|manual[\s-]?labor|workforce/)) {
+  } else if (text.match(
+    /labor[\s-]?intensive|headcount|staffing|manual[\s-]?labor|workforce|staff[\s-]?shortage|hiring[\s-]?difficult|talent[\s-]?scarcit|employee[\s-]?turnover|turnover[\s-]?rate|retention[\s-]?challenge|recruitment|hard[\s-]?to[\s-]?hire|skilled[\s-]?labor|hygienist|technician[\s-]?shortage|dentist[\s-]?shortage|nurse[\s-]?shortage|labor[\s-]?cost|personnel[\s-]?cost|payroll|wages?\s+(?:are|represent|account)|compensation|(?:staff|team|crew|employee)[\s-]?(?:depend|relian)|human[\s-]?capital|labor[\s-]?market|revenue[\s-]?(?:scales?|tied|linked|proportional)\s*(?:linearly|directly)?\s*(?:with|to)\s*headcount|revenue[\s-]?per[\s-]?(?:employee|worker|provider|clinician)|production[\s-]?(?:capacity|output)\s+(?:limited|constrained|tied)\s+(?:by|to)\s+(?:staff|people|labor)/
+  )) {
     facets.laborProfile = { intensity: "high", ownerDependency: false };
     matched = true;
+  } else if (text.match(
+    /automat|self[\s-]?service|unmanned|minimal[\s-]?staff|low[\s-]?labor|capital[\s-]?intensive(?!\s*labor)/
+  )) {
+    facets.laborProfile = { intensity: "low", ownerDependency: false };
+    matched = true;
   }
 
-  if (text.match(/customer[\s-]?concentration|single[\s-]?customer|top[\s-]?client|revenue[\s-]?dependent/)) {
+  // ── Concentration Risk ──
+  if (text.match(/customer[\s-]?concentration|single[\s-]?customer|top[\s-]?client|revenue[\s-]?dependent|few[\s-]?large[\s-]?(?:client|account|customer)|client[\s-]?concentration/)) {
     facets.concentrationRisk = { type: "customer" };
     matched = true;
-  } else if (text.match(/vendor[\s-]?depend|single[\s-]?supplier|sole[\s-]?source/)) {
+  } else if (text.match(/vendor[\s-]?depend|single[\s-]?supplier|sole[\s-]?source|supply[\s-]?chain[\s-]?concentrat|supplier[\s-]?depend/)) {
     facets.concentrationRisk = { type: "vendor" };
+    matched = true;
+  } else if (text.match(/insurance[\s-]?(?:depend|relian|reimburse|payer|dominat)|payer[\s-]?mix|third[\s-]?party[\s-]?payer|reimburse[\s-]?rate|insurance[\s-]?company|managed[\s-]?care/)) {
+    facets.concentrationRisk = { type: "customer" };
     matched = true;
   }
 
-  if (text.match(/hourly[\s-]?(?:rate|billing|charge|fee|pricing)|(?:bill|charg|pric)[\w]*[\s-]?(?:per|by)[\s-]?(?:the[\s-]?)?hour|time[\s-]?and[\s-]?material|billable[\s-]?hour/)) {
+  // ── Pricing Architecture ──
+  if (text.match(
+    /hourly[\s-]?(?:rate|billing|charge|fee|pricing)|(?:bill|charg|pric)[\w]*[\s-]?(?:per|by)[\s-]?(?:the[\s-]?)?hour|time[\s-]?and[\s-]?material|billable[\s-]?hour|per[\s-]?visit|fee[\s-]?for[\s-]?service|per[\s-]?appointment|per[\s-]?procedure|procedure[\s-]?based|per[\s-]?treatment|per[\s-]?session|per[\s-]?job|per[\s-]?wash|per[\s-]?clean|transactional[\s-]?(?:revenue|pricing|model)|pay[\s-]?per[\s-]?use/
+  )) {
     facets.pricingArchitecture = { model: "hourly", priceSettingPower: "weak", switchingCost: "low" };
     matched = true;
-  } else if (text.match(/project[\s-]?based|per[\s-]?project|fixed[\s-]?bid|quote[\s-]?based/)) {
+  } else if (text.match(/project[\s-]?based|per[\s-]?project|fixed[\s-]?bid|quote[\s-]?based|contract[\s-]?based|flat[\s-]?(?:rate|fee)/)) {
     facets.pricingArchitecture = { model: "project", priceSettingPower: "moderate", switchingCost: "low" };
     matched = true;
-  } else if (text.match(/subscription|recurring|monthly[\s-]?fee|annual[\s-]?contract/)) {
+  } else if (text.match(/subscription|recurring|monthly[\s-]?fee|annual[\s-]?contract|membership[\s-]?(?:fee|model|based|dues|revenue)|retainer|ongoing[\s-]?(?:fee|contract)/)) {
     facets.pricingArchitecture = { model: "subscription", priceSettingPower: "moderate", switchingCost: "moderate" };
     matched = true;
   }
 
-  // Detect weak price-setting power independently (may overlap with pricing model)
-  if (text.match(/weak[\s-]?price[\s-]?setting|no[\s-]?pricing[\s-]?power|race[\s-]?to[\s-]?(?:the[\s-]?)?bottom|commoditized[\s-]?pric|price[\s-]?taker/)) {
+  // Detect weak price-setting power independently
+  if (text.match(
+    /weak[\s-]?price[\s-]?setting|no[\s-]?pricing[\s-]?power|race[\s-]?to[\s-]?(?:the[\s-]?)?bottom|commoditized[\s-]?pric|price[\s-]?taker|price[\s-]?(?:pressure|squeeze|competition|war|erosion|sensitive)|downward[\s-]?price|insurance[\s-]?(?:sets?|controls?|dictates?|determines?)\s*(?:the\s*)?(?:price|rate|fee|reimburse)|reimburse[\s-]?rate[\s-]?(?:declin|compress|squeez|pressur|low|set\s+by)|negotiated[\s-]?rate|payer[\s-]?(?:pressure|squeeze)/
+  )) {
     if (!facets.pricingArchitecture) {
       facets.pricingArchitecture = { model: "fixed", priceSettingPower: "weak", switchingCost: "low" };
     } else {
@@ -83,13 +100,24 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
     matched = true;
   }
 
-  if (text.match(/margin[\s-]?compress|margin[\s-]?declin|shrinking[\s-]?margin|race[\s-]?to[\s-]?bottom/)) {
+  // ── Margin Structure ──
+  if (text.match(
+    /margin[\s-]?compress|margin[\s-]?declin|shrinking[\s-]?margin|race[\s-]?to[\s-]?bottom|tight[\s-]?margin|thin[\s-]?margin|low[\s-]?margin|margin[\s-]?pressure|overhead[\s-]?(?:high|rising|increas|burden)|rising[\s-]?(?:cost|expense|overhead)|cost[\s-]?(?:pressure|squeeze|escalat|increas)/
+  )) {
     facets.marginStructure = { marginTrend: "declining", marginDriver: "competitive pressure" };
+    matched = true;
+  } else if (text.match(
+    /high[\s-]?margin|strong[\s-]?margin|healthy[\s-]?margin|premium[\s-]?pric|pricing[\s-]?power|margin[\s-]?(?:expan|growth|improv)/
+  )) {
+    facets.marginStructure = { marginTrend: "stable", marginDriver: "pricing power" };
     matched = true;
   }
 
-  if (text.match(/bottleneck|capacity[\s-]?constraint|throughput[\s-]?limit|backlog/)) {
-    const processMatch = text.match(/bottleneck\s+(?:in|at|for)\s+(\w[\w\s]{2,30})/);
+  // ── Operational Bottleneck / Capacity ──
+  if (text.match(
+    /bottleneck|capacity[\s-]?constraint|throughput[\s-]?limit|backlog|congestion|queue|wait[\s-]?(?:time|list)|waiting[\s-]?(?:time|list|room)|appointment[\s-]?(?:backlog|wait|availab|delay|lead[\s-]?time|book(?:ed|ing)\s+(?:out|weeks|months|far))|schedul[\w]*[\s-]?(?:full|constrain|limit|pressure|difficult|tight)|fully[\s-]?booked|no[\s-]?(?:open|available)\s+(?:slot|appointment|time)|chair[\s-]?(?:utiliz|time|occupan)|bay[\s-]?(?:utiliz|occupan)|room[\s-]?(?:utiliz|occupan|turnover)|table[\s-]?(?:turnover|utiliz|turn\s+time)|equipment[\s-]?(?:utiliz|idle|downtime)|idle[\s-]?(?:time|capacity|equipment|asset|resource)|underutiliz|(?:at|near|approaching)\s+(?:full\s+)?capacity|capacity[\s-]?(?:ceiling|cap|max|limited)|peak[\s-]?(?:hour|time|demand|period|capacity)|demand[\s-]?(?:exceed|outstrip|outpace)\s*(?:capacity|supply)/
+  )) {
+    const processMatch = text.match(/(?:bottleneck|constraint|limit)\s+(?:in|at|for|is)\s+(\w[\w\s]{2,30})/);
     facets.operationalBottleneck = {
       process: processMatch?.[1]?.trim() || "core operations",
       constraint: "throughput limited",
@@ -97,17 +125,57 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
     matched = true;
   }
 
-  // V2: Extract capacity utilization if mentioned
-  const capMatch = text.match(/(\d{1,3})%?\s*(?:capacity|utiliz)/);
+  // ── Capacity Utilization (numeric) ──
+  const capMatch = text.match(/(\d{1,3})%?\s*(?:capacity|utiliz|occupan)/);
   if (capMatch) {
     facets.capacityUtilization = parseInt(capMatch[1]) / 100;
     matched = true;
   }
 
-  // V2: Extract cash cycle days
-  const cashMatch = text.match(/(\d{1,3})\s*(?:day|days)\s*(?:to\s*)?(?:collect|payment|receivable|dso)/);
+  // ── Cash Cycle Days ──
+  const cashMatch = text.match(/(\d{1,3})\s*(?:day|days)\s*(?:to\s*)?(?:collect|payment|receivable|dso|pay[\s-]?cycle|billing[\s-]?cycle)/);
   if (cashMatch) {
     facets.cashCycleDays = parseInt(cashMatch[1]);
+    matched = true;
+  }
+
+  // ── Technology / Automation Gap ──
+  if (text.match(
+    /manual[\s-]?(?:process|workflow|entry|data|record|paper|booking)|paper[\s-]?(?:based|record|form|chart)|legacy[\s-]?(?:system|software|technology)|outdated[\s-]?(?:system|technology|software|equipment)|tech[\s-]?(?:debt|gap|lag)|no[\s-]?(?:automation|software|system|digital)|digitiz|lack[\s-]?of[\s-]?(?:technolog|automation|software)/
+  )) {
+    if (!facets.operationalBottleneck) {
+      facets.operationalBottleneck = { process: "manual processes", constraint: "automation gap" };
+    }
+    matched = true;
+  }
+
+  // ── Fixed Cost Burden ──
+  if (text.match(
+    /(?:high|significant|substantial|heavy)\s+(?:fixed[\s-]?cost|overhead|rent|lease|mortgage)|fixed[\s-]?cost[\s-]?(?:heavy|burden|structure|high)|(?:rent|lease|facility|equipment)\s+(?:cost|expense|payment)\s+(?:high|significant|represent|account)/
+  )) {
+    if (!facets.marginStructure) {
+      facets.marginStructure = { marginTrend: "declining", marginDriver: "fixed cost leverage" };
+    }
+    matched = true;
+  }
+
+  // ── Geographic Constraint ──
+  if (text.match(
+    /geographic[\s-]?(?:limit|constrain|bound|radius|barrier)|service[\s-]?(?:area|radius|territory|zone)|local[\s-]?(?:market|only|bound)|trade[\s-]?area|drive[\s-]?(?:time|distance)|commute|catchment|limited[\s-]?(?:radius|reach|geography)/
+  )) {
+    if (!facets.concentrationRisk) {
+      facets.concentrationRisk = { type: "geographic" as any };
+    }
+    matched = true;
+  }
+
+  // ── Seasonal / Cyclical ──
+  if (text.match(
+    /seasonal|cyclical|off[\s-]?season|peak[\s-]?season|demand[\s-]?(?:fluctuat|volatil|variab|unpredict)|uneven[\s-]?(?:demand|revenue|cash[\s-]?flow)|lumpy[\s-]?(?:revenue|demand|cash)/
+  )) {
+    if (!facets.operationalBottleneck) {
+      facets.operationalBottleneck = { process: "demand pattern", constraint: "demand volatility" };
+    }
     matched = true;
   }
 
