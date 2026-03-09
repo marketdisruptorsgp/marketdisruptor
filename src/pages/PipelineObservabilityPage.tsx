@@ -268,7 +268,7 @@ export default function PipelineObservabilityPage() {
           governedData?.decision_synthesis ? "decision_synthesis" : "",
         ].filter(Boolean),
         executionNotes: stressTestData ? [
-          `Overall viability: ${(stressTestData as any)?.confidenceScores?.overallViability?.score || "N/A"}/10`,
+          `Overall viability: ${((stressTestData as any)?.confidenceScores?.overallViability?.score || 0) >= 7 ? "Strong" : "Moderate"}`,
           `Counter-examples: ${((stressTestData as any)?.counterExamples || []).length}`,
           governedData?.falsification ? `Fragility score: ${(governedData.falsification as any)?.model_fragility_score || "N/A"}` : "",
           governedData?.decision_synthesis ? `Decision grade: ${(governedData.decision_synthesis as any)?.decision_grade || "N/A"}` : "",
