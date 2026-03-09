@@ -27,17 +27,21 @@ import { FACET_SCHEMA_VERSION, SIGNAL_LIFECYCLE } from "./types";
 export function extractFacetsFromEvidence(evidence: Evidence): EvidenceFacets | null {
   const text = `${evidence.label} ${evidence.description || ""}`.toLowerCase();
 
+  // Try business facets first (most important for constraint detection)
   const businessFacets = tryExtractBusinessFacets(text);
   if (businessFacets) return businessFacets;
 
-  const objectFacets = tryExtractObjectFacets(text);
-  if (objectFacets) return objectFacets;
+  // Then market facets
+  const marketFacets = tryExtractMarketFacets(text);
+  if (marketFacets) return marketFacets;
 
+  // Then demand facets
   const demandFacets = tryExtractDemandFacets(text);
   if (demandFacets) return demandFacets;
 
-  const marketFacets = tryExtractMarketFacets(text);
-  if (marketFacets) return marketFacets;
+  // Object facets last (rarely relevant for business analysis)
+  const objectFacets = tryExtractObjectFacets(text);
+  if (objectFacets) return objectFacets;
 
   return null;
 }
