@@ -160,7 +160,50 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         leverage: result.diagnostic.leverageCount,
         opportunities: result.diagnostic.opportunityCount,
         pathways: result.diagnostic.pathwayCount,
+        events: result.events,
       });
+
+      // ── Reconfiguration Pipeline Trace ──
+      if (result.structuralProfile) {
+        const sp = result.structuralProfile;
+        console.log("[Reconfiguration] Stage 2R — Structural Profile:", {
+          supplyFragmentation: sp.supplyFragmentation,
+          marginStructure: sp.marginStructure,
+          switchingCosts: sp.switchingCosts,
+          distributionControl: sp.distributionControl,
+          laborIntensity: sp.laborIntensity,
+          revenueModel: sp.revenueModel,
+          customerConcentration: sp.customerConcentration,
+          assetUtilization: sp.assetUtilization,
+          regulatorySensitivity: sp.regulatorySensitivity,
+          valueChainPosition: sp.valueChainPosition,
+          bindingConstraints: sp.bindingConstraints.map(c => c.constraintName),
+          evidenceDepth: sp.evidenceDepth,
+        });
+      }
+      if (result.qualifiedPatterns.length > 0) {
+        console.log("[Reconfiguration] Stage 3R — Qualified Patterns:", result.qualifiedPatterns.map(qp => ({
+          pattern: qp.pattern.name,
+          signalDensity: qp.signalDensity,
+          strengthSignals: qp.qualification.strengthSignals,
+          resolvesConstraints: qp.qualification.resolvesConstraints,
+          bet: `"${qp.strategicBet.contrarianBelief}"`,
+        })));
+      }
+      if (result.deepenedOpportunities.length > 0) {
+        console.log("[Reconfiguration] Stage 4R — Deepened Opportunities:", result.deepenedOpportunities.map(d => ({
+          pattern: d.patternName,
+          label: d.label,
+          causalChain: d.causalChain.reasoning,
+          economicMechanism: d.economicMechanism.valueCreation,
+          feasibility: d.feasibility.level,
+          firstMove: d.firstMove.action,
+          strategicBet: {
+            assumption: d.strategicBet.industryAssumption,
+            contrarian: d.strategicBet.contrarianBelief,
+          },
+        })));
+      }
     } catch (err) {
       console.warn("[StrategicEngine] Computation error:", err);
     } finally {
