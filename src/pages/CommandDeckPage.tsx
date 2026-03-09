@@ -791,6 +791,7 @@ export default function CommandDeckPage() {
           flatEvidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
           topPlaybook={topPlaybook}
+          deepenedOpportunities={autoAnalysis.deepenedOpportunities}
           mode={modeKey}
           modeAccent={modeAccent}
           detectedPatterns={detectedPatterns}
