@@ -572,23 +572,23 @@ export function inferArchetype(evidence: { label: string; description?: string }
   const archetypeSignals: { archetype: StructuralArchetype; score: number }[] = [
     {
       archetype: "physical_service",
-      score: countMatches(text, /restaurant|dental|salon|clinic|spa|barber|repair[\s-]?shop|car[\s-]?wash|laundry|veterinar|table|chair|seat|appointment|walk[\s-]?in|waiting[\s-]?room|booking/g),
+      score: countMatches(text, /restaurant|dental|salon|clinic|spa|barber|repair[\s-]?shop|car[\s-]?wash|laundry|veterinar|table[\s-]?turn|chair[\s-]?util|seat(?:ing)?[\s-]?capacity|appointment|walk[\s-]?in|waiting[\s-]?room|booking|tunnel|wash[\s-]?time|covers[\s-]?per|peak[\s-]?hour|congestion|square[\s-]?footage|treadmill|equipment[\s-]?capacity/g),
     },
     {
       archetype: "asset_fleet",
-      score: countMatches(text, /fleet|truck|vehicle|aircraft|airplane|ship|equipment[\s-]?rental|logistics|freight|hauling|empty[\s-]?miles|route|dispatch/g),
+      score: countMatches(text, /fleet|truck(?:ing)?|aircraft|airplane|ship(?:ping)?|equipment[\s-]?rental|logistics|freight|hauling|empty[\s-]?miles|route|dispatch|turnaround[\s-]?time|load[\s-]?factor|backhaul/g),
     },
     {
       archetype: "marketplace",
-      score: countMatches(text, /marketplace|platform|two[\s-]?sided|supply[\s-]?and[\s-]?demand|provider|buyer[\s-]?seller|chicken[\s-]?and[\s-]?egg|network[\s-]?effect|liquidity/g),
+      score: countMatches(text, /marketplace|platform|two[\s-]?sided|supply[\s-]?and[\s-]?demand|provider[\s-]?acqui|buyer[\s-]?seller|chicken[\s-]?and[\s-]?egg|network[\s-]?effect|liquidity/g),
     },
     {
       archetype: "subscription",
-      score: countMatches(text, /subscription|membership|recurring|monthly[\s-]?fee|annual[\s-]?plan|gym|fitness|saas|churn|retention/g),
+      score: countMatches(text, /subscription|recurring[\s-]?revenue|monthly[\s-]?fee|annual[\s-]?plan|saas|churn[\s-]?rate|retention[\s-]?rate|mrr|arr/g),
     },
     {
       archetype: "brokerage",
-      score: countMatches(text, /broker|insurance|agent|commission|lead|intermediar|aggregator|comparison|referral|premium/g),
+      score: countMatches(text, /broker(?:age)?|insurance|agent[\s-]?commission|lead[\s-]?acqui|intermediar|aggregator|comparison[\s-]?site|referral[\s-]?fee|premium[\s-]?quot|commission[\s-]?compress|switching[\s-]?provider/g),
     },
     {
       archetype: "inventory_flow",
