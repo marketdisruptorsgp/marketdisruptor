@@ -73,7 +73,7 @@ const RESOURCE_ITEMS: NavItem[] = [
   { label: "FAQs", icon: HelpCircle, path: "/faqs" },
 ];
 
-export function CommandNavigation() {
+export function CommandNavigation({ onOpenTour }: { onOpenTour?: () => void }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
