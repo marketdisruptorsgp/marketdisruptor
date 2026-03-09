@@ -29,7 +29,8 @@ export function humanizeLabel(text: string | null | undefined): string {
     .replace(/^Binding Constraint\s*[:.\-]\s*/i, "")
     // Strip "Counterfactual: " prefix
     .replace(/^Counterfactual\s*[:.\-]\s*/i, "")
-    // Strip "and N related/additional/further/other ..." trailing enumerations
+    // Strip "and N related/additional/further/other ..." enumerations (inline or trailing)
+    .replace(/\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\b/gi, "")
     .replace(/[.,]?\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\.?$/i, "")
     // Strip "(+N related)" suffixes
     .replace(/\s*\(\+\d+ related\)\s*/g, "")

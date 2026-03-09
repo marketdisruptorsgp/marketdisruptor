@@ -330,8 +330,8 @@ function jaccard(a: string, b: string): number {
 function cleanStrategicPhrase(text: string | null | undefined): string {
   if (!text) return "";
   return humanize(text)
+    .replace(/\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\b/gi, "")
     .replace(/[.,]?\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\.?$/i, "")
-    .replace(/\s+/g, " ")
     .trim();
 }
 
