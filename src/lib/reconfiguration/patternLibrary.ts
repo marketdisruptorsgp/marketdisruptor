@@ -377,8 +377,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("skill_scarcity")) { resolves.push("skill_scarcity"); strengths.push("Scarce skills suggest valuable expertise worth abstracting"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports infrastructure abstraction." : "Insufficient signals for infrastructure abstraction.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports infrastructure abstraction." : "Insufficient signal density for infrastructure abstraction.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
