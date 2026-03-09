@@ -327,11 +327,17 @@ export function generateOpportunityVectors(
     ];
 
     for (const alt of dimAlts) {
+      // Determine exploration type for UI transparency
+      const explorationType: ExplorationType = mode === "constraint"
+        ? "constraint_resolution"
+        : "structural_exploration";
+
       vectors.push({
         id: nextVectorId(),
         changedDimensions: [{ dimension: dim.name, from: dim.currentValue, to: alt.value }],
         triggerIds,
         explorationMode: mode,
+        explorationType,
         rationale: alt.rationale,
         evidenceIds: dim.evidenceIds,
       });
