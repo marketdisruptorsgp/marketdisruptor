@@ -175,7 +175,7 @@ export function HiddenAssumptionsPanel({ data, governedData, onRerun, loading, r
             <VisualGrid columns={3}>
               <MetricCard label="Total Assumptions" value={String(assumptions.length)} />
               <MetricCard label="Challengeable" value={String(challengeableCount)} accentColor="hsl(var(--primary))" />
-              <MetricCard label="Avg Leverage" value={avgLeverage >= 7 ? "High" : avgLeverage >= 4 ? "Moderate" : "Low"} accentColor="hsl(38 92% 42%)" />
+              <MetricCard label="Avg Leverage" value={Number(avgLeverage) >= 7 ? "High" : Number(avgLeverage) >= 4 ? "Moderate" : "Low"} accentColor="hsl(38 92% 42%)" />
             </VisualGrid>
 
             <AssumptionCardList assumptions={assumptions} showLimit={SHOW_LIMIT} />
