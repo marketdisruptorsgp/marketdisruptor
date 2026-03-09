@@ -33,6 +33,14 @@ import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/market
 import type { EvidenceFacets } from "@/lib/facets";
 import { extractFacetsFromEvidence } from "@/lib/facets";
 import { humanizeLabel } from "@/lib/humanize";
+import {
+  synthesizeRecommendationNarrative,
+  synthesizeWhyItWins,
+  generateContextualAssumptions,
+  generateContextualRisks,
+  generateDeterministicAlternatives,
+  getBusinessAssumptions,
+} from "@/lib/benchmarks/narrativeSynthesis";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES — AI-generated business structure
