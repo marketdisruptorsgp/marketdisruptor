@@ -229,7 +229,16 @@ export function CommandNavigation({ onOpenTour }: { onOpenTour?: () => void }) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border bg-sidebar">
+      <SidebarFooter className="p-3 border-t border-sidebar-border bg-sidebar space-y-2">
+        {onOpenTour && (
+          <button
+            onClick={onOpenTour}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-bold text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+          >
+            <Map size={13} />
+            {!collapsed && <span>Guided Tour</span>}
+          </button>
+        )}
         {!collapsed && (
           <div className="flex items-center gap-2 text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-widest">
             <Zap size={10} />
