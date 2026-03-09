@@ -698,3 +698,190 @@ export function generateOpportunitiesFromVectors(
 ): StrategicInsight[] {
   return [];
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  ASYNC ENTRY POINT — AI-Powered Thesis Deepening
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Same as runStrategicAnalysis but uses AI for Stage 6 (thesis deepening).
+ * Falls back to deterministic deepening if AI fails.
+ */
+export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): Promise<StrategicAnalysisOutput> {
+  const runFactory = createRunIdFactory();
+  activeRunFactory = runFactory;
+  const events: string[] = [];
+  const stages: PipelineStageResult[] = [];
+
+  // ── Stages 1-5: Same as sync ──
+  const { result: evidenceResult, stage: s1 } = traceStage("Evidence Collection", 1, () => collectEvidence(input));
+  stages.push(s1);
+  const { structured: evidence, flat: rawFlat } = evidenceResult;
+
+  const { result: flat, stage: s2 } = traceStage("Evidence Normalization", rawFlat.length, () => normalizeEvidence(rawFlat));
+  stages.push(s2);
+  events.push(`${flat.length} evidence objects (normalized from ${rawFlat.length} raw)`);
+  const evCount = flat.length;
+
+  let facetedEvidence: Evidence[] = flat;
+  if (evCount >= 4) {
+    const { result: faceted, stage: s2b } = traceStage("Facet Population", flat.length, () => populateFacets(flat));
+    stages.push(s2b);
+    facetedEvidence = faceted;
+  }
+
+  let constraintHypotheses: ConstraintHypothesisSet | null = null;
+  if (evCount >= 4) {
+    const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () => detectConstraintHypotheses(facetedEvidence));
+    stages.push(s3);
+    constraintHypotheses = hypotheses;
+    events.push(`${hypotheses.hypotheses.length} constraint hypotheses detected`);
+  }
+
+  let structuralProfile: StructuralProfile | null = null;
+  const candidatesForProfile = (constraintHypotheses?.hypotheses ?? []).slice(0, 5);
+  if (evCount >= 4) {
+    const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () => diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig));
+    stages.push(s4);
+    structuralProfile = profile;
+    events.push(`Structural profile: ${profile.supplyFragmentation} fragmentation, ${profile.laborIntensity} labor, ${profile.revenueModel} revenue`);
+  }
+
+  let qualifiedPatternsResult: QualifiedPattern[] = [];
+  if (structuralProfile) {
+    const { result: qPatterns, stage: s5 } = traceStage("Pattern Qualification", 6, () => {
+      const all = qualifyPatterns(structuralProfile!);
+      return all.slice(0, 2);
+    });
+    stages.push(s5);
+    qualifiedPatternsResult = qPatterns;
+    events.push(`${qPatterns.length} patterns qualified: ${qPatterns.map(p => p.pattern.name).join(", ") || "none"}`);
+  }
+
+  // ── Stage 6: AI-Powered Thesis Construction ──
+  let deepenedOpps: DeepenedOpportunity[] = [];
+  if (structuralProfile && qualifiedPatternsResult.length > 0) {
+    events.push("Calling AI for thesis deepening...");
+    try {
+      deepenedOpps = await deepenOpportunitiesAsync(
+        qualifiedPatternsResult,
+        structuralProfile!,
+        flat,
+        input.analysisType,
+      );
+      deepenedOpps = deepenedOpps.slice(0, 2);
+      events.push(`${deepenedOpps.length} AI theses: ${deepenedOpps.map(d => d.reconfigurationLabel.slice(0, 60)).join(" | ")}`);
+    } catch (err) {
+      console.warn("[StrategicEngine] AI deepening failed, using deterministic:", err);
+      deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 2);
+      events.push(`${deepenedOpps.length} deterministic theses (AI fallback)`);
+    }
+  }
+
+  // ── Remaining stages same as sync ──
+  const now = Date.now();
+  const insights: StrategicInsight[] = [];
+
+  if (structuralProfile) {
+    for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
+      insights.push(makeInsight({
+        id: nextId("constraint"),
+        analysisId: input.analysisId,
+        insightType: "constraint_cluster",
+        label: bc.explanation || bc.constraintName.replace(/_/g, " "),
+        description: `Binding structural constraint: ${bc.constraintName}`,
+        evidenceIds: bc.evidenceIds ?? [],
+        relatedInsightIds: [],
+        impact: 8,
+        confidence: 0.7,
+        createdAt: now,
+      }));
+    }
+  }
+
+  for (const deep of deepenedOpps) {
+    insights.push(makeInsight({
+      id: nextId("thesis"),
+      analysisId: input.analysisId,
+      insightType: "emerging_opportunity",
+      label: deep.reconfigurationLabel,
+      description: [
+        `[${deep.patternName}] ${deep.summary}`,
+        `Industry assumes: "${deep.strategicBet.industryAssumption}"`,
+        `Contrarian belief: "${deep.strategicBet.contrarianBelief}"`,
+        `First move: ${deep.firstMove.action.slice(0, 120)}`,
+      ].join(" | "),
+      evidenceIds: deep.evidenceIds,
+      relatedInsightIds: insights.filter(i => i.insightType === "constraint_cluster").map(i => i.id),
+      impact: Math.min(6 + deep.signalDensity, 10),
+      confidence: Math.min(0.5 + deep.signalDensity * 0.1, 0.9),
+      createdAt: now,
+    }));
+  }
+
+  const primary = deepenedOpps[0] ?? null;
+  const alternative = deepenedOpps[1] ?? null;
+  const narrative = buildStrategicNarrative(primary, alternative, structuralProfile, flat);
+
+  for (const opp of insights.filter(i => i.insightType === "emerging_opportunity")) {
+    evidence.opportunity.items.push({
+      id: opp.id, type: "opportunity" as any, label: opp.label, description: opp.description,
+      pipelineStep: "disrupt" as any, tier: "structural" as any,
+      impact: opp.impact, confidenceScore: opp.confidence, sourceEngine: "reconfiguration" as any,
+    });
+  }
+
+  const scenarios = getScenarios(input.analysisId);
+  const scenarioComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
+  const sensitivityReports = computeAllSensitivityReports(scenarios);
+
+  const insightsForGraph = insights.map(i => ({
+    id: i.id, label: i.label, description: i.description, insightType: i.insightType,
+    impact: i.impact, confidenceScore: i.confidence, evidenceIds: i.evidenceIds, recommendedTools: [] as string[],
+  }));
+  const { result: graph, stage: sg } = traceStage("Graph Construction", flat.length + insights.length, () =>
+    buildInsightGraph(flat, undefined, undefined, undefined, undefined, insightsForGraph.length > 0 ? insightsForGraph : undefined, scenarioComparison?.scenarios)
+  );
+  stages.push(sg);
+
+  const metricsInput = {
+    products: input.products, selectedProduct: input.selectedProduct, disruptData: input.disruptData,
+    redesignData: input.redesignData, stressTestData: input.stressTestData, pitchDeckData: input.pitchDeckData,
+    governedData: input.governedData, businessAnalysisData: input.businessAnalysisData,
+    intelligence: input.intelligence, completedSteps: input.completedSteps, evidence,
+  };
+  const { result: metrics, stage: sm } = traceStage("Metrics Computation", flat.length, () => computeCommandDeckMetrics(metricsInput));
+  stages.push(sm);
+  const { result: aggOpps, stage: so } = traceStage("Opportunity Aggregation", flat.length, () => aggregateOpportunities(metricsInput));
+  stages.push(so);
+
+  const constraintCount = structuralProfile?.bindingConstraints.length ?? 0;
+  const insufficientEvidence = evCount < 4;
+  let message: string | null = null;
+  if (insufficientEvidence) message = `Need at least 4 evidence items. Have ${evCount}.`;
+  else if (qualifiedPatternsResult.length === 0) message = "No patterns qualified — more evidence may be needed.";
+
+  const diagnostic: StrategicDiagnostic = {
+    evidenceCount: evCount, signalCount: 0, constraintCount, driverCount: deepenedOpps.length > 0 ? 1 : 0,
+    leverageCount: deepenedOpps.length, opportunityCount: deepenedOpps.length,
+    pathwayCount: deepenedOpps.length > 0 ? 1 : 0, insufficientEvidence, message,
+    thresholds: [
+      { stage: "Structural Diagnosis", required: 4, current: evCount, met: evCount >= 4 },
+      { stage: "Pattern Qualification", required: 4, current: evCount, met: qualifiedPatternsResult.length > 0 },
+      { stage: "Thesis Construction", required: 4, current: evCount, met: deepenedOpps.length > 0 },
+    ],
+  };
+
+  buildDiagnostic(stages, graph.nodes, flat.length, insights.length, scenarios.length);
+  events.push("Strategic intelligence computed (AI-enhanced)");
+  activeRunFactory = null;
+
+  return {
+    evidence, flatEvidence: flat, signals: [], insights, graph, metrics,
+    opportunities: aggOpps, narrative, diagnostic, scenarioComparison, sensitivityReports, events,
+    constraintHypotheses, facetedEvidence, legacyConstraints: [],
+    activeConstraints: insights.filter(i => i.insightType === "constraint_cluster"),
+    constraintInteractions: null, severityReport: null, viabilityReport: null, marketStructure: null,
+    structuralProfile, qualifiedPatterns: qualifiedPatternsResult, deepenedOpportunities: deepenedOpps,
+  };
+}
