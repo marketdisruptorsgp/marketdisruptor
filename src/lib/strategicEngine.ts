@@ -821,8 +821,8 @@ function generateOpportunitiesFallback(
     const relatedConstraints = constraints.filter(c => lev.relatedInsightIds.includes(c.id));
     const con = relatedConstraints[0];
 
-    const conText = con ? humanize(con.label).slice(0, 55) : "";
-    const levText = humanize(lev.label).slice(0, 55);
+    const conText = con ? humanize(con.label) : "";
+    const levText = humanize(lev.label);
     const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
     const label = con
