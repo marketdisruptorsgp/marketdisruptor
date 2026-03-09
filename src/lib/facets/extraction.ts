@@ -381,6 +381,22 @@ export function extractRawSignals(evidence: Evidence): RawConstraintSignal[] {
     { pattern: /(?:aging|retirement|succession)\s+(?:owner|founder|workforce)/i, constraint: "owner_dependency" },
     { pattern: /(?:price|pricing)\s+(?:war|pressure|erosion|squeeze)/i, constraint: "commoditized_pricing" },
     { pattern: /(?:inventory|stock)\s+(?:risk|waste|write[\s-]?off|obsolescence)/i, constraint: "inventory_burden" },
+    // Expanded: natural language patterns from AI evidence
+    { pattern: /staffing\s+(?:shortage|challenge|difficult|crisis)/i, constraint: "labor_intensity" },
+    { pattern: /(?:hiring|recruit)\s+(?:difficult|challenge|hard|competitive)/i, constraint: "labor_intensity" },
+    { pattern: /employee\s+(?:turnover|retention|attrition)/i, constraint: "labor_intensity" },
+    { pattern: /revenue\s+(?:scales?|tied|linked)\s+(?:linearly|directly|proportional)/i, constraint: "linear_scaling" },
+    { pattern: /insurance\s+(?:reimburse|payer|dictate|control|set)/i, constraint: "commoditized_pricing" },
+    { pattern: /(?:appointment|schedule|booking)\s+(?:backlog|full|constrain|weeks?\s+out)/i, constraint: "capacity_ceiling" },
+    { pattern: /(?:chair|bay|room|table|equipment)\s+(?:utiliz|idle|occupan)/i, constraint: "asset_underutilization" },
+    { pattern: /(?:fixed|high|significant)\s+(?:overhead|rent|lease|facility)\s+cost/i, constraint: "margin_compression" },
+    { pattern: /(?:manual|paper|legacy)\s+(?:process|system|workflow|record)/i, constraint: "operational_bottleneck" },
+    { pattern: /(?:referral|word[\s-]?of[\s-]?mouth|reputation)\s+(?:depend|driven|based|critical)/i, constraint: "channel_dependency" },
+    { pattern: /(?:geographic|local|radius|territory)\s+(?:limit|constrain|bound)/i, constraint: "geographic_constraint" },
+    { pattern: /(?:member|customer|patient)\s+(?:churn|cancel|attrition|loss)/i, constraint: "demand_volatility" },
+    { pattern: /(?:peak|off[\s-]?peak|seasonal)\s+(?:demand|hour|period|fluctuat)/i, constraint: "demand_volatility" },
+    { pattern: /(?:cost|expense|overhead)\s+(?:rising|increas|escalat|growing)/i, constraint: "margin_compression" },
+    { pattern: /(?:consolidat|roll[\s-]?up|private\s+equity|dso\s+chain)/i, constraint: "competitive_pressure" },
   ];
 
   for (const { pattern, constraint } of constraintPatterns) {
