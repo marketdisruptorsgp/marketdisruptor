@@ -47,6 +47,7 @@ const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage")
 const CommandDeckPage = lazy(() => import("./pages/CommandDeckPage"));
 const BenchmarkRunner = lazy(() => import("./pages/BenchmarkRunner"));
 const PipelineTestRunner = lazy(() => import("./pages/PipelineTestRunner"));
+const PipelineArchitecturePage = lazy(() => import("./pages/PipelineArchitecturePage"));
 
 const queryClient = new QueryClient();
 
@@ -190,6 +191,7 @@ function AppRoutes() {
         <Route path="/admin/pipeline" element={<LazyRoute><PipelineObservabilityPage /></LazyRoute>} />
          <Route path="/admin/benchmark" element={<LazyRoute><BenchmarkRunner /></LazyRoute>} />
          <Route path="/admin/pipeline-test" element={<LazyRoute><PipelineTestRunner /></LazyRoute>} />
+        <Route path="/pipeline-architecture" element={<LazyRoute><PipelineArchitecturePage /></LazyRoute>} />
         <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
         <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
         <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />

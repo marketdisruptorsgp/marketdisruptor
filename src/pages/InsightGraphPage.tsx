@@ -12,8 +12,9 @@ import { buildInsightGraph } from "@/lib/insightGraph";
 import { extractAllEvidence } from "@/lib/evidenceEngine";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { InsightGraphView } from "@/components/insight-graph/InsightGraphView";
-import { RefreshCw, FileDown } from "lucide-react";
+import { RefreshCw, FileDown, LayoutDashboard, Home, ChevronRight, PanelLeft } from "lucide-react";
 import { toast } from "sonner";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
@@ -118,10 +119,34 @@ export default function InsightGraphPage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col overflow-hidden" style={{ height: "calc(100vh - 44px)" }}>
-      {/* Minimal toolbar */}
+      {/* Navigation toolbar */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-background flex-shrink-0">
-        <h2 className="text-sm font-bold text-foreground">Insight Graph</h2>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <SidebarTrigger className="mr-1 flex-shrink-0" />
+          <button
+            onClick={() => navigate("/")}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+          >
+            <Home size={14} />
+          </button>
+          <ChevronRight size={12} className="text-muted-foreground/50 flex-shrink-0" />
+          <button
+            onClick={() => navigate(`/analysis/${analysisId}/command-deck`)}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+          >
+            <LayoutDashboard size={14} />
+          </button>
+          <ChevronRight size={12} className="text-muted-foreground/50 flex-shrink-0" />
+          <h2 className="text-sm font-bold text-foreground truncate">Insight Graph</h2>
+        </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/analysis/${analysisId}/command-deck`)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px] bg-muted text-foreground border border-border"
+          >
+            <LayoutDashboard size={13} />
+            Command Deck
+          </button>
           <button
             onClick={() => {
               if (!selectedProduct) return;
@@ -134,8 +159,7 @@ export default function InsightGraphPage() {
               }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
                 .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-            style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px] bg-muted text-foreground border border-border"
           >
             <FileDown size={13} />
             PDF
