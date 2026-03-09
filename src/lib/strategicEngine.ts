@@ -1012,11 +1012,17 @@ function buildStrategicNarrative(
   let verdictBenchmark: string | null = null;
 
   if (topOpp && topConstraint) {
-    const constraintPhrase = trimAt(topConstraint.label, 80).toLowerCase();
-    const oppPhrase = trimAt(topOpp.label, 80).toLowerCase();
-    const leveragePhrase = topLeverage ? trimAt(topLeverage.label, 60).toLowerCase() : null;
+    const constraintPhrase = trimAt(topConstraint.label, 150).toLowerCase();
+    const oppPhrase = trimAt(topOpp.label, 150).toLowerCase();
+    const leveragePhrase = topLeverage ? trimAt(topLeverage.label, 120).toLowerCase() : null;
 
-    strategicVerdict = `Shift from ${constraintPhrase} to ${oppPhrase}`;
+    // Prevent circular verdicts: if opportunity starts with "resolve" and references the constraint, just use the opportunity
+    const oppReferencesConstraint = oppPhrase.includes(constraintPhrase.slice(0, 30));
+    if (oppReferencesConstraint) {
+      strategicVerdict = oppPhrase.charAt(0).toUpperCase() + oppPhrase.slice(1);
+    } else {
+      strategicVerdict = `The current model is constrained by ${constraintPhrase}. The strategic move is to ${oppPhrase}`;
+    }
 
     const avgConf = (topConstraint.confidence + topOpp.confidence + (topLeverage?.confidence ?? 0)) / (topLeverage ? 3 : 2);
     verdictConfidence = Math.round(avgConf * 100) / 100;
