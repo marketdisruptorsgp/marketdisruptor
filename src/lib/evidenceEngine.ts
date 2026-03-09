@@ -276,8 +276,8 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Governed friction tiers (from business model OR product disrupt) ──
-  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
+  // ── Governed friction tiers (from business model OR product disrupt OR top-level governed) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed || (input.governedData as any);
   if (bizGov?.friction_tiers) {
     const ft = bizGov.friction_tiers;
     safeArr(ft.tier_1).forEach((f: any, i: number) => {
@@ -364,8 +364,8 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     }
   }
 
-  // ── Governed constraint_map + first_principles (from business model OR product disrupt) ──
-  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
+  // ── Governed constraint_map + first_principles (from business model OR product disrupt OR top-level governed) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed || (input.governedData as any);
   if (bizGov) {
     // Causal chains from constraint_map
     const cm = bizGov.constraint_map;
@@ -540,8 +540,8 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Governed: counterfactual removal as leverage signal (business model OR product disrupt) ──
-  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
+  // ── Governed: counterfactual removal as leverage signal (business model OR product disrupt OR top-level governed) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed || (input.governedData as any);
   if (bizGov?.constraint_map?.counterfactual_removal_result) {
     const cfText = String(bizGov.constraint_map.counterfactual_removal_result);
     // Use the actual counterfactual text as the label (trimmed to readable length)

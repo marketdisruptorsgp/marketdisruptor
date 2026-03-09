@@ -460,8 +460,10 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   const evCount = flat.length;
 
   // ── Stage 2b: Facet Population ──
+  // Minimum threshold: 2 for business models (richer but fewer evidence), 4 otherwise
+  const minEvidenceThreshold = input.analysisType === "business_model" ? 2 : 4;
   let facetedEvidence: Evidence[] = flat;
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: faceted, stage: s2b } = traceStage("Facet Population", flat.length, () =>
       populateFacets(flat)
     );
@@ -471,7 +473,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   // ── Stage 3: Constraint Hypothesis Detection ──
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () =>
       detectConstraintHypotheses(facetedEvidence)
     );
@@ -484,7 +486,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   let structuralProfile: StructuralProfile | null = null;
   const candidatesForProfile = (constraintHypotheses?.hypotheses ?? []).slice(0, 5);
 
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () =>
       diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig)
     );
@@ -645,15 +647,15 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   const insufficientEvidence = evCount < 4;
   let message: string | null = null;
   if (insufficientEvidence) {
-    message = `Need at least 4 evidence items for structural diagnosis. Have ${evCount}.`;
+    message = `Need at least ${minEvidenceThreshold} evidence items for structural diagnosis. Have ${evCount}.`;
   } else if (qualifiedPatternsResult.length === 0) {
     message = "Structural diagnosis complete but no patterns qualified. The business structure may not match common reconfiguration patterns — or more evidence is needed.";
   }
 
   const thresholds = [
-    { stage: "Structural Diagnosis", required: 4, current: evCount, met: evCount >= 4 },
-    { stage: "Pattern Qualification", required: 4, current: evCount, met: qualifiedPatternsResult.length > 0 },
-    { stage: "Thesis Construction", required: 4, current: evCount, met: deepenedOpps.length > 0 },
+    { stage: "Structural Diagnosis", required: minEvidenceThreshold, current: evCount, met: evCount >= minEvidenceThreshold },
+    { stage: "Pattern Qualification", required: minEvidenceThreshold, current: evCount, met: qualifiedPatternsResult.length > 0 },
+    { stage: "Thesis Construction", required: minEvidenceThreshold, current: evCount, met: deepenedOpps.length > 0 },
   ];
 
   const diagnostic: StrategicDiagnostic = {
@@ -733,15 +735,16 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   events.push(`${flat.length} evidence objects (normalized from ${rawFlat.length} raw)`);
   const evCount = flat.length;
 
+  const minEvidenceThreshold = input.analysisType === "business_model" ? 2 : 4;
   let facetedEvidence: Evidence[] = flat;
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: faceted, stage: s2b } = traceStage("Facet Population", flat.length, () => populateFacets(flat));
     stages.push(s2b);
     facetedEvidence = faceted;
   }
 
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () => detectConstraintHypotheses(facetedEvidence));
     stages.push(s3);
     constraintHypotheses = hypotheses;
@@ -750,7 +753,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   let structuralProfile: StructuralProfile | null = null;
   const candidatesForProfile = (constraintHypotheses?.hypotheses ?? []).slice(0, 5);
-  if (evCount >= 4) {
+  if (evCount >= minEvidenceThreshold) {
     const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () => diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig));
     stages.push(s4);
     structuralProfile = profile;
@@ -895,9 +898,9 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   stages.push(so);
 
   const constraintCount = structuralProfile?.bindingConstraints.length ?? 0;
-  const insufficientEvidence = evCount < 4;
+  const insufficientEvidence = evCount < minEvidenceThreshold;
   let message: string | null = null;
-  if (insufficientEvidence) message = `Need at least 4 evidence items. Have ${evCount}.`;
+  if (insufficientEvidence) message = `Need at least ${minEvidenceThreshold} evidence items. Have ${evCount}.`;
   else if (qualifiedPatternsResult.length === 0) message = "No patterns qualified — more evidence may be needed.";
 
   const diagnostic: StrategicDiagnostic = {
@@ -905,9 +908,9 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     leverageCount: deepenedOpps.length, opportunityCount: deepenedOpps.length,
     pathwayCount: deepenedOpps.length > 0 ? 1 : 0, insufficientEvidence, message,
     thresholds: [
-      { stage: "Structural Diagnosis", required: 4, current: evCount, met: evCount >= 4 },
-      { stage: "Pattern Qualification", required: 4, current: evCount, met: qualifiedPatternsResult.length > 0 },
-      { stage: "Thesis Construction", required: 4, current: evCount, met: deepenedOpps.length > 0 },
+      { stage: "Structural Diagnosis", required: minEvidenceThreshold, current: evCount, met: evCount >= minEvidenceThreshold },
+      { stage: "Pattern Qualification", required: minEvidenceThreshold, current: evCount, met: qualifiedPatternsResult.length > 0 },
+      { stage: "Thesis Construction", required: minEvidenceThreshold, current: evCount, met: deepenedOpps.length > 0 },
     ],
   };
 
