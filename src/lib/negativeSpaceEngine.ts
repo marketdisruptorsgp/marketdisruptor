@@ -229,15 +229,15 @@ export function exploreNegativeSpace(
 
   // Extract competitive and demand context
   const competitiveEvidence = evidence.filter(e => 
-    e.type.includes("competitive") || e.description.toLowerCase().includes("competitor")
+    e.type?.includes("competitive") || (e.description || '').toLowerCase().includes("competitor")
   );
   const demandEvidence = evidence.filter(e =>
-    e.type.includes("demand") || e.type.includes("customer")
+    e.type?.includes("demand") || e.type?.includes("customer")
   );
 
-  const competitiveText = competitiveEvidence.map(e => e.description).join(" ").toLowerCase();
-  const demandText = demandEvidence.map(e => e.description).join(" ").toLowerCase();
-  const dimensionText = businessDimensions.map(d => `${d.name} ${d.currentValue}`).join(" ").toLowerCase();
+  const competitiveText = competitiveEvidence.map(e => e.description || '').join(" ").toLowerCase();
+  const demandText = demandEvidence.map(e => e.description || '').join(" ").toLowerCase();
+  const dimensionText = businessDimensions.map(d => `${d.name || ''} ${d.currentValue || ''}`).join(" ").toLowerCase();
 
   const combinedContext = `${competitiveText} ${demandText} ${dimensionText}`;
 
@@ -275,15 +275,15 @@ export function exploreNegativeSpace(
     const supportingEvidence: string[] = [];
     if (pattern.competitiveTriggers.test(competitiveText)) {
       const matchingEvidence = competitiveEvidence.filter(e => 
-        pattern.competitiveTriggers.test(e.description.toLowerCase())
+        pattern.competitiveTriggers.test((e.description || '').toLowerCase())
       );
-      supportingEvidence.push(...matchingEvidence.map(e => e.description));
+      supportingEvidence.push(...matchingEvidence.map(e => e.description || ''));
     }
     if (pattern.demandTriggers.test(demandText)) {
       const matchingDemand = demandEvidence.filter(e =>
-        pattern.demandTriggers.test(e.description.toLowerCase())
+        pattern.demandTriggers.test((e.description || '').toLowerCase())
       );
-      supportingEvidence.push(...matchingDemand.map(e => e.description));
+      supportingEvidence.push(...matchingDemand.map(e => e.description || ''));
     }
 
     gaps.push({
