@@ -124,6 +124,9 @@ LEVERAGE POINTS (existing strengths to amplify):
 ${leverageList}
 ${analogSection}
 ${inversionSection}
+${unlockSection}
+${temporalSection}
+${gapSection}
 
 Now generate alternatives for each dimension. Apply all three lenses (cross-industry analogy, constraint inversion, second-order thinking). For each alternative, name a specific company from a different industry that proves the structural logic. The goal: every alternative should make the user think "I never would have thought of that, but it could actually work."`;
 
