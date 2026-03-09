@@ -21,15 +21,13 @@ const PRESET_BUSINESSES = [
     name: "Independent Dental Practice — St. Louis Metro",
     description: "St. Louis MSA (population ~2.8M, 15-county metro). Median household income ~$65,000. Population growth flat (~0.1% annually). ~1,800 active dentists in metro (1 per 1,555 residents). Aging population — 16.5% over 65. Dental insurance coverage ~64% of adults. Major employers: BJC HealthCare, SSM Health, Washington University. Cost of living index ~91 (below national avg). Significant suburban sprawl — St. Charles, O'Fallon, Chesterfield growing fastest. Inner-city population declining. High dental school output from SLU and UMKC within recruiting range.",
   },
-  { name: "Automatic Car Wash", description: "" },
-  { name: "Local Gym / Fitness Center", description: "" },
-  { name: "Regional Trucking / Logistics Fleet", description: "" },
-  { name: "Insurance Brokerage", description: "" },
-  { name: "Full-Service Restaurant", description: "" },
-  { name: "Marketplace Startup", description: "" },
-  { name: "Commercial Cleaning Company", description: "" },
-  { name: "SaaS B2B Startup", description: "" },
-  { name: "Independent Pharmacy", description: "" },
+  { name: "Automatic Car Wash", description: "Express tunnel model, 3-minute wash, membership-based, suburban location with high traffic count." },
+  { name: "Local Gym / Fitness Center", description: "Independent gym, 15,000 sq ft, mix of equipment and group classes, membership-based, suburban market." },
+  { name: "Regional Trucking Company", description: "20-truck fleet, regional LTL and FTL, owner-operated, Midwest routes, mix of contract and spot freight." },
+  { name: "Insurance Brokerage", description: "Independent P&C and life insurance brokerage, 5-person team, small business and personal lines focus." },
+  { name: "Full-Service Restaurant", description: "Casual dining, 120 seats, full bar, dinner-focused, suburban location, average check $35." },
+  { name: "Property Management Company", description: "Manages 200 residential units across 15 properties, mix of single-family and small multifamily." },
+  { name: "Residential Cleaning Service", description: "Owner-operated, 8-person crew, recurring residential cleaning, serves 25-mile radius." },
 ];
 
 export default function PipelineTestRunner() {
