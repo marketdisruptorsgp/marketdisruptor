@@ -32,7 +32,7 @@ import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdi
 import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
 import { ExecutiveSummary } from "@/components/command-deck/ExecutiveSummary";
 import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
-import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
+import { OneThesisCard } from "@/components/command-deck/OneThesisCard";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
