@@ -270,11 +270,11 @@ function BranchDetail({
         <div className="grid grid-cols-2 gap-x-5 gap-y-2 text-xs">
           <div className="flex justify-between items-center px-2.5 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted) / 0.4)" }}>
             <span className="text-muted-foreground">Leverage</span>
-            <span className="font-extrabold text-foreground">{hypothesis.leverage_score}/10</span>
+            <span className="font-extrabold text-foreground">{hypothesis.leverage_score >= 8 ? "High" : hypothesis.leverage_score >= 5 ? "Moderate" : "Low"}</span>
           </div>
           <div className="flex justify-between items-center px-2.5 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted) / 0.4)" }}>
             <span className="text-muted-foreground">Confidence</span>
-            <span className="font-extrabold text-foreground">{hypothesis.confidence}%</span>
+            <span className="font-extrabold text-foreground">{hypothesis.confidence >= 75 ? "Strong" : hypothesis.confidence >= 50 ? "Moderate" : "Early"}</span>
           </div>
           <div className="flex justify-between items-center px-2.5 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted) / 0.4)" }}>
             <span className="text-muted-foreground">Fragility</span>

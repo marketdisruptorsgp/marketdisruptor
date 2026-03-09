@@ -5,6 +5,7 @@ import { InsightRating } from "@/components/InsightRating";
 import {
   StepCanvas, InsightCard, MetricCard, VisualGrid,
 } from "@/components/analysis/AnalysisComponents";
+import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import type { FlippedLogicItem, HiddenAssumption } from "./types";
 
 /* ── Flip Card List ── */
@@ -85,11 +86,7 @@ export function FlippedLogicPanel({ flips, assumptions }: FlippedLogicPanelProps
   if (flips.length === 0) {
     return (
       <StepCanvas>
-        <div className="text-center py-10 space-y-3">
-          <FlipHorizontal size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
-          <p className="text-sm font-bold text-foreground">No inversion data available</p>
-          <p className="text-xs text-muted-foreground max-w-md mx-auto">Run the Disrupt step first to generate assumption inversions.</p>
-        </div>
+        <PipelineProcessingState stepKey="disrupt" title="Inverting assumptions" />
       </StepCanvas>
     );
   }

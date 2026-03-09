@@ -171,7 +171,7 @@ export default function IntelligencePage() {
         ) : !hasData ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Radar size={24} className="text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No intelligence data available yet. Data pipelines run daily — check back soon.</p>
+            <p className="text-sm text-muted-foreground">Intelligence pipelines are processing — data will appear as signals arrive.</p>
           </div>
         ) : (
           <>
@@ -425,7 +425,7 @@ export default function IntelligencePage() {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 gap-3">
                     <Lightbulb size={24} className="text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">No opportunity data available yet. Run analyses to populate the radar.</p>
+                    <p className="text-sm text-muted-foreground">Opportunity radar populates as analyses complete — run an analysis to begin.</p>
                   </div>
                 )}
               </div>

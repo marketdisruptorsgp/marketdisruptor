@@ -1172,8 +1172,7 @@ export default function Index() {
                           return (
                             <div className="py-8 text-center">
                               <Clock size={32} className="mx-auto mb-3 opacity-20" />
-                              <p className="text-sm text-muted-foreground">No user journey data available for this product.</p>
-                              <p className="text-xs text-muted-foreground mt-1">Try running a new analysis to generate journey data.</p>
+                              <p className="text-sm text-muted-foreground">User journey data generates with deeper analysis runs.</p>
                             </div>
                           );
                         }
@@ -1302,7 +1301,7 @@ export default function Index() {
                   )}
 
                   {detailTab === "supply" && !selectedProduct.supplyChain && (
-                    <p className="text-sm text-muted-foreground text-center py-8">No supply chain data available for this product.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">Supply chain data generates with deeper analysis runs.</p>
                   )}
 
                   {/* TAB: PATENTS */}

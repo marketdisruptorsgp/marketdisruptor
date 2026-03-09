@@ -215,7 +215,7 @@ export default function PipelineObservabilityPage() {
       executionNotes: intelData ? [
         `Product: ${(intelData as any)?.name || "Unknown"}`,
         `Category: ${(intelData as any)?.category || "Unknown"}`,
-        `Revival Score: ${(intelData as any)?.revivalScore || "N/A"}/10`,
+        `Potential: ${(intelData as any)?.revivalScore >= 8 ? "Strong" : (intelData as any)?.revivalScore >= 5 ? "Moderate" : "Early"}`,
       ] : ["Not yet generated"],
     });
 
@@ -268,7 +268,7 @@ export default function PipelineObservabilityPage() {
           governedData?.decision_synthesis ? "decision_synthesis" : "",
         ].filter(Boolean),
         executionNotes: stressTestData ? [
-          `Overall viability: ${(stressTestData as any)?.confidenceScores?.overallViability?.score || "N/A"}/10`,
+          `Overall viability: ${((stressTestData as any)?.confidenceScores?.overallViability?.score || 0) >= 7 ? "Strong" : "Moderate"}`,
           `Counter-examples: ${((stressTestData as any)?.counterExamples || []).length}`,
           governedData?.falsification ? `Fragility score: ${(governedData.falsification as any)?.model_fragility_score || "N/A"}` : "",
           governedData?.decision_synthesis ? `Decision grade: ${(governedData.decision_synthesis as any)?.decision_grade || "N/A"}` : "",

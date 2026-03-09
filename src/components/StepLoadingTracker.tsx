@@ -19,7 +19,7 @@ const ACTIVITY_MESSAGES: string[] = [
   "Cross-referencing market signals…",
   "Building structured analysis…",
   "Synthesizing insights…",
-  "Scoring and ranking findings…",
+  "Structuring findings…",
   "Generating final output…",
 ];
 
@@ -222,7 +222,7 @@ export function StepLoadingTracker({
 
 export const DISRUPT_TASKS: StepTask[] = [
   { label: "Assumption Mining", detail: "Hidden assumptions & biases" },
-  { label: "Leverage Scoring", detail: "Ranking disruption potential" },
+  { label: "Leverage Analysis", detail: "Identifying structural leverage" },
   { label: "Constraint Mapping", detail: "Structural dependencies" },
 ];
 
@@ -237,7 +237,7 @@ export const STRESS_TEST_TASKS: StepTask[] = [
   { label: "Green Team Defense", detail: "Counter-arguments & proof" },
   { label: "Precedent Research", detail: "Historical comparisons" },
   { label: "Feasibility Check", detail: "Technical & cost viability" },
-  { label: "Confidence Scoring", detail: "Overall viability score" },
+  { label: "Confidence Assessment", detail: "Overall viability assessment" },
 ];
 
 export const PITCH_DECK_TASKS: StepTask[] = [

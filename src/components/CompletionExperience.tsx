@@ -61,7 +61,7 @@ export function CompletionExperience({
       `Hi SGP Capital team,`, ``,
       `I've been working through a disruption analysis on ${product.name} in the ${product.category || "this"} space and I think there's real potential here.`, ``,
     ];
-    if (product.revivalScore) { lines.push(`The AI scored it ${product.revivalScore}/10 for revival potential and I rated it ${userScore}/10.`); lines.push(``); }
+    if (product.revivalScore) { lines.push(`The analysis identified strong revival potential with clear strategic opportunity.`); lines.push(``); }
     lines.push(`You can view my full analysis here:`);
     lines.push(projectUrl);
     lines.push(``);

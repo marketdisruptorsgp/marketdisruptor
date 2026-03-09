@@ -5,6 +5,7 @@ import {
   StepCanvas, InsightCard, FrameworkPanel, SignalCard, MetricCard,
   VisualGrid, ExpandableDetail, AnalysisPanel,
 } from "@/components/analysis/AnalysisComponents";
+import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import type { RedesignedConcept } from "./types";
 
 interface RedesignedConceptPanelProps {
@@ -17,13 +18,7 @@ export function RedesignedConceptPanel({ concept }: RedesignedConceptPanelProps)
   if (conceptIsEmpty) {
     return (
       <StepCanvas>
-        <div className="text-center py-10 space-y-4">
-          <Sparkles size={36} className="mx-auto" style={{ color: "hsl(38 92% 50%)" }} />
-          <p className="text-lg font-extrabold text-foreground">No redesign concept generated yet</p>
-          <p className="text-sm text-foreground/70 max-w-md mx-auto leading-relaxed">
-            Click <strong>Re-run Discovery</strong> above to generate a full redesigned concept.
-          </p>
-        </div>
+        <PipelineProcessingState stepKey="redesign" title="Generating redesigned concept" />
       </StepCanvas>
     );
   }

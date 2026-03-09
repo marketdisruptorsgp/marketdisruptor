@@ -17,6 +17,7 @@ import { Target, Atom, Lightbulb, GitBranch, Brain, Shield } from "lucide-react"
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
+import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 
@@ -147,26 +148,9 @@ export default function DisruptPage() {
         </AnalysisLoadingCard>
       )}
 
-      {/* ── Empty State ── */}
+      {/* ── Processing State ── */}
       {!analysisLoading && !hasDisruptData && (
-        <div className="rounded-xl border border-border bg-card p-8 sm:p-12 text-center space-y-5">
-          <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
-            <Atom size={26} style={{ color: "hsl(var(--primary))" }} />
-          </div>
-          <div className="space-y-2 max-w-md mx-auto">
-            <h3 className="text-xl font-bold text-foreground">No Deconstruct Data Yet</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              This step breaks down the structural mechanics behind your analysis — fundamental constraints, hidden assumptions, causal models, and strategic hypotheses. Click <strong>Run</strong> above to generate it.
-            </p>
-          </div>
-          <button
-            onClick={() => { setRunTrigger(t => t + 1); setActiveTab("assumptions"); }}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-primary text-primary-foreground hover:opacity-90"
-          >
-            <Atom size={14} />
-            Run Deconstruct
-          </button>
-        </div>
+        <PipelineProcessingState stepKey="disrupt" />
       )}
 
       {/* ── Tab Content ── */}

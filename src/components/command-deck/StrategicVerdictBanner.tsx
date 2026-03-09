@@ -36,7 +36,7 @@ function buildDiagnosis(constraintLabel: string | null, rationale: string | null
   }
   if (constraintLabel) return `Key structural constraint: ${constraintLabel.toLowerCase()}.`;
   if (completedSteps > 0) return "Initial evidence suggests structural constraints on the current business model.";
-  return "No analysis data available yet. Run the analysis pipeline to generate strategic insights.";
+  return "Analysis pipeline initializing — strategic insights will appear as reasoning completes.";
 }
 
 function buildExecutiveSummary(

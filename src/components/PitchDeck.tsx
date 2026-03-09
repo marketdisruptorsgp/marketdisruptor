@@ -637,16 +637,16 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             ) : null
           }
         />
-        <EmphasisBox accentColor={accentColor} label="Revival Potential Score">
+        <EmphasisBox accentColor={accentColor} label="Strategic Assessment">
           <div style={{ display: "flex", alignItems: "center", gap: 40 }}>
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 14, color: "#71717a", marginBottom: 4 }}>AI Score</p>
-              <p style={{ fontSize: 44, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif" }}>{product.revivalScore || "—"}</p>
+              <p style={{ fontSize: 14, color: "#71717a", marginBottom: 4 }}>Potential</p>
+              <p style={{ fontSize: 28, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif" }}>{(product.revivalScore || 0) >= 8 ? "Strong" : (product.revivalScore || 0) >= 5 ? "Moderate" : "Early"}</p>
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <p style={{ fontSize: 16, color: "#71717a" }}>Your Rating</p>
-                <span style={{ fontSize: 20, fontWeight: 700, color: "#0f0f12" }}>{userScore}/10</span>
+                <p style={{ fontSize: 16, color: "#71717a" }}>Your Assessment</p>
+                <span style={{ fontSize: 20, fontWeight: 700, color: "#0f0f12" }}>{userScore >= 8 ? "Strong" : userScore >= 5 ? "Moderate" : "Early"}</span>
               </div>
               <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
             </div>
