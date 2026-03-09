@@ -486,6 +486,7 @@ export default function CommandDeckPage() {
     return s;
   }, [analysisId, intelligenceEvents.length]);
 
+  const asyncRecomputeRunning = useRef(false);
   useEffect(() => {
     const hash = JSON.stringify({
       steps: Array.from(completedSteps),
@@ -497,8 +498,11 @@ export default function CommandDeckPage() {
     if (hash === lastRecomputeHash.current) return;
     lastRecomputeHash.current = hash;
     if (completedSteps.size === 0) return;
+    if (asyncRecomputeRunning.current) return;
 
     const timer = setTimeout(async () => {
+      if (asyncRecomputeRunning.current) return;
+      asyncRecomputeRunning.current = true;
       try {
         const input = {
           products: analysis.products, selectedProduct,
@@ -515,7 +519,9 @@ export default function CommandDeckPage() {
         if (result.flatEvidence.length > 0 && result.insights.length > 0) {
           addEvent(`Intelligence: ${result.insights.length} insights from ${result.flatEvidence.length} evidence`);
         }
-      } catch { /* Silent */ }
+      } catch { /* Silent */ } finally {
+        asyncRecomputeRunning.current = false;
+      }
     }, 600);
     return () => clearTimeout(timer);
   }, [completedSteps, totalSignals, metrics.totalEvidenceCount, savedScenarios]);
