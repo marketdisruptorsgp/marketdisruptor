@@ -715,7 +715,9 @@ function discoverLeverage(
     ["demand_signal", "distribution_channel", "pricing_model"].includes(s.category) && s.strength >= 5
   );
   for (const gs of growthSignals.slice(0, 3)) {
-    const label = `${gs.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} opportunity: ${humanize(gs.label.replace(/^[^:]+:\s*/, "")).slice(0, 45)}`;
+    const oppLabel = humanize(gs.label.replace(/^[^:]+:\s*/, ""));
+    const trimmedOppLabel = oppLabel.length > 80 ? oppLabel.slice(0, oppLabel.lastIndexOf(" ", 80) > 30 ? oppLabel.lastIndexOf(" ", 80) : 80) : oppLabel;
+    const label = `${gs.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} opportunity: ${trimmedOppLabel}`;
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
     insights.push(makeInsight({
@@ -881,8 +883,13 @@ function constructStrategicPathways(
     const trimWord = (s: string, max: number) => {
       const clean = humanize(s);
       if (clean.length <= max) return clean;
+      // Cut at sentence boundary first, then clause, then word
+      const sentenceCut = Math.max(clean.lastIndexOf(". ", max), clean.lastIndexOf("; ", max));
+      if (sentenceCut > max * 0.4) return clean.slice(0, sentenceCut + 1);
+      const clauseCut = clean.lastIndexOf(", ", max);
+      if (clauseCut > max * 0.5) return clean.slice(0, clauseCut);
       const cut = clean.lastIndexOf(" ", max);
-      return clean.slice(0, cut > max * 0.4 ? cut : max) + "…";
+      return clean.slice(0, cut > max * 0.4 ? cut : max);
     };
     const parts = [trimWord(con.label, 40)];
     if (driver) parts.push(trimWord(driver.label, 40));
@@ -1118,9 +1125,9 @@ function buildStrategicNarrative(
   let validationSteps: ValidationStep[] = [];
 
   if (topOpp && topConstraint) {
-    const constraintPhrase = trimAt(topConstraint.label, 80).toLowerCase();
-    const oppPhrase = trimAt(topOpp.label, 80);
-    const driverPhrase = topDriver ? trimAt(topDriver.label, 60).toLowerCase() : null;
+    const constraintPhrase = trimAt(topConstraint.label, 150).toLowerCase();
+    const oppPhrase = trimAt(topOpp.label, 150);
+    const driverPhrase = topDriver ? trimAt(topDriver.label, 120).toLowerCase() : null;
 
     killQuestion = `Can ${oppPhrase.toLowerCase()} actually overcome ${constraintPhrase}, or is this constraint structural and immovable?`;
 
