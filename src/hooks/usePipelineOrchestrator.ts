@@ -42,6 +42,9 @@ export function usePipelineOrchestrator(
     setGovernedData, saveStepData, markStepOutdated, clearStepOutdated,
   } = analysis;
 
+  const businessAnalysisData = (analysis as any).businessAnalysisData;
+  const businessModelInput = (analysis as any).businessModelInput as { type?: string; description?: string } | null;
+
   const runningRef = useRef(false);
   const triggeredForRef = useRef<string | null>(null);
 
@@ -58,13 +61,24 @@ export function usePipelineOrchestrator(
     setStepStatuses(prev => ({ ...prev, [key]: status }));
   }, []);
 
+  // Build a synthetic product for business model analyses that lack a real selectedProduct
+  const effectiveProduct = selectedProduct || (businessAnalysisData ? {
+    id: analysisId || "business-model",
+    name: businessModelInput?.type || "Business Model",
+    category: "Business",
+    image: "",
+    revivalScore: 0,
+    flippedIdeas: [],
+    description: businessModelInput?.description || "",
+  } as any : null);
+
   const runPipeline = useCallback(async () => {
-    if (!selectedProduct || !analysisId) return;
+    if (!effectiveProduct || !analysisId) return;
     if (runningRef.current) return;
     runningRef.current = true;
     setIsRunning(true);
 
-    const product = selectedProduct;
+    const product = effectiveProduct;
 
     // ── Step 1: Disrupt (first-principles-analysis) ──
     let disruptResult: unknown = null;
