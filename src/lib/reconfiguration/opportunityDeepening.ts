@@ -19,6 +19,7 @@ import type { QualifiedPattern } from "./patternQualification";
 import type { StrategicBetTemplate } from "./patternLibrary";
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { ConstraintCandidate } from "@/lib/constraintDetectionEngine";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 
 // ═══════════════════════════════════════════════════════════════
 //  DEEPENED OPPORTUNITY — Stage 4 Output
@@ -157,7 +158,157 @@ export function deepenOpportunities(
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  CAUSAL CHAIN CONSTRUCTION
+//  ASYNC DEEPENING — AI-Powered via Edge Function
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * AI-powered thesis deepening. Calls the `deepen-thesis` edge function
+ * with structural profile + qualified patterns + evidence summary.
+ * Falls back to deterministic deepening if AI fails.
+ */
+export async function deepenOpportunitiesAsync(
+  qualifiedPatterns: QualifiedPattern[],
+  profile: StructuralProfile,
+  evidence: Evidence[],
+  analysisType: string = "product",
+  businessContext?: string,
+): Promise<DeepenedOpportunity[]> {
+  if (qualifiedPatterns.length === 0) return [];
+
+  // Build evidence summary for the AI (top 25 most impactful)
+  const evidenceSummary = evidence
+    .sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0))
+    .slice(0, 25)
+    .map(e => ({
+      type: e.type,
+      label: e.label,
+      description: e.description?.slice(0, 200) ?? null,
+      impact: e.impact,
+      category: e.category ?? null,
+    }));
+
+  try {
+    const { data, error } = await invokeWithTimeout<{ theses: any[]; fallback?: boolean }>(
+      "deepen-thesis",
+      {
+        body: {
+          structuralProfile: {
+            supplyFragmentation: profile.supplyFragmentation,
+            marginStructure: profile.marginStructure,
+            switchingCosts: profile.switchingCosts,
+            distributionControl: profile.distributionControl,
+            laborIntensity: profile.laborIntensity,
+            revenueModel: profile.revenueModel,
+            customerConcentration: profile.customerConcentration,
+            assetUtilization: profile.assetUtilization,
+            regulatorySensitivity: profile.regulatorySensitivity,
+            valueChainPosition: profile.valueChainPosition,
+            etaActive: profile.etaActive,
+            ownerDependency: profile.ownerDependency,
+            acquisitionComplexity: profile.acquisitionComplexity,
+            improvementRunway: profile.improvementRunway,
+            bindingConstraints: profile.bindingConstraints.map(bc => ({
+              constraintName: bc.constraintName,
+              explanation: bc.explanation,
+            })),
+          },
+          qualifiedPatterns: qualifiedPatterns.map(qp => ({
+            pattern: {
+              id: qp.pattern.id,
+              name: qp.pattern.name,
+              transformation: qp.pattern.transformation,
+              mechanism: qp.pattern.mechanism,
+              precedents: qp.pattern.precedents,
+            },
+            signalDensity: qp.signalDensity,
+            qualification: {
+              resolvesConstraints: qp.qualification.resolvesConstraints,
+              strengthSignals: qp.qualification.strengthSignals,
+            },
+            strategicBet: qp.strategicBet,
+          })),
+          evidenceSummary,
+          analysisType,
+          businessContext: businessContext ?? buildBusinessContextFromEvidence(evidence),
+        },
+      },
+      120_000,
+    );
+
+    if (error || !data?.theses || data.theses.length === 0 || data.fallback) {
+      console.warn("[AI Deepening] Falling back to deterministic:", error);
+      return deepenOpportunities(qualifiedPatterns, profile, evidence);
+    }
+
+    console.log(`[AI Deepening] Received ${data.theses.length} AI-generated theses`);
+
+    // Map AI output to DeepenedOpportunity format
+    return data.theses.map((thesis: any, idx: number) => {
+      // Find the matching qualified pattern
+      const matchedQP = qualifiedPatterns.find(qp => qp.pattern.id === thesis.patternId) ?? qualifiedPatterns[idx];
+      if (!matchedQP) return null;
+
+      const relevantEvidenceIds = findRelevantEvidence(matchedQP, evidence);
+
+      return {
+        id: `deep-opp-ai-${idx + 1}`,
+        patternId: matchedQP.pattern.id,
+        patternName: matchedQP.pattern.name,
+        label: thesis.reconfigurationLabel || matchedQP.pattern.transformation,
+        reconfigurationLabel: thesis.reconfigurationLabel || "Structural reconfiguration",
+        summary: thesis.summary || "",
+        causalChain: {
+          constraint: thesis.causalChain?.constraint || "structural constraint",
+          driver: thesis.causalChain?.driver || "underlying structural friction",
+          pattern: thesis.causalChain?.pattern || matchedQP.pattern.name,
+          outcome: thesis.causalChain?.outcome || "improved structural position",
+          reasoning: thesis.causalChain?.reasoning || "",
+        },
+        strategicBet: {
+          industryAssumption: thesis.strategicBet?.industryAssumption || matchedQP.strategicBet.industryAssumption,
+          contrarianBelief: thesis.strategicBet?.contrarianBelief || matchedQP.strategicBet.contrarianBelief,
+          implication: thesis.strategicBet?.implication || matchedQP.strategicBet.implication,
+        },
+        economicMechanism: {
+          valueCreation: thesis.economicMechanism?.valueCreation || "",
+          costStructureShift: thesis.economicMechanism?.costStructureShift || "",
+          revenueImplication: thesis.economicMechanism?.revenueImplication || "",
+          defensibility: thesis.economicMechanism?.defensibility || null,
+        },
+        feasibility: {
+          level: (thesis.feasibility?.level as any) || "requires_validation",
+          marketConditions: thesis.feasibility?.marketConditions || [],
+          requiredCapabilities: thesis.feasibility?.requiredCapabilities || [],
+          executionRisks: thesis.feasibility?.executionRisks || [],
+          regulatoryConsiderations: thesis.feasibility?.regulatoryConsiderations || null,
+        },
+        firstMove: {
+          action: thesis.firstMove?.action || "Identify the core assumption and test it with 5-10 customers",
+          learningObjective: thesis.firstMove?.learningObjective || "Whether the structural change addresses a real need",
+          timeframe: thesis.firstMove?.timeframe || "2 weeks",
+          successCriteria: thesis.firstMove?.successCriteria || "30%+ positive response rate",
+        },
+        precedents: thesis.precedents || matchedQP.pattern.precedents,
+        resolvesConstraints: matchedQP.qualification.resolvesConstraints,
+        evidenceIds: relevantEvidenceIds,
+        signalDensity: matchedQP.signalDensity,
+      } as DeepenedOpportunity;
+    }).filter(Boolean) as DeepenedOpportunity[];
+  } catch (err) {
+    console.warn("[AI Deepening] Error, falling back to deterministic:", err);
+    return deepenOpportunities(qualifiedPatterns, profile, evidence);
+  }
+}
+
+/** Extract rough business context from evidence labels for AI prompt enrichment */
+function buildBusinessContextFromEvidence(evidence: Evidence[]): string {
+  const labels = evidence
+    .filter(e => e.type === "signal" || e.type === "opportunity" || e.type === "constraint")
+    .slice(0, 15)
+    .map(e => e.label);
+  return labels.length > 0 ? `Key business signals: ${labels.join("; ")}` : "";
+}
+
 // ═══════════════════════════════════════════════════════════════
 
 function findPrimaryConstraint(qp: QualifiedPattern, profile: StructuralProfile): string {

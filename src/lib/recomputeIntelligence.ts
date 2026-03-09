@@ -24,6 +24,7 @@ import { type SensitivityReport } from "@/lib/sensitivityEngine";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import {
   runStrategicAnalysis,
+  runStrategicAnalysisAsync,
   type StrategicAnalysisInput,
   type StrategicInsight,
 } from "@/lib/strategicEngine";
@@ -162,18 +163,18 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
  * Falls back to sync (Pass 1) result if AI step fails.
  */
 export async function recomputeIntelligenceAsync(input: IntelligenceInput): Promise<IntelligenceOutput> {
-  // Pass 1: Full deterministic analysis (no AI)
-  const syncResult = runStrategicAnalysis(buildEngineInput(input));
-  const syncOutput = buildOutput(syncResult);
+  // Use the AI-powered async engine (falls back to deterministic internally)
+  const asyncResult = await runStrategicAnalysisAsync(buildEngineInput(input));
+  const asyncOutput = buildOutput(asyncResult);
 
-  // Only attempt AI exploration if we have sufficient structure
-  const constraints = syncResult.activeConstraints;
-  const leveragePoints = syncResult.insights.filter(i => i.insightType === "leverage_point");
-  const flat = syncResult.flatEvidence;
+  // Only attempt morphological exploration if we have sufficient structure
+  const constraints = asyncResult.activeConstraints;
+  const leveragePoints = asyncResult.insights.filter(i => i.insightType === "leverage_point");
+  const flat = asyncResult.flatEvidence;
 
   if (constraints.length < 1 || flat.length < 18) {
     console.log(`[Morphological] Skipping AI: ${constraints.length} constraints, ${flat.length} evidence`);
-    return syncOutput;
+    return asyncOutput;
   }
 
   let aiAlternatives: DimensionAlternative[] | undefined;
@@ -275,12 +276,12 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
     console.warn("[Morphological] Failed to fetch AI alternatives:", err);
   }
 
-  // If no AI alternatives, return the sync result
+  // If no AI alternatives, return the async result
   if (!aiAlternatives || aiAlternatives.length === 0) {
-    return syncOutput;
+    return asyncOutput;
   }
 
   // Pass 2: Re-run full pipeline with AI alternatives injected
-  const enhancedResult = runStrategicAnalysis(buildEngineInput(input, aiAlternatives));
+  const enhancedResult = await runStrategicAnalysisAsync(buildEngineInput(input, aiAlternatives));
   return buildOutput(enhancedResult);
 }
