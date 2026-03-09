@@ -948,21 +948,37 @@ function buildStrategicNarrative(
     clean = clean.replace(/^(?:Step\s*\d+\s*:\s*)+/i, "");
     clean = clean.replace(/^[A-Z]\d+\s*:\s*/i, "");
 
+    // Strip inline internal IDs like "(C1)", "(Removing C1)"
+    clean = clean.replace(/\s*\((?:Removing\s+)?[A-Z]_?\d+\)\s*/gi, " ");
+
     // If label contains "→" (chained labels), take only the final segment
     if (clean.includes("→")) {
       const segments = clean.split("→").map(seg => seg.trim()).filter(Boolean);
       clean = segments[segments.length - 1] || clean;
     }
 
-    // Clean up any "... to apply if..." fragments that read as incomplete
-    // These happen when constraint/opportunity labels are raw concatenations
+    // Clean up any "..." fragments
     clean = clean.replace(/\.\.\./g, "").trim();
 
     if (clean.length <= max) return clean;
 
+    // Try sentence boundary first
+    const sentenceCut = Math.max(
+      clean.lastIndexOf(". ", max),
+      clean.lastIndexOf("; ", max),
+    );
+    if (sentenceCut > max * 0.4) {
+      return clean.slice(0, sentenceCut + 1);
+    }
+
+    // Try clause boundary
+    const clauseCut = clean.lastIndexOf(", ", max);
+    if (clauseCut > max * 0.5) {
+      return clean.slice(0, clauseCut);
+    }
+
     // Find the last space before max
     const cut = clean.lastIndexOf(" ", max);
-    // If no reasonable word boundary found, extend to next word end
     if (cut < max * 0.4) {
       const nextSpace = clean.indexOf(" ", max);
       return nextSpace > 0 ? clean.slice(0, nextSpace) : clean;
@@ -1012,11 +1028,17 @@ function buildStrategicNarrative(
   let verdictBenchmark: string | null = null;
 
   if (topOpp && topConstraint) {
-    const constraintPhrase = trimAt(topConstraint.label, 80).toLowerCase();
-    const oppPhrase = trimAt(topOpp.label, 80).toLowerCase();
-    const leveragePhrase = topLeverage ? trimAt(topLeverage.label, 60).toLowerCase() : null;
+    const constraintPhrase = trimAt(topConstraint.label, 150).toLowerCase();
+    const oppPhrase = trimAt(topOpp.label, 150).toLowerCase();
+    const leveragePhrase = topLeverage ? trimAt(topLeverage.label, 120).toLowerCase() : null;
 
-    strategicVerdict = `Shift from ${constraintPhrase} to ${oppPhrase}`;
+    // Prevent circular verdicts: if opportunity starts with "resolve" and references the constraint, just use the opportunity
+    const oppReferencesConstraint = oppPhrase.includes(constraintPhrase.slice(0, 30));
+    if (oppReferencesConstraint) {
+      strategicVerdict = oppPhrase.charAt(0).toUpperCase() + oppPhrase.slice(1);
+    } else {
+      strategicVerdict = `The current model is constrained by ${constraintPhrase}. The strategic move is to ${oppPhrase}`;
+    }
 
     const avgConf = (topConstraint.confidence + topOpp.confidence + (topLeverage?.confidence ?? 0)) / (topLeverage ? 3 : 2);
     verdictConfidence = Math.round(avgConf * 100) / 100;
@@ -1033,7 +1055,7 @@ function buildStrategicNarrative(
     // Contextual benchmark for verdict
     verdictBenchmark = deriveVerdictBenchmark(flatEvidence, topConstraint, topOpp);
   } else if (topConstraint) {
-    const constraintPhrase = trimAt(topConstraint.label, 100).toLowerCase();
+    const constraintPhrase = trimAt(topConstraint.label, 200).toLowerCase();
     strategicVerdict = `Resolve the core bottleneck: ${constraintPhrase}`;
     verdictConfidence = topConstraint.confidence;
     verdictRationale = `The dominant bottleneck is ${constraintPhrase}. More evidence is needed to identify the specific strategic move.`;
