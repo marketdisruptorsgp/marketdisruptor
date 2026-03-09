@@ -163,9 +163,14 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
  * Falls back to sync (Pass 1) result if AI step fails.
  */
 export async function recomputeIntelligenceAsync(input: IntelligenceInput): Promise<IntelligenceOutput> {
-  // Pass 1: Full deterministic analysis (no AI)
-  const syncResult = runStrategicAnalysis(buildEngineInput(input));
-  const syncOutput = buildOutput(syncResult);
+  // Use the AI-powered async engine (falls back to deterministic internally)
+  const asyncResult = await runStrategicAnalysisAsync(buildEngineInput(input));
+  const asyncOutput = buildOutput(asyncResult);
+
+  // Only attempt morphological exploration if we have sufficient structure
+  const constraints = asyncResult.activeConstraints;
+  const leveragePoints = asyncResult.insights.filter(i => i.insightType === "leverage_point");
+  const flat = asyncResult.flatEvidence;
 
   // Only attempt AI exploration if we have sufficient structure
   const constraints = syncResult.activeConstraints;
