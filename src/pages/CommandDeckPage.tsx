@@ -43,6 +43,7 @@ import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
 import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
+import { DealScorecard } from "@/components/command-deck/DealScorecard";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
 
 import {
@@ -612,6 +613,14 @@ export default function CommandDeckPage() {
             FINANCIAL TRAJECTORY — Trend charts from multi-year P&L
            ══════════════════════════════════════════════════════════ */}
         <FinancialTrendCharts
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            DEAL SCORECARD — Go/No-Go verdict with deal structure
+           ══════════════════════════════════════════════════════════ */}
+        <DealScorecard
           biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
           governedData={analysis.governedData as Record<string, any> | null}
         />
