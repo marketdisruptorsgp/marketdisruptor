@@ -601,6 +601,22 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
+            FINANCIAL TRAJECTORY — Trend charts from multi-year P&L
+           ══════════════════════════════════════════════════════════ */}
+        <FinancialTrendCharts
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            DUE DILIGENCE — Hard-hitting questions for sellers
+           ══════════════════════════════════════════════════════════ */}
+        <DueDiligenceQuestions
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
             DEEP DIVE — Collapsed advanced analysis tools
            ══════════════════════════════════════════════════════════ */}
         <PowerToolsPanel toolCount={6}>
