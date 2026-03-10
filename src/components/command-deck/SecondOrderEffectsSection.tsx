@@ -5,6 +5,7 @@
 
 import { memo } from "react";
 import { TrendingUp } from "lucide-react";
+import { trimAt } from "@/lib/humanize";
 
 interface SecondOrderEffectsSectionProps {
   effects: string[];
