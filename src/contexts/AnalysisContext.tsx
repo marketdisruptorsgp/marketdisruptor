@@ -1002,10 +1002,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         // ── ATOMIC PATH: Use Postgres RPC for simple step saves ──
         // This is concurrency-safe — no read-merge-write needed
         try {
+          // Pass data directly — Supabase client handles JSON serialization.
+          // Using JSON.stringify here would cause double-serialization,
+          // storing the value as a JSON string instead of a JSON object.
           const { error: rpcError } = await (supabase.rpc as any)("merge_analysis_step", {
             p_analysis_id: capturedId,
             p_step_key: stepKey,
-            p_step_payload: JSON.stringify(data),
+            p_step_payload: data,
           });
           if (rpcError) {
             console.error("Atomic merge_analysis_step failed:", rpcError);
