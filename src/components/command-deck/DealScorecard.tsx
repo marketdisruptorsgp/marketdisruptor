@@ -96,6 +96,7 @@ function buildSignals(
       status: inputs.recurringRevenuePct >= 0.50 ? "go" : inputs.recurringRevenuePct >= 0.25 ? "caution" : "no-go",
       detail: `${pct}% recurring — ${inputs.recurringRevenuePct >= 0.50 ? "Strong base" : inputs.recurringRevenuePct >= 0.25 ? "Some predictability" : "Mostly project-based"}`,
       source: "Revenue model",
+      provenance: "cim",
     });
   }
 
