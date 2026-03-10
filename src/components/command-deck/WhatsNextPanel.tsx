@@ -66,7 +66,7 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
               Kill Question
             </p>
             <p className="text-sm font-bold text-foreground leading-snug">
-              {killQuestion}
+              {trimAt(killQuestion, 200)}
             </p>
             {narrative?.validationExperiment && (
               <p className="text-xs text-muted-foreground leading-relaxed">
