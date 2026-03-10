@@ -49,6 +49,7 @@ function buildSignals(
       status: inputs.sdeMargin >= 0.25 ? "go" : inputs.sdeMargin >= 0.15 ? "caution" : "no-go",
       detail: `${pct}% — ${inputs.sdeMargin >= 0.25 ? "Healthy margin for debt service" : inputs.sdeMargin >= 0.15 ? "Tight — limited room for surprises" : "Dangerously thin for leveraged acquisition"}`,
       source: "Financial extraction",
+      provenance: "cim",
     });
   }
 
