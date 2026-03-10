@@ -1,9 +1,11 @@
 /**
  * IndustryBenchmarkPanel — Archetype-based benchmark comparisons
+ * Shows how this business compares to similar model types.
  */
 
 import { memo } from "react";
 import { BarChart3, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { ProvenanceBadge } from "./ProvenanceBadge";
 import type { BenchmarkResult } from "@/lib/benchmarkEngine";
 
 interface IndustryBenchmarkPanelProps {
@@ -12,8 +14,8 @@ interface IndustryBenchmarkPanelProps {
 
 function RatingBadge({ rating }: { rating: "above_average" | "average" | "below_average" }) {
   const config = {
-    above_average: { label: "Above Average", color: "hsl(var(--success))", bg: "hsl(var(--success) / 0.1)", Icon: ArrowUp },
-    average: { label: "Average", color: "hsl(var(--warning))", bg: "hsl(var(--warning) / 0.1)", Icon: Minus },
+    above_average: { label: "Above Average", color: "hsl(142, 71%, 45%)", bg: "hsl(142, 71%, 45% / 0.1)", Icon: ArrowUp },
+    average: { label: "Average", color: "hsl(38, 92%, 50%)", bg: "hsl(38, 92%, 50% / 0.1)", Icon: Minus },
     below_average: { label: "Below Average", color: "hsl(var(--destructive))", bg: "hsl(var(--destructive) / 0.1)", Icon: ArrowDown },
   };
   const c = config[rating];
@@ -30,18 +32,19 @@ export const IndustryBenchmarkPanel = memo(function IndustryBenchmarkPanel({ ben
 
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-      <div className="px-5 pt-4 pb-2 flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
-          <BarChart3 size={14} className="text-primary" />
+      <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
+            <BarChart3 size={14} className="text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-foreground">Industry Benchmark</h3>
+            <p className="text-[10px] text-muted-foreground">
+              vs. <span className="font-bold text-primary">{benchmark.modelType}</span>
+            </p>
+          </div>
         </div>
-        <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Industry Benchmark
-          </span>
-          <span className="text-[9px] font-bold text-primary ml-2">
-            vs. {benchmark.modelType}
-          </span>
-        </div>
+        <ProvenanceBadge source="benchmark" />
       </div>
 
       <div className="px-5 pb-2">

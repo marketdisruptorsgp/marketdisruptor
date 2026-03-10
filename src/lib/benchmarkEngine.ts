@@ -83,12 +83,21 @@ const ARCHETYPE_PROFILES: ArchetypeProfile[] = [
 
 /* ── Archetype Classifier ── */
 
-export function classifyArchetype(evidence: Evidence[], narrative: StrategicNarrative | null): ArchetypeProfile {
+export function classifyArchetype(evidence: Evidence[], narrative: StrategicNarrative | null, biExtraction?: Record<string, any> | null): ArchetypeProfile {
   const allText = [
     ...evidence.map(e => `${e.label || ""} ${e.description || ""} ${e.category || ""}`),
     narrative?.primaryConstraint || "",
     narrative?.strategicVerdict || "",
     narrative?.breakthroughOpportunity || "",
+    // Include biExtraction signals for better classification
+    biExtraction?.business_overview?.company_name || "",
+    biExtraction?.business_overview?.description || "",
+    biExtraction?.business_overview?.industry || "",
+    biExtraction?.business_overview?.business_model || "",
+    biExtraction?.business_overview?.services_offered || "",
+    biExtraction?.business_overview?.products_offered || "",
+    ...(Array.isArray(biExtraction?.revenue_sources) ? biExtraction.revenue_sources.map((r: any) => r?.source || r?.name || "") : []),
+    ...(Array.isArray(biExtraction?.cost_drivers) ? biExtraction.cost_drivers.map((c: any) => c?.driver || c?.name || "") : []),
   ].join(" ").toLowerCase();
 
   let bestMatch: ArchetypeProfile = ARCHETYPE_PROFILES[0];
