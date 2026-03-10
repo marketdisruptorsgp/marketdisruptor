@@ -8,6 +8,7 @@ import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, ChevronDown, ChevronUp, Building2, TrendingUp } from "lucide-react";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 import { StrategicPrecedentSection } from "./StrategicPrecedentSection";
 import { SecondOrderEffectsSection } from "./SecondOrderEffectsSection";
 
