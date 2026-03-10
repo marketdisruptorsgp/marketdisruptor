@@ -34,7 +34,7 @@ export const SecondOrderEffectsSection = memo(function SecondOrderEffectsSection
               className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
               style={{ background: "hsl(var(--primary))" }}
             />
-            {effect}
+            {trimAt(effect, 180)}
           </li>
         ))}
       </ul>

@@ -141,10 +141,10 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-foreground leading-snug">
-                  {firstMove.action}
+                  {humanizeLabel(firstMove.action)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                  {firstMove.timeframe} · Success: {firstMove.successCriteria}
+                  {firstMove.timeframe} · Success: {trimAt(firstMove.successCriteria, 120)}
                 </p>
               </div>
             </div>

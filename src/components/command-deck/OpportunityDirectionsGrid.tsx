@@ -154,10 +154,10 @@ function OpportunityCard({
                     First Move
                   </p>
                   <p className="text-sm text-foreground font-semibold leading-snug">
-                    {opp.firstMove.action}
+                    {humanizeLabel(opp.firstMove.action)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {opp.firstMove.timeframe} · Success: {opp.firstMove.successCriteria}
+                    {opp.firstMove.timeframe} · Success: {trimAt(opp.firstMove.successCriteria, 120)}
                   </p>
                 </div>
               )}

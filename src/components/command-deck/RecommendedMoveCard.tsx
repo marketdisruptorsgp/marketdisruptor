@@ -65,12 +65,12 @@ export const RecommendedMoveCard = memo(function RecommendedMoveCard({
 
       {/* Title */}
       <h3 className="text-lg sm:text-xl font-black text-foreground leading-tight">
-        {playbook.title}
+        {humanizeLabel(playbook.title)}
       </h3>
 
       {/* Thesis */}
       <p className="text-sm text-muted-foreground leading-relaxed">
-        {playbook.strategicThesis}
+        {trimAt(playbook.strategicThesis, 250)}
       </p>
 
       {/* Strategy Profile */}
