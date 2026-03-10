@@ -277,9 +277,11 @@ export const DealScorecard = memo(function DealScorecard({
           >
             <div className="mt-0.5 flex-shrink-0">{STATUS_ICON[s.status]}</div>
             <div className="min-w-0">
-              <p className="text-[11px] font-black text-foreground">{s.label}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[11px] font-black text-foreground">{s.label}</p>
+                <ProvenanceBadge source={s.provenance} />
+              </div>
               <p className="text-[10px] text-muted-foreground leading-snug">{s.detail}</p>
-              <p className="text-[9px] text-muted-foreground/60 mt-0.5">{s.source}</p>
             </div>
           </div>
         ))}
