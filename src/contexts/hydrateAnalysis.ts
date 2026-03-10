@@ -79,6 +79,29 @@ export function clearAllState(setters: HydrationSetters) {
 }
 
 /**
+ * Repair double-serialized values in analysis_data.
+ * A bug in saveStepData was JSON.stringify-ing data before passing to the RPC,
+ * causing values like strategicEngine/insightGraph to be stored as JSON strings
+ * instead of objects. This function detects and parses them back.
+ */
+function repairDoubleSerialized(ad: Record<string, unknown> | null): Record<string, unknown> | null {
+  if (!ad) return null;
+  const repaired = { ...ad };
+  const keysToCheck = ["strategicEngine", "insightGraph", "disrupt", "stressTest", "pitchDeck",
+    "redesign", "businessStressTest", "businessPitchDeck", "governed", "biExtraction",
+    "adaptiveContext", "geoOpportunity", "regulatoryContext", "competitiveIntel"];
+  for (const key of keysToCheck) {
+    const val = repaired[key];
+    if (typeof val === "string" && val.startsWith("{")) {
+      try {
+        repaired[key] = JSON.parse(val);
+      } catch { /* leave as-is */ }
+    }
+  }
+  return repaired;
+}
+
+/**
  * Sanitize raw products from DB into safe Product[] with all required fields.
  */
 export function sanitizeProducts(rawProducts: any[], analysisRow: any): any[] {
