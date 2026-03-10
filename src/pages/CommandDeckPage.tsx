@@ -628,6 +628,11 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
+            INDUSTRY BENCHMARK — Archetype-based comparison
+           ══════════════════════════════════════════════════════════ */}
+        <IndustryBenchmarkPanel benchmark={benchmark} />
+
+        {/* ══════════════════════════════════════════════════════════
             DEAL SCORECARD — Go/No-Go verdict with deal structure
            ══════════════════════════════════════════════════════════ */}
         <DealScorecard
