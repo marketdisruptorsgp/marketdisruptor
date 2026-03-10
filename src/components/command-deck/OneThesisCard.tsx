@@ -1,6 +1,11 @@
 /**
  * OneThesisCard — Displays the primary strategic thesis in a causal chain:
  * Core Constraint → Contrarian Belief → Strategic Move → Economic Mechanism → First Move
+ *
+ * Now includes three strategic layers:
+ * - WhyThisMatters (after diagnosis)
+ * - StrategicPrecedent (after main card)
+ * - SecondOrderEffects (after defensibility)
  */
 
 import { memo, useState } from "react";
@@ -10,6 +15,9 @@ import {
   ChevronDown, ChevronUp, Crosshair, Clock, CheckCircle2,
 } from "lucide-react";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
+import { WhyThisMattersSection } from "./WhyThisMattersSection";
+import { StrategicPrecedentSection } from "./StrategicPrecedentSection";
+import { SecondOrderEffectsSection } from "./SecondOrderEffectsSection";
 
 interface OneThesisCardProps {
   thesis: DeepenedOpportunity | null;
