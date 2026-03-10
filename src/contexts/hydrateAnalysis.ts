@@ -11,6 +11,7 @@ import type { StrategicProfile } from "@/lib/strategicOS";
 import type { AdaptiveContextData } from "./AnalysisContext";
 import type { BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import type { BusinessModelInput } from "./AnalysisContext";
+import { extractionToContext, type BIExtraction } from "@/hooks/useBIExtraction";
 
 export interface HydrationSetters {
   setAnalysisId: (id: string | null) => void;
