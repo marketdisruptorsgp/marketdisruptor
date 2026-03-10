@@ -500,7 +500,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   if (structuralProfile) {
     const { result: qPatterns, stage: s5 } = traceStage("Pattern Qualification", 6, () => {
       const all = qualifyPatterns(structuralProfile!);
-      return all.slice(0, 2); // Primary + alternative only
+      return all.slice(0, 4); // Allow more patterns through for multi-opportunity generation
     });
     stages.push(s5);
     qualifiedPatternsResult = qPatterns;
@@ -514,7 +514,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
       deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat)
     );
     stages.push(s6);
-    deepenedOpps = deepened.slice(0, 2); // Primary + alternative only
+    deepenedOpps = deepened.slice(0, 5); // Allow up to 5 opportunities
     events.push(`${deepenedOpps.length} theses: ${deepenedOpps.map(d => d.reconfigurationLabel.slice(0, 60)).join(" | ")}`);
   }
 
