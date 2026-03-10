@@ -628,6 +628,25 @@ export function StructureTab({
                     biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
                   />
                 </StructureSection>
+
+                {/* Competitive Landscape (auto-researched from CIM competitors) */}
+                {(competitiveResearch.hasCompetitors || competitiveResearch.isLoading || competitiveResearch.data) && (
+                  <StructureSection
+                    title="Competitive Landscape"
+                    icon={Crosshair}
+                    defaultOpen={true}
+                    badge={competitiveResearch.data ? `${competitiveResearch.data.competitorProfiles.length} profiled` : undefined}
+                  >
+                    <CompetitiveLandscape
+                      data={competitiveResearch.data}
+                      isLoading={competitiveResearch.isLoading}
+                      error={competitiveResearch.error}
+                      hasCompetitors={competitiveResearch.hasCompetitors}
+                      competitorNames={competitiveResearch.competitorNames}
+                      onResearch={competitiveResearch.runResearch}
+                    />
+                  </StructureSection>
+                )}
               </>
             )}
 
