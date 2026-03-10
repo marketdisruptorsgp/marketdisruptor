@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
+import { useCompetitiveResearch } from "@/hooks/useCompetitiveResearch";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame, Gauge, GitBranch, Target } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame, Gauge, GitBranch, Target, Crosshair } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 import { type LensType } from "@/lib/multiLensEngine";
@@ -13,6 +14,7 @@ import { FrictionHeatmap } from "@/components/FrictionHeatmap";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
 import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
 import { CausalConstraintMap } from "@/components/CausalConstraintMap";
+import { CompetitiveLandscape } from "@/components/CompetitiveLandscape";
 
 export type StructureViewMode = "assumptions" | "deconstruct" | "all";
 
@@ -434,6 +436,15 @@ export function StructureTab({
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
 
+  // Competitive intelligence from CIM-extracted competitor names
+  const biExtractionData = (analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null;
+  const competitiveResearch = useCompetitiveResearch({
+    biExtraction: biExtractionData,
+    governedData,
+    analysisId: selectedProduct.id || "unknown",
+    autoTrigger: true,
+  });
+
   return (
     <div className="space-y-3">
       {/* ── First Principles Methodology Banner (Assumptions view) ── */}
@@ -617,6 +628,25 @@ export function StructureTab({
                     biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
                   />
                 </StructureSection>
+
+                {/* Competitive Landscape (auto-researched from CIM competitors) */}
+                {(competitiveResearch.hasCompetitors || competitiveResearch.isLoading || competitiveResearch.data) && (
+                  <StructureSection
+                    title="Competitive Landscape"
+                    icon={Crosshair}
+                    defaultOpen={true}
+                    badge={competitiveResearch.data ? `${competitiveResearch.data.competitorProfiles.length} profiled` : undefined}
+                  >
+                    <CompetitiveLandscape
+                      data={competitiveResearch.data}
+                      isLoading={competitiveResearch.isLoading}
+                      error={competitiveResearch.error}
+                      hasCompetitors={competitiveResearch.hasCompetitors}
+                      competitorNames={competitiveResearch.competitorNames}
+                      onResearch={competitiveResearch.runResearch}
+                    />
+                  </StructureSection>
+                )}
               </>
             )}
 
