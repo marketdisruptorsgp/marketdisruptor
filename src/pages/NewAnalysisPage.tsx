@@ -533,7 +533,7 @@ export default function NewAnalysisPage() {
             ...prev,
             businessAnalysis: result.analysis,
             // Persist raw BI extraction so evidence engine can use it on reload
-            ...(extraction ? { biExtraction: extraction } : {}),
+            ...(finalExtraction ? { biExtraction: finalExtraction } : {}),
           };
           const { error: updateErr } = await (supabase.from("saved_analyses") as any)
             .update({ analysis_data: merged, updated_at: new Date().toISOString() })
