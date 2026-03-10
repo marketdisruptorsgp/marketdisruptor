@@ -29,6 +29,20 @@ export function humanizeLabel(text: string | null | undefined): string {
     .replace(/^Binding Constraint\s*[:.\-]\s*/i, "")
     // Strip "Counterfactual: " prefix
     .replace(/^Counterfactual\s*[:.\-]\s*/i, "")
+    // Strip "Strategic Opportunity: " prefix
+    .replace(/^Strategic Opportunity\s*[:.\-]\s*/i, "")
+    // Strip "Key Insight: " prefix
+    .replace(/^Key Insight\s*[:.\-]\s*/i, "")
+    // Strip "Structural Delta: " prefix
+    .replace(/^Structural Delta\s*[:.\-]\s*/i, "")
+    // Strip "Reconfiguration: " prefix
+    .replace(/^Reconfiguration\s*[:.\-]\s*/i, "")
+    // Strip "Value Creation: " prefix
+    .replace(/^Value Creation\s*[:.\-]\s*/i, "")
+    // Strip "Pattern: " prefix
+    .replace(/^Pattern\s*[:.\-]\s*/i, "")
+    // Strip "Signal: " prefix
+    .replace(/^Signal\s*[:.\-]\s*/i, "")
     // Strip "and N related/additional/further/other ..." enumerations (inline or trailing)
     .replace(/\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\b/gi, "")
     .replace(/[.,]?\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\.?$/i, "")
@@ -40,8 +54,26 @@ export function humanizeLabel(text: string | null | undefined): string {
     .replace(/\s*\((?:Removing\s+)?[A-Z]_?\d+\)\s*/gi, " ")
     // Strip standalone internal IDs in mid-sentence like "C1," or "F1;"
     .replace(/\b[A-Z]_?\d+[,;]\s*/g, "")
+    // Strip "(Source: ...)" citations
+    .replace(/\s*\(Source:.*?\)\s*/gi, "")
+    // Strip "(e.g., ...)" parentheticals that are too long
+    .replace(/\s*\(e\.g\.,\s*.{60,}\)\s*/gi, "")
+    // Strip "Based on our analysis, " filler
+    .replace(/^Based on (?:our|the|this) analysis,?\s*/i, "")
+    // Strip "It is worth noting that " filler
+    .replace(/^It is (?:worth|important to) not(?:e|ing) that\s*/i, "")
+    // Strip "In terms of " filler
+    .replace(/^In terms of\s*/i, "")
+    // Strip "It should be noted that " filler
+    .replace(/^It should be noted that\s*/i, "")
+    // Strip "The key takeaway is that " filler
+    .replace(/^The key (?:takeaway|finding|insight) (?:is|here is) that\s*/i, "")
+    // Strip "Fundamentally, " filler
+    .replace(/^(?:Fundamentally|Essentially|Basically|Ultimately|Overall),?\s*/i, "")
     // Convert snake_case to spaces (but NOT title case)
     .replace(/_/g, " ")
+    // Collapse multiple spaces
+    .replace(/\s{2,}/g, " ")
     .trim();
 
   // Sentence case: capitalize only the first character
