@@ -152,12 +152,17 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   if (!hydratedAdaptiveCtx && ad?.biExtraction) {
     const bi = ad.biExtraction as Record<string, unknown>;
     const biz = bi?.business_overview as Record<string, string> | undefined;
+    // Reconstruct flattened context string from raw extraction
+    let contextStr = "";
+    try {
+      contextStr = extractionToContext(bi as unknown as BIExtraction);
+    } catch { /* non-critical — components can work without it */ }
     hydratedAdaptiveCtx = {
       problemStatement: biz?.company_name
         ? `Analysis of ${biz.company_name}: ${biz.primary_offering || ""}`
         : "Business analysis",
       biExtraction: bi,
-      extractedContext: "", // Will be reconstructed if needed
+      extractedContext: contextStr,
     };
   }
   // Ensure biExtraction from top-level is injected into adaptiveContext if missing
