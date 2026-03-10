@@ -543,6 +543,26 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
         if (pl.gapAnalysis) parts.push(`  IP Gap Analysis: ${typeof pl.gapAnalysis === "string" ? pl.gapAnalysis : JSON.stringify(pl.gapAnalysis).slice(0, 400)}`);
       }
 
+      if (upstreamIntel.competitorAnalysis) {
+        const ca = upstreamIntel.competitorAnalysis;
+        parts.push("\nCOMPETITOR INTELLIGENCE:");
+        if (ca.marketLeader) parts.push(`  Market Leader: ${ca.marketLeader}`);
+        if (ca.gaps?.length > 0) parts.push(`  Market Gaps:\n${ca.gaps.map((g: string) => `    • ${g}`).join("\n")}`);
+        if (ca.differentiationOpportunity) parts.push(`  Differentiation: ${ca.differentiationOpportunity}`);
+      }
+
+      if (upstreamIntel.operationalIntel) {
+        const oi = upstreamIntel.operationalIntel;
+        parts.push("\nOPERATIONAL INTELLIGENCE:");
+        if (oi.deliveryModel) parts.push(`  Delivery Model: ${oi.deliveryModel}`);
+        if (oi.operationalBottlenecks?.length > 0) parts.push(`  Bottlenecks:\n${oi.operationalBottlenecks.map((b: string) => `    • ${b}`).join("\n")}`);
+        if (oi.scalingChallenges) parts.push(`  Scaling Challenges: ${oi.scalingChallenges}`);
+      }
+
+      if (upstreamIntel.trendAnalysis) {
+        parts.push(`\nTREND ANALYSIS: ${typeof upstreamIntel.trendAnalysis === "string" ? upstreamIntel.trendAnalysis : JSON.stringify(upstreamIntel.trendAnalysis).slice(0, 500)}`);
+      }
+
       parts.push("\nINSTRUCTION: Ground your hidden assumptions and flipped logic in this upstream intelligence. If pricing data reveals margin compression, that's a structural constraint. If community complaints cluster around a specific friction, that should dominate your friction analysis. If supply chain is concentrated, that's a vulnerability to exploit in redesign.");
       upstreamPrompt = parts.join("\n");
     }
