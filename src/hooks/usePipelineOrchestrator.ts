@@ -175,6 +175,7 @@ export function usePipelineOrchestrator(
           product,
           analysisData: product,
           adaptiveContext: analysis.adaptiveContext || undefined,
+          extractedContext: extractedContext || undefined,
         },
       }, 180_000);
 
