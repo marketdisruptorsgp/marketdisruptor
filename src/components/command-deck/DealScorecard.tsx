@@ -12,7 +12,7 @@ import {
   Target, AlertTriangle, CheckCircle2, XCircle, ChevronDown, ChevronUp,
   DollarSign, Users, Building, TrendingUp, Shield, Zap,
 } from "lucide-react";
-import { extractFinancialInputs, computeETAScore, type ETAScoreResult } from "@/lib/etaScoringEngine";
+import { extractFinancialInputs } from "@/lib/etaScoringEngine";
 
 interface DealScorecardProps {
   biExtraction: Record<string, any> | null;
