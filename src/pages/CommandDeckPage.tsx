@@ -1,12 +1,13 @@
 /**
- * Command Deck — Strategic Decision Interface (Redesigned)
+ * Command Deck — Strategic Advisor Interface
  *
- * Clear 3-tier visual hierarchy:
- *   Tier 1 — Hero Score (single dominant metric + top signal)
- *   Tier 2 — Strategic Narrative (prose-first, collapsible chain)
- *   Tier 3 — Metrics Strip (4 compact scorecards)
- *   Tier 4 — Tools Grid (Opportunity Map + Constraint Radar)
- *   Tier 5 — Leverage Signals + Action Path
+ * Clean 3-section layout:
+ *   1. Diagnosis — What we found (constraint + why it matters)
+ *   2. Opportunities — Strategic directions (3–5 expandable cards)
+ *   3. Recommended Move — What to pursue first + second-order effects
+ *
+ * All developer diagnostics, node counts, and pipeline internals
+ * are removed from this view. Advanced tools live in Deep Dive.
  */
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
@@ -19,24 +20,26 @@ import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
 import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
-import { usePipelineOrchestrator, type PipelineProgress } from "@/hooks/usePipelineOrchestrator";
+import { usePipelineOrchestrator } from "@/hooks/usePipelineOrchestrator";
 import { ModeBadge } from "@/components/ModeBadge";
-import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
-import { RecomputeOverlay } from "@/components/RecomputeOverlay";
-import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStagesOverlay";
+import { StrategicDiagnosisBanner } from "@/components/command-deck/StrategicDiagnosisBanner";
+import { OpportunityDirectionsGrid } from "@/components/command-deck/OpportunityDirectionsGrid";
+import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
+import { WhyThisMattersSection } from "@/components/command-deck/WhyThisMattersSection";
+import { SecondOrderEffectsSection } from "@/components/command-deck/SecondOrderEffectsSection";
+import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
+import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
+import { PowerToolsPanel } from "@/components/command-deck/PowerToolsPanel";
 import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
-import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
-import { IndustrySystemMapView } from "@/components/industry-map/IndustrySystemMapView";
-import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
-import { OneThesisCard } from "@/components/command-deck/OneThesisCard";
-import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
-import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
-import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
 import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
 import { CurrentStateIntelligence } from "@/components/command-deck/CurrentStateIntelligence";
 import { ProblemStatementCard } from "@/components/command-deck/ProblemStatementCard";
-import { PowerToolsPanel } from "@/components/command-deck/PowerToolsPanel";
+import { IndustrySystemMapView } from "@/components/industry-map/IndustrySystemMapView";
+import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
+import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
+import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
+import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 
 import {
@@ -45,16 +48,14 @@ import {
 } from "@/lib/scenarioLabEngine";
 import { generatePlaybooks } from "@/lib/playbookEngine";
 import {
-  LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
-  AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
-  BookOpen, Beaker, BarChart3, Map, Wrench, Brain, FileDown,
+  Play, RefreshCw, FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
 } from "@/lib/commandDeckMetrics";
-import { extractAllEvidence, type EvidenceTier } from "@/lib/evidenceEngine";
+import { extractAllEvidence } from "@/lib/evidenceEngine";
 import { getScenarios, scenarioToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
 import { recomputeIntelligence, recomputeIntelligenceAsync } from "@/lib/recomputeIntelligence";
 import { humanizeLabel } from "@/lib/humanize";
@@ -62,11 +63,11 @@ import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 
 const PIPELINE_STEPS = [
-  { key: "report", label: "Report", icon: Target, route: "report" },
-  { key: "disrupt", label: "Disrupt", icon: Crosshair, route: "disrupt" },
-  { key: "redesign", label: "Redesign", icon: Lightbulb, route: "redesign" },
-  { key: "stress-test", label: "Stress Test", icon: AlertTriangle, route: "stress-test" },
-  { key: "pitch", label: "Pitch", icon: Rocket, route: "pitch" },
+  { key: "report", label: "Report", route: "report" },
+  { key: "disrupt", label: "Disrupt", route: "disrupt" },
+  { key: "redesign", label: "Redesign", route: "redesign" },
+  { key: "stress-test", label: "Stress Test", route: "stress-test" },
+  { key: "pitch", label: "Pitch", route: "pitch" },
 ] as const;
 
 export default function CommandDeckPage() {
@@ -122,18 +123,10 @@ export default function CommandDeckPage() {
   const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
 
-  const [tierFilter, setTierFilter] = useState<EvidenceTier | null>(null);
-  const filteredOpps = useMemo(() => {
-    if (!tierFilter) return topOpps;
-    return topOpps.filter((o: any) => !o.tier || o.tier === tierFilter);
-  }, [topOpps, tierFilter]);
-
   // ── Strategic Potential Score ──
   const scenarioCountRef = useRef(0);
   const strategicPotential = useMemo(() => {
-    // Simulation boost capped lower to prevent inflation from just running tools
     const simBoost = Math.min(scenarioCountRef.current * 0.15, 0.8);
-    // Pipeline coverage penalty — incomplete pipelines get reduced scores
     const coverageFactor = Math.max(0.5, completedSteps.size / 5);
     const raw = ((metrics.opportunityScore + metrics.leverageScore + simBoost)
       - (metrics.frictionIndex * 0.5)
@@ -158,8 +151,6 @@ export default function CommandDeckPage() {
     return keywords;
   }, [autoAnalysis.insights, narrative]);
 
-  const reasoningToolRecs = useMemo<string[]>(() => [], []);
-
   // ── Intelligence events ──
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
   const addEvent = useCallback((msg: string) => {
@@ -173,46 +164,17 @@ export default function CommandDeckPage() {
   const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([]);
   const [baselineNarrative, setBaselineNarrative] = useState<typeof narrative>(null);
 
-  // Compute delta changes when scenario is active
   const deltaChanges = useMemo<DeltaItem[]>(() => {
     if (activeChallenges.length === 0 || !baselineNarrative || !narrative) return [];
     const deltas: DeltaItem[] = [];
-
     if (baselineNarrative.primaryConstraint !== narrative.primaryConstraint && narrative.primaryConstraint) {
-      deltas.push({
-        label: "Constraint",
-        before: baselineNarrative.primaryConstraint || "None",
-        after: narrative.primaryConstraint,
-        direction: "changed",
-      });
+      deltas.push({ label: "Constraint", before: baselineNarrative.primaryConstraint || "None", after: narrative.primaryConstraint, direction: "changed" });
     }
     if (baselineNarrative.strategicVerdict !== narrative.strategicVerdict && narrative.strategicVerdict) {
-      deltas.push({
-        label: "Verdict",
-        before: baselineNarrative.strategicVerdict || "None",
-        after: narrative.strategicVerdict,
-        direction: "changed",
-      });
-    }
-    if (baselineNarrative.verdictConfidence !== narrative.verdictConfidence) {
-      const prevLevel = (baselineNarrative.verdictConfidence ?? 0) >= 0.7 ? "Strong" : (baselineNarrative.verdictConfidence ?? 0) >= 0.4 ? "Moderate" : "Early";
-      const newLevel = (narrative.verdictConfidence ?? 0) >= 0.7 ? "Strong" : (narrative.verdictConfidence ?? 0) >= 0.4 ? "Moderate" : "Early";
-      if (prevLevel !== newLevel) {
-        deltas.push({
-          label: "Evidence Quality",
-          before: `${prevLevel} evidence`,
-          after: `${newLevel} evidence`,
-          direction: (narrative.verdictConfidence ?? 0) > (baselineNarrative.verdictConfidence ?? 0) ? "up" : "down",
-        });
-      }
+      deltas.push({ label: "Verdict", before: baselineNarrative.strategicVerdict || "None", after: narrative.strategicVerdict, direction: "changed" });
     }
     if (baselineNarrative.breakthroughOpportunity !== narrative.breakthroughOpportunity && narrative.breakthroughOpportunity) {
-      deltas.push({
-        label: "Opportunity",
-        before: baselineNarrative.breakthroughOpportunity || "None",
-        after: narrative.breakthroughOpportunity,
-        direction: "up",
-      });
+      deltas.push({ label: "Opportunity", before: baselineNarrative.breakthroughOpportunity || "None", after: narrative.breakthroughOpportunity, direction: "up" });
     }
     return deltas;
   }, [activeChallenges, baselineNarrative, narrative]);
@@ -220,9 +182,7 @@ export default function CommandDeckPage() {
   const handleScenarioSaved = useCallback((scenario: ToolScenario) => {
     setIsRecomputing(true);
     const newEvidence = scenarioToEvidence(scenario,
-      analysis.activeMode === "service" ? "service"
-      : analysis.activeMode === "business" ? "business_model"
-      : "product"
+      analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product"
     );
     addEvent(`Simulation created ${newEvidence.type} signal: "${newEvidence.label}"`);
     try {
@@ -248,23 +208,16 @@ export default function CommandDeckPage() {
     setTimeout(() => { setIsRecomputing(false); toast.success("Strategic analysis complete"); }, 1000);
   }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
 
-  // ── Challenge Mode: inject user override as evidence + recompute ──
   const handleChallenge = useCallback((nodeStage: string, newValue: string) => {
-    // Snapshot baseline before first challenge
-    if (activeChallenges.length === 0 && narrative) {
-      setBaselineNarrative(narrative);
-    }
-
+    if (activeChallenges.length === 0 && narrative) setBaselineNarrative(narrative);
     const newChallenge: ActiveChallenge = { stage: nodeStage, value: newValue, timestamp: Date.now() };
     setActiveChallenges(prev => [...prev, newChallenge]);
     setIsRecomputing(true);
     addEvent(`Challenge: overriding ${nodeStage} → "${newValue.slice(0, 60)}…"`);
-
     const currentGoverned = (analysis.governedData as Record<string, unknown>) || {};
     const challenges = ((currentGoverned.challenges as any[]) || []);
     challenges.push({ stage: nodeStage, value: newValue, timestamp: Date.now() });
     const updatedGoverned = { ...currentGoverned, challenges };
-
     try {
       recomputeIntelligence({
         products: analysis.products, selectedProduct,
@@ -278,21 +231,14 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-
-    setTimeout(() => {
-      setIsRecomputing(false);
-      toast.success(`Strategic scenario updated with your "${nodeStage}" hypothesis`);
-    }, 1000);
+    setTimeout(() => { setIsRecomputing(false); toast.success(`Strategic scenario updated`); }, 1000);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis, activeChallenges, narrative]);
 
-  // ── Reset to Baseline ──
   const handleResetScenario = useCallback(() => {
     setActiveChallenges([]);
     setBaselineNarrative(null);
-    // Clear challenges from governed data
     const currentGoverned = (analysis.governedData as Record<string, unknown>) || {};
     const { challenges: _, ...cleanGoverned } = currentGoverned;
-    // Recompute without challenges
     setIsRecomputing(true);
     try {
       recomputeIntelligence({
@@ -307,13 +253,10 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => {
-      setIsRecomputing(false);
-      toast.success("Reset to baseline — all scenario overrides removed");
-    }, 800);
+    setTimeout(() => { setIsRecomputing(false); toast.success("Reset to baseline"); }, 800);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
-  // ── Save Scenario (full snapshot) ──
+  // ── Save Scenario ──
   const [savedLabScenarios, setSavedLabScenarios] = useState<ScenarioSnapshot[]>(() =>
     getSavedScenarios(analysisId || "")
   );
@@ -321,15 +264,9 @@ export default function CommandDeckPage() {
 
   const handleSaveScenario = useCallback(() => {
     if (activeChallenges.length === 0) return;
-
     const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
-      analysis.activeMode === "service" ? "service"
-      : analysis.activeMode === "business" ? "business_model" : "product";
-
-    const playbooks = generatePlaybooks(
-      autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence,
-    );
-
+      analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product";
+    const playbooks = generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
     const snapshot: ScenarioSnapshot = {
       id: `scenario-${Date.now()}`,
       name: activeChallenges.map(c => `${c.stage}: ${c.value.slice(0, 40)}`).join(" + "),
@@ -345,13 +282,11 @@ export default function CommandDeckPage() {
       strategicPotential,
       timestamp: Date.now(),
     };
-
     saveScenarioSnapshot(analysisId || "", snapshot);
     setSavedLabScenarios(getSavedScenarios(analysisId || ""));
     setActiveLabScenarioId(snapshot.id);
-    addEvent(`Scenario saved: "${snapshot.name}"`);
-    toast.success("Scenario saved to Scenario Lab");
-  }, [activeChallenges, addEvent, analysis, autoAnalysis, narrative, strategicPotential, analysisId]);
+    toast.success("Scenario saved");
+  }, [activeChallenges, analysis, autoAnalysis, narrative, strategicPotential, analysisId]);
 
   const handleDeleteLabScenario = useCallback((id: string) => {
     deleteScenarioSnapshot(analysisId || "", id);
@@ -360,10 +295,8 @@ export default function CommandDeckPage() {
   }, [analysisId, activeLabScenarioId]);
 
   const handleLoadLabScenario = useCallback((scenario: ScenarioSnapshot) => {
-    // Reload the challenges from the scenario
     setActiveChallenges(scenario.challenges);
     setActiveLabScenarioId(scenario.id);
-    // Re-apply the challenges as governed data
     const governed = (analysis.governedData as Record<string, unknown>) || {};
     const updatedGoverned = { ...governed, challenges: scenario.challenges };
     setIsRecomputing(true);
@@ -380,29 +313,21 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => {
-      setIsRecomputing(false);
-      toast.success(`Loaded scenario: "${scenario.name}"`);
-    }, 800);
+    setTimeout(() => { setIsRecomputing(false); toast.success(`Loaded scenario`); }, 800);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
-  // ── Strategic Pattern Detection ──
+  // ── Derived data ──
   const detectedPatterns = useMemo(() =>
     detectStructuralPattern(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative),
     [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative],
   );
 
-  // ── Top playbook for Outcome Simulator ──
   const topPlaybook = useMemo(() => {
     const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
-      analysis.activeMode === "service" ? "service"
-      : analysis.activeMode === "business" ? "business_model" : "product";
+      analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product";
     const pbs = generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
-
-
-
 
   const lastRecomputeHash = useRef<string>("");
   const savedScenarios = useMemo(() => {
@@ -439,11 +364,7 @@ export default function CommandDeckPage() {
           analysisId: analysisId || "", completedSteps,
           geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
         };
-        // Use async path for full morphological pipeline with AI alternatives
-        const result = await recomputeIntelligenceAsync(input);
-        if (result.flatEvidence.length > 0 && result.insights.length > 0) {
-          addEvent(`Intelligence: ${result.insights.length} insights from ${result.flatEvidence.length} evidence`);
-        }
+        await recomputeIntelligenceAsync(input);
       } catch { /* Silent */ } finally {
         asyncRecomputeRunning.current = false;
       }
@@ -451,62 +372,25 @@ export default function CommandDeckPage() {
     return () => clearTimeout(timer);
   }, [completedSteps, totalSignals, metrics.totalEvidenceCount, savedScenarios]);
 
-  // (diagnostics removed from default view)
-
   const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
     : analysis.activeMode === "business" ? "business" : "product";
 
-  // ── Step findings for journey cards ──
-  const stepFindings = useMemo(() => {
-    const f: Record<string, { headline: string } | null> = {};
-    // Report
-    if (selectedProduct?.pricingIntel || selectedProduct?.supplyChain) {
-      const parts: string[] = [];
-      if (selectedProduct?.pricingIntel?.priceRange) parts.push(`Price range: ${selectedProduct.pricingIntel.priceRange}`);
-      if (selectedProduct?.supplyChain?.manufacturers?.[0]) parts.push(`Key manufacturer: ${selectedProduct.supplyChain.manufacturers[0]}`);
-      f.report = parts.length ? { headline: parts.join(" · ") } : null;
-    }
-    // Disrupt
-    if (narrative?.primaryConstraint) {
-      f.disrupt = { headline: `Core constraint: ${humanizeLabel(narrative.primaryConstraint)}` };
-    }
-    // Redesign
-    if (analysis.redesignData) {
-      const ideas = (analysis.redesignData as any)?.flippedIdeas;
-      f.redesign = ideas?.length ? { headline: `${ideas.length} reimagined concepts generated` } : null;
-    }
-    // Stress Test
-    if (analysis.stressTestData) {
-      const verdict = (analysis.stressTestData as any)?.verdict;
-      f.stressTest = verdict ? { headline: verdict } : null;
-    }
-    // Pitch
-    if (analysis.pitchDeckData) {
-      f.pitch = { headline: "Pitch deck ready for review" };
-    }
-    return f;
-  }, [selectedProduct, narrative, analysis.redesignData, analysis.stressTestData, analysis.pitchDeckData]);
-
-  // Derive industry / date for header context (must be before guard — hooks)
   const industryLabel = useMemo(() => {
     if (businessModelInput?.type) return businessModelInput.type;
     if (selectedProduct?.category) return selectedProduct.category;
     return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
   }, [businessModelInput, selectedProduct, modeKey]);
 
-  const modeLabel = modeKey === "service" ? "Service Analysis" : modeKey === "business" ? "Business Model Analysis" : "Product Analysis";
-
   // ── Guards ──
   const isHydrating = analysis.isHydrating;
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
-    // If hydration is done but data is still missing, show error state
     if (analysis.step === "done" && !isHydrating) {
       return (
         <div className="flex-1 bg-background flex items-center justify-center px-4">
           <div className="text-center space-y-3 max-w-md">
             <p className="text-sm font-bold text-foreground">Analysis data incomplete</p>
-            <p className="text-xs text-muted-foreground">This analysis may need to be re-run to populate missing data.</p>
+            <p className="text-xs text-muted-foreground">This analysis may need to be re-run.</p>
             <button
               onClick={() => navigate(`/analysis/${analysisId}/report`)}
               className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
@@ -517,7 +401,6 @@ export default function CommandDeckPage() {
         </div>
       );
     }
-    // Analysis is actively running (scraping/analyzing) — show loading tracker
     const isActivelyRunning = analysis.step === "scraping" || analysis.step === "analyzing";
     const activeTasks: StepTask[] = analysis.activeMode === "business"
       ? [
@@ -535,21 +418,15 @@ export default function CommandDeckPage() {
           { label: "Deep Analysis", detail: "Synthesizing strategic insights" },
         ];
     if (isActivelyRunning) {
-      const modeLabel = analysis.activeMode === "business" ? "Business Model"
-        : analysis.activeMode === "service" ? "Service" : "Product";
+      const ml = analysis.activeMode === "business" ? "Business Model" : analysis.activeMode === "service" ? "Service" : "Product";
       return (
         <div className="min-h-screen bg-background flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <StepLoadingTracker
-              title={`Building ${modeLabel} Intelligence`}
-              tasks={activeTasks}
-              estimatedSeconds={90}
-            />
+            <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={90} />
           </div>
         </div>
       );
     }
-    // Hydrating from DB — show simple spinner
     return (
       <div className="flex-1 bg-background flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
@@ -557,12 +434,17 @@ export default function CommandDeckPage() {
     );
   }
 
+  // ── Primary thesis & all opportunities ──
+  const primaryThesis = autoAnalysis.deepenedOpportunities[0] ?? null;
+  const allOpportunities = autoAnalysis.deepenedOpportunities;
+  const alternativeOpportunities = allOpportunities.slice(1);
+
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <main className="max-w-[1100px] mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3">
+      <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
 
         {/* ══════════════════════════════════════════════════════════
-            COMPACT HEADER — Name, Mode, Actions
+            HEADER — Clean, minimal
            ══════════════════════════════════════════════════════════ */}
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -572,8 +454,6 @@ export default function CommandDeckPage() {
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               <ModeBadge />
               <span className="text-[11px] text-muted-foreground">{industryLabel}</span>
-              <span className="text-muted-foreground text-[10px]">·</span>
-              <span className="text-[11px] text-muted-foreground">{completedSteps.size}/{PIPELINE_STEPS.length} steps</span>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -598,8 +478,7 @@ export default function CommandDeckPage() {
                 }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
                   .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px] bg-muted text-foreground border border-border"
             >
               <FileDown size={13} /> PDF
             </button>
@@ -635,109 +514,126 @@ export default function CommandDeckPage() {
                   <div
                     className="h-1.5 rounded-full transition-all duration-500"
                     style={{
-                      background: s.status === "done"
-                        ? "hsl(var(--success))"
-                        : s.status === "running"
-                          ? "hsl(var(--primary))"
-                          : s.status === "error"
-                            ? "hsl(var(--destructive))"
-                            : "hsl(var(--muted))",
+                      background: s.status === "done" ? "hsl(var(--success))"
+                        : s.status === "running" ? "hsl(var(--primary))"
+                        : s.status === "error" ? "hsl(var(--destructive))"
+                        : "hsl(var(--muted))",
                     }}
                   />
-                  <p className={`text-[9px] font-bold text-center ${
-                    s.status === "running" ? "text-primary" : "text-muted-foreground"
-                  }`}>
+                  <p className={`text-[9px] font-bold text-center ${s.status === "running" ? "text-primary" : "text-muted-foreground"}`}>
                     {s.label}
                   </p>
                 </div>
               ))}
             </div>
-            {pipelineProgress.currentStep && (
-              <p className="text-xs text-muted-foreground animate-pulse">
-                Running {pipelineProgress.steps.find(s => s.key === pipelineProgress.currentStep)?.label}…
-              </p>
-            )}
           </div>
         )}
 
-        {/* ═══ SCENARIO BANNER ═══ */}
+        {/* ═══ SCENARIO BANNER (only when active) ═══ */}
         <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
         <DeltaChanges deltas={deltaChanges} />
-        <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
         {/* ══════════════════════════════════════════════════════════
-            SECTION 0 — "SO WHAT?" DECISION HEADER
-            Binary consequence of inaction vs action.
+            SECTION 1 — DIAGNOSIS
+            What we found: the core constraint and why it matters
            ══════════════════════════════════════════════════════════ */}
         <SoWhatHeader
           narrative={narrative}
-          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
+          thesis={primaryThesis}
+          modeAccent={modeAccent}
+        />
+
+        <StrategicDiagnosisBanner
+          constraintLabel={narrative?.primaryConstraint ?? null}
+          rationale={narrative?.narrativeSummary ?? null}
+          verdict={narrative?.strategicVerdict ?? null}
+          opportunityLabel={narrative?.breakthroughOpportunity ?? null}
+          confidence={narrative?.verdictConfidence ?? 0}
+          completedSteps={completedSteps.size}
+        />
+
+        {/* Why This Matters — attached to diagnosis */}
+        {primaryThesis?.whyThisMatters && (
+          <div
+            className="rounded-xl px-5 py-4"
+            style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+          >
+            <WhyThisMattersSection data={primaryThesis.whyThisMatters} />
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 2 — OPPORTUNITIES
+            3–5 distinct strategic directions
+           ══════════════════════════════════════════════════════════ */}
+        <OpportunityDirectionsGrid
+          opportunities={allOpportunities}
           modeAccent={modeAccent}
         />
 
         {/* ══════════════════════════════════════════════════════════
-            SECTION 1 — THE THESIS
-            Core product: constraint → belief → move → economics → first move
+            SECTION 3 — RECOMMENDED MOVE
+            What to pursue first + second-order effects
            ══════════════════════════════════════════════════════════ */}
-        <OneThesisCard
-          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
-          alternative={autoAnalysis.deepenedOpportunities[1] ?? null}
+        <RecommendedMoveCard
+          playbook={topPlaybook}
           modeAccent={modeAccent}
         />
 
-        {/* ══════════════════════════════════════════════════════════
-            SECTION 1.5 — INDUSTRY SYSTEM MAP
-            Visual "machine diagram" of the industry with opportunity overlay.
-           ══════════════════════════════════════════════════════════ */}
-        {(() => {
-          const biz = analysis.businessAnalysisData as Record<string, any> || {};
-          const governed = biz?.governed || analysis.governedData || {};
-          const sp = autoAnalysis.structuralProfile;
-          const product = selectedProduct as any || {};
-          return (
-            <IndustrySystemMapView
-              businessName={analysisDisplayName}
-              businessDescription={businessModelInput?.description || product?.description}
-              structuralProfile={sp}
-              opportunities={autoAnalysis.deepenedOpportunities}
-              narrative={narrative}
-              firstPrinciples={governed?.first_principles}
-              constraintMap={governed?.constraint_map}
-              supplyChain={product?.supplyChain}
-              mode={modeKey}
-              modeAccent={modeAccent}
-            />
-          );
-        })()}
+        {/* Second-Order Effects — attached to recommended move */}
+        {primaryThesis?.secondOrderEffects && primaryThesis.secondOrderEffects.length > 0 && (
+          <div
+            className="rounded-xl px-5 py-4"
+            style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+          >
+            <SecondOrderEffectsSection effects={primaryThesis.secondOrderEffects} />
+          </div>
+        )}
 
-        {/* ══════════════════════════════════════════════════════════
-            SECTION 2 — THE EVIDENCE (Strategic X-Ray)
-            Interactive reasoning chain with challenge mode.
-           ══════════════════════════════════════════════════════════ */}
-        <StrategicXRay
-          narrative={narrative}
-          insights={autoAnalysis.insights}
-          flatEvidence={autoAnalysis.flatEvidence}
-          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
-          onRecompute={handleRecomputeAll}
-          onChallenge={handleChallenge}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            SECTION 3 — WHAT'S NEXT
-            Kill question + first move + scenario trigger
-           ══════════════════════════════════════════════════════════ */}
+        {/* What's Next — kill question + first move */}
         <WhatsNextPanel
           narrative={narrative}
-          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
+          thesis={primaryThesis}
           modeAccent={modeAccent}
           onChallenge={handleChallenge}
         />
 
         {/* ══════════════════════════════════════════════════════════
-            POWER TOOLS — Collapsed advanced tools
+            DEEP DIVE — Collapsed advanced analysis tools
            ══════════════════════════════════════════════════════════ */}
         <PowerToolsPanel toolCount={6}>
+          {/* Strategic X-Ray */}
+          <StrategicXRay
+            narrative={narrative}
+            insights={autoAnalysis.insights}
+            flatEvidence={autoAnalysis.flatEvidence}
+            thesis={primaryThesis}
+            onRecompute={handleRecomputeAll}
+            onChallenge={handleChallenge}
+          />
+
+          {/* Industry Map */}
+          {(() => {
+            const biz = analysis.businessAnalysisData as Record<string, any> || {};
+            const governed = biz?.governed || analysis.governedData || {};
+            const sp = autoAnalysis.structuralProfile;
+            const product = selectedProduct as any || {};
+            return (
+              <IndustrySystemMapView
+                businessName={analysisDisplayName}
+                businessDescription={businessModelInput?.description || product?.description}
+                structuralProfile={sp}
+                opportunities={autoAnalysis.deepenedOpportunities}
+                narrative={narrative}
+                firstPrinciples={governed?.first_principles}
+                constraintMap={governed?.constraint_map}
+                supplyChain={product?.supplyChain}
+                mode={modeKey}
+                modeAccent={modeAccent}
+              />
+            );
+          })()}
+
           {/* Problem Statement */}
           {(() => {
             const p = selectedProduct as any || {};
@@ -758,9 +654,7 @@ export default function CommandDeckPage() {
                 marketSize={marketSize}
                 trend={trend}
                 mode={modeKey}
-                onProblemLocked={(statement) => {
-                  toast.success("Problem statement locked — downstream analysis will adapt");
-                }}
+                onProblemLocked={() => toast.success("Problem statement locked")}
               />
             );
           })()}
@@ -801,7 +695,7 @@ export default function CommandDeckPage() {
             analysisMode={analysis.activeMode || "product"}
             signalKeywords={lensSignalKeywords}
             analysisId={analysisId || ""}
-            recommendedToolIds={reasoningToolRecs}
+            recommendedToolIds={[]}
             onScenarioSaved={handleScenarioSaved}
           />
         </PowerToolsPanel>
