@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useCompetitiveResearch } from "@/hooks/useCompetitiveResearch";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame, Gauge, GitBranch, Target } from "lucide-react";
