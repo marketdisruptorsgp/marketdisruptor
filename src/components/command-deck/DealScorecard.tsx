@@ -119,6 +119,7 @@ function buildSignals(
       status: inputs.employeeCount >= 10 ? "go" : inputs.employeeCount >= 5 ? "caution" : "no-go",
       detail: `${inputs.employeeCount} employees — ${inputs.employeeCount >= 10 ? "Operational redundancy" : inputs.employeeCount >= 5 ? "Thin team — key person risk" : "Micro-team — single-point failures"}`,
       source: "Operational data",
+      provenance: "cim",
     });
   }
 
