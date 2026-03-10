@@ -164,37 +164,81 @@ Provide the deepest possible patent intelligence. Focus especially on:
 
 Be specific, bold, and commercial. This analysis should fundamentally change how someone approaches this market.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.65,
-        max_tokens: 8000,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const txt = await response.text();
-      throw new Error(`AI gateway error ${response.status}: ${txt}`);
+    // ── AI call with model cascade and retry ──
+    async function callPatentAI(model: string) {
+      return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.65,
+          max_tokens: 8000,
+        }),
+      });
     }
 
-    const aiData = await response.json();
-    const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
+    async function callWithRetry(model: string, retries = 2): Promise<Response> {
+      for (let i = 0; i <= retries; i++) {
+        const res = await callPatentAI(model);
+        if (res.status !== 503 || i === retries) return res;
+        console.warn(`[Patent] ${model} returned 503, retry ${i + 1}/${retries}`);
+        await new Promise(r => setTimeout(r, (i + 1) * 2000));
+      }
+      return callPatentAI(model);
+    }
 
-    const patentData = extractAndParseJson(rawText);
+    const MODEL_CASCADE = ["google/gemini-2.5-flash", "google/gemini-2.5-pro", "google/gemini-3-flash-preview"];
+    let patentData: unknown = null;
+
+    for (const model of MODEL_CASCADE) {
+      try {
+        const response = await callWithRetry(model, model === MODEL_CASCADE[0] ? 1 : 2);
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+              status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          if (response.status === 402) {
+            return new Response(JSON.stringify({ error: "AI usage credits exhausted." }), {
+              status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          const txt = await response.text();
+          console.warn(`[Patent] ${model} failed ${response.status}: ${txt.slice(0, 200)}`);
+          continue;
+        }
+
+        const aiData = await response.json();
+        const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
+
+        if (!rawText) {
+          console.warn(`[Patent] ${model} returned empty content`);
+          continue;
+        }
+
+        patentData = extractAndParseJson(rawText);
+        console.log(`[Patent] Success with model: ${model}`);
+        break;
+      } catch (err) {
+        console.warn(`[Patent] ${model} attempt failed:`, err instanceof Error ? err.message : err);
+        if (model === MODEL_CASCADE[MODEL_CASCADE.length - 1]) {
+          throw new Error("All AI models failed for patent analysis. Please try again.");
+        }
+      }
+    }
+
+    if (!patentData) {
+      throw new Error("Patent analysis failed — all AI models returned unusable output. Please retry.");
+    }
 
     return new Response(JSON.stringify({ success: true, patentData }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
