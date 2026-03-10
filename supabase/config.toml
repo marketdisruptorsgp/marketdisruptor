@@ -57,3 +57,9 @@ verify_jwt = false
 [functions.analyze-business-structure]
 verify_jwt = false
 
+[functions.research-competitive-positioning]
+verify_jwt = false
+
+[functions.industry-benchmarks]
+verify_jwt = false
+
