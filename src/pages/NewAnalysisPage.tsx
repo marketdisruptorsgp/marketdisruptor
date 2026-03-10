@@ -338,55 +338,77 @@ export default function NewAnalysisPage() {
   };
 
   // Run BI extraction when docs/images are added
-  const runExtraction = useCallback(async () => {
-    if (extractionTriggered.current) return;
+  const extractionPromiseRef = useRef<Promise<BIExtraction | null> | null>(null);
+
+  const runExtraction = useCallback(async (): Promise<BIExtraction | null> => {
+    if (extractionTriggered.current && extraction) return extraction;
+    if (extractionPromiseRef.current) return extractionPromiseRef.current;
     const hasDocs = clarifierDocs.length > 0;
     const hasImages = clarifierImages.length > 0;
-    if (!hasDocs && !hasImages) return;
+    if (!hasDocs && !hasImages) return null;
 
     extractionTriggered.current = true;
     toast.info("Extracting business intelligence from your uploads…");
 
-    try {
-      const documentTexts = await Promise.all(
-        clarifierDocs.map(d => fileToDocumentText(d.file))
-      );
+    const promise = (async () => {
+      try {
+        const documentTexts = await Promise.all(
+          clarifierDocs.map(d => fileToDocumentText(d.file))
+        );
 
-      // Upload images to get URLs for the extraction engine
-      const imageUrls: string[] = [];
-      for (const img of clarifierImages) {
-        const ext = img.file.name.split(".").pop() || "png";
-        const path = `bi-extract/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from("explorer-uploads")
-          .upload(path, img.file);
-        if (!uploadErr) {
-          const { data: urlData } = supabase.storage
+        // Upload images to get URLs for the extraction engine
+        const imageUrls: string[] = [];
+        for (const img of clarifierImages) {
+          const ext = img.file.name.split(".").pop() || "png";
+          const path = `bi-extract/${crypto.randomUUID()}.${ext}`;
+          const { error: uploadErr } = await supabase.storage
             .from("explorer-uploads")
-            .getPublicUrl(path);
-          if (urlData?.publicUrl) imageUrls.push(urlData.publicUrl);
+            .upload(path, img.file);
+          if (!uploadErr) {
+            const { data: urlData } = supabase.storage
+              .from("explorer-uploads")
+              .getPublicUrl(path);
+            if (urlData?.publicUrl) imageUrls.push(urlData.publicUrl);
+          }
         }
-      }
 
-      const result = await extract({
-        documentTexts: documentTexts.length > 0 ? documentTexts : undefined,
-        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-        context: problemText || undefined,
-      });
+        const result = await extract({
+          documentTexts: documentTexts.length > 0 ? documentTexts : undefined,
+          imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+          context: problemText || undefined,
+        });
 
-      if (result) {
-        // Auto-populate name from extraction
-        if (!clarifierName && result.business_overview?.company_name) {
-          setClarifierName(result.business_overview.company_name);
-        } else if (!clarifierName && result.business_overview?.primary_offering) {
-          setClarifierName(result.business_overview.primary_offering);
+        if (result) {
+          // Auto-populate name from extraction
+          if (!clarifierName && result.business_overview?.company_name) {
+            setClarifierName(result.business_overview.company_name);
+          } else if (!clarifierName && result.business_overview?.primary_offering) {
+            setClarifierName(result.business_overview.primary_offering);
+          }
+          toast.success("Intelligence extracted — fields auto-populated!");
         }
-        toast.success("Intelligence extracted — fields auto-populated!");
+        return result;
+      } catch (err) {
+        console.warn("BI extraction failed:", err);
+        return null;
+      } finally {
+        extractionPromiseRef.current = null;
       }
-    } catch (err) {
-      console.warn("BI extraction failed:", err);
+    })();
+
+    extractionPromiseRef.current = promise;
+    return promise;
+  }, [clarifierDocs, clarifierImages, clarifierName, problemText, extract, extraction]);
+
+  // Auto-trigger extraction when documents are added
+  useEffect(() => {
+    if ((clarifierDocs.length > 0 || clarifierImages.length > 0) && !extractionTriggered.current && !extracting && !extraction) {
+      const timer = setTimeout(() => {
+        runExtraction();
+      }, 800);
+      return () => clearTimeout(timer);
     }
-  }, [clarifierDocs, clarifierImages, clarifierName, problemText, extract]);
+  }, [clarifierDocs.length, clarifierImages.length, extracting, extraction, runExtraction]);
 
   // Launch analysis directly
   const handleLaunchAnalysis = async () => {
