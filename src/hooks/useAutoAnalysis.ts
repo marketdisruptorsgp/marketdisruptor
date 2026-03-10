@@ -344,8 +344,15 @@ export function useAutoAnalysis(): AutoAnalysisResult {
             if (se.deepenedOpportunities?.length > 0) {
               setDeepenedOpportunities(se.deepenedOpportunities);
             }
+            if (se.narrative) {
+              setNarrative(se.narrative);
+            }
+            if (se.insights?.length > 0) {
+              setInsights(se.insights);
+            }
             setHasRun(true);
-            console.log("[StrategicEngine] ✓ Hydrated strategicEngine from DB");
+            console.log("[StrategicEngine] ✓ Hydrated strategicEngine from DB:",
+              `narrative=${!!se.narrative}, opportunities=${se.deepenedOpportunities?.length ?? 0}, insights=${se.insights?.length ?? 0}`);
 
             // Only recompute if graph wasn't persisted (fallback path)
             if (!persistedGraph?.nodes?.length) {
