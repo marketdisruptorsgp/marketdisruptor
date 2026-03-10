@@ -534,6 +534,8 @@ export default function NewAnalysisPage() {
             businessAnalysis: result.analysis,
             // Persist raw BI extraction so evidence engine can use it on reload
             ...(finalExtraction ? { biExtraction: finalExtraction } : {}),
+            // Persist adaptive context so pipeline steps get document intelligence on reload
+            ...(adaptiveCtx ? { adaptiveContext: adaptiveCtx } : {}),
           };
           const { error: updateErr } = await (supabase.from("saved_analyses") as any)
             .update({ analysis_data: merged, updated_at: new Date().toISOString() })
