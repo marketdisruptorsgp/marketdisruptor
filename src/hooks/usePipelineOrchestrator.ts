@@ -127,6 +127,7 @@ export function usePipelineOrchestrator(
       const requestBody: Record<string, unknown> = {
         product,
         adaptiveContext: analysis.adaptiveContext || undefined,
+        extractedContext: extractedContext || undefined,
       };
       if (disruptResult) {
         const dd = disruptResult as Record<string, unknown>;
