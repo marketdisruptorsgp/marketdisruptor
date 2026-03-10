@@ -114,7 +114,7 @@ function OpportunityCard({
                   </p>
                   {opp.strategicBet.industryAssumption && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Industry assumes: {opp.strategicBet.industryAssumption}
+                      Industry assumes: {trimAt(opp.strategicBet.industryAssumption, 150)}
                     </p>
                   )}
                 </div>
