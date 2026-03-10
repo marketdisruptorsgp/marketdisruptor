@@ -11,6 +11,7 @@ import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 import { OpportunityMatrix } from "@/components/OpportunityMatrix";
 import { FrictionHeatmap } from "@/components/FrictionHeatmap";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
+import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
 import { CausalConstraintMap } from "@/components/CausalConstraintMap";
 
 export type StructureViewMode = "assumptions" | "deconstruct" | "all";
