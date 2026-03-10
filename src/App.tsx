@@ -12,7 +12,6 @@ import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import { AppLayout } from "@/layouts/AppLayout";
 import AuthPage from "./pages/AuthPage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
-import { PipelineDiagnosticsPanel } from "@/components/PipelineDiagnosticsPanel";
 
 // ── Lazy-loaded route pages ──
 const StartPage = lazy(() => import("./pages/StartPage"));
