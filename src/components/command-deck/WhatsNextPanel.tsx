@@ -10,6 +10,7 @@ import {
   Crosshair, Play, Beaker, CheckCircle2, Clock,
   ChevronDown, ChevronUp, Target,
 } from "lucide-react";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 
