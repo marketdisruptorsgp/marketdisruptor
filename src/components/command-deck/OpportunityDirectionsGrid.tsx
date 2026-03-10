@@ -54,10 +54,10 @@ function OpportunityCard({
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-sm sm:text-base font-black text-foreground leading-snug">
-            {opp.reconfigurationLabel}
+            {humanizeLabel(opp.reconfigurationLabel)}
           </h4>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-1 line-clamp-2">
-            {opp.summary}
+          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+            {trimAt(opp.summary, 160)}
           </p>
         </div>
         <div className="flex-shrink-0 mt-1">
