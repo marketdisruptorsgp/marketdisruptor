@@ -6,6 +6,7 @@
 import { memo } from "react";
 import { BarChart3, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { ProvenanceBadge } from "./ProvenanceBadge";
+import { trimAt } from "@/lib/humanize";
 import type { BenchmarkResult } from "@/lib/benchmarkEngine";
 
 interface IndustryBenchmarkPanelProps {
