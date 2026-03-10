@@ -20,6 +20,7 @@ import { type LensType } from "@/lib/multiLensEngine";
 import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 import { OpportunityMatrix } from "@/components/OpportunityMatrix";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
+import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
 
 // ── Shared layout components ──
 import {
