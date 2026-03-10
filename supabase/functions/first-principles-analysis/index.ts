@@ -513,6 +513,8 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
         parts.push("\nSUPPLY CHAIN INTELLIGENCE:");
         if (sc.suppliers?.length > 0) parts.push(`  Key Suppliers: ${sc.suppliers.map((s: any) => `${s.name} (${s.region}, ${s.role || ""})`).join("; ")}`);
         if (sc.manufacturers?.length > 0) parts.push(`  Manufacturers: ${sc.manufacturers.map((m: any) => `${m.name} (${m.region}, MOQ: ${m.moq || "?"})`).join("; ")}`);
+        if (sc.vendors?.length > 0) parts.push(`  Vendors: ${sc.vendors.map((v: any) => `${v.name} (${v.type || ""}) ${v.url || ""}`).join("; ")}`);
+        if (sc.retailers?.length > 0) parts.push(`  Retailers: ${sc.retailers.map((r: any) => `${r.name} (${r.type || ""}, share: ${r.marketShare || "?"}) ${r.url || ""}`).join("; ")}`);
         if (sc.distributors?.length > 0) parts.push(`  Distributors: ${sc.distributors.map((d: any) => `${d.name} (${d.region})`).join("; ")}`);
       }
 
@@ -539,6 +541,26 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
         if (pl.expiredPatents) parts.push(`  Expired Patents: ${pl.expiredPatents}`);
         if (pl.keyPlayers?.length > 0) parts.push(`  Key Players: ${pl.keyPlayers.join(", ")}`);
         if (pl.gapAnalysis) parts.push(`  IP Gap Analysis: ${typeof pl.gapAnalysis === "string" ? pl.gapAnalysis : JSON.stringify(pl.gapAnalysis).slice(0, 400)}`);
+      }
+
+      if (upstreamIntel.competitorAnalysis) {
+        const ca = upstreamIntel.competitorAnalysis;
+        parts.push("\nCOMPETITOR INTELLIGENCE:");
+        if (ca.marketLeader) parts.push(`  Market Leader: ${ca.marketLeader}`);
+        if (ca.gaps?.length > 0) parts.push(`  Market Gaps:\n${ca.gaps.map((g: string) => `    • ${g}`).join("\n")}`);
+        if (ca.differentiationOpportunity) parts.push(`  Differentiation: ${ca.differentiationOpportunity}`);
+      }
+
+      if (upstreamIntel.operationalIntel) {
+        const oi = upstreamIntel.operationalIntel;
+        parts.push("\nOPERATIONAL INTELLIGENCE:");
+        if (oi.deliveryModel) parts.push(`  Delivery Model: ${oi.deliveryModel}`);
+        if (oi.operationalBottlenecks?.length > 0) parts.push(`  Bottlenecks:\n${oi.operationalBottlenecks.map((b: string) => `    • ${b}`).join("\n")}`);
+        if (oi.scalingChallenges) parts.push(`  Scaling Challenges: ${oi.scalingChallenges}`);
+      }
+
+      if (upstreamIntel.trendAnalysis) {
+        parts.push(`\nTREND ANALYSIS: ${typeof upstreamIntel.trendAnalysis === "string" ? upstreamIntel.trendAnalysis : JSON.stringify(upstreamIntel.trendAnalysis).slice(0, 500)}`);
       }
 
       parts.push("\nINSTRUCTION: Ground your hidden assumptions and flipped logic in this upstream intelligence. If pricing data reveals margin compression, that's a structural constraint. If community complaints cluster around a specific friction, that should dominate your friction analysis. If supply chain is concentrated, that's a vulnerability to exploit in redesign.");

@@ -105,10 +105,16 @@ export function usePipelineOrchestrator(
     setCurrentStep("disrupt");
     updateStatus("disrupt", "running");
 
+    // ── Extract ALL upstream intelligence from the product object ──
     const upstreamIntel: Record<string, unknown> = {};
     const pp = product as any;
     if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
     if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
+    if (pp.communityInsights) upstreamIntel.communityInsights = pp.communityInsights;
+    if (pp.userWorkflow) upstreamIntel.userWorkflow = pp.userWorkflow;
+    if (pp.competitorAnalysis) upstreamIntel.competitorAnalysis = pp.competitorAnalysis;
+    if (pp.operationalIntel) upstreamIntel.operationalIntel = pp.operationalIntel;
+    if (pp.trendAnalysis) upstreamIntel.trendAnalysis = pp.trendAnalysis;
 
     const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
       body: {
@@ -180,13 +186,33 @@ export function usePipelineOrchestrator(
     return redesignResult;
   }, [analysisId, analysis.adaptiveContext, analysis.governedData, saveStepData, setRedesignData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
 
-  const runStressTest = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+  const runStressTest = useCallback(async (product: any, extractedContext: string, disruptResult?: unknown, redesignResult?: unknown): Promise<unknown> => {
     updateStatus("stressTest", "running");
+
+    // ── CRITICAL FIX: Pass actual disrupt/redesign data as analysisData ──
+    // The critical-validation edge function reads analysisData.redesignedConcept,
+    // analysisData.hiddenAssumptions, etc. Without these, it generates GENERIC output.
+    const analysisPayload: Record<string, unknown> = { ...product };
+    if (disruptResult && typeof disruptResult === "object") {
+      const dr = disruptResult as Record<string, unknown>;
+      if (dr.redesignedConcept) analysisPayload.redesignedConcept = dr.redesignedConcept;
+      if (dr.hiddenAssumptions) analysisPayload.hiddenAssumptions = dr.hiddenAssumptions;
+      if (dr.flippedLogic) analysisPayload.flippedLogic = dr.flippedLogic;
+      if (dr.frictionDimensions) analysisPayload.frictionDimensions = dr.frictionDimensions;
+      if (dr.coreReality) analysisPayload.coreReality = dr.coreReality;
+      if (dr.smartTechAnalysis) analysisPayload.smartTechAnalysis = dr.smartTechAnalysis;
+      if (dr.currentStrengths) analysisPayload.currentStrengths = dr.currentStrengths;
+    }
+    if (redesignResult && typeof redesignResult === "object") {
+      const rr = redesignResult as Record<string, unknown>;
+      // If redesign produced a different concept, use that instead
+      if (rr.redesignedConcept) analysisPayload.redesignedConcept = rr.redesignedConcept;
+    }
 
     const { data: result, error } = await invokeWithTimeout("critical-validation", {
       body: {
         product,
-        analysisData: product,
+        analysisData: analysisPayload,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
       },
@@ -258,11 +284,11 @@ export function usePipelineOrchestrator(
       // Step 2: Redesign
       const redesignResult = await runRedesign(product, extractedContext, disruptResult);
 
-      // Steps 3 & 4: Stress Test + Pitch — run stress test first, then pitch with results
+      // Steps 3 & 4: Stress Test + Pitch — run stress test first with disrupt+redesign data, then pitch
       setCurrentStep("stressTest");
-      const stressResult = await runStressTest(product, extractedContext);
+      const stressResult = await runStressTest(product, extractedContext, disruptResult, redesignResult);
 
-      // Pitch now gets stress test data
+      // Pitch now gets all upstream data
       setCurrentStep("pitch");
       await runPitch(product, extractedContext, disruptResult, redesignResult, stressResult);
 
@@ -300,7 +326,7 @@ export function usePipelineOrchestrator(
           await runRedesign(product, extractedContext, disruptData);
           break;
         case "stressTest":
-          await runStressTest(product, extractedContext);
+          await runStressTest(product, extractedContext, disruptData, redesignData);
           break;
         case "pitch":
           await runPitch(product, extractedContext, disruptData, redesignData, stressTestData);
