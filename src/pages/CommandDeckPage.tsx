@@ -42,6 +42,8 @@ import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaCha
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
+import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
+import { computeBenchmarks } from "@/lib/benchmarkEngine";
 import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
 import { DealScorecard } from "@/components/command-deck/DealScorecard";
 import { LOIBuilder } from "@/components/command-deck/LOIBuilder";
