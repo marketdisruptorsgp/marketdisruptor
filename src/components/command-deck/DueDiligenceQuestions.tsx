@@ -124,10 +124,11 @@ export const DueDiligenceQuestions = memo(function DueDiligenceQuestions({
             )}
             <button
               onClick={handleCopyAll}
-              className="text-[10px] font-bold px-2 py-1 rounded-md border border-border hover:bg-muted/50 transition-colors flex items-center gap-1 text-muted-foreground"
+              className="text-[10px] font-bold px-2.5 py-1.5 rounded-md border border-border hover:bg-muted/50 transition-colors flex items-center gap-1.5 text-muted-foreground"
+              title={`Copy ${criticalHighCount} critical & high priority questions as a formatted checklist`}
             >
               {copiedIdx === "all" ? <Check size={10} className="text-green-600" /> : <Copy size={10} />}
-              Copy All
+              {copiedIdx === "all" ? "Copied!" : `Copy ${criticalHighCount} Critical Questions`}
             </button>
           </div>
         </div>
