@@ -614,7 +614,7 @@ export function StructureTab({
                 >
                   <ETAAcquisitionScorecard
                     governedData={governedData}
-                    biExtraction={(analysisData as any)?.biExtraction ?? null}
+                    biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
                   />
                 </StructureSection>
               </>
