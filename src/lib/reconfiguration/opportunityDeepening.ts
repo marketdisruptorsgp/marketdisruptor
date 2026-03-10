@@ -76,6 +76,22 @@ export interface FirstMove {
   successCriteria: string;
 }
 
+export interface WhyThisMatters {
+  /** Why the insight matters — business consequences */
+  implications: string[];
+  /** What happens if this constraint is solved */
+  ifSolved: string[];
+}
+
+export interface StrategicPrecedent {
+  /** Company name */
+  company: string;
+  /** Brief description of what they did */
+  description: string;
+  /** The strategic pattern this maps to */
+  pattern: string;
+}
+
 export interface DeepenedOpportunity {
   /** Unique ID */
   id: string;
@@ -98,8 +114,14 @@ export interface DeepenedOpportunity {
   feasibility: FeasibilityAssessment;
   /** The first move to test the thesis */
   firstMove: FirstMove;
-  /** Real-world precedents */
+  /** Real-world precedents (legacy string format) */
   precedents: string[];
+  /** Structured strategic precedents with company details */
+  strategicPrecedents?: StrategicPrecedent[];
+  /** Impact layer — why the constraint matters and what changes if solved */
+  whyThisMatters?: WhyThisMatters;
+  /** Second-order effects if this strategic move succeeds */
+  secondOrderEffects?: string[];
   /** Constraints this opportunity resolves */
   resolvesConstraints: string[];
   /** Evidence IDs that support this opportunity */
@@ -327,6 +349,9 @@ export async function deepenOpportunitiesAsync(
           successCriteria: thesis.firstMove?.successCriteria || "30%+ positive response rate",
         },
         precedents: thesis.precedents || matchedQP?.pattern.precedents || [],
+        strategicPrecedents: thesis.strategicPrecedents || undefined,
+        whyThisMatters: thesis.whyThisMatters || undefined,
+        secondOrderEffects: thesis.secondOrderEffects || undefined,
         resolvesConstraints: matchedQP?.qualification.resolvesConstraints || [],
         evidenceIds: relevantEvidenceIds,
         signalDensity: matchedQP?.signalDensity || 0,
@@ -406,6 +431,23 @@ function deepenOpportunitiesDeterministic(
         successCriteria: "At least 2 viable precedents identified with transferable mechanics",
       },
       precedents: [],
+      whyThisMatters: {
+        implications: [
+          `Current operations are constrained by ${driver}`,
+          `Growth potential is limited without addressing this structural friction`,
+          `Competitors who solve this first gain a lasting advantage`,
+        ],
+        ifSolved: [
+          `${direction.label} unlocks new revenue or margin opportunities`,
+          `The business can scale without proportional cost increases`,
+          `Structural position improves relative to competitors`,
+        ],
+      },
+      secondOrderEffects: [
+        `Early mover advantage in ${direction.label.toLowerCase()} creates switching costs`,
+        `Data and network effects compound over time`,
+        `Market position shifts from operator to infrastructure provider`,
+      ],
       resolvesConstraints: profile.bindingConstraints.slice(0, 1).map(c => c.constraintName),
       evidenceIds: [],
       signalDensity: relevanceScore,

@@ -1,6 +1,11 @@
 /**
  * OneThesisCard — Displays the primary strategic thesis in a causal chain:
  * Core Constraint → Contrarian Belief → Strategic Move → Economic Mechanism → First Move
+ *
+ * Now includes three strategic layers:
+ * - WhyThisMatters (after diagnosis)
+ * - StrategicPrecedent (after main card)
+ * - SecondOrderEffects (after defensibility)
  */
 
 import { memo, useState } from "react";
@@ -10,6 +15,9 @@ import {
   ChevronDown, ChevronUp, Crosshair, Clock, CheckCircle2,
 } from "lucide-react";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
+import { WhyThisMattersSection } from "./WhyThisMattersSection";
+import { StrategicPrecedentSection } from "./StrategicPrecedentSection";
+import { SecondOrderEffectsSection } from "./SecondOrderEffectsSection";
 
 interface OneThesisCardProps {
   thesis: DeepenedOpportunity | null;
@@ -182,6 +190,36 @@ export const OneThesisCard = memo(function OneThesisCard({
             <span className="text-muted-foreground">
               {thesis.economicMechanism.defensibility}
             </span>
+          </div>
+        )}
+
+        {/* Why This Matters — Impact Layer */}
+        {thesis.whyThisMatters && (
+          <div
+            className="px-5 py-4"
+            style={{ borderTop: "1px solid hsl(var(--border))" }}
+          >
+            <WhyThisMattersSection data={thesis.whyThisMatters} />
+          </div>
+        )}
+
+        {/* Second-Order Effects */}
+        {thesis.secondOrderEffects && thesis.secondOrderEffects.length > 0 && (
+          <div
+            className="px-5 py-4"
+            style={{ borderTop: "1px solid hsl(var(--border))" }}
+          >
+            <SecondOrderEffectsSection effects={thesis.secondOrderEffects} />
+          </div>
+        )}
+
+        {/* Strategic Precedent */}
+        {thesis.strategicPrecedents && thesis.strategicPrecedents.length > 0 && (
+          <div
+            className="px-5 py-4"
+            style={{ borderTop: "1px solid hsl(var(--border))" }}
+          >
+            <StrategicPrecedentSection precedents={thesis.strategicPrecedents} />
           </div>
         )}
       </motion.div>

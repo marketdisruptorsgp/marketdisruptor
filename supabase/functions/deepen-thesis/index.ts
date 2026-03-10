@@ -54,6 +54,23 @@ CRITICAL RULES:
 6. Every field must reference specifics from the structural profile and evidence.
 7. Each opportunity must be STRUCTURALLY DISTINCT — different strategic paths, not variations of the same idea.
 
+REQUIRED OUTPUT LAYERS — Every thesis MUST include these:
+
+A) "whyThisMatters" — For the constraint this opportunity addresses:
+   - "implications": 3-4 bullet points explaining BUSINESS CONSEQUENCES of the constraint. Write as a strategic advisor would to a founder. Focus on growth limits, margin pressure, competitive vulnerability.
+   - "ifSolved": 3-4 bullet points describing what changes if the constraint is resolved. Focus on new capabilities unlocked, margin expansion, scalability.
+
+B) "strategicPrecedents" — 2-3 REAL companies that executed a structurally similar move:
+   - "company": Real company name (must be a real company)
+   - "description": One sentence explaining what they did that's analogous
+   - "pattern": The strategic pattern name (e.g. "platformization", "workflow automation", "marketplace creation")
+
+C) "secondOrderEffects" — 3-5 downstream consequences if this strategic move succeeds:
+   - How the move reshapes the market position over time
+   - Network effects, switching costs, data advantages, ecosystem lock-in
+   - How competitors or customers are affected
+   - Write as strategic implications, not features
+
 STRATEGIC REASONING LENSES — Use these to generate non-obvious insights:
 1. CROSS-INDUSTRY ANALOGS: What companies in DIFFERENT industries solved a structurally similar constraint?
 2. CONSTRAINT INVERSIONS: Can the binding constraint itself become a competitive advantage?
@@ -400,8 +417,32 @@ function buildToolSchema() {
                   additionalProperties: false,
                 },
                 precedents: { type: "array", items: { type: "string" }, description: "2-3 real-world precedents of this structural move" },
+                whyThisMatters: {
+                  type: "object",
+                  properties: {
+                    implications: { type: "array", items: { type: "string" }, description: "3-4 business consequences of the constraint. Plain language, strategic advisor tone." },
+                    ifSolved: { type: "array", items: { type: "string" }, description: "3-4 outcomes if the constraint is resolved. Focus on new capabilities and margin expansion." },
+                  },
+                  required: ["implications", "ifSolved"],
+                  additionalProperties: false,
+                },
+                strategicPrecedents: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      company: { type: "string", description: "Real company name" },
+                      description: { type: "string", description: "One sentence: what they did that's analogous" },
+                      pattern: { type: "string", description: "Strategic pattern name (e.g. platformization, marketplace creation)" },
+                    },
+                    required: ["company", "description", "pattern"],
+                    additionalProperties: false,
+                  },
+                  description: "2-3 real companies that executed a structurally similar move",
+                },
+                secondOrderEffects: { type: "array", items: { type: "string" }, description: "3-5 downstream market consequences if this move succeeds" },
               },
-              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "precedents"],
+              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "precedents", "whyThisMatters", "strategicPrecedents", "secondOrderEffects"],
               additionalProperties: false,
             },
           },
