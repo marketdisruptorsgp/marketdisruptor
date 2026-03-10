@@ -73,6 +73,7 @@ function buildSignals(
       status: dep === "autonomous" || dep === "delegated" ? "go" : dep === "involved" ? "caution" : "no-go",
       detail: `${dep.replace("_", " ")} — ${dep === "autonomous" || dep === "delegated" ? "Business runs independently" : dep === "involved" ? "Owner involved but not critical" : "Owner IS the business"}`,
       source: "Operational assessment",
+      provenance: "cim",
     });
   }
 
