@@ -25,6 +25,7 @@ interface Signal {
   status: "go" | "caution" | "no-go";
   detail: string;
   source: string;
+  provenance: ProvenanceSource;
 }
 
 interface DealStructure {
