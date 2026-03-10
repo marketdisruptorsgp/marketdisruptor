@@ -464,7 +464,7 @@ export default function NewAnalysisPage() {
     } : {
       activeModes,
       extractedContext: extractedContext || undefined,
-      biExtraction: extraction ? (extraction as unknown as Record<string, unknown>) : undefined,
+      biExtraction: finalExtraction ? (finalExtraction as unknown as Record<string, unknown>) : undefined,
     };
     analysis.setAdaptiveContext(adaptiveCtx);
 
