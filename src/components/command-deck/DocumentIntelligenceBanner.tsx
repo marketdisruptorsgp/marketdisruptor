@@ -169,7 +169,7 @@ export function DocumentIntelligenceBanner({
 
           {/* Warning if context not threaded */}
           {hasBI && !adaptiveContextLoaded && (
-            <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
+            <p className="text-[10px] text-destructive mt-1">
               ⚠ Document data exists but pipeline context is not loaded. Some analysis steps may show generic results.
               Try refreshing the analysis.
             </p>
