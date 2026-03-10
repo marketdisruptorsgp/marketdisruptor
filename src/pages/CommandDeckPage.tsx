@@ -43,6 +43,7 @@ import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
 import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
+import { DealScorecard } from "@/components/command-deck/DealScorecard";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
 
 import {
