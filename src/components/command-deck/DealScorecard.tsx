@@ -61,6 +61,7 @@ function buildSignals(
       status: inputs.customerConcentration <= 0.10 ? "go" : inputs.customerConcentration <= 0.25 ? "caution" : "no-go",
       detail: `Top customer = ${pct}% of revenue`,
       source: "Revenue analysis",
+      provenance: "cim",
     });
   }
 
