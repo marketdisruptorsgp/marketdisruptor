@@ -50,6 +50,7 @@ import { LOIBuilder } from "@/components/command-deck/LOIBuilder";
 import { PostClosePlaybook } from "@/components/command-deck/PostClosePlaybook";
 import { CIMComparisonMode } from "@/components/command-deck/CIMComparisonMode";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
+import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
