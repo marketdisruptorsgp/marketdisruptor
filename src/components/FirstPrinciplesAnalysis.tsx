@@ -231,21 +231,35 @@ export const FirstPrinciplesAnalysis = ({
         {activeStep === "flip" && (
           <FlippedLogicPanel flips={data.flippedLogic || []} assumptions={data.hiddenAssumptions || []} />
         )}
-        {activeStep === "ideas" && (
-          <FlippedIdeasPanel
-            flippedIdeas={flippedIdeas}
-            onRegenerateIdeas={onRegenerateIdeas}
-            generatingIdeas={generatingIdeas}
-            userScores={userScores}
-            onScoreChange={onScoreChange}
-            onCompetitorsScouted={(comps) => {
-              const prev = analysisCtx.scoutedCompetitors || [];
-              const merged = [...prev, ...(comps as any[])];
-              analysisCtx.setScoutedCompetitors(merged);
-              analysisCtx.saveStepData("scoutedCompetitors", merged);
-            }}
-          />
-        )}
+        {activeStep === "ideas" && (() => {
+          // Derive flipped ideas from AI data if product.flippedIdeas is empty
+          const effectiveIdeas = (flippedIdeas && flippedIdeas.length > 0)
+            ? flippedIdeas
+            : (data.flippedLogic || []).map((fl: any, i: number) => ({
+                id: `derived-${i}`,
+                name: fl.boldAlternative || fl.alternative || `Idea ${i + 1}`,
+                description: fl.rationale || fl.description || "",
+                targetPrice: null,
+                feasibility: fl.leverageScore ? fl.leverageScore / 10 : 0.7,
+                marketPotential: "medium" as const,
+                constraints: fl.originalAssumption ? [fl.originalAssumption] : [],
+              }));
+          return (
+            <FlippedIdeasPanel
+              flippedIdeas={effectiveIdeas}
+              onRegenerateIdeas={onRegenerateIdeas}
+              generatingIdeas={generatingIdeas}
+              userScores={userScores}
+              onScoreChange={onScoreChange}
+              onCompetitorsScouted={(comps) => {
+                const prev = analysisCtx.scoutedCompetitors || [];
+                const merged = [...prev, ...(comps as any[])];
+                analysisCtx.setScoutedCompetitors(merged);
+                analysisCtx.saveStepData("scoutedCompetitors", merged);
+              }}
+            />
+          );
+        })()}
         {activeStep === "concept" && (
           <RedesignedConceptPanel concept={data.redesignedConcept} />
         )}

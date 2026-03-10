@@ -121,8 +121,8 @@ export function InsightCard({
       variants={hoverLift}
     >
       <div className="p-4 sm:p-5 space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0 flex-1">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start gap-3 min-w-0">
             {Icon && (
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -132,24 +132,22 @@ export function InsightCard({
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="typo-body font-bold text-foreground leading-snug">{headline}</h4>
-                {badge && (
-                  <span
-                    className="px-2 py-0.5 rounded-full typo-meta font-bold flex-shrink-0"
-                    style={{
-                      background: badgeColor ? `${badgeColor}14` : "hsl(var(--primary) / 0.1)",
-                      color: badgeColor || "hsl(var(--primary))",
-                    }}
-                  >
-                    {badge}
-                  </span>
-                )}
-              </div>
+              <h4 className="typo-body font-bold text-foreground leading-snug">{headline}</h4>
+              {badge && (
+                <span
+                  className="inline-block mt-1 px-2 py-0.5 rounded-full typo-meta font-bold"
+                  style={{
+                    background: badgeColor ? `${badgeColor}14` : "hsl(var(--primary) / 0.1)",
+                    color: badgeColor || "hsl(var(--primary))",
+                  }}
+                >
+                  {badge}
+                </span>
+              )}
               {subtext && <p className="typo-meta mt-1 leading-relaxed">{subtext}</p>}
             </div>
           </div>
-          {action && <div className="flex-shrink-0">{action}</div>}
+          {action && <div className="flex items-center gap-2 flex-wrap">{action}</div>}
         </div>
 
         {children && <div className="mt-3">{children}</div>}

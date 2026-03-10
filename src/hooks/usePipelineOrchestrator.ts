@@ -260,17 +260,17 @@ export function usePipelineOrchestrator(
     toast.success("Full pipeline complete — strategic intelligence updated.");
   }, [effectiveProduct, analysisId, analysis.adaptiveContext, analysis.governedData, businessAnalysisData]);
 
-  // Auto-trigger when analysis is done with product/business data but no step data
+  // Auto-trigger when analysis is done with product/business data but missing critical step data
+  // Key fix: trigger if ANY critical step (especially disrupt) is missing, not only when ALL are missing
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
+    const hasMissingCriticalStep = !disruptData; // disrupt is the foundation — must always exist
+    const hasNoStepData = !disruptData && !redesignData && !stressTestData && !pitchDeckData;
     if (
       step === "done" &&
       hasAnalyzableData &&
       analysisId &&
-      !disruptData &&
-      !redesignData &&
-      !stressTestData &&
-      !pitchDeckData &&
+      (hasNoStepData || hasMissingCriticalStep) &&
       !runningRef.current &&
       triggeredForRef.current !== analysisId
     ) {
