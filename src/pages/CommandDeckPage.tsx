@@ -50,6 +50,7 @@ import { LOIBuilder } from "@/components/command-deck/LOIBuilder";
 import { PostClosePlaybook } from "@/components/command-deck/PostClosePlaybook";
 import { CIMComparisonMode } from "@/components/command-deck/CIMComparisonMode";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
+import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
@@ -568,6 +569,18 @@ export default function CommandDeckPage() {
           biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
           governedData={analysis.governedData as Record<string, any> | null}
           adaptiveContextLoaded={!!analysis.adaptiveContext}
+        />
+
+        {/* ═══ PIPELINE DATA HEALTH ═══ */}
+        <PipelineDataHealth
+          product={selectedProduct as Record<string, any> | null}
+          disruptData={analysis.disruptData}
+          redesignData={analysis.redesignData}
+          stressTestData={analysis.stressTestData}
+          pitchDeckData={analysis.pitchDeckData}
+          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+          businessAnalysisData={analysis.businessAnalysisData as Record<string, any> | null}
         />
 
         {/* ═══ SCENARIO BANNER (only when active) ═══ */}
