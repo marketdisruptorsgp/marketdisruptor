@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame, Gauge, GitBranch } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame, Gauge, GitBranch, Target } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 import { type LensType } from "@/lib/multiLensEngine";
@@ -11,6 +11,7 @@ import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 import { OpportunityMatrix } from "@/components/OpportunityMatrix";
 import { FrictionHeatmap } from "@/components/FrictionHeatmap";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
+import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
 import { CausalConstraintMap } from "@/components/CausalConstraintMap";
 
 export type StructureViewMode = "assumptions" | "deconstruct" | "all";
@@ -602,6 +603,18 @@ export function StructureTab({
                     commandDeck={systemIntelligence.commandDeck}
                     expandedFriction={systemIntelligence.expandedFriction}
                     governedData={governedData}
+                  />
+                </StructureSection>
+
+                {/* ETA Acquisition Scorecard */}
+                <StructureSection
+                  title="Acquisition Scorecard"
+                  icon={Target}
+                  defaultOpen={true}
+                >
+                  <ETAAcquisitionScorecard
+                    governedData={governedData}
+                    biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
                   />
                 </StructureSection>
               </>
