@@ -500,7 +500,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   if (structuralProfile) {
     const { result: qPatterns, stage: s5 } = traceStage("Pattern Qualification", 6, () => {
       const all = qualifyPatterns(structuralProfile!);
-      return all.slice(0, 2); // Primary + alternative only
+      return all.slice(0, 4); // Allow more patterns through for multi-opportunity generation
     });
     stages.push(s5);
     qualifiedPatternsResult = qPatterns;
@@ -514,7 +514,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
       deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat)
     );
     stages.push(s6);
-    deepenedOpps = deepened.slice(0, 2); // Primary + alternative only
+    deepenedOpps = deepened.slice(0, 5); // Allow up to 5 opportunities
     events.push(`${deepenedOpps.length} theses: ${deepenedOpps.map(d => d.reconfigurationLabel.slice(0, 60)).join(" | ")}`);
   }
 
@@ -764,21 +764,22 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   if (structuralProfile) {
     const { result: qPatterns, stage: s5 } = traceStage("Pattern Qualification", 6, () => {
       const all = qualifyPatterns(structuralProfile!);
-      return all.slice(0, 2);
+      return all.slice(0, 4); // Allow more patterns for multi-opportunity generation
     });
     stages.push(s5);
     qualifiedPatternsResult = qPatterns;
     events.push(`${qPatterns.length} patterns qualified: ${qPatterns.map(p => p.pattern.name).join(", ") || "none"}`);
   }
 
-  // ── Stage 6: Thesis Construction (AI-gated) ──
+  // ── Stage 6: Thesis Construction (AI-gated, multi-opportunity) ──
   let deepenedOpps: DeepenedOpportunity[] = [];
   const bindingConstraintCount = structuralProfile?.bindingConstraints.length ?? 0;
-  const meetsAIThreshold = evCount >= 12 && bindingConstraintCount >= 1 && qualifiedPatternsResult.length >= 1;
+  // Lower AI threshold — strategic directions can fill gaps even with fewer qualified patterns
+  const meetsAIThreshold = evCount >= 6 && bindingConstraintCount >= 1 && structuralProfile != null;
 
-  if (structuralProfile && qualifiedPatternsResult.length > 0) {
+  if (structuralProfile) {
     if (meetsAIThreshold) {
-      events.push(`AI quality gate PASSED (${evCount} evidence, ${bindingConstraintCount} constraints, ${qualifiedPatternsResult.length} patterns) — calling AI deepening...`);
+      events.push(`AI quality gate PASSED (${evCount} evidence, ${bindingConstraintCount} constraints, ${qualifiedPatternsResult.length} patterns) — calling AI deepening with strategic directions...`);
       try {
         // Build lens context for AI
         const lensContext = input.lensConfig ? {
@@ -801,16 +802,17 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
           undefined, // businessContext — auto-derived
           lensContext,
         );
-        deepenedOpps = deepenedOpps.slice(0, 2);
+        // No more .slice(0, 2) — allow 3-5 opportunities through
+        deepenedOpps = deepenedOpps.slice(0, 5);
         events.push(`${deepenedOpps.length} AI theses: ${deepenedOpps.map(d => d.reconfigurationLabel.slice(0, 60)).join(" | ")}`);
       } catch (err) {
         console.warn("[StrategicEngine] AI deepening failed, using deterministic:", err);
-        deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 2);
+        deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 5);
         events.push(`${deepenedOpps.length} deterministic theses (AI fallback)`);
       }
-    } else {
-      events.push(`AI quality gate FAILED (${evCount}/12 evidence, ${bindingConstraintCount}/1 constraints, ${qualifiedPatternsResult.length}/1 patterns) — using deterministic deepening`);
-      deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 2);
+    } else if (qualifiedPatternsResult.length > 0) {
+      events.push(`AI quality gate not met (${evCount}/6 evidence, ${bindingConstraintCount}/1 constraints) — using deterministic deepening`);
+      deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 5);
       events.push(`${deepenedOpps.length} deterministic theses`);
     }
   }
