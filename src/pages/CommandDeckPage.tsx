@@ -41,6 +41,8 @@ import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/
 import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
+import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
+import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
@@ -596,6 +598,22 @@ export default function CommandDeckPage() {
           thesis={primaryThesis}
           modeAccent={modeAccent}
           onChallenge={handleChallenge}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            FINANCIAL TRAJECTORY — Trend charts from multi-year P&L
+           ══════════════════════════════════════════════════════════ */}
+        <FinancialTrendCharts
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            DUE DILIGENCE — Hard-hitting questions for sellers
+           ══════════════════════════════════════════════════════════ */}
+        <DueDiligenceQuestions
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
         />
 
         {/* ══════════════════════════════════════════════════════════
