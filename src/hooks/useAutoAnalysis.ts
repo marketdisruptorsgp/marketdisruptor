@@ -369,10 +369,11 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
   // ── Auto-recompute whenever evidence dataset changes ──
   const evidenceHashRef = useRef<string>("");
+  const pendingRecomputeRef = useRef(false);
 
   useEffect(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
-    if (!analysisId || !hasComputableData || isComputing) return;
+    if (!analysisId || !hasComputableData) return;
 
     const hash = [
       completedSteps.size,
@@ -386,12 +387,30 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     if (hash === evidenceHashRef.current) return;
     evidenceHashRef.current = hash;
 
+    // If currently computing, queue a recompute for when it finishes
+    if (isComputing) {
+      pendingRecomputeRef.current = true;
+      return;
+    }
+
     const timer = setTimeout(() => {
       console.log("[StrategicEngine] Auto-recompute triggered — evidence changed:", hash);
       runAnalysis();
     }, 400);
     return () => clearTimeout(timer);
   }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, isComputing, runAnalysis]);
+
+  // Drain queued recompute when computing finishes
+  useEffect(() => {
+    if (!isComputing && pendingRecomputeRef.current) {
+      pendingRecomputeRef.current = false;
+      const timer = setTimeout(() => {
+        console.log("[StrategicEngine] Draining queued recompute");
+        runAnalysis();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isComputing, runAnalysis]);
 
   return {
     intelligence,
