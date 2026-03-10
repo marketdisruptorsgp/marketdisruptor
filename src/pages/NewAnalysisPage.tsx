@@ -497,7 +497,12 @@ export default function NewAnalysisPage() {
             .eq("id", analysisId)
             .single() as any;
           const prev = (existingRow?.analysis_data as Record<string, unknown>) || {};
-          const merged = { ...prev, businessAnalysis: result.analysis };
+          const merged = {
+            ...prev,
+            businessAnalysis: result.analysis,
+            // Persist raw BI extraction so evidence engine can use it on reload
+            ...(extraction ? { biExtraction: extraction } : {}),
+          };
           const { error: updateErr } = await (supabase.from("saved_analyses") as any)
             .update({ analysis_data: merged, updated_at: new Date().toISOString() })
             .eq("id", analysisId);
