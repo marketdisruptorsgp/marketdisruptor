@@ -228,7 +228,6 @@ const App = () => (
               <AnalysisProvider>
                 <AppRoutes />
                 <HelpAssistantPanel />
-                <PipelineDiagnosticsPanel />
               </AnalysisProvider>
             </SubscriptionProvider>
           </AuthProvider>
