@@ -257,14 +257,14 @@ export function computeETAScores(inputs: ETAFinancialInputs): ETAScoreResult {
     valuationRiskScore: modeledValue(
       Math.round(valuationRisk * 10) / 10,
       "Weighted composite of 6 acquisition risk dimensions",
-      inputs,
+      inputs as unknown as Record<string, unknown>,
       0.80,
     ),
     valuationRiskLabel: riskLabel,
     acquisitionReadiness: modeledValue(
       Math.round(readiness * 10) / 10,
       "100 - Valuation Risk (inverse composite)",
-      inputs,
+      inputs as unknown as Record<string, unknown>,
       0.80,
     ),
     readinessLabel,
