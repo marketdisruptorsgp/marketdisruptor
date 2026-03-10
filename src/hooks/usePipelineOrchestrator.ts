@@ -80,6 +80,9 @@ export function usePipelineOrchestrator(
 
     const product = effectiveProduct;
 
+    // ── Extract document intelligence from adaptive context (persisted from upload) ──
+    const extractedContext = analysis.adaptiveContext?.extractedContext || "";
+
     // ── Step 1: Disrupt (first-principles-analysis) ──
     let disruptResult: unknown = null;
     try {
@@ -96,6 +99,7 @@ export function usePipelineOrchestrator(
           product,
           upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
           adaptiveContext: analysis.adaptiveContext || undefined,
+          extractedContext: extractedContext || undefined,
         },
       }, 180_000);
 
