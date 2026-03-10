@@ -28,7 +28,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
               headline={item.boldAlternative}
               subtext={item.rationale}
               accentColor="hsl(var(--primary))"
-              badge={`was: ${item.originalAssumption.slice(0, 30)}${item.originalAssumption.length > 30 ? "…" : ""}`}
+              badge={`was: ${item.originalAssumption}`}
               badgeColor="hsl(var(--muted-foreground))"
               action={
                 <div className="flex items-center gap-2">

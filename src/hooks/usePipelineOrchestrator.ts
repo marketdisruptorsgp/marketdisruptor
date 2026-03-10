@@ -5,7 +5,15 @@
  * this hook sequentially invokes all 5 edge functions, saves results to
  * context + DB, then triggers a strategic recompute.
  *
- * Pipeline: Disrupt → Redesign → Stress Test → Pitch → Recompute
+ * Pipeline: Disrupt → Redesign → Stress Test + Pitch (parallel)
+ *
+ * Key behaviors:
+ *   - Skips disrupt AI call if businessAnalysisData already exists
+ *   - Runs stress test & pitch in parallel for speed
+ *   - Feeds stress test results into pitch when available
+ *   - Triggers incremental recompute after each step
+ *   - Shows error recovery UI when steps fail
+ *   - Deduplicates by analysisId to prevent double runs
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -18,9 +26,11 @@ export type PipelineStepStatus = "pending" | "running" | "done" | "error" | "ski
 export interface PipelineProgress {
   isRunning: boolean;
   currentStep: string | null;
-  steps: { key: string; label: string; status: PipelineStepStatus }[];
+  steps: { key: string; label: string; status: PipelineStepStatus; error?: string }[];
   completedCount: number;
   totalCount: number;
+  /** Allows UI to retry a specific failed step */
+  retryStep: (stepKey: string) => void;
 }
 
 const STEP_DEFS = [
@@ -54,11 +64,17 @@ export function usePipelineOrchestrator(
     stressTest: "pending",
     pitch: "pending",
   });
+  const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
 
-  const updateStatus = useCallback((key: string, status: PipelineStepStatus) => {
+  const updateStatus = useCallback((key: string, status: PipelineStepStatus, error?: string) => {
     setStepStatuses(prev => ({ ...prev, [key]: status }));
+    if (error) {
+      setStepErrors(prev => ({ ...prev, [key]: error }));
+    } else if (status === "done" || status === "running") {
+      setStepErrors(prev => { const n = { ...prev }; delete n[key]; return n; });
+    }
   }, []);
 
   // Build a synthetic product for business model analyses that lack a real selectedProduct
@@ -72,6 +88,160 @@ export function usePipelineOrchestrator(
     description: businessModelInput?.description || "",
   } as any : null);
 
+  // ── Individual step runners (reusable for retry) ──
+
+  const runDisrupt = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+    if (businessAnalysisData) {
+      console.log("[Pipeline] Reusing businessAnalysisData as disrupt step (skipping redundant AI call)");
+      const result = businessAnalysisData;
+      setDisruptData(result);
+      await saveStepData("disrupt", result, analysisId!);
+      updateStatus("disrupt", "done");
+      onStepComplete?.("disrupt");
+      onRecompute?.();
+      return result;
+    }
+
+    setCurrentStep("disrupt");
+    updateStatus("disrupt", "running");
+
+    const upstreamIntel: Record<string, unknown> = {};
+    const pp = product as any;
+    if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
+    if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
+
+    const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
+      body: {
+        product,
+        upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
+        adaptiveContext: analysis.adaptiveContext || undefined,
+        extractedContext: extractedContext || undefined,
+      },
+    }, 180_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Structural analysis failed";
+      console.warn("[Pipeline] Disrupt failed:", msg);
+      updateStatus("disrupt", "error", msg);
+      return null;
+    }
+
+    const disruptResult = result.analysis;
+    setDisruptData(disruptResult);
+    await saveStepData("disrupt", disruptResult, analysisId!);
+    updateStatus("disrupt", "done");
+    onStepComplete?.("disrupt");
+    onRecompute?.();
+    return disruptResult;
+  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, updateStatus, onStepComplete, onRecompute]);
+
+  const runRedesign = useCallback(async (product: any, extractedContext: string, disruptResult: unknown): Promise<unknown> => {
+    setCurrentStep("redesign");
+    updateStatus("redesign", "running");
+
+    const requestBody: Record<string, unknown> = {
+      product,
+      adaptiveContext: analysis.adaptiveContext || undefined,
+      extractedContext: extractedContext || undefined,
+    };
+    if (disruptResult) {
+      const dd = disruptResult as Record<string, unknown>;
+      requestBody.disruptContext = {
+        hiddenAssumptions: dd.hiddenAssumptions || null,
+        flippedLogic: dd.flippedLogic || null,
+      };
+    }
+    if (analysis.governedData) {
+      requestBody.governedContext = {
+        reasoning_synopsis: analysis.governedData.reasoning_synopsis,
+        constraint_map: analysis.governedData.constraint_map,
+        root_hypotheses: analysis.governedData.root_hypotheses,
+      };
+    }
+
+    const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
+      body: requestBody,
+    }, 180_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Redesign failed";
+      console.warn("[Pipeline] Redesign failed:", msg);
+      updateStatus("redesign", "error", msg);
+      return null;
+    }
+
+    const redesignResult = result.analysis;
+    setRedesignData(redesignResult);
+    await saveStepData("redesign", redesignResult, analysisId!);
+    clearStepOutdated("redesign");
+    updateStatus("redesign", "done");
+    onStepComplete?.("redesign");
+    onRecompute?.();
+    return redesignResult;
+  }, [analysisId, analysis.adaptiveContext, analysis.governedData, saveStepData, setRedesignData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+
+  const runStressTest = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+    updateStatus("stressTest", "running");
+
+    const { data: result, error } = await invokeWithTimeout("critical-validation", {
+      body: {
+        product,
+        analysisData: product,
+        adaptiveContext: analysis.adaptiveContext || undefined,
+        extractedContext: extractedContext || undefined,
+      },
+    }, 180_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Stress test failed";
+      console.warn("[Pipeline] Stress Test failed:", msg);
+      updateStatus("stressTest", "error", msg);
+      return null;
+    }
+
+    const stressResult = result.validation || result;
+    setStressTestData(stressResult);
+    await saveStepData("stressTest", stressResult, analysisId!);
+    clearStepOutdated("stressTest");
+    updateStatus("stressTest", "done");
+    onStepComplete?.("stressTest");
+    onRecompute?.();
+    return stressResult;
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+
+  const runPitch = useCallback(async (product: any, extractedContext: string, disruptResult: unknown, redesignResult: unknown, stressResult: unknown): Promise<void> => {
+    updateStatus("pitch", "running");
+
+    const { data: result, error } = await invokeWithTimeout("generate-pitch-deck", {
+      body: {
+        product,
+        disruptData: disruptResult || undefined,
+        stressTestData: stressResult || undefined,
+        redesignData: redesignResult || undefined,
+        adaptiveContext: analysis.adaptiveContext || undefined,
+        extractedContext: extractedContext || undefined,
+        patentData: (product as any).patentData || undefined,
+      },
+    }, 180_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Pitch generation failed";
+      console.warn("[Pipeline] Pitch failed:", msg);
+      updateStatus("pitch", "error", msg);
+      return;
+    }
+
+    const pitchResult = result.deck;
+    setPitchDeckData(pitchResult);
+    await saveStepData("pitchDeck", pitchResult, analysisId!);
+    clearStepOutdated("pitch");
+    updateStatus("pitch", "done");
+    onStepComplete?.("pitch");
+    onRecompute?.();
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+
+  // ── Full pipeline ──
+
   const runPipeline = useCallback(async () => {
     if (!effectiveProduct || !analysisId) return;
     if (runningRef.current) return;
@@ -81,190 +251,71 @@ export function usePipelineOrchestrator(
     const product = effectiveProduct;
     const extractedContext = analysis.adaptiveContext?.extractedContext || "";
 
-    // ── Step 1: Disrupt — SKIP if businessAnalysisData already exists ──
-    let disruptResult: unknown = null;
-    if (businessAnalysisData) {
-      // Business model analysis already produced structural analysis — reuse it
-      console.log("[Pipeline] Reusing businessAnalysisData as disrupt step (skipping redundant AI call)");
-      disruptResult = businessAnalysisData;
-      setDisruptData(disruptResult);
-      await saveStepData("disrupt", disruptResult, analysisId);
-      updateStatus("disrupt", "done");
-      onStepComplete?.("disrupt");
-      // Trigger incremental recompute so UI updates immediately
+    try {
+      // Step 1: Disrupt
+      const disruptResult = await runDisrupt(product, extractedContext);
+
+      // Step 2: Redesign
+      const redesignResult = await runRedesign(product, extractedContext, disruptResult);
+
+      // Steps 3 & 4: Stress Test + Pitch — run stress test first, then pitch with results
+      setCurrentStep("stressTest");
+      const stressResult = await runStressTest(product, extractedContext);
+
+      // Pitch now gets stress test data
+      setCurrentStep("pitch");
+      await runPitch(product, extractedContext, disruptResult, redesignResult, stressResult);
+
+    } catch (err) {
+      console.error("[Pipeline] Unexpected pipeline error:", err);
+    } finally {
+      setCurrentStep(null);
+      setIsRunning(false);
+      runningRef.current = false;
       onRecompute?.();
-    } else {
-      try {
-        setCurrentStep("disrupt");
-        updateStatus("disrupt", "running");
-        
-        const upstreamIntel: Record<string, unknown> = {};
-        const pp = product as any;
-        if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
-        if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
 
-        const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
-          body: {
-            product,
-            upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
-            adaptiveContext: analysis.adaptiveContext || undefined,
-            extractedContext: extractedContext || undefined,
-          },
-        }, 180_000);
-
-        if (error || !result?.success) {
-          console.warn("[Pipeline] Disrupt failed:", result?.error || error?.message);
-          updateStatus("disrupt", "error");
-        } else {
-          disruptResult = result.analysis;
-          setDisruptData(disruptResult);
-          await saveStepData("disrupt", disruptResult, analysisId);
-          updateStatus("disrupt", "done");
-          onStepComplete?.("disrupt");
-          // Incremental recompute — UI sees disrupt data immediately
-          onRecompute?.();
-        }
-      } catch (err) {
-        console.warn("[Pipeline] Disrupt error:", err);
-        updateStatus("disrupt", "error");
+      // Show completion message based on results
+      const statuses = { ...stepStatuses };
+      const errorCount = Object.values(statuses).filter(s => s === "error").length;
+      if (errorCount > 0) {
+        toast.warning(`Pipeline complete with ${errorCount} step${errorCount > 1 ? "s" : ""} needing attention.`);
+      } else {
+        toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, onRecompute]);
 
-    // ── Step 2: Redesign ──
-    let redesignResult: unknown = null;
+  // ── Retry a single failed step ──
+  const retryStep = useCallback(async (stepKey: string) => {
+    if (!effectiveProduct || !analysisId) return;
+    const product = effectiveProduct;
+    const extractedContext = analysis.adaptiveContext?.extractedContext || "";
+
     try {
-      setCurrentStep("redesign");
-      updateStatus("redesign", "running");
-
-      const requestBody: Record<string, unknown> = {
-        product,
-        adaptiveContext: analysis.adaptiveContext || undefined,
-        extractedContext: extractedContext || undefined,
-      };
-      if (disruptResult) {
-        const dd = disruptResult as Record<string, unknown>;
-        requestBody.disruptContext = {
-          hiddenAssumptions: dd.hiddenAssumptions || null,
-          flippedLogic: dd.flippedLogic || null,
-        };
-      }
-      if (analysis.governedData) {
-        requestBody.governedContext = {
-          reasoning_synopsis: analysis.governedData.reasoning_synopsis,
-          constraint_map: analysis.governedData.constraint_map,
-          root_hypotheses: analysis.governedData.root_hypotheses,
-        };
-      }
-
-      const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
-        body: requestBody,
-      }, 180_000);
-
-      if (error || !result?.success) {
-        console.warn("[Pipeline] Redesign failed:", result?.error || error?.message);
-        updateStatus("redesign", "error");
-      } else {
-        redesignResult = result.analysis;
-        setRedesignData(redesignResult);
-        await saveStepData("redesign", redesignResult, analysisId);
-        clearStepOutdated("redesign");
-        updateStatus("redesign", "done");
-        onStepComplete?.("redesign");
-        // Incremental recompute
-        onRecompute?.();
+      switch (stepKey) {
+        case "disrupt":
+          await runDisrupt(product, extractedContext);
+          break;
+        case "redesign":
+          await runRedesign(product, extractedContext, disruptData);
+          break;
+        case "stressTest":
+          await runStressTest(product, extractedContext);
+          break;
+        case "pitch":
+          await runPitch(product, extractedContext, disruptData, redesignData, stressTestData);
+          break;
       }
     } catch (err) {
-      console.warn("[Pipeline] Redesign error:", err);
-      updateStatus("redesign", "error");
+      console.error(`[Pipeline] Retry ${stepKey} failed:`, err);
+      toast.error(`Retry failed for ${stepKey}`);
     }
-
-    // ── Steps 3 & 4: Stress Test + Pitch — run in PARALLEL ──
-    setCurrentStep("stressTest");
-    updateStatus("stressTest", "running");
-    updateStatus("pitch", "running");
-
-    const stressTestPromise = (async () => {
-      try {
-        const { data: result, error } = await invokeWithTimeout("critical-validation", {
-          body: {
-            product,
-            analysisData: product,
-            adaptiveContext: analysis.adaptiveContext || undefined,
-            extractedContext: extractedContext || undefined,
-          },
-        }, 180_000);
-
-        if (error || !result?.success) {
-          console.warn("[Pipeline] Stress Test failed:", result?.error || error?.message);
-          updateStatus("stressTest", "error");
-          return null;
-        } else {
-          const stressResult = result.validation || result;
-          setStressTestData(stressResult);
-          await saveStepData("stressTest", stressResult, analysisId);
-          clearStepOutdated("stressTest");
-          updateStatus("stressTest", "done");
-          onStepComplete?.("stressTest");
-          onRecompute?.();
-          return stressResult;
-        }
-      } catch (err) {
-        console.warn("[Pipeline] Stress Test error:", err);
-        updateStatus("stressTest", "error");
-        return null;
-      }
-    })();
-
-    const pitchPromise = (async () => {
-      try {
-        const { data: result, error } = await invokeWithTimeout("generate-pitch-deck", {
-          body: {
-            product,
-            disruptData: disruptResult || undefined,
-            stressTestData: undefined, // can't wait for stress test in parallel
-            redesignData: redesignResult || undefined,
-            adaptiveContext: analysis.adaptiveContext || undefined,
-            extractedContext: extractedContext || undefined,
-            patentData: (product as any).patentData || undefined,
-          },
-        }, 180_000);
-
-        if (error || !result?.success) {
-          console.warn("[Pipeline] Pitch failed:", result?.error || error?.message);
-          updateStatus("pitch", "error");
-        } else {
-          const pitchResult = result.deck;
-          setPitchDeckData(pitchResult);
-          await saveStepData("pitchDeck", pitchResult, analysisId);
-          clearStepOutdated("pitch");
-          updateStatus("pitch", "done");
-          onStepComplete?.("pitch");
-          onRecompute?.();
-        }
-      } catch (err) {
-        console.warn("[Pipeline] Pitch error:", err);
-        updateStatus("pitch", "error");
-      }
-    })();
-
-    // Wait for both parallel steps to complete
-    await Promise.allSettled([stressTestPromise, pitchPromise]);
-
-    // ── Done ──
-    setCurrentStep(null);
-    setIsRunning(false);
-    runningRef.current = false;
-
-    // Final recompute with all data
-    onRecompute?.();
-    toast.success("Full pipeline complete — strategic intelligence updated.");
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, analysis.governedData, businessAnalysisData]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, disruptData, redesignData, stressTestData, runDisrupt, runRedesign, runStressTest, runPitch]);
 
   // Auto-trigger when analysis is done with product/business data but missing critical step data
-  // Key fix: trigger if ANY critical step (especially disrupt) is missing, not only when ALL are missing
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
-    const hasMissingCriticalStep = !disruptData; // disrupt is the foundation — must always exist
+    const hasMissingCriticalStep = !disruptData;
     const hasNoStepData = !disruptData && !redesignData && !stressTestData && !pitchDeckData;
     if (
       step === "done" &&
@@ -275,7 +326,6 @@ export function usePipelineOrchestrator(
       triggeredForRef.current !== analysisId
     ) {
       triggeredForRef.current = analysisId;
-      // Small delay to let context stabilize
       const timer = setTimeout(() => {
         runPipeline();
       }, 1500);
@@ -287,6 +337,7 @@ export function usePipelineOrchestrator(
     key: d.key,
     label: d.label,
     status: stepStatuses[d.key] || "pending",
+    error: stepErrors[d.key],
   }));
 
   return {
@@ -295,5 +346,6 @@ export function usePipelineOrchestrator(
     steps,
     completedCount: steps.filter(s => s.status === "done").length,
     totalCount: steps.length,
+    retryStep,
   };
 }
