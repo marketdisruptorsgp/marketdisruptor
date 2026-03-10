@@ -414,6 +414,16 @@ export default function NewAnalysisPage() {
   const handleLaunchAnalysis = async () => {
     if (!routing) return;
     setLaunching(true);
+
+    // If docs/images exist but extraction hasn't run yet, run it now and wait
+    let finalExtraction = extraction;
+    if ((clarifierDocs.length > 0 || clarifierImages.length > 0) && !extraction) {
+      toast.info("Running document extraction before launch…");
+      finalExtraction = await runExtraction();
+    } else if (extractionPromiseRef.current) {
+      // Extraction is already running — wait for it
+      finalExtraction = await extractionPromiseRef.current;
+    }
     setModeRouting(routing);
 
     const primaryCard = toCardId(routing.primaryMode);
