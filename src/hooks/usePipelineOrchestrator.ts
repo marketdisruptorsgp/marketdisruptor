@@ -207,6 +207,7 @@ export function usePipelineOrchestrator(
           stressTestData: stressResult || undefined,
           redesignData: redesignResult || undefined,
           adaptiveContext: analysis.adaptiveContext || undefined,
+          extractedContext: extractedContext || undefined,
           patentData: (product as any).patentData || undefined,
         },
       }, 180_000);
