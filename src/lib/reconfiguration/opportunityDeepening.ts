@@ -431,6 +431,23 @@ function deepenOpportunitiesDeterministic(
         successCriteria: "At least 2 viable precedents identified with transferable mechanics",
       },
       precedents: [],
+      whyThisMatters: {
+        implications: [
+          `Current operations are constrained by ${driver}`,
+          `Growth potential is limited without addressing this structural friction`,
+          `Competitors who solve this first gain a lasting advantage`,
+        ],
+        ifSolved: [
+          `${direction.label} unlocks new revenue or margin opportunities`,
+          `The business can scale without proportional cost increases`,
+          `Structural position improves relative to competitors`,
+        ],
+      },
+      secondOrderEffects: [
+        `Early mover advantage in ${direction.label.toLowerCase()} creates switching costs`,
+        `Data and network effects compound over time`,
+        `Market position shifts from operator to infrastructure provider`,
+      ],
       resolvesConstraints: profile.bindingConstraints.slice(0, 1).map(c => c.constraintName),
       evidenceIds: [],
       signalDensity: relevanceScore,
