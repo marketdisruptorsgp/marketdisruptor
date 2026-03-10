@@ -215,6 +215,12 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       if (capturedAnalysisId) {
         const strategicEnginePayload = {
           structuralProfile: result.structuralProfile ?? null,
+          narrative: result.narrative ?? null,
+          insights: (result.insights ?? []).map(i => ({
+            id: i.id, label: i.label, description: i.description,
+            insightType: i.insightType, impact: i.impact, confidence: i.confidence,
+            evidenceIds: i.evidenceIds,
+          })),
           qualifiedPatterns: (result.qualifiedPatterns ?? []).map(qp => ({
             patternName: qp.pattern.name,
             signalDensity: qp.signalDensity,
@@ -223,9 +229,15 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           })),
           deepenedOpportunities: (result.deepenedOpportunities ?? []).map(d => ({
             reconfigurationLabel: d.reconfigurationLabel,
+            summary: d.summary,
             causalChain: d.causalChain,
+            strategicBet: d.strategicBet,
             economicMechanism: d.economicMechanism,
             firstMove: d.firstMove,
+            feasibility: d.feasibility,
+            whyThisMatters: (d as any).whyThisMatters ?? null,
+            strategicPrecedents: (d as any).strategicPrecedents ?? [],
+            secondOrderEffects: (d as any).secondOrderEffects ?? [],
             aiDeepened: (d as any).aiDeepened ?? false,
           })),
           pipelineEvents: result.events ?? [],
@@ -311,8 +323,11 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         supabase.from("saved_analyses").select("analysis_data").eq("id", analysisId).maybeSingle()
       ).then(({ data }) => {
           const ad = data?.analysis_data as any;
-          const se = ad?.strategicEngine;
-          const persistedGraph = ad?.insightGraph;
+          // Handle double-serialized JSON (stored as string instead of object)
+          const rawSe = ad?.strategicEngine;
+          const se = typeof rawSe === "string" ? (() => { try { return JSON.parse(rawSe); } catch { return null; } })() : rawSe;
+          const rawGraph = ad?.insightGraph;
+          const persistedGraph = typeof rawGraph === "string" ? (() => { try { return JSON.parse(rawGraph); } catch { return null; } })() : rawGraph;
 
           // Hydrate graph first (instant display)
           if (persistedGraph?.nodes?.length > 0) {
@@ -329,11 +344,18 @@ export function useAutoAnalysis(): AutoAnalysisResult {
             if (se.deepenedOpportunities?.length > 0) {
               setDeepenedOpportunities(se.deepenedOpportunities);
             }
+            if (se.narrative) {
+              setNarrative(se.narrative);
+            }
+            if (se.insights?.length > 0) {
+              setInsights(se.insights);
+            }
             setHasRun(true);
-            console.log("[StrategicEngine] ✓ Hydrated strategicEngine from DB");
+            console.log("[StrategicEngine] ✓ Hydrated strategicEngine from DB:",
+              `narrative=${!!se.narrative}, opportunities=${se.deepenedOpportunities?.length ?? 0}, insights=${se.insights?.length ?? 0}`);
 
-            // Only recompute if graph wasn't persisted (fallback path)
-            if (!persistedGraph?.nodes?.length) {
+            // Recompute if graph missing OR narrative missing (old persistence format)
+            if (!persistedGraph?.nodes?.length || !se.narrative) {
               setTimeout(() => runAnalysis(), 1500);
             }
           } else if (!persistedGraph?.nodes?.length) {
