@@ -110,7 +110,7 @@ function OpportunityCard({
                     Contrarian Belief
                   </p>
                   <p className="text-sm text-foreground font-semibold leading-snug">
-                    "{opp.strategicBet.contrarianBelief}"
+                    "{trimAt(opp.strategicBet.contrarianBelief, 200)}"
                   </p>
                   {opp.strategicBet.industryAssumption && (
                     <p className="text-xs text-muted-foreground mt-0.5">
