@@ -11,6 +11,7 @@ import type { StrategicProfile } from "@/lib/strategicOS";
 import type { AdaptiveContextData } from "./AnalysisContext";
 import type { BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import type { BusinessModelInput } from "./AnalysisContext";
+import { extractionToContext, type BIExtraction } from "@/hooks/useBIExtraction";
 
 export interface HydrationSetters {
   setAnalysisId: (id: string | null) => void;
@@ -143,7 +144,32 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   setters.setUserScores(ad?.userScores ? (ad.userScores as Record<string, Record<string, number>>) : {});
   setters.setInsightPreferences(ad?.insightPreferences ? (ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">) : {});
   setters.setSteeringText(ad?.steeringText ? (ad.steeringText as string) : "");
-  setters.setAdaptiveContext(ad?.adaptiveContext ? (ad.adaptiveContext as AdaptiveContextData) : null);
+  // Reconstruct adaptive context: if adaptiveContext is null but biExtraction exists at top level,
+  // rebuild a minimal adaptiveContext so all components/pipeline steps can access document intelligence
+  let hydratedAdaptiveCtx: AdaptiveContextData | null = ad?.adaptiveContext
+    ? (ad.adaptiveContext as AdaptiveContextData)
+    : null;
+  if (!hydratedAdaptiveCtx && ad?.biExtraction) {
+    const bi = ad.biExtraction as Record<string, unknown>;
+    const biz = bi?.business_overview as Record<string, string> | undefined;
+    // Reconstruct flattened context string from raw extraction
+    let contextStr = "";
+    try {
+      contextStr = extractionToContext(bi as unknown as BIExtraction);
+    } catch { /* non-critical — components can work without it */ }
+    hydratedAdaptiveCtx = {
+      problemStatement: biz?.company_name
+        ? `Analysis of ${biz.company_name}: ${biz.primary_offering || ""}`
+        : "Business analysis",
+      biExtraction: bi,
+      extractedContext: contextStr,
+    };
+  }
+  // Ensure biExtraction from top-level is injected into adaptiveContext if missing
+  if (hydratedAdaptiveCtx && !hydratedAdaptiveCtx.biExtraction && ad?.biExtraction) {
+    hydratedAdaptiveCtx = { ...hydratedAdaptiveCtx, biExtraction: ad.biExtraction as Record<string, unknown> };
+  }
+  setters.setAdaptiveContext(hydratedAdaptiveCtx);
   setters.setPitchDeckImages(ad?.pitchDeckImages ? (ad.pitchDeckImages as { url: string; ideaName: string }[]) : []);
   setters.setPitchDeckExclusions(
     ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)
