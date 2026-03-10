@@ -70,7 +70,7 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
             </p>
             {narrative?.validationExperiment && (
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Test: {narrative.validationExperiment}
+                Test: {trimAt(narrative.validationExperiment, 180)}
               </p>
             )}
             {narrative?.validationTimeframe && (
