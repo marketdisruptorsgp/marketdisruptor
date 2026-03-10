@@ -455,7 +455,7 @@ export default function NewAnalysisPage() {
       summary: aiAnalysis.summary,
       // Persist document intelligence so it flows through the entire pipeline
       extractedContext: extractedContext || undefined,
-      biExtraction: extraction ? (extraction as unknown as Record<string, unknown>) : undefined,
+      biExtraction: finalExtraction ? (finalExtraction as unknown as Record<string, unknown>) : undefined,
     } : problemText.trim().length > 15 ? {
       problemStatement: problemText,
       activeModes,
