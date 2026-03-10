@@ -12,7 +12,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { businessName, businessDescription, competitors, industry, revenue, services } = await req.json();
+    const { businessName, businessDescription, competitors, industry, revenue, services, naicsCode } = await req.json();
     if (!businessName) throw new Error("businessName is required");
     if (!competitors || !Array.isArray(competitors) || competitors.length === 0) {
       throw new Error("competitors array is required");
@@ -20,10 +20,13 @@ serve(async (req) => {
 
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
     if (!FIRECRAWL_API_KEY) throw new Error("FIRECRAWL_API_KEY not configured");
 
-    // Step 1: Scrape each named competitor + general industry search
+    // ═══════════════════════════════════════════
+    // STEP 1: Firecrawl — primary web scraping
+    // ═══════════════════════════════════════════
     const scrapeQueries = [
       ...competitors.slice(0, 6).map((c: string) => `"${c}" ${industry || ""} company services pricing`),
       `${industry || businessName} industry competitors market landscape 2025 2026`,
@@ -45,21 +48,68 @@ serve(async (req) => {
     );
 
     const allContent: string[] = [];
-    const allSources: { url: string; title: string }[] = [];
+    const allSources: { url: string; title: string; source: string }[] = [];
 
     for (const result of searchResults) {
       if (result.status === "fulfilled" && result.value?.data) {
         for (const item of result.value.data) {
-          if (item.url) allSources.push({ url: item.url, title: item.title || item.url });
-          if (item.markdown) allContent.push(`Source: ${item.url}\nTitle: ${item.title || ""}\n${item.markdown.slice(0, 2500)}`);
+          if (item.url) allSources.push({ url: item.url, title: item.title || item.url, source: "firecrawl" });
+          if (item.markdown) allContent.push(`[FIRECRAWL] Source: ${item.url}\nTitle: ${item.title || ""}\n${item.markdown.slice(0, 2500)}`);
         }
       }
     }
 
-    const combinedContent = allContent.join("\n\n---\n\n").slice(0, 22000);
-    const sourceUrlList = allSources.map(s => s.url).join("\n");
+    // ═══════════════════════════════════════════
+    // STEP 2: Perplexity — cross-reference corroboration
+    // ═══════════════════════════════════════════
+    let perplexityContent: string[] = [];
+    if (PERPLEXITY_API_KEY) {
+      const perplexityQueries = competitors.slice(0, 4).map((c: string) =>
+        `${c} company ${industry || ""} revenue employees services pricing competitive analysis`
+      );
 
-    // Step 2: AI synthesis into competitive positioning intelligence
+      const perplexityResults = await Promise.allSettled(
+        perplexityQueries.map(async (query: string) => {
+          const res = await fetch("https://api.perplexity.ai/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "sonar",
+              messages: [
+                { role: "system", content: "Provide factual, concise information about this company. Include revenue estimates, employee count, services, and pricing if available. Cite your sources." },
+                { role: "user", content: query },
+              ],
+              max_tokens: 1000,
+            }),
+          });
+          if (!res.ok) return null;
+          const data = await res.json();
+          const content = data.choices?.[0]?.message?.content || "";
+          const citations = data.citations || [];
+          return { content, citations, query };
+        })
+      );
+
+      for (const result of perplexityResults) {
+        if (result.status === "fulfilled" && result.value) {
+          const { content, citations } = result.value;
+          perplexityContent.push(`[PERPLEXITY] ${content}`);
+          for (const url of citations) {
+            allSources.push({ url, title: url, source: "perplexity" });
+          }
+        }
+      }
+    }
+
+    const combinedContent = [...allContent, ...perplexityContent].join("\n\n---\n\n").slice(0, 28000);
+    const sourceUrlList = allSources.map(s => `[${s.source}] ${s.url}`).join("\n");
+
+    // ═══════════════════════════════════════════
+    // STEP 3: AI synthesis with citation requirements
+    // ═══════════════════════════════════════════
     const aiRes = await fetch(AI_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
@@ -68,17 +118,18 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: `You are a competitive intelligence analyst specializing in M&A due diligence and acquisition strategy. Produce investor-grade competitive positioning intelligence.
+            content: `You are a competitive intelligence analyst specializing in M&A due diligence. Produce investor-grade competitive positioning intelligence with FULL SOURCE CITATIONS on every claim.
 
 TARGET BUSINESS:
 Name: ${businessName}
 Description: ${businessDescription || "N/A"}
 Industry: ${industry || "N/A"}
+NAICS: ${naicsCode || "N/A"}
 Revenue: ${revenue || "N/A"}
 Services: ${services || "N/A"}
 Named Competitors from CIM: ${competitors.join(", ")}
 
-WEB RESEARCH DATA:
+WEB RESEARCH DATA (tagged by source):
 ${combinedContent}
 
 Source URLs:
@@ -106,23 +157,32 @@ Produce a comprehensive competitive positioning analysis with this EXACT JSON st
         "reputation": 1-10
       },
       "threatLevel": "direct|indirect|peripheral",
-      "sources": ["url1"]
+      "sources": ["url1", "url2"],
+      "citations": {
+        "description": { "value": "the description text", "confidence": "scraped|ai-inferred", "sources": [{"url": "...", "title": "...", "snippet": "exact quote or context"}] },
+        "estimatedRevenue": { "value": "$X-YM", "confidence": "scraped|ai-inferred", "sources": [{"url": "...", "title": "..."}] },
+        "employeeRange": { "value": "10-50", "confidence": "scraped|ai-inferred", "sources": [{"url": "...", "title": "..."}] },
+        "pricingApproach": { "value": "pricing info", "confidence": "scraped|ai-inferred", "sources": [{"url": "...", "title": "..."}] },
+        "strengths": { "value": ["s1","s2"], "confidence": "scraped|ai-inferred", "sources": [{"url": "...", "title": "..."}] },
+        "weaknesses": { "value": ["w1","w2"], "confidence": "scraped|ai-inferred", "sources": [{"url": "...", "title": "..."}] }
+      },
+      "corroborationScore": 0.0-1.0,
+      "corroborationDetails": "Which sources agreed/disagreed"
     }
   ],
   "positioningMap": {
     "xAxis": { "label": "axis label", "description": "what it measures" },
     "yAxis": { "label": "axis label", "description": "what it measures" },
     "targetPosition": { "x": 1-10, "y": 1-10, "label": "${businessName}" },
-    "competitorPositions": [
-      { "name": "Name", "x": 1-10, "y": 1-10 }
-    ]
+    "competitorPositions": [{ "name": "Name", "x": 1-10, "y": 1-10 }]
   },
   "strategicGaps": [
     {
       "gap": "What no competitor is doing",
       "opportunity": "How to exploit this gap",
       "difficulty": "low|medium|high",
-      "potentialImpact": "Revenue or margin impact estimate"
+      "potentialImpact": "Revenue or margin impact estimate",
+      "sources": [{"url": "...", "title": "...", "snippet": "evidence"}]
     }
   ],
   "competitiveAdvantages": [
@@ -135,22 +195,24 @@ Produce a comprehensive competitive positioning analysis with this EXACT JSON st
   "marketDynamics": {
     "consolidationTrend": "fragmenting|stable|consolidating",
     "priceCompetition": "low|medium|high",
-    "differentiationBasis": "What drives customer choice in this market",
-    "entryBarriers": "What prevents new entrants"
+    "differentiationBasis": "What drives customer choice",
+    "entryBarriers": "What prevents new entrants",
+    "sources": [{"url": "...", "title": "..."}]
   }
 }
 
-RULES:
-- Profile EVERY named competitor from the CIM (${competitors.join(", ")}). If web data is sparse, still create a profile with available information.
-- Choose positioning map axes relevant to THIS industry (e.g., for construction: "Project Scale" vs "Specialization Depth"; for SaaS: "Price Point" vs "Feature Breadth").
-- Identify 3-5 strategic gaps — things competitors DON'T offer that the target business could.
-- Identify 2-3 existing competitive advantages of the target business.
-- Be specific and evidence-based. Use data from the web research.
+CITATION RULES:
+- EVERY claim must have a "confidence" field: "scraped" if directly from web data, "ai-inferred" if you extrapolated.
+- EVERY cited claim must link back to actual source URLs from the research data above.
+- "corroborationScore" = fraction of claims where Firecrawl AND Perplexity sources agree (0-1).
+- If data was found in BOTH [FIRECRAWL] and [PERPLEXITY] sources, confidence should be "scraped" with higher corroborationScore.
+- If only found in one source type, corroborationScore is lower.
+- Profile EVERY named competitor (${competitors.join(", ")}). If web data is sparse, create a profile but mark all fields as "ai-inferred".
 - Return ONLY valid JSON. No markdown, no code fences.`,
           },
         ],
         temperature: 0.3,
-        max_tokens: 8000,
+        max_tokens: 10000,
       }),
     });
 
@@ -168,7 +230,6 @@ RULES:
     try {
       result = JSON.parse(cleaned);
     } catch {
-      // Try to fix common JSON issues
       const fixed = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
       try {
         result = JSON.parse(fixed);
@@ -177,7 +238,12 @@ RULES:
       }
     }
 
-    return new Response(JSON.stringify({ success: true, ...result, sources: allSources.slice(0, 25) }), {
+    return new Response(JSON.stringify({
+      success: true,
+      ...result,
+      allSources: allSources.slice(0, 40),
+      hasPerplexityCorroboration: !!PERPLEXITY_API_KEY && perplexityContent.length > 0,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
