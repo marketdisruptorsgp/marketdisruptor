@@ -127,7 +127,7 @@ function OpportunityCard({
                     How It Creates Value
                   </p>
                   <p className="text-sm text-foreground leading-snug">
-                    {opp.economicMechanism.valueCreation}
+                    {trimAt(opp.economicMechanism.valueCreation, 200)}
                   </p>
                   {opp.economicMechanism.defensibility && (
                     <p className="text-xs text-muted-foreground mt-1">
