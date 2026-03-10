@@ -160,11 +160,13 @@ export function deepenOpportunities(
 
 // ═══════════════════════════════════════════════════════════════
 //  ASYNC DEEPENING — AI-Powered via Edge Function
+//  Now uses Strategic Direction Categories for 3-5 opportunities
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * AI-powered thesis deepening. Calls the `deepen-thesis` edge function
- * with structural profile + qualified patterns + evidence summary.
+ * AI-powered thesis deepening using the hybrid approach:
+ * Strategic Direction Categories (fixed scaffolding) + AI contextual generation.
+ * Produces 3-5 structurally distinct opportunities per analysis.
  * Falls back to deterministic deepening if AI fails.
  */
 export async function deepenOpportunitiesAsync(
@@ -185,7 +187,9 @@ export async function deepenOpportunitiesAsync(
     evaluation_priorities?: Record<string, number>;
   },
 ): Promise<DeepenedOpportunity[]> {
-  if (qualifiedPatterns.length === 0) return [];
+  // Select relevant strategic directions based on structural profile
+  const scoredDirections = selectRelevantDirections(profile, 5);
+  const hasDirections = scoredDirections.length >= 3;
 
   // Build evidence summary for the AI (top 25 most impactful)
   const evidenceSummary = evidence
@@ -200,87 +204,108 @@ export async function deepenOpportunitiesAsync(
     }));
 
   try {
+    const bodyPayload: Record<string, any> = {
+      structuralProfile: {
+        supplyFragmentation: profile.supplyFragmentation,
+        marginStructure: profile.marginStructure,
+        switchingCosts: profile.switchingCosts,
+        distributionControl: profile.distributionControl,
+        laborIntensity: profile.laborIntensity,
+        revenueModel: profile.revenueModel,
+        customerConcentration: profile.customerConcentration,
+        assetUtilization: profile.assetUtilization,
+        regulatorySensitivity: profile.regulatorySensitivity,
+        valueChainPosition: profile.valueChainPosition,
+        etaActive: profile.etaActive,
+        ownerDependency: profile.ownerDependency,
+        acquisitionComplexity: profile.acquisitionComplexity,
+        improvementRunway: profile.improvementRunway,
+        bindingConstraints: profile.bindingConstraints.map(bc => ({
+          constraintName: bc.constraintName,
+          explanation: bc.explanation,
+        })),
+      },
+      evidenceSummary,
+      analysisType,
+      businessContext: businessContext ?? buildBusinessContextFromEvidence(evidence),
+      operatorLens: operatorLens || null,
+    };
+
+    // Include qualified patterns if available
+    if (qualifiedPatterns.length > 0) {
+      bodyPayload.qualifiedPatterns = qualifiedPatterns.map(qp => ({
+        pattern: {
+          id: qp.pattern.id,
+          name: qp.pattern.name,
+          transformation: qp.pattern.transformation,
+          mechanism: qp.pattern.mechanism,
+          precedents: qp.pattern.precedents,
+        },
+        signalDensity: qp.signalDensity,
+        qualification: {
+          resolvesConstraints: qp.qualification.resolvesConstraints,
+          strengthSignals: qp.qualification.strengthSignals,
+        },
+        strategicBet: qp.strategicBet,
+      }));
+    }
+
+    // Include strategic directions for multi-opportunity generation
+    if (hasDirections) {
+      bodyPayload.strategicDirections = scoredDirections.map(sd => ({
+        id: sd.direction.id,
+        label: sd.direction.label,
+        description: sd.direction.description,
+        aiPromptHint: sd.direction.aiPromptHint,
+        relevanceScore: sd.relevanceScore,
+      }));
+    }
+
     const { data, error } = await invokeWithTimeout<{ theses: any[]; fallback?: boolean }>(
       "deepen-thesis",
-      {
-        body: {
-          structuralProfile: {
-            supplyFragmentation: profile.supplyFragmentation,
-            marginStructure: profile.marginStructure,
-            switchingCosts: profile.switchingCosts,
-            distributionControl: profile.distributionControl,
-            laborIntensity: profile.laborIntensity,
-            revenueModel: profile.revenueModel,
-            customerConcentration: profile.customerConcentration,
-            assetUtilization: profile.assetUtilization,
-            regulatorySensitivity: profile.regulatorySensitivity,
-            valueChainPosition: profile.valueChainPosition,
-            etaActive: profile.etaActive,
-            ownerDependency: profile.ownerDependency,
-            acquisitionComplexity: profile.acquisitionComplexity,
-            improvementRunway: profile.improvementRunway,
-            bindingConstraints: profile.bindingConstraints.map(bc => ({
-              constraintName: bc.constraintName,
-              explanation: bc.explanation,
-            })),
-          },
-          qualifiedPatterns: qualifiedPatterns.map(qp => ({
-            pattern: {
-              id: qp.pattern.id,
-              name: qp.pattern.name,
-              transformation: qp.pattern.transformation,
-              mechanism: qp.pattern.mechanism,
-              precedents: qp.pattern.precedents,
-            },
-            signalDensity: qp.signalDensity,
-            qualification: {
-              resolvesConstraints: qp.qualification.resolvesConstraints,
-              strengthSignals: qp.qualification.strengthSignals,
-            },
-            strategicBet: qp.strategicBet,
-          })),
-          evidenceSummary,
-          analysisType,
-          businessContext: businessContext ?? buildBusinessContextFromEvidence(evidence),
-          operatorLens: operatorLens || null,
-        },
-      },
+      { body: bodyPayload },
       120_000,
     );
 
     if (error || !data?.theses || data.theses.length === 0 || data.fallback) {
       console.warn("[AI Deepening] Falling back to deterministic:", error);
-      return deepenOpportunities(qualifiedPatterns, profile, evidence);
+      return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence);
     }
 
     console.log(`[AI Deepening] Received ${data.theses.length} AI-generated theses`);
 
     // Map AI output to DeepenedOpportunity format
     return data.theses.map((thesis: any, idx: number) => {
-      // Find the matching qualified pattern
-      const matchedQP = qualifiedPatterns.find(qp => qp.pattern.id === thesis.patternId) ?? qualifiedPatterns[idx];
-      if (!matchedQP) return null;
+      // Find matching qualified pattern (by patternId or directionId)
+      const matchedQP = qualifiedPatterns.find(qp => qp.pattern.id === thesis.patternId)
+        ?? qualifiedPatterns[Math.min(idx, qualifiedPatterns.length - 1)];
+      
+      // For direction-based theses without a matching pattern, create a synthetic wrapper
+      const patternId = thesis.directionId || thesis.patternId || `direction-${idx}`;
+      const patternName = thesis.directionId
+        ? (scoredDirections.find(sd => sd.direction.id === thesis.directionId)?.direction.label || patternId)
+        : (matchedQP?.pattern.name || patternId);
 
-      const relevantEvidenceIds = findRelevantEvidence(matchedQP, evidence);
+      const relevantEvidenceIds = matchedQP ? findRelevantEvidence(matchedQP, evidence) : [];
 
       return {
         id: `deep-opp-ai-${idx + 1}`,
-        patternId: matchedQP.pattern.id,
-        patternName: matchedQP.pattern.name,
-        label: thesis.reconfigurationLabel || matchedQP.pattern.transformation,
-        reconfigurationLabel: thesis.reconfigurationLabel || "Structural reconfiguration",
+        patternId,
+        patternName,
+        label: thesis.reconfigurationLabel || patternName,
+        reconfigurationLabel: thesis.reconfigurationLabel || "Strategic reconfiguration",
         summary: thesis.summary || "",
         causalChain: {
           constraint: thesis.causalChain?.constraint || "structural constraint",
           driver: thesis.causalChain?.driver || "underlying structural friction",
-          pattern: thesis.causalChain?.pattern || matchedQP.pattern.name,
+          pattern: thesis.causalChain?.pattern || patternName,
           outcome: thesis.causalChain?.outcome || "improved structural position",
           reasoning: thesis.causalChain?.reasoning || "",
         },
         strategicBet: {
-          industryAssumption: thesis.strategicBet?.industryAssumption || matchedQP.strategicBet.industryAssumption,
-          contrarianBelief: thesis.strategicBet?.contrarianBelief || matchedQP.strategicBet.contrarianBelief,
-          implication: thesis.strategicBet?.implication || matchedQP.strategicBet.implication,
+          industryAssumption: thesis.strategicBet?.industryAssumption || matchedQP?.strategicBet.industryAssumption || "Industry norm",
+          contrarianBelief: thesis.strategicBet?.contrarianBelief || matchedQP?.strategicBet.contrarianBelief || "Contrarian view",
+          implication: thesis.strategicBet?.implication || matchedQP?.strategicBet.implication || "Strategic implication",
         },
         economicMechanism: {
           valueCreation: thesis.economicMechanism?.valueCreation || "",
@@ -301,16 +326,93 @@ export async function deepenOpportunitiesAsync(
           timeframe: thesis.firstMove?.timeframe || "2 weeks",
           successCriteria: thesis.firstMove?.successCriteria || "30%+ positive response rate",
         },
-        precedents: thesis.precedents || matchedQP.pattern.precedents,
-        resolvesConstraints: matchedQP.qualification.resolvesConstraints,
+        precedents: thesis.precedents || matchedQP?.pattern.precedents || [],
+        resolvesConstraints: matchedQP?.qualification.resolvesConstraints || [],
         evidenceIds: relevantEvidenceIds,
-        signalDensity: matchedQP.signalDensity,
+        signalDensity: matchedQP?.signalDensity || 0,
       } as DeepenedOpportunity;
     }).filter(Boolean) as DeepenedOpportunity[];
   } catch (err) {
     console.warn("[AI Deepening] Error, falling back to deterministic:", err);
-    return deepenOpportunities(qualifiedPatterns, profile, evidence);
+    return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence);
   }
+}
+
+/**
+ * Deterministic fallback that uses strategic directions to generate
+ * 3-5 opportunities even without AI. Less specific but guarantees breadth.
+ */
+function deepenOpportunitiesDeterministic(
+  qualifiedPatterns: QualifiedPattern[],
+  profile: StructuralProfile,
+  evidence: Evidence[],
+): DeepenedOpportunity[] {
+  // Start with pattern-based opportunities
+  const patternOpps = deepenOpportunities(qualifiedPatterns, profile, evidence);
+
+  // If we already have 3+, return them
+  if (patternOpps.length >= 3) return patternOpps.slice(0, 5);
+
+  // Use strategic directions to fill the gap
+  const scoredDirections = selectRelevantDirections(profile, 5);
+  const usedPatternIds = new Set(patternOpps.map(o => o.patternId));
+
+  for (const { direction, relevanceScore } of scoredDirections) {
+    if (patternOpps.length >= 5) break;
+    // Skip directions that overlap with existing pattern opportunities
+    if (usedPatternIds.has(direction.id)) continue;
+    if (direction.id === "aggregate" && usedPatternIds.has("aggregation")) continue;
+    if (direction.id === "shared_infrastructure" && usedPatternIds.has("infrastructure_abstraction")) continue;
+
+    const constraint = profile.bindingConstraints[0]?.explanation || "structural constraint";
+    const driver = profile.bindingConstraints[0]?.constraintName.replace(/_/g, " ") || "underlying friction";
+
+    patternOpps.push({
+      id: `deep-opp-dir-${direction.id}`,
+      patternId: direction.id,
+      patternName: direction.label,
+      label: `${direction.label}: ${direction.description.slice(0, 80)}`,
+      reconfigurationLabel: `${direction.label} — ${direction.description}`,
+      summary: `${direction.description} This direction has ${relevanceScore >= 6 ? "high" : relevanceScore >= 3 ? "moderate" : "exploratory"} structural relevance based on the current business profile.`,
+      causalChain: {
+        constraint,
+        driver,
+        pattern: direction.label,
+        outcome: `Unlock new value through ${direction.label.toLowerCase()}`,
+        reasoning: `Because ${driver}, applying ${direction.label.toLowerCase()} could address the structural constraint.`,
+      },
+      strategicBet: {
+        industryAssumption: "The current model is the only viable approach",
+        contrarianBelief: `${direction.label} could fundamentally change the economics`,
+        implication: "First mover in this direction captures structural advantage",
+      },
+      economicMechanism: {
+        valueCreation: direction.description,
+        costStructureShift: "Shifts from variable to fixed costs",
+        revenueImplication: "Creates new revenue stream or improves unit economics",
+        defensibility: null,
+      },
+      feasibility: {
+        level: "requires_validation" as FeasibilityLevel,
+        marketConditions: ["Market readiness for this approach"],
+        requiredCapabilities: ["Execution capability for this direction"],
+        executionRisks: ["Unvalidated demand"],
+        regulatoryConsiderations: null,
+      },
+      firstMove: {
+        action: `Research 3-5 companies that have successfully applied ${direction.label.toLowerCase()} in adjacent industries`,
+        learningObjective: "Whether the structural conditions support this direction",
+        timeframe: "1 week",
+        successCriteria: "At least 2 viable precedents identified with transferable mechanics",
+      },
+      precedents: [],
+      resolvesConstraints: profile.bindingConstraints.slice(0, 1).map(c => c.constraintName),
+      evidenceIds: [],
+      signalDensity: relevanceScore,
+    });
+  }
+
+  return patternOpps;
 }
 
 /** Extract rough business context from evidence labels for AI prompt enrichment */
