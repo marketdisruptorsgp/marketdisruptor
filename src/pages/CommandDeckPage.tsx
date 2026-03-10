@@ -41,6 +41,8 @@ import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/
 import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
+import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
+import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
