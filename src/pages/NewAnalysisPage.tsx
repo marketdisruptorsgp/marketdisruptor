@@ -493,7 +493,7 @@ export default function NewAnalysisPage() {
             businessModel: {
               type: name,
               description: challengeContext ? `${notes}\n\n--- FOCUS AREAS ---\n${challengeContext}` : notes,
-              revenueModel: extraction?.revenue_engine?.revenue_sources?.join(", ") || "",
+              revenueModel: finalExtraction?.revenue_engine?.revenue_sources?.join(", ") || "",
               size: "",
               geography: "",
               painPoints: notes,
