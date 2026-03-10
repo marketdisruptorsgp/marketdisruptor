@@ -62,7 +62,7 @@ export const IndustryBenchmarkPanel = memo(function IndustryBenchmarkPanel({ ben
             >
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-foreground">{m.label}</p>
-                <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{m.rationale}</p>
+                <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{trimAt(m.rationale, 150)}</p>
               </div>
               <div className="ml-3 flex-shrink-0">
                 <RatingBadge rating={m.rating} />
