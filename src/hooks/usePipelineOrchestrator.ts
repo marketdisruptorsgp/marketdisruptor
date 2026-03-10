@@ -284,11 +284,11 @@ export function usePipelineOrchestrator(
       // Step 2: Redesign
       const redesignResult = await runRedesign(product, extractedContext, disruptResult);
 
-      // Steps 3 & 4: Stress Test + Pitch — run stress test first, then pitch with results
+      // Steps 3 & 4: Stress Test + Pitch — run stress test first with disrupt+redesign data, then pitch
       setCurrentStep("stressTest");
-      const stressResult = await runStressTest(product, extractedContext);
+      const stressResult = await runStressTest(product, extractedContext, disruptResult, redesignResult);
 
-      // Pitch now gets stress test data
+      // Pitch now gets all upstream data
       setCurrentStep("pitch");
       await runPitch(product, extractedContext, disruptResult, redesignResult, stressResult);
 
