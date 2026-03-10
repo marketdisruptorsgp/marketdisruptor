@@ -513,6 +513,8 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
         parts.push("\nSUPPLY CHAIN INTELLIGENCE:");
         if (sc.suppliers?.length > 0) parts.push(`  Key Suppliers: ${sc.suppliers.map((s: any) => `${s.name} (${s.region}, ${s.role || ""})`).join("; ")}`);
         if (sc.manufacturers?.length > 0) parts.push(`  Manufacturers: ${sc.manufacturers.map((m: any) => `${m.name} (${m.region}, MOQ: ${m.moq || "?"})`).join("; ")}`);
+        if (sc.vendors?.length > 0) parts.push(`  Vendors: ${sc.vendors.map((v: any) => `${v.name} (${v.type || ""}) ${v.url || ""}`).join("; ")}`);
+        if (sc.retailers?.length > 0) parts.push(`  Retailers: ${sc.retailers.map((r: any) => `${r.name} (${r.type || ""}, share: ${r.marketShare || "?"}) ${r.url || ""}`).join("; ")}`);
         if (sc.distributors?.length > 0) parts.push(`  Distributors: ${sc.distributors.map((d: any) => `${d.name} (${d.region})`).join("; ")}`);
       }
 
