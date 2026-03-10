@@ -215,6 +215,12 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       if (capturedAnalysisId) {
         const strategicEnginePayload = {
           structuralProfile: result.structuralProfile ?? null,
+          narrative: result.narrative ?? null,
+          insights: (result.insights ?? []).map(i => ({
+            id: i.id, label: i.label, description: i.description,
+            insightType: i.insightType, impact: i.impact, confidence: i.confidence,
+            evidenceIds: i.evidenceIds,
+          })),
           qualifiedPatterns: (result.qualifiedPatterns ?? []).map(qp => ({
             patternName: qp.pattern.name,
             signalDensity: qp.signalDensity,
@@ -223,9 +229,15 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           })),
           deepenedOpportunities: (result.deepenedOpportunities ?? []).map(d => ({
             reconfigurationLabel: d.reconfigurationLabel,
+            summary: d.summary,
             causalChain: d.causalChain,
+            strategicBet: d.strategicBet,
             economicMechanism: d.economicMechanism,
             firstMove: d.firstMove,
+            feasibility: d.feasibility,
+            whyThisMatters: (d as any).whyThisMatters ?? null,
+            strategicPrecedents: (d as any).strategicPrecedents ?? [],
+            secondOrderEffects: (d as any).secondOrderEffects ?? [],
             aiDeepened: (d as any).aiDeepened ?? false,
           })),
           pipelineEvents: result.events ?? [],
