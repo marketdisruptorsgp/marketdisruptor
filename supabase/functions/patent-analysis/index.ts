@@ -164,37 +164,81 @@ Provide the deepest possible patent intelligence. Focus especially on:
 
 Be specific, bold, and commercial. This analysis should fundamentally change how someone approaches this market.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.65,
-        max_tokens: 8000,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const txt = await response.text();
-      throw new Error(`AI gateway error ${response.status}: ${txt}`);
+    // ── AI call with model cascade and retry ──
+    async function callPatentAI(model: string) {
+      return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.65,
+          max_tokens: 8000,
+        }),
+      });
     }
 
-    const aiData = await response.json();
-    const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
+    async function callWithRetry(model: string, retries = 2): Promise<Response> {
+      for (let i = 0; i <= retries; i++) {
+        const res = await callPatentAI(model);
+        if (res.status !== 503 || i === retries) return res;
+        console.warn(`[Patent] ${model} returned 503, retry ${i + 1}/${retries}`);
+        await new Promise(r => setTimeout(r, (i + 1) * 2000));
+      }
+      return callPatentAI(model);
+    }
 
-    const patentData = extractAndParseJson(rawText);
+    const MODEL_CASCADE = ["google/gemini-2.5-flash", "google/gemini-2.5-pro", "google/gemini-3-flash-preview"];
+    let patentData: unknown = null;
+
+    for (const model of MODEL_CASCADE) {
+      try {
+        const response = await callWithRetry(model, model === MODEL_CASCADE[0] ? 1 : 2);
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+              status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          if (response.status === 402) {
+            return new Response(JSON.stringify({ error: "AI usage credits exhausted." }), {
+              status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          const txt = await response.text();
+          console.warn(`[Patent] ${model} failed ${response.status}: ${txt.slice(0, 200)}`);
+          continue;
+        }
+
+        const aiData = await response.json();
+        const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
+
+        if (!rawText) {
+          console.warn(`[Patent] ${model} returned empty content`);
+          continue;
+        }
+
+        patentData = extractAndParseJson(rawText);
+        console.log(`[Patent] Success with model: ${model}`);
+        break;
+      } catch (err) {
+        console.warn(`[Patent] ${model} attempt failed:`, err instanceof Error ? err.message : err);
+        if (model === MODEL_CASCADE[MODEL_CASCADE.length - 1]) {
+          throw new Error("All AI models failed for patent analysis. Please try again.");
+        }
+      }
+    }
+
+    if (!patentData) {
+      throw new Error("Patent analysis failed — all AI models returned unusable output. Please retry.");
+    }
 
     return new Response(JSON.stringify({ success: true, patentData }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -305,35 +349,77 @@ function extractAndParseJson(raw: string): unknown {
   // Attempt 1: direct parse
   try { return JSON.parse(cleaned); } catch { /* continue */ }
 
-  // Attempt 2: fix trailing commas and control chars
+  // Attempt 2: fix trailing commas, control chars, and unescaped newlines in strings
   let fixed = cleaned
     .replace(/,\s*}/g, "}")
     .replace(/,\s*]/g, "]")
-    .replace(/[\x00-\x1F\x7F]/g, " ");
+    .replace(/[\x00-\x1F\x7F]/g, " ")
+    .replace(/\t/g, " ");
   try { return JSON.parse(fixed); } catch { /* continue */ }
 
-  // Attempt 3: repair truncated JSON by closing open braces/brackets
-  const openBraces = (fixed.match(/{/g) || []).length;
-  const closeBraces = (fixed.match(/}/g) || []).length;
-  const openBrackets = (fixed.match(/\[/g) || []).length;
-  const closeBrackets = (fixed.match(/\]/g) || []).length;
+  // Attempt 3: repair truncated JSON by closing open structures
+  // First, try to find the last complete key-value pair
+  // Remove any trailing incomplete string or value
+  const truncPatterns = [
+    /,\s*"[^"]*"?\s*:?\s*"?[^"{}[\]]*$/,  // trailing partial key:value
+    /,\s*"[^"]*$/,                           // trailing partial string
+    /,\s*\d+\.?\d*$/,                        // trailing partial number
+    /,\s*$/,                                 // trailing comma
+  ];
+  for (const pat of truncPatterns) {
+    const before = fixed;
+    fixed = fixed.replace(pat, "");
+    if (fixed !== before) break; // only apply the first matching pattern
+  }
 
-  // Remove trailing partial key/value
-  fixed = fixed.replace(/,\s*"[^"]*"?\s*:?\s*"?[^"]*$/, "");
-  fixed = fixed.replace(/,\s*$/, "");
+  // Count unbalanced structures and close them
+  let braces = 0, brackets = 0;
+  let inString = false, escaped = false;
+  for (const ch of fixed) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") braces++;
+    if (ch === "}") braces--;
+    if (ch === "[") brackets++;
+    if (ch === "]") brackets--;
+  }
 
   let suffix = "";
-  for (let i = 0; i < openBrackets - closeBrackets; i++) suffix += "]";
-  for (let i = 0; i < openBraces - closeBraces; i++) suffix += "}";
+  for (let i = 0; i < brackets; i++) suffix += "]";
+  for (let i = 0; i < braces; i++) suffix += "}";
 
   try {
     const result = JSON.parse(fixed + suffix);
-    console.warn("Recovered patent JSON via truncation repair");
+    console.warn("[Patent] Recovered JSON via truncation repair");
     return result;
-  } catch {
-    console.error("JSON parse failed after all attempts:", cleaned.slice(0, 500));
-    throw new Error("AI returned invalid JSON for patent analysis.");
+  } catch { /* continue */ }
+
+  // Attempt 4: aggressive — find the largest parseable JSON prefix
+  for (let end = fixed.length; end > 100; end -= 50) {
+    const slice = fixed.slice(0, end);
+    let b = 0, k = 0, inStr = false, esc = false;
+    for (const c of slice) {
+      if (esc) { esc = false; continue; }
+      if (c === "\\") { esc = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === "{") b++; if (c === "}") b--;
+      if (c === "[") k++; if (c === "]") k--;
+    }
+    let s = "";
+    for (let i = 0; i < k; i++) s += "]";
+    for (let i = 0; i < b; i++) s += "}";
+    try {
+      const result = JSON.parse(slice + s);
+      console.warn(`[Patent] Recovered JSON by trimming ${fixed.length - end} chars from end`);
+      return result;
+    } catch { /* continue trimming */ }
   }
+
+  console.error("[Patent] JSON parse failed after all attempts. First 500 chars:", cleaned.slice(0, 500));
+  throw new Error("AI returned invalid JSON for patent analysis. Please retry.");
 }
 
 // ---- Helper: USPTO PatentsView API (free, no key needed) ----
