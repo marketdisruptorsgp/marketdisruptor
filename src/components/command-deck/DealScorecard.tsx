@@ -13,6 +13,7 @@ import {
   DollarSign, Users, Building, TrendingUp, Shield, Zap,
 } from "lucide-react";
 import { extractFinancialInputs } from "@/lib/etaScoringEngine";
+import { ProvenanceBadge, type ProvenanceSource } from "./ProvenanceBadge";
 
 interface DealScorecardProps {
   biExtraction: Record<string, any> | null;
