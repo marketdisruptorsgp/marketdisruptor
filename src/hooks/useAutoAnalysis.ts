@@ -311,8 +311,11 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         supabase.from("saved_analyses").select("analysis_data").eq("id", analysisId).maybeSingle()
       ).then(({ data }) => {
           const ad = data?.analysis_data as any;
-          const se = ad?.strategicEngine;
-          const persistedGraph = ad?.insightGraph;
+          // Handle double-serialized JSON (stored as string instead of object)
+          const rawSe = ad?.strategicEngine;
+          const se = typeof rawSe === "string" ? (() => { try { return JSON.parse(rawSe); } catch { return null; } })() : rawSe;
+          const rawGraph = ad?.insightGraph;
+          const persistedGraph = typeof rawGraph === "string" ? (() => { try { return JSON.parse(rawGraph); } catch { return null; } })() : rawGraph;
 
           // Hydrate graph first (instant display)
           if (persistedGraph?.nodes?.length > 0) {
