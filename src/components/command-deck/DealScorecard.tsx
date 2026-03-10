@@ -108,6 +108,7 @@ function buildSignals(
       status: multiple <= 3.5 ? "go" : multiple <= 4.5 ? "caution" : "no-go",
       detail: `${multiple.toFixed(1)}x SDE — ${multiple <= 3.5 ? "Fair market range" : multiple <= 4.5 ? "Premium — needs justification" : "Overpriced for SMB acquisition"}`,
       source: "Deal economics",
+      provenance: "modeled",
     });
   }
 
