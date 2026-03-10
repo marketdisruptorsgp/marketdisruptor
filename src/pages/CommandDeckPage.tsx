@@ -618,6 +618,14 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
+            DEAL SCORECARD — Go/No-Go verdict with deal structure
+           ══════════════════════════════════════════════════════════ */}
+        <DealScorecard
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
             DUE DILIGENCE — Hard-hitting questions for sellers
            ══════════════════════════════════════════════════════════ */}
         <DueDiligenceQuestions
