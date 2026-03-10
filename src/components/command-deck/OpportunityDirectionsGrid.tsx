@@ -131,7 +131,7 @@ function OpportunityCard({
                   </p>
                   {opp.economicMechanism.defensibility && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Defensibility: {opp.economicMechanism.defensibility}
+                      Defensibility: {trimAt(opp.economicMechanism.defensibility, 150)}
                     </p>
                   )}
                 </div>
