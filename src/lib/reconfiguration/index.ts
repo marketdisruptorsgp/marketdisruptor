@@ -45,3 +45,6 @@ export type {
   FeasibilityLevel,
   FirstMove,
 } from "./opportunityDeepening";
+
+export { STRATEGIC_DIRECTIONS, selectRelevantDirections, buildDirectionsPromptBlock } from "./strategicDirections";
+export type { StrategicDirection, ScoredDirection } from "./strategicDirections";
