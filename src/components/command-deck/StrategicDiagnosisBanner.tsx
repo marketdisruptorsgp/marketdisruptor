@@ -8,7 +8,7 @@
 import { memo, useMemo } from "react";
 import { Crosshair } from "lucide-react";
 import { motion } from "framer-motion";
-import { humanizeLabel } from "@/lib/humanize";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 
 interface StrategicDiagnosisBannerProps {
   constraintLabel: string | null;
