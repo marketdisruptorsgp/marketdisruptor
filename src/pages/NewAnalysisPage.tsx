@@ -441,7 +441,7 @@ export default function NewAnalysisPage() {
       : "";
 
     // Build extracted context if available
-    const extractedContext = extraction ? extractionToContext(extraction) : "";
+    const extractedContext = finalExtraction ? extractionToContext(finalExtraction) : "";
 
     // Build and persist adaptive context for the entire pipeline
     // Include activeModes from detected+toggled modes
