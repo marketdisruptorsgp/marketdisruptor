@@ -12,17 +12,23 @@ serve(async (req) => {
   }
 
   try {
-    const { structuralProfile, qualifiedPatterns, evidenceSummary, analysisType, businessContext, operatorLens } = await req.json();
+    const { structuralProfile, qualifiedPatterns, evidenceSummary, analysisType, businessContext, operatorLens, strategicDirections } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    if (!structuralProfile || !qualifiedPatterns || qualifiedPatterns.length === 0) {
-      return new Response(JSON.stringify({ error: "structuralProfile and qualifiedPatterns are required" }), {
+    if (!structuralProfile) {
+      return new Response(JSON.stringify({ error: "structuralProfile is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // ── Determine thesis count ──
+    // With strategic directions, we generate one per direction (3-5)
+    // Without, we fall back to one per qualified pattern (1-2)
+    const hasDirections = strategicDirections && strategicDirections.length > 0;
+    const thesisCount = hasDirections ? strategicDirections.length : (qualifiedPatterns?.length || 1);
 
     // ── Build Operator Lens Context ──
     const lensBlock = buildLensBlock(operatorLens);
@@ -30,40 +36,46 @@ serve(async (req) => {
     // ── Build Differentiation Bias ──
     const differentiationBias = buildDifferentiationBias(structuralProfile, operatorLens);
 
-    const systemPrompt = `You are a strategic business reconfiguration analyst. Given a structural profile of a business, qualified structural patterns, and evidence, you generate SPECIFIC, CONCRETE thesis deepenings — not generic consulting advice.
+    // ── Build Directions Block ──
+    const directionsBlock = hasDirections ? buildDirectionsBlock(strategicDirections) : "";
+
+    const systemPrompt = `You are a strategic business reconfiguration analyst. Given a structural profile of a business, you generate SPECIFIC, CONCRETE strategic opportunities — not generic consulting advice.
+
+You must generate ${thesisCount} distinct strategic opportunities, each representing a STRUCTURALLY DIFFERENT path the business could take.
+
+${hasDirections ? `Each opportunity corresponds to a strategic direction category provided below. Your job is to make each direction SPECIFIC and CONCRETE for this particular business.` : `Generate one thesis per qualified pattern.`}
 
 CRITICAL RULES:
 1. The "reconfigurationLabel" must describe the SPECIFIC business move in plain language. Not "Infrastructure Abstraction" but "Productize internal dispatch workflow into a SaaS scheduling platform for independent plumbers."
-2. The "causalChain" must trace a specific constraint to a specific outcome through a specific mechanism. No hand-waving.
+2. The "causalChain" must trace a specific constraint to a specific outcome through a specific mechanism.
 3. The "economicMechanism" must describe concrete value creation — how revenue changes, what costs shift, what defensibility emerges.
-4. The "firstMove" must be something a business owner can literally do next week. Not "conduct market research" but "Interview 10 repeat customers about whether they'd pay $49/mo for guaranteed same-day scheduling."
+4. The "firstMove" must be something a business owner can literally do next week.
 5. The "strategicBet" must articulate a genuine contrarian belief — something most people in this industry would disagree with.
-6. Every field must reference specifics from the structural profile and evidence. No templated responses.
+6. Every field must reference specifics from the structural profile and evidence.
+7. Each opportunity must be STRUCTURALLY DISTINCT — different strategic paths, not variations of the same idea.
 
 STRATEGIC REASONING LENSES — Use these to generate non-obvious insights:
-1. CROSS-INDUSTRY ANALOGS: What companies in DIFFERENT industries solved a structurally similar constraint? How did they reconfigure? Can that mechanism transfer here?
-2. CONSTRAINT INVERSIONS: Can the binding constraint itself become a competitive advantage? (e.g., "slow" → "artisanal," "fragmented" → "curated local network")
-3. SECOND-ORDER EFFECTS: If this constraint were resolved, what NEW capability or market position becomes accessible that wasn't before?
-4. TEMPORAL ARBITRAGE: What recent changes (technology, regulation, consumer behavior) make a previously impossible move now viable? What timing window exists?
-5. NEGATIVE SPACE: What is NO competitor doing? Why? Is the reason structural (truly impossible) or assumed (an unexamined industry norm)?
-6. THREE-LENS MANDATE: Evaluate every thesis through: (a) structural viability, (b) economic mechanism, (c) operator execution capacity. All three must hold.
+1. CROSS-INDUSTRY ANALOGS: What companies in DIFFERENT industries solved a structurally similar constraint?
+2. CONSTRAINT INVERSIONS: Can the binding constraint itself become a competitive advantage?
+3. SECOND-ORDER EFFECTS: If this constraint were resolved, what NEW capability becomes accessible?
+4. TEMPORAL ARBITRAGE: What recent changes make a previously impossible move now viable?
+5. NEGATIVE SPACE: What is NO competitor doing? Why? Is the reason structural or assumed?
+6. THREE-LENS MANDATE: Evaluate through: (a) structural viability, (b) economic mechanism, (c) operator execution capacity.
 
 DIFFERENTIATION MANDATE:
 ${differentiationBias}
 
 ${lensBlock}
 
-You are generating ${qualifiedPatterns.length} deepened thesis(es), one per qualified pattern.`;
+${directionsBlock}`;
 
     const profileSummary = buildProfileSummary(structuralProfile);
-    const patternsSummary = buildPatternsSummary(qualifiedPatterns);
+    const patternsSummary = qualifiedPatterns?.length > 0 ? buildPatternsSummary(qualifiedPatterns) : "No qualified structural patterns (using strategic directions instead).";
 
     const userPrompt = `STRUCTURAL PROFILE:
 ${profileSummary}
 
-QUALIFIED PATTERNS:
-${patternsSummary}
-
+${qualifiedPatterns?.length > 0 ? `QUALIFIED STRUCTURAL PATTERNS:\n${patternsSummary}\n` : ""}
 BUSINESS CONTEXT:
 Type: ${analysisType || "product"}
 ${businessContext || "No additional context."}
@@ -71,7 +83,7 @@ ${businessContext || "No additional context."}
 EVIDENCE SUMMARY (top signals):
 ${(evidenceSummary || []).slice(0, 25).map((e: any) => `- [${e.type}] ${e.label}${e.description ? ": " + e.description.slice(0, 150) : ""}`).join("\n")}
 
-Generate one deepened thesis per qualified pattern. Each thesis MUST be specific to THIS business — not generic industry advice. Return ONLY the JSON array.`;
+Generate ${thesisCount} deepened strategic opportunities. Each must be specific to THIS business and structurally distinct from the others. Return ONLY the JSON via the tool call.`;
 
     const tools = [buildToolSchema()];
 
@@ -123,7 +135,7 @@ Generate one deepened thesis per qualified pattern. Each thesis MUST be specific
       });
     }
 
-    // Defensively read response body as text first to handle truncation
+    // Defensively read response body
     let rawText: string;
     try {
       rawText = await response.text();
@@ -138,8 +150,7 @@ Generate one deepened thesis per qualified pattern. Each thesis MUST be specific
     try {
       data = JSON.parse(rawText);
     } catch (jsonErr) {
-      console.error("Failed to parse AI response JSON, attempting recovery. Raw length:", rawText.length, "Tail:", rawText.slice(-200));
-      // Attempt recovery — not possible for top-level structure, return fallback
+      console.error("Failed to parse AI response JSON. Raw length:", rawText.length);
       return new Response(JSON.stringify({ theses: [], fallback: true, reason: "truncated_response" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -171,7 +182,6 @@ Generate one deepened thesis per qualified pattern. Each thesis MUST be specific
       theses = parsed.theses || [];
     } catch (e) {
       console.warn("Tool call JSON parse failed, attempting recovery. Args length:", argsStr?.length);
-      // Try to recover truncated tool call arguments
       try {
         const recovered = parseWithRecovery(argsStr);
         theses = (recovered as any).theses || (Array.isArray(recovered) ? recovered : []);
@@ -184,7 +194,7 @@ Generate one deepened thesis per qualified pattern. Each thesis MUST be specific
       }
     }
 
-    console.log(`[deepen-thesis] Generated ${theses.length} AI theses for ${qualifiedPatterns.length} patterns`);
+    console.log(`[deepen-thesis] Generated ${theses.length} AI theses (requested ${thesisCount})`);
 
     return new Response(JSON.stringify({ theses }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -202,6 +212,30 @@ Generate one deepened thesis per qualified pattern. Each thesis MUST be specific
 // ═══════════════════════════════════════════════════════════════
 //  HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
+
+function buildDirectionsBlock(directions: any[]): string {
+  if (!directions || directions.length === 0) return "";
+
+  const lines = [
+    "\nSTRATEGIC DIRECTION CATEGORIES — Generate one opportunity per direction below.",
+    "Each direction represents a structurally distinct strategic path. Make each one SPECIFIC to this business.\n",
+  ];
+
+  for (const dir of directions) {
+    const strength = dir.relevanceScore >= 6 ? "HIGH relevance" : dir.relevanceScore >= 3 ? "MODERATE relevance" : "EXPLORATORY";
+    lines.push(`### ${dir.label?.toUpperCase() || dir.id?.toUpperCase()} [${strength}]`);
+    lines.push(dir.description || "");
+    if (dir.aiPromptHint) lines.push(`AI TASK: ${dir.aiPromptHint}`);
+    lines.push(`Direction ID: ${dir.id}`);
+    lines.push("");
+  }
+
+  lines.push("IMPORTANT: Generate one thesis per direction. Each must be structurally distinct — NOT variations of the same idea.");
+  lines.push("If a direction truly doesn't apply to this business, still generate the best version you can — the user needs multiple options.");
+  lines.push("Set the 'directionId' field to match the direction ID above.");
+
+  return lines.join("\n");
+}
 
 function buildLensBlock(operatorLens: any): string {
   if (!operatorLens) return "";
@@ -229,7 +263,7 @@ function buildLensBlock(operatorLens: any): string {
     parts.push(`Priority Weights: ${priorities}`);
   }
 
-  parts.push("\nCRITICAL: The operator's lens MUST shape the thesis. Two operators in the same market with different assets, goals, or constraints should receive completely different strategic recommendations. The thesis must be specific to THIS operator's position.");
+  parts.push("\nCRITICAL: The operator's lens MUST shape the thesis. Two operators in the same market with different assets, goals, or constraints should receive completely different strategic recommendations.");
 
   return parts.join("\n");
 }
@@ -296,7 +330,7 @@ function buildToolSchema() {
     type: "function",
     function: {
       name: "return_deepened_theses",
-      description: "Return the deepened thesis objects for each qualified pattern.",
+      description: "Return the deepened thesis objects — one per strategic direction or qualified pattern.",
       parameters: {
         type: "object",
         properties: {
@@ -305,7 +339,8 @@ function buildToolSchema() {
             items: {
               type: "object",
               properties: {
-                patternId: { type: "string", description: "The pattern ID (e.g. 'aggregation', 'infrastructure_abstraction')" },
+                patternId: { type: "string", description: "The pattern ID or direction ID (e.g. 'aggregation', 'automate', 'platformize')" },
+                directionId: { type: "string", description: "The strategic direction category ID (e.g. 'automate', 'platformize', 'go_direct'). Required when strategic directions are provided." },
                 reconfigurationLabel: { type: "string", description: "Concrete, specific business move in one sentence. NOT the pattern name. Must be unique to this operator." },
                 summary: { type: "string", description: "One-paragraph summary of the opportunity." },
                 causalChain: {
@@ -313,7 +348,7 @@ function buildToolSchema() {
                   properties: {
                     constraint: { type: "string", description: "The binding constraint this resolves" },
                     driver: { type: "string", description: "Root cause behind the constraint" },
-                    pattern: { type: "string", description: "The structural pattern applied" },
+                    pattern: { type: "string", description: "The structural pattern or direction applied" },
                     outcome: { type: "string", description: "Expected outcome if the pattern works" },
                     reasoning: { type: "string", description: "One sentence: Because X, applying Y should produce Z" },
                   },
@@ -378,28 +413,24 @@ function buildToolSchema() {
   };
 }
 
-/** Attempt to recover a truncated JSON response (works for objects containing arrays) */
+/** Attempt to recover a truncated JSON response */
 function parseWithRecovery(content: string): unknown {
   try {
     return JSON.parse(content);
   } catch {
-    // Try wrapping with closing braces for truncated tool call args like {"theses":[{...},{...
-    // Strategy 1: Find last complete object in the theses array
     const thesesStart = content.indexOf('"theses"');
     if (thesesStart > 0) {
       const lastBrace = content.lastIndexOf("}");
       if (lastBrace > thesesStart) {
-        // Try closing the array and wrapper object
         const candidates = [
           content.substring(0, lastBrace + 1) + "]}",
           content.substring(0, lastBrace + 1) + "]",
         ];
         for (const candidate of candidates) {
           try {
-            const result = JSON.parse(candidate);
-            return result;
+            return JSON.parse(candidate);
           } catch {
-            // try next candidate
+            // try next
           }
         }
       }
