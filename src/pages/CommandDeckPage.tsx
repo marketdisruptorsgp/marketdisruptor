@@ -629,6 +629,31 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
+            LOI / OFFER BUILDER — Draft letter of intent
+           ══════════════════════════════════════════════════════════ */}
+        <LOIBuilder
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            90-DAY PLAYBOOK — Post-close action plan
+           ══════════════════════════════════════════════════════════ */}
+        <PostClosePlaybook
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            CIM COMPARISON — Side-by-side deal comparison
+           ══════════════════════════════════════════════════════════ */}
+        <CIMComparisonMode
+          currentAnalysisId={analysisId || ""}
+          currentBiExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          currentGovernedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
             DUE DILIGENCE — Hard-hitting questions for sellers
            ══════════════════════════════════════════════════════════ */}
         <DueDiligenceQuestions
