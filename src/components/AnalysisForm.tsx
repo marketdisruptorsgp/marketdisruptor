@@ -148,7 +148,31 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
 
       const d = data.data;
 
-      if (currentMode === "business") {
+      // Auto-detect entity type and suggest mode switch if different from current
+      const detectedType = d.detectedEntityType;
+      if (detectedType && detectedType !== "unknown") {
+        const detectedMode: Mode = detectedType === "business" ? "business" : detectedType === "service" ? "service" : "custom";
+        if (detectedMode !== currentMode) {
+          console.log("[AutoDetect] URL entity type:", detectedType, "current mode:", currentMode, "→ switching to", detectedMode);
+          setMode(detectedMode);
+          // Re-populate for the new mode
+          if (detectedMode === "business") {
+            setBusinessInput(prev => ({
+              type: prev.type || d.type || d.name || "",
+              description: prev.description || d.description || "",
+              revenueModel: prev.revenueModel || d.revenueModel || "",
+              size: prev.size || d.size || "",
+              geography: prev.geography || d.geography || "",
+              painPoints: prev.painPoints || d.painPoints || "",
+              notes: prev.notes || d.notes || "",
+            }));
+            toast.success(`Detected a business entity — switched to Business Model mode`);
+            return;
+          }
+        }
+      }
+
+      if (currentMode === "business" || detectedType === "business") {
         setBusinessInput(prev => ({
           type: prev.type || d.type || "",
           description: prev.description || d.description || "",
