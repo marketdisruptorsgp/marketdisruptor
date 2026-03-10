@@ -328,6 +328,33 @@ export default function NewAnalysisPage() {
         if (!clarifierName && (data.data.name || data.data.type)) {
           setClarifierName(data.data.name || data.data.type || "");
         }
+        // Auto-detect entity type and update routing if user hasn't manually selected a mode
+        const detectedType = data.data.detectedEntityType;
+        if (detectedType && !selectedMode && !routing) {
+          const engineMode = detectedType === "business" ? "business_model" as const
+            : detectedType === "service" ? "service" as const
+            : "product" as const;
+          const autoRouting: RoutingResult = {
+            primaryMode: engineMode,
+            secondaryModes: [],
+            scores: {
+              product: engineMode === "product" ? 1 : 0,
+              service: engineMode === "service" ? 1 : 0,
+              business_model: engineMode === "business_model" ? 1 : 0,
+            },
+            confidence: 0.8,
+            reasoning: `Auto-detected from URL: **${detectedType}** entity.`,
+          };
+          setRouting(autoRouting);
+          console.log("[AutoDetect] Entity type from URL:", detectedType);
+        }
+        // Store regulatory context and industry vertical in problem text if available
+        if (data.data.regulatoryContext && data.data.regulatoryContext !== "null") {
+          const regContext = `\n\n--- REGULATORY CONTEXT ---\n${data.data.regulatoryContext}`;
+          if (!problemText.includes("REGULATORY CONTEXT")) {
+            setProblemText(prev => prev + regContext);
+          }
+        }
         toast.success("Details extracted from URL!");
       }
     } catch (err) {

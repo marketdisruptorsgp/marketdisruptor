@@ -54,7 +54,6 @@ Deno.serve(async (req) => {
 
     if (!scrapeRes.ok) {
       console.warn("Firecrawl error (will try fallback):", scrapeData);
-      // Return a graceful fallback instead of 502 — some sites (e.g. LinkedIn) are blocked
       const urlObj = new URL(formattedUrl);
       const fallbackName = urlObj.hostname.replace("www.", "").split(".")[0];
       return new Response(
@@ -64,6 +63,7 @@ Deno.serve(async (req) => {
             name: fallbackName.charAt(0).toUpperCase() + fallbackName.slice(1),
             description: "",
             notes: `Auto-fill could not read this URL (${urlObj.hostname} may block scraping). Please fill in the details manually.`,
+            detectedEntityType: "unknown",
           },
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -89,24 +89,37 @@ Deno.serve(async (req) => {
             name: pageTitle,
             description: pageDescription,
             notes: truncatedMarkdown.substring(0, 500),
+            detectedEntityType: "unknown",
           },
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Always include entity type detection regardless of mode
+    const entityDetectionInstruction = `
+IMPORTANT: Also detect what type of entity this URL represents. Set "detectedEntityType" to one of:
+- "product" — if the page is about a specific physical or digital product (e.g. a product listing, product page, gadget, tool)
+- "service" — if the page is about a professional service, consulting, agency, or service offering
+- "business" — if the page is about a company/business as a whole, a business model, a franchise, a brand with multiple products/services, or a business for sale
+Choose based on the CONTENT of the page, not the user's selected mode.`;
+
     const extractionPrompt = mode === "business"
       ? `Extract structured business information from this webpage content. Return JSON only:
 {
   "name": "business/company name",
-  "type": "business type (e.g. SaaS, Restaurant, Agency)",
+  "type": "business type (e.g. SaaS, Restaurant, Agency, THC Dispensary)",
   "description": "2-3 sentence description of the business model",
   "revenueModel": "how they make money",
   "size": "estimated size if mentioned (employees, revenue)",
   "geography": "where they operate",
   "painPoints": "customer pain points they address",
-  "notes": "any other relevant strategic context"
+  "notes": "any other relevant strategic context — include regulatory environment, compliance requirements, industry-specific constraints (e.g. THC/cannabis regulations, FDA requirements, licensing)",
+  "detectedEntityType": "product|service|business",
+  "regulatoryContext": "any regulations, licensing requirements, or compliance constraints mentioned or implied",
+  "industryVertical": "specific industry category (e.g. cannabis/THC, fintech, healthcare, food service)"
 }
+${entityDetectionInstruction}
 
 Page title: ${pageTitle}
 Page description: ${pageDescription}
@@ -116,9 +129,13 @@ ${truncatedMarkdown}`
 {
   "name": "${mode === "service" ? "service" : "product"} name",
   "description": "2-3 sentence description",
-  "notes": "target audience, pricing, competitive positioning, key features — anything useful for analysis",
-  "imageUrl": "URL of the main product/service image if found, or empty string"
+  "notes": "target audience, pricing, competitive positioning, key features — anything useful for analysis. Include regulatory/compliance context if relevant.",
+  "imageUrl": "URL of the main product/service image if found, or empty string",
+  "detectedEntityType": "product|service|business",
+  "regulatoryContext": "any regulations, licensing requirements, or compliance constraints mentioned or implied",
+  "industryVertical": "specific industry category"
 }
+${entityDetectionInstruction}
 
 Page title: ${pageTitle}
 Page description: ${pageDescription}
@@ -156,7 +173,24 @@ ${truncatedMarkdown}`;
       }
     }
 
-    console.log("Extracted data:", Object.keys(extracted));
+    // Ensure detectedEntityType is always present with a valid value
+    if (!extracted.detectedEntityType || !["product", "service", "business"].includes(extracted.detectedEntityType)) {
+      // Heuristic fallback: detect from content signals
+      const combined = `${pageTitle} ${pageDescription} ${extracted.description || ""} ${extracted.notes || ""}`.toLowerCase();
+      const bizSignals = ["business", "company", "franchise", "revenue", "employees", "founded", "headquarter", "about us", "our team", "our mission", "locations"];
+      const serviceSignals = ["service", "consulting", "agency", "booking", "appointment", "hire us", "our services", "contact us"];
+      const productSignals = ["buy", "add to cart", "price", "shipping", "product", "specification", "review"];
+      
+      const bizScore = bizSignals.filter(s => combined.includes(s)).length;
+      const serviceScore = serviceSignals.filter(s => combined.includes(s)).length;
+      const productScore = productSignals.filter(s => combined.includes(s)).length;
+      
+      if (bizScore >= serviceScore && bizScore >= productScore) extracted.detectedEntityType = "business";
+      else if (serviceScore >= productScore) extracted.detectedEntityType = "service";
+      else extracted.detectedEntityType = "product";
+    }
+
+    console.log("Extracted data:", Object.keys(extracted), "detectedEntityType:", extracted.detectedEntityType);
 
     return new Response(
       JSON.stringify({ success: true, data: extracted }),

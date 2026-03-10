@@ -784,9 +784,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const customName = customProducts?.find(cp => cp.productName)?.productName;
       await saveAnalysis(liveProducts, baseParams, customName);
 
-      // Mark adaptive context for deferred persistence
+      // Persist adaptive context and biExtraction immediately (not deferred)
       if (adaptiveContext) {
         pendingAdaptiveCtxSaveRef.current = adaptiveContext;
+        // Also persist biExtraction directly if available in adaptive context
+        if (adaptiveContext.biExtraction) {
+          saveStepData("biExtraction", adaptiveContext.biExtraction, dbId).catch(() => {});
+        }
+        saveStepData("adaptiveContext", adaptiveContext, dbId).catch(() => {});
       }
 
       // ── Background: Auto-run patent analysis for richer Command Deck data ──
