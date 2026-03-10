@@ -349,35 +349,77 @@ function extractAndParseJson(raw: string): unknown {
   // Attempt 1: direct parse
   try { return JSON.parse(cleaned); } catch { /* continue */ }
 
-  // Attempt 2: fix trailing commas and control chars
+  // Attempt 2: fix trailing commas, control chars, and unescaped newlines in strings
   let fixed = cleaned
     .replace(/,\s*}/g, "}")
     .replace(/,\s*]/g, "]")
-    .replace(/[\x00-\x1F\x7F]/g, " ");
+    .replace(/[\x00-\x1F\x7F]/g, " ")
+    .replace(/\t/g, " ");
   try { return JSON.parse(fixed); } catch { /* continue */ }
 
-  // Attempt 3: repair truncated JSON by closing open braces/brackets
-  const openBraces = (fixed.match(/{/g) || []).length;
-  const closeBraces = (fixed.match(/}/g) || []).length;
-  const openBrackets = (fixed.match(/\[/g) || []).length;
-  const closeBrackets = (fixed.match(/\]/g) || []).length;
+  // Attempt 3: repair truncated JSON by closing open structures
+  // First, try to find the last complete key-value pair
+  // Remove any trailing incomplete string or value
+  const truncPatterns = [
+    /,\s*"[^"]*"?\s*:?\s*"?[^"{}[\]]*$/,  // trailing partial key:value
+    /,\s*"[^"]*$/,                           // trailing partial string
+    /,\s*\d+\.?\d*$/,                        // trailing partial number
+    /,\s*$/,                                 // trailing comma
+  ];
+  for (const pat of truncPatterns) {
+    const before = fixed;
+    fixed = fixed.replace(pat, "");
+    if (fixed !== before) break; // only apply the first matching pattern
+  }
 
-  // Remove trailing partial key/value
-  fixed = fixed.replace(/,\s*"[^"]*"?\s*:?\s*"?[^"]*$/, "");
-  fixed = fixed.replace(/,\s*$/, "");
+  // Count unbalanced structures and close them
+  let braces = 0, brackets = 0;
+  let inString = false, escaped = false;
+  for (const ch of fixed) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") braces++;
+    if (ch === "}") braces--;
+    if (ch === "[") brackets++;
+    if (ch === "]") brackets--;
+  }
 
   let suffix = "";
-  for (let i = 0; i < openBrackets - closeBrackets; i++) suffix += "]";
-  for (let i = 0; i < openBraces - closeBraces; i++) suffix += "}";
+  for (let i = 0; i < brackets; i++) suffix += "]";
+  for (let i = 0; i < braces; i++) suffix += "}";
 
   try {
     const result = JSON.parse(fixed + suffix);
-    console.warn("Recovered patent JSON via truncation repair");
+    console.warn("[Patent] Recovered JSON via truncation repair");
     return result;
-  } catch {
-    console.error("JSON parse failed after all attempts:", cleaned.slice(0, 500));
-    throw new Error("AI returned invalid JSON for patent analysis.");
+  } catch { /* continue */ }
+
+  // Attempt 4: aggressive — find the largest parseable JSON prefix
+  for (let end = fixed.length; end > 100; end -= 50) {
+    const slice = fixed.slice(0, end);
+    let b = 0, k = 0, inStr = false, esc = false;
+    for (const c of slice) {
+      if (esc) { esc = false; continue; }
+      if (c === "\\") { esc = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === "{") b++; if (c === "}") b--;
+      if (c === "[") k++; if (c === "]") k--;
+    }
+    let s = "";
+    for (let i = 0; i < k; i++) s += "]";
+    for (let i = 0; i < b; i++) s += "}";
+    try {
+      const result = JSON.parse(slice + s);
+      console.warn(`[Patent] Recovered JSON by trimming ${fixed.length - end} chars from end`);
+      return result;
+    } catch { /* continue trimming */ }
   }
+
+  console.error("[Patent] JSON parse failed after all attempts. First 500 chars:", cleaned.slice(0, 500));
+  throw new Error("AI returned invalid JSON for patent analysis. Please retry.");
 }
 
 // ---- Helper: USPTO PatentsView API (free, no key needed) ----
