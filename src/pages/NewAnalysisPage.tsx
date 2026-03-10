@@ -460,7 +460,7 @@ export default function NewAnalysisPage() {
       problemStatement: problemText,
       activeModes,
       extractedContext: extractedContext || undefined,
-      biExtraction: extraction ? (extraction as unknown as Record<string, unknown>) : undefined,
+      biExtraction: finalExtraction ? (finalExtraction as unknown as Record<string, unknown>) : undefined,
     } : {
       activeModes,
       extractedContext: extractedContext || undefined,
