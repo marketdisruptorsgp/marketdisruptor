@@ -80,6 +80,9 @@ export function usePipelineOrchestrator(
 
     const product = effectiveProduct;
 
+    // ── Extract document intelligence from adaptive context (persisted from upload) ──
+    const extractedContext = analysis.adaptiveContext?.extractedContext || "";
+
     // ── Step 1: Disrupt (first-principles-analysis) ──
     let disruptResult: unknown = null;
     try {
@@ -96,6 +99,7 @@ export function usePipelineOrchestrator(
           product,
           upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
           adaptiveContext: analysis.adaptiveContext || undefined,
+          extractedContext: extractedContext || undefined,
         },
       }, 180_000);
 
@@ -123,6 +127,7 @@ export function usePipelineOrchestrator(
       const requestBody: Record<string, unknown> = {
         product,
         adaptiveContext: analysis.adaptiveContext || undefined,
+        extractedContext: extractedContext || undefined,
       };
       if (disruptResult) {
         const dd = disruptResult as Record<string, unknown>;
@@ -170,6 +175,7 @@ export function usePipelineOrchestrator(
           product,
           analysisData: product,
           adaptiveContext: analysis.adaptiveContext || undefined,
+          extractedContext: extractedContext || undefined,
         },
       }, 180_000);
 
@@ -201,6 +207,7 @@ export function usePipelineOrchestrator(
           stressTestData: stressResult || undefined,
           redesignData: redesignResult || undefined,
           adaptiveContext: analysis.adaptiveContext || undefined,
+          extractedContext: extractedContext || undefined,
           patentData: (product as any).patentData || undefined,
         },
       }, 180_000);

@@ -421,10 +421,19 @@ export default function NewAnalysisPage() {
       activeModes,
       selectedChallenges: aiAnalysis.challenges.filter(c => selectedChallenges.has(c.id)),
       summary: aiAnalysis.summary,
+      // Persist document intelligence so it flows through the entire pipeline
+      extractedContext: extractedContext || undefined,
+      biExtraction: extraction ? (extraction as unknown as Record<string, unknown>) : undefined,
     } : problemText.trim().length > 15 ? {
       problemStatement: problemText,
       activeModes,
-    } : { activeModes };
+      extractedContext: extractedContext || undefined,
+      biExtraction: extraction ? (extraction as unknown as Record<string, unknown>) : undefined,
+    } : {
+      activeModes,
+      extractedContext: extractedContext || undefined,
+      biExtraction: extraction ? (extraction as unknown as Record<string, unknown>) : undefined,
+    };
     analysis.setAdaptiveContext(adaptiveCtx);
 
     try {
@@ -488,7 +497,12 @@ export default function NewAnalysisPage() {
             .eq("id", analysisId)
             .single() as any;
           const prev = (existingRow?.analysis_data as Record<string, unknown>) || {};
-          const merged = { ...prev, businessAnalysis: result.analysis };
+          const merged = {
+            ...prev,
+            businessAnalysis: result.analysis,
+            // Persist raw BI extraction so evidence engine can use it on reload
+            ...(extraction ? { biExtraction: extraction } : {}),
+          };
           const { error: updateErr } = await (supabase.from("saved_analyses") as any)
             .update({ analysis_data: merged, updated_at: new Date().toISOString() })
             .eq("id", analysisId);
