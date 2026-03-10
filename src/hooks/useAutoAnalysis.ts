@@ -354,8 +354,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
             console.log("[StrategicEngine] ✓ Hydrated strategicEngine from DB:",
               `narrative=${!!se.narrative}, opportunities=${se.deepenedOpportunities?.length ?? 0}, insights=${se.insights?.length ?? 0}`);
 
-            // Only recompute if graph wasn't persisted (fallback path)
-            if (!persistedGraph?.nodes?.length) {
+            // Recompute if graph missing OR narrative missing (old persistence format)
+            if (!persistedGraph?.nodes?.length || !se.narrative) {
               setTimeout(() => runAnalysis(), 1500);
             }
           } else if (!persistedGraph?.nodes?.length) {
