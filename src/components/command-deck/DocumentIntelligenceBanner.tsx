@@ -91,9 +91,9 @@ export function DocumentIntelligenceBanner({
       >
         <div className="flex items-center gap-2 min-w-0">
           {isHealthy ? (
-            <CheckCircle2 size={13} className="text-green-600 dark:text-green-400 flex-shrink-0" />
+            <CheckCircle2 size={13} className="text-primary flex-shrink-0" />
           ) : isPartial ? (
-            <AlertTriangle size={13} className="text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <AlertTriangle size={13} className="text-destructive flex-shrink-0" />
           ) : (
             <Database size={13} className="text-muted-foreground flex-shrink-0" />
           )}
