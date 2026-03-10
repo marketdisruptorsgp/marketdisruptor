@@ -111,7 +111,8 @@ export function sanitizeProducts(rawProducts: any[], analysisRow: any): any[] {
  */
 export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   const sanitizedProducts = sanitizeProducts(analysisRow.products, analysisRow);
-  const ad = analysisRow.analysis_data as Record<string, unknown> | null;
+  // Defensive: parse any double-serialized (stringified JSON) values in analysis_data
+  const ad = repairDoubleSerialized(analysisRow.analysis_data as Record<string, unknown> | null);
 
   // Set core metadata — analysisId FIRST to ensure saveStepData targets the right row
   setters.setAnalysisId(analysisRow.id);
