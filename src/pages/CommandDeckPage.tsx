@@ -338,6 +338,11 @@ export default function CommandDeckPage() {
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
+  const benchmark = useMemo(() =>
+    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook),
+    [autoAnalysis.flatEvidence, narrative, topPlaybook],
+  );
+
   const lastRecomputeHash = useRef<string>("");
   const savedScenarios = useMemo(() => {
     const s = getScenarios(analysisId || "");
