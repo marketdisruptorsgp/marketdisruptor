@@ -436,6 +436,15 @@ export function StructureTab({
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
 
+  // Competitive intelligence from CIM-extracted competitor names
+  const biExtractionData = (analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null;
+  const competitiveResearch = useCompetitiveResearch({
+    biExtraction: biExtractionData,
+    governedData,
+    analysisId: selectedProduct.id || "unknown",
+    autoTrigger: true,
+  });
+
   return (
     <div className="space-y-3">
       {/* ── First Principles Methodology Banner (Assumptions view) ── */}
