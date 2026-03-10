@@ -249,6 +249,12 @@ export default function StressTestPage() {
                     governedData={governedData}
                   />
                 </AnalysisContentCard>
+                <AnalysisContentCard>
+                  <ETAAcquisitionScorecard
+                    governedData={governedData}
+                    biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+                  />
+                </AnalysisContentCard>
               </>
             ) : (
               <AnalysisContentCard>
