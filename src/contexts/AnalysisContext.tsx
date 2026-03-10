@@ -1369,6 +1369,31 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         // ── USE SHARED HYDRATION HELPER ──
         hydrateFromRow(data, hydrationSetters);
 
+        // ── AUTO-REPAIR: Fix mismatched analysis_type ──
+        // If the analysis has business model data but is stored as "product", fix it
+        const ad = data.analysis_data as Record<string, unknown> | null;
+        const hasBusinessData = !!ad?.businessAnalysis || data.analysis_type === "business_model";
+        if (hasBusinessData && data.analysis_type !== "business_model") {
+          console.warn("[AutoRepair] Fixing analysis_type from", data.analysis_type, "to business_model");
+          (supabase.from("saved_analyses") as any)
+            .update({ analysis_type: "business_model", updated_at: new Date().toISOString() })
+            .eq("id", urlAnalysisId)
+            .then(() => {
+              // Re-set context mode to business
+              hydrationSetters.setMainTab("business");
+              hydrationSetters.setActiveMode("business");
+            });
+        }
+
+        // ── AUTO-REPAIR: Detect missing strategicEngine when step data exists ──
+        const hasStepData = !!ad?.disrupt || !!ad?.stressTest || !!ad?.pitchDeck || !!ad?.businessAnalysis;
+        const hasEngine = !!ad?.strategicEngine;
+        if (hasStepData && !hasEngine) {
+          console.warn("[AutoRepair] Step data exists but strategicEngine missing — will recompute on next auto-analysis cycle");
+          // The useAutoAnalysis hook will automatically recompute when it detects
+          // evidence data exists but no engine output — no explicit trigger needed
+        }
+
         console.log("[AutoHydrate] Analysis loaded successfully:", data.title);
       } catch (err) {
         console.error("[AutoHydrate] Failed:", err);
