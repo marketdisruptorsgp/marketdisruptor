@@ -43,6 +43,7 @@ import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
 import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
+import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
@@ -530,6 +531,13 @@ export default function CommandDeckPage() {
             </div>
           </div>
         )}
+
+        {/* ═══ DOCUMENT INTELLIGENCE HEALTH ═══ */}
+        <DocumentIntelligenceBanner
+          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+          adaptiveContextLoaded={!!analysis.adaptiveContext}
+        />
 
         {/* ═══ SCENARIO BANNER (only when active) ═══ */}
         <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
