@@ -326,7 +326,7 @@ export function usePipelineOrchestrator(
           await runRedesign(product, extractedContext, disruptData);
           break;
         case "stressTest":
-          await runStressTest(product, extractedContext);
+          await runStressTest(product, extractedContext, disruptData, redesignData);
           break;
         case "pitch":
           await runPitch(product, extractedContext, disruptData, redesignData, stressTestData);
