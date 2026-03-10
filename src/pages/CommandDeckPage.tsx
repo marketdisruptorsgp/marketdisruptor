@@ -532,6 +532,13 @@ export default function CommandDeckPage() {
           </div>
         )}
 
+        {/* ═══ DOCUMENT INTELLIGENCE HEALTH ═══ */}
+        <DocumentIntelligenceBanner
+          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+          adaptiveContextLoaded={!!analysis.adaptiveContext}
+        />
+
         {/* ═══ SCENARIO BANNER (only when active) ═══ */}
         <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
         <DeltaChanges deltas={deltaChanges} />
