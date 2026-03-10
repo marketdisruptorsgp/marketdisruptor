@@ -143,6 +143,7 @@ function buildSignals(
       status: criticalConstraints.length <= 1 ? "caution" : "no-go",
       detail: `${criticalConstraints.length} high-confidence constraint${criticalConstraints.length > 1 ? "s" : ""} identified`,
       source: "Constraint analysis",
+      provenance: "ai",
     });
   }
 
