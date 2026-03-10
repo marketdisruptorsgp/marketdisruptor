@@ -2,6 +2,21 @@
  * Competitive Intelligence Types & Extraction
  */
 
+export type DataConfidence = "verified" | "scraped" | "ai-inferred" | "user-verified";
+
+export interface SourceCitation {
+  url: string;
+  title: string;
+  snippet?: string;
+}
+
+export interface CitedClaim<T = string> {
+  value: T;
+  confidence: DataConfidence;
+  sources: SourceCitation[];
+  userOverride?: T;
+}
+
 export interface CompetitorProfile {
   name: string;
   url: string;
@@ -21,6 +36,18 @@ export interface CompetitorProfile {
   };
   threatLevel: "direct" | "indirect" | "peripheral";
   sources: string[];
+  // New: per-field citations
+  citations?: {
+    description?: CitedClaim;
+    estimatedRevenue?: CitedClaim;
+    employeeRange?: CitedClaim;
+    pricingApproach?: CitedClaim;
+    strengths?: CitedClaim<string[]>;
+    weaknesses?: CitedClaim<string[]>;
+  };
+  // Corroboration
+  corroborationScore?: number; // 0-1, how many sources agree
+  corroborationDetails?: string;
 }
 
 export interface PositioningMap {
@@ -35,6 +62,7 @@ export interface StrategicGap {
   opportunity: string;
   difficulty: "low" | "medium" | "high";
   potentialImpact: string;
+  sources?: SourceCitation[];
 }
 
 export interface CompetitiveAdvantage {
@@ -48,6 +76,25 @@ export interface MarketDynamics {
   priceCompetition: "low" | "medium" | "high";
   differentiationBasis: string;
   entryBarriers: string;
+  sources?: SourceCitation[];
+}
+
+export interface IndustryBenchmark {
+  source: string;
+  naicsCode: string;
+  naicsTitle: string;
+  establishments?: number;
+  totalEmployment?: number;
+  averageWage?: number;
+  avgEmployeesPerEstablishment?: number;
+  geography?: string;
+  year?: number;
+  sbaData?: {
+    avgLoanAmount?: number;
+    approvalRate?: number;
+    defaultRate?: number;
+    topLenders?: string[];
+  };
 }
 
 export interface CompetitiveIntelligence {
@@ -56,6 +103,10 @@ export interface CompetitiveIntelligence {
   strategicGaps: StrategicGap[];
   competitiveAdvantages: CompetitiveAdvantage[];
   marketDynamics: MarketDynamics | null;
+  allSources?: SourceCitation[];
+  industryBenchmarks?: IndustryBenchmark;
+  // User overrides stored locally
+  userOverrides?: Record<string, Partial<CompetitorProfile>>;
 }
 
 /**
@@ -64,7 +115,7 @@ export interface CompetitiveIntelligence {
 export function extractCompetitorNames(
   biExtraction: Record<string, any> | null,
   governedData: Record<string, any> | null,
-): { competitors: string[]; businessName: string; businessDescription: string; industry: string; revenue: string; services: string } {
+): { competitors: string[]; businessName: string; businessDescription: string; industry: string; revenue: string; services: string; naicsCode: string } {
   const bi = biExtraction || {};
   const gov = governedData || {};
 
@@ -90,9 +141,7 @@ export function extractCompetitorNames(
 
   // Check for competitor names in text fields
   if (competitors.length === 0 && bi.competitive_notes) {
-    // Try to extract names from a text description
     const notes = String(bi.competitive_notes);
-    // Simple heuristic: look for capitalized multi-word names
     const nameMatches = notes.match(/(?:^|\s)([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,3})(?:\s|,|\.|\)|$)/g);
     if (nameMatches) {
       competitors = nameMatches.map(m => m.trim()).filter(n => n.length > 2 && n.length < 40).slice(0, 8);
@@ -104,6 +153,37 @@ export function extractCompetitorNames(
   const industry = bi.industry || bi.sector || bi.category || gov.industry || "";
   const revenue = bi.revenue ? String(bi.revenue) : bi.annual_revenue ? String(bi.annual_revenue) : "";
   const services = Array.isArray(bi.services) ? bi.services.join(", ") : bi.services || bi.products || "";
+  const naicsCode = bi.naics_code || bi.naics || gov.naics_code || "";
 
-  return { competitors, businessName, businessDescription, industry, revenue, services };
+  return { competitors, businessName, businessDescription, industry, revenue, services, naicsCode };
+}
+
+/**
+ * Apply user overrides to competitive intelligence data
+ */
+export function applyUserOverrides(
+  data: CompetitiveIntelligence,
+  overrides: Record<string, Partial<CompetitorProfile>>,
+): CompetitiveIntelligence {
+  return {
+    ...data,
+    competitorProfiles: data.competitorProfiles.map(profile => {
+      const override = overrides[profile.name];
+      if (!override) return profile;
+      return {
+        ...profile,
+        ...override,
+        citations: {
+          ...profile.citations,
+          ...Object.fromEntries(
+            Object.entries(override).filter(([k]) => k !== 'citations').map(([k, v]) => [
+              k,
+              { value: v, confidence: 'user-verified' as DataConfidence, sources: [] },
+            ])
+          ),
+        },
+      };
+    }),
+    userOverrides: overrides,
+  };
 }

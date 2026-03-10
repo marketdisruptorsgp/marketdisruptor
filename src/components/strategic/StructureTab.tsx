@@ -644,6 +644,9 @@ export function StructureTab({
                       hasCompetitors={competitiveResearch.hasCompetitors}
                       competitorNames={competitiveResearch.competitorNames}
                       onResearch={competitiveResearch.runResearch}
+                      benchmarks={competitiveResearch.benchmarks}
+                      benchmarksLoading={competitiveResearch.benchmarksLoading}
+                      onOverride={competitiveResearch.updateCompetitorOverride}
                     />
                   </StructureSection>
                 )}
