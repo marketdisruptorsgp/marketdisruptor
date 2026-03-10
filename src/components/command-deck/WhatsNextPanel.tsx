@@ -10,6 +10,7 @@ import {
   Crosshair, Play, Beaker, CheckCircle2, Clock,
   ChevronDown, ChevronUp, Target,
 } from "lucide-react";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 
@@ -65,11 +66,11 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
               Kill Question
             </p>
             <p className="text-sm font-bold text-foreground leading-snug">
-              {killQuestion}
+              {trimAt(killQuestion, 200)}
             </p>
             {narrative?.validationExperiment && (
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Test: {narrative.validationExperiment}
+                Test: {trimAt(narrative.validationExperiment, 180)}
               </p>
             )}
             {narrative?.validationTimeframe && (
@@ -110,7 +111,7 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
                           style={{ background: `${modeAccent}12`, color: modeAccent }}>
                           {vs.step ?? i + 1}
                         </span>
-                        <span className="leading-relaxed">{vs.action}</span>
+                        <span className="leading-relaxed">{trimAt(vs.action, 150)}</span>
                       </li>
                     ))}
                   </ol>
@@ -140,10 +141,10 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-foreground leading-snug">
-                  {firstMove.action}
+                  {humanizeLabel(firstMove.action)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                  {firstMove.timeframe} · Success: {firstMove.successCriteria}
+                  {firstMove.timeframe} · Success: {trimAt(firstMove.successCriteria, 120)}
                 </p>
               </div>
             </div>

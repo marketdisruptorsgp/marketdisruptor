@@ -5,6 +5,7 @@
 
 import { memo } from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { trimAt } from "@/lib/humanize";
 import type { WhyThisMatters } from "@/lib/reconfiguration";
 
 interface WhyThisMattersSectionProps {
@@ -34,7 +35,7 @@ export const WhyThisMattersSection = memo(function WhyThisMattersSection({
                   className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
                   style={{ background: "hsl(var(--warning))" }}
                 />
-                {item}
+                {trimAt(item, 180)}
               </li>
             ))}
           </ul>
@@ -57,7 +58,7 @@ export const WhyThisMattersSection = memo(function WhyThisMattersSection({
                   className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
                   style={{ background: "hsl(var(--success))" }}
                 />
-                {item}
+                {trimAt(item, 180)}
               </li>
             ))}
           </ul>

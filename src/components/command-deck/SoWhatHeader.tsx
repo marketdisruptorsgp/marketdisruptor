@@ -6,6 +6,7 @@
 import { memo } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, AlertTriangle, Zap } from "lucide-react";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 
@@ -22,15 +23,17 @@ export const SoWhatHeader = memo(function SoWhatHeader({
 }: SoWhatHeaderProps) {
   // Build consequence of inaction
   const inactionRisk = narrative?.primaryConstraint
-    ? `${narrative.primaryConstraint} will continue eroding your position`
+    ? `${humanizeLabel(narrative.primaryConstraint)} will continue eroding your position`
     : narrative?.trappedValue
       ? `Trapped value remains locked`
       : null;
 
   // Build projected outcome
   const actionOutcome = thesis?.economicMechanism?.valueCreation
-    || narrative?.breakthroughOpportunity
-    || null;
+    ? trimAt(thesis.economicMechanism.valueCreation, 150)
+    : narrative?.breakthroughOpportunity
+    ? trimAt(humanizeLabel(narrative.breakthroughOpportunity), 150)
+    : null;
 
   if (!inactionRisk && !actionOutcome) return null;
 

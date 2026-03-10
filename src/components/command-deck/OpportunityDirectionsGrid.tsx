@@ -8,6 +8,7 @@ import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, ChevronDown, ChevronUp, Building2, TrendingUp } from "lucide-react";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 import { StrategicPrecedentSection } from "./StrategicPrecedentSection";
 import { SecondOrderEffectsSection } from "./SecondOrderEffectsSection";
 
@@ -53,10 +54,10 @@ function OpportunityCard({
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-sm sm:text-base font-black text-foreground leading-snug">
-            {opp.reconfigurationLabel}
+            {humanizeLabel(opp.reconfigurationLabel)}
           </h4>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-1 line-clamp-2">
-            {opp.summary}
+          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+            {trimAt(opp.summary, 160)}
           </p>
         </div>
         <div className="flex-shrink-0 mt-1">
@@ -77,7 +78,7 @@ function OpportunityCard({
           <div className="flex items-center gap-1.5">
             <TrendingUp size={11} className="text-muted-foreground" />
             <span className="text-muted-foreground font-semibold truncate max-w-[200px]">
-              {opp.economicMechanism.valueCreation}
+              {trimAt(opp.economicMechanism.valueCreation, 100)}
             </span>
           </div>
         )}
@@ -109,11 +110,11 @@ function OpportunityCard({
                     Contrarian Belief
                   </p>
                   <p className="text-sm text-foreground font-semibold leading-snug">
-                    "{opp.strategicBet.contrarianBelief}"
+                    "{trimAt(opp.strategicBet.contrarianBelief, 200)}"
                   </p>
                   {opp.strategicBet.industryAssumption && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Industry assumes: {opp.strategicBet.industryAssumption}
+                      Industry assumes: {trimAt(opp.strategicBet.industryAssumption, 150)}
                     </p>
                   )}
                 </div>
@@ -126,11 +127,11 @@ function OpportunityCard({
                     How It Creates Value
                   </p>
                   <p className="text-sm text-foreground leading-snug">
-                    {opp.economicMechanism.valueCreation}
+                    {trimAt(opp.economicMechanism.valueCreation, 200)}
                   </p>
                   {opp.economicMechanism.defensibility && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Defensibility: {opp.economicMechanism.defensibility}
+                      Defensibility: {trimAt(opp.economicMechanism.defensibility, 150)}
                     </p>
                   )}
                 </div>
@@ -153,10 +154,10 @@ function OpportunityCard({
                     First Move
                   </p>
                   <p className="text-sm text-foreground font-semibold leading-snug">
-                    {opp.firstMove.action}
+                    {humanizeLabel(opp.firstMove.action)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {opp.firstMove.timeframe} · Success: {opp.firstMove.successCriteria}
+                    {opp.firstMove.timeframe} · Success: {trimAt(opp.firstMove.successCriteria, 120)}
                   </p>
                 </div>
               )}

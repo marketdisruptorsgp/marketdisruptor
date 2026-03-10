@@ -8,7 +8,7 @@
 import { memo, useMemo } from "react";
 import { Crosshair } from "lucide-react";
 import { motion } from "framer-motion";
-import { humanizeLabel } from "@/lib/humanize";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 
 interface StrategicDiagnosisBannerProps {
   constraintLabel: string | null;
@@ -63,7 +63,9 @@ function confidenceTag(c: number) {
 export const StrategicDiagnosisBanner = memo(function StrategicDiagnosisBanner(props: StrategicDiagnosisBannerProps) {
   const constraint = humanizeLabel(props.constraintLabel) || null;
   const opportunity = humanizeLabel(props.opportunityLabel) || null;
-  const { rationale, verdict, confidence, completedSteps } = props;
+  const { confidence, completedSteps } = props;
+  const rationale = props.rationale ? trimAt(props.rationale, 250) : null;
+  const verdict = props.verdict ? humanizeLabel(props.verdict) : null;
 
   const sentence = useMemo(
     () => buildDiagnosisSentence(constraint, rationale, verdict, opportunity, completedSteps),
