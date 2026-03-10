@@ -79,6 +79,29 @@ export function clearAllState(setters: HydrationSetters) {
 }
 
 /**
+ * Repair double-serialized values in analysis_data.
+ * A bug in saveStepData was JSON.stringify-ing data before passing to the RPC,
+ * causing values like strategicEngine/insightGraph to be stored as JSON strings
+ * instead of objects. This function detects and parses them back.
+ */
+function repairDoubleSerialized(ad: Record<string, unknown> | null): Record<string, unknown> | null {
+  if (!ad) return null;
+  const repaired = { ...ad };
+  const keysToCheck = ["strategicEngine", "insightGraph", "disrupt", "stressTest", "pitchDeck",
+    "redesign", "businessStressTest", "businessPitchDeck", "governed", "biExtraction",
+    "adaptiveContext", "geoOpportunity", "regulatoryContext", "competitiveIntel"];
+  for (const key of keysToCheck) {
+    const val = repaired[key];
+    if (typeof val === "string" && val.startsWith("{")) {
+      try {
+        repaired[key] = JSON.parse(val);
+      } catch { /* leave as-is */ }
+    }
+  }
+  return repaired;
+}
+
+/**
  * Sanitize raw products from DB into safe Product[] with all required fields.
  */
 export function sanitizeProducts(rawProducts: any[], analysisRow: any): any[] {
@@ -111,7 +134,8 @@ export function sanitizeProducts(rawProducts: any[], analysisRow: any): any[] {
  */
 export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   const sanitizedProducts = sanitizeProducts(analysisRow.products, analysisRow);
-  const ad = analysisRow.analysis_data as Record<string, unknown> | null;
+  // Defensive: parse any double-serialized (stringified JSON) values in analysis_data
+  const ad = repairDoubleSerialized(analysisRow.analysis_data as Record<string, unknown> | null);
 
   // Set core metadata — analysisId FIRST to ensure saveStepData targets the right row
   setters.setAnalysisId(analysisRow.id);
