@@ -8,6 +8,7 @@ import {
   Sparkles, TrendingUp, DollarSign, Shield, Settings, Zap, Clock,
 } from "lucide-react";
 import type { TransformationPlaybook } from "@/lib/playbookEngine";
+import { humanizeLabel, trimAt } from "@/lib/humanize";
 
 interface RecommendedMoveCardProps {
   playbook: TransformationPlaybook | null;
