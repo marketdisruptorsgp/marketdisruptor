@@ -130,6 +130,7 @@ function buildSignals(
       status: inputs.yearsInBusiness >= 10 ? "go" : inputs.yearsInBusiness >= 5 ? "caution" : "no-go",
       detail: `${inputs.yearsInBusiness} years — ${inputs.yearsInBusiness >= 10 ? "Proven durability" : inputs.yearsInBusiness >= 5 ? "Established but test cycles" : "Early stage — limited track record"}`,
       source: "Business history",
+      provenance: "cim",
     });
   }
 
