@@ -42,6 +42,8 @@ import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaCha
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
+import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
+import { computeBenchmarks } from "@/lib/benchmarkEngine";
 import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
 import { DealScorecard } from "@/components/command-deck/DealScorecard";
 import { LOIBuilder } from "@/components/command-deck/LOIBuilder";
@@ -336,6 +338,11 @@ export default function CommandDeckPage() {
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
+  const benchmark = useMemo(() =>
+    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook),
+    [autoAnalysis.flatEvidence, narrative, topPlaybook],
+  );
+
   const lastRecomputeHash = useRef<string>("");
   const savedScenarios = useMemo(() => {
     const s = getScenarios(analysisId || "");
@@ -619,6 +626,11 @@ export default function CommandDeckPage() {
           biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
           governedData={analysis.governedData as Record<string, any> | null}
         />
+
+        {/* ══════════════════════════════════════════════════════════
+            INDUSTRY BENCHMARK — Archetype-based comparison
+           ══════════════════════════════════════════════════════════ */}
+        <IndustryBenchmarkPanel benchmark={benchmark} />
 
         {/* ══════════════════════════════════════════════════════════
             DEAL SCORECARD — Go/No-Go verdict with deal structure
