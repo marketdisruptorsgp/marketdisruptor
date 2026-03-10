@@ -180,13 +180,33 @@ export function usePipelineOrchestrator(
     return redesignResult;
   }, [analysisId, analysis.adaptiveContext, analysis.governedData, saveStepData, setRedesignData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
 
-  const runStressTest = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+  const runStressTest = useCallback(async (product: any, extractedContext: string, disruptResult?: unknown, redesignResult?: unknown): Promise<unknown> => {
     updateStatus("stressTest", "running");
+
+    // ── CRITICAL FIX: Pass actual disrupt/redesign data as analysisData ──
+    // The critical-validation edge function reads analysisData.redesignedConcept,
+    // analysisData.hiddenAssumptions, etc. Without these, it generates GENERIC output.
+    const analysisPayload: Record<string, unknown> = { ...product };
+    if (disruptResult && typeof disruptResult === "object") {
+      const dr = disruptResult as Record<string, unknown>;
+      if (dr.redesignedConcept) analysisPayload.redesignedConcept = dr.redesignedConcept;
+      if (dr.hiddenAssumptions) analysisPayload.hiddenAssumptions = dr.hiddenAssumptions;
+      if (dr.flippedLogic) analysisPayload.flippedLogic = dr.flippedLogic;
+      if (dr.frictionDimensions) analysisPayload.frictionDimensions = dr.frictionDimensions;
+      if (dr.coreReality) analysisPayload.coreReality = dr.coreReality;
+      if (dr.smartTechAnalysis) analysisPayload.smartTechAnalysis = dr.smartTechAnalysis;
+      if (dr.currentStrengths) analysisPayload.currentStrengths = dr.currentStrengths;
+    }
+    if (redesignResult && typeof redesignResult === "object") {
+      const rr = redesignResult as Record<string, unknown>;
+      // If redesign produced a different concept, use that instead
+      if (rr.redesignedConcept) analysisPayload.redesignedConcept = rr.redesignedConcept;
+    }
 
     const { data: result, error } = await invokeWithTimeout("critical-validation", {
       body: {
         product,
-        analysisData: product,
+        analysisData: analysisPayload,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
       },
