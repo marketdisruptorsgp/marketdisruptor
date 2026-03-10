@@ -13,6 +13,7 @@ import {
   DollarSign, Users, Building, TrendingUp, Shield, Zap,
 } from "lucide-react";
 import { extractFinancialInputs } from "@/lib/etaScoringEngine";
+import { ProvenanceBadge, type ProvenanceSource } from "./ProvenanceBadge";
 
 interface DealScorecardProps {
   biExtraction: Record<string, any> | null;
@@ -24,6 +25,7 @@ interface Signal {
   status: "go" | "caution" | "no-go";
   detail: string;
   source: string;
+  provenance: ProvenanceSource;
 }
 
 interface DealStructure {
@@ -47,6 +49,7 @@ function buildSignals(
       status: inputs.sdeMargin >= 0.25 ? "go" : inputs.sdeMargin >= 0.15 ? "caution" : "no-go",
       detail: `${pct}% — ${inputs.sdeMargin >= 0.25 ? "Healthy margin for debt service" : inputs.sdeMargin >= 0.15 ? "Tight — limited room for surprises" : "Dangerously thin for leveraged acquisition"}`,
       source: "Financial extraction",
+      provenance: "cim",
     });
   }
 
@@ -58,6 +61,7 @@ function buildSignals(
       status: inputs.customerConcentration <= 0.10 ? "go" : inputs.customerConcentration <= 0.25 ? "caution" : "no-go",
       detail: `Top customer = ${pct}% of revenue`,
       source: "Revenue analysis",
+      provenance: "cim",
     });
   }
 
@@ -69,6 +73,7 @@ function buildSignals(
       status: dep === "autonomous" || dep === "delegated" ? "go" : dep === "involved" ? "caution" : "no-go",
       detail: `${dep.replace("_", " ")} — ${dep === "autonomous" || dep === "delegated" ? "Business runs independently" : dep === "involved" ? "Owner involved but not critical" : "Owner IS the business"}`,
       source: "Operational assessment",
+      provenance: "cim",
     });
   }
 
@@ -79,6 +84,7 @@ function buildSignals(
       status: inputs.revenueGrowthPct >= 5 ? "go" : inputs.revenueGrowthPct >= 0 ? "caution" : "no-go",
       detail: `${inputs.revenueGrowthPct >= 0 ? "+" : ""}${inputs.revenueGrowthPct.toFixed(0)}% — ${inputs.revenueGrowthPct >= 5 ? "Growing" : inputs.revenueGrowthPct >= 0 ? "Flat — needs investigation" : "Declining — red flag"}`,
       source: "Financial trend",
+      provenance: "cim",
     });
   }
 
@@ -90,6 +96,7 @@ function buildSignals(
       status: inputs.recurringRevenuePct >= 0.50 ? "go" : inputs.recurringRevenuePct >= 0.25 ? "caution" : "no-go",
       detail: `${pct}% recurring — ${inputs.recurringRevenuePct >= 0.50 ? "Strong base" : inputs.recurringRevenuePct >= 0.25 ? "Some predictability" : "Mostly project-based"}`,
       source: "Revenue model",
+      provenance: "cim",
     });
   }
 
@@ -101,6 +108,7 @@ function buildSignals(
       status: multiple <= 3.5 ? "go" : multiple <= 4.5 ? "caution" : "no-go",
       detail: `${multiple.toFixed(1)}x SDE — ${multiple <= 3.5 ? "Fair market range" : multiple <= 4.5 ? "Premium — needs justification" : "Overpriced for SMB acquisition"}`,
       source: "Deal economics",
+      provenance: "modeled",
     });
   }
 
@@ -111,6 +119,7 @@ function buildSignals(
       status: inputs.employeeCount >= 10 ? "go" : inputs.employeeCount >= 5 ? "caution" : "no-go",
       detail: `${inputs.employeeCount} employees — ${inputs.employeeCount >= 10 ? "Operational redundancy" : inputs.employeeCount >= 5 ? "Thin team — key person risk" : "Micro-team — single-point failures"}`,
       source: "Operational data",
+      provenance: "cim",
     });
   }
 
@@ -121,6 +130,7 @@ function buildSignals(
       status: inputs.yearsInBusiness >= 10 ? "go" : inputs.yearsInBusiness >= 5 ? "caution" : "no-go",
       detail: `${inputs.yearsInBusiness} years — ${inputs.yearsInBusiness >= 10 ? "Proven durability" : inputs.yearsInBusiness >= 5 ? "Established but test cycles" : "Early stage — limited track record"}`,
       source: "Business history",
+      provenance: "cim",
     });
   }
 
@@ -133,6 +143,7 @@ function buildSignals(
       status: criticalConstraints.length <= 1 ? "caution" : "no-go",
       detail: `${criticalConstraints.length} high-confidence constraint${criticalConstraints.length > 1 ? "s" : ""} identified`,
       source: "Constraint analysis",
+      provenance: "ai",
     });
   }
 
@@ -266,9 +277,11 @@ export const DealScorecard = memo(function DealScorecard({
           >
             <div className="mt-0.5 flex-shrink-0">{STATUS_ICON[s.status]}</div>
             <div className="min-w-0">
-              <p className="text-[11px] font-black text-foreground">{s.label}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[11px] font-black text-foreground">{s.label}</p>
+                <ProvenanceBadge source={s.provenance} />
+              </div>
               <p className="text-[10px] text-muted-foreground leading-snug">{s.detail}</p>
-              <p className="text-[9px] text-muted-foreground/60 mt-0.5">{s.source}</p>
             </div>
           </div>
         ))}

@@ -44,6 +44,9 @@ import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
 import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
 import { DealScorecard } from "@/components/command-deck/DealScorecard";
+import { LOIBuilder } from "@/components/command-deck/LOIBuilder";
+import { PostClosePlaybook } from "@/components/command-deck/PostClosePlaybook";
+import { CIMComparisonMode } from "@/components/command-deck/CIMComparisonMode";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
 
 import {
@@ -623,6 +626,31 @@ export default function CommandDeckPage() {
         <DealScorecard
           biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
           governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            LOI / OFFER BUILDER — Draft letter of intent
+           ══════════════════════════════════════════════════════════ */}
+        <LOIBuilder
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            90-DAY PLAYBOOK — Post-close action plan
+           ══════════════════════════════════════════════════════════ */}
+        <PostClosePlaybook
+          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            CIM COMPARISON — Side-by-side deal comparison
+           ══════════════════════════════════════════════════════════ */}
+        <CIMComparisonMode
+          currentAnalysisId={analysisId || ""}
+          currentBiExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+          currentGovernedData={analysis.governedData as Record<string, any> | null}
         />
 
         {/* ══════════════════════════════════════════════════════════
