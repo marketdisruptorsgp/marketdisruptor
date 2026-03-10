@@ -84,6 +84,7 @@ function buildSignals(
       status: inputs.revenueGrowthPct >= 5 ? "go" : inputs.revenueGrowthPct >= 0 ? "caution" : "no-go",
       detail: `${inputs.revenueGrowthPct >= 0 ? "+" : ""}${inputs.revenueGrowthPct.toFixed(0)}% — ${inputs.revenueGrowthPct >= 5 ? "Growing" : inputs.revenueGrowthPct >= 0 ? "Flat — needs investigation" : "Declining — red flag"}`,
       source: "Financial trend",
+      provenance: "cim",
     });
   }
 
