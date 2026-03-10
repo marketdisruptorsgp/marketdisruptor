@@ -515,7 +515,7 @@ export default function NewAnalysisPage() {
         analysis.setBusinessModelInput({
           type: name,
           description: notes,
-          revenueModel: extraction?.revenue_engine?.revenue_sources?.join(", ") || "",
+          revenueModel: finalExtraction?.revenue_engine?.revenue_sources?.join(", ") || "",
           painPoints: notes,
         });
         analysis.setStep("done");
