@@ -105,10 +105,16 @@ export function usePipelineOrchestrator(
     setCurrentStep("disrupt");
     updateStatus("disrupt", "running");
 
+    // ── Extract ALL upstream intelligence from the product object ──
     const upstreamIntel: Record<string, unknown> = {};
     const pp = product as any;
     if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
     if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
+    if (pp.communityInsights) upstreamIntel.communityInsights = pp.communityInsights;
+    if (pp.userWorkflow) upstreamIntel.userWorkflow = pp.userWorkflow;
+    if (pp.competitorAnalysis) upstreamIntel.competitorAnalysis = pp.competitorAnalysis;
+    if (pp.operationalIntel) upstreamIntel.operationalIntel = pp.operationalIntel;
+    if (pp.trendAnalysis) upstreamIntel.trendAnalysis = pp.trendAnalysis;
 
     const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
       body: {
