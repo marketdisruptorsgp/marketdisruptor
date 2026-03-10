@@ -605,11 +605,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     // This eliminates the dual-ID race condition where a client UUID
     // could differ from the DB-assigned ID.
     const isServiceMode = params.category === "Service";
+    const isBusinessMode = mainTab === "business" || activeMode === "business";
+    const analysisType = isBusinessMode ? "business_model" : isServiceMode ? "service" : "product";
     const customName = customProducts?.find(cp => cp.productName)?.productName;
     const prelimTitle = customName || `${params.category} Analysis`;
     let dbId: string;
     try {
-      dbId = await createAnalysis(prelimTitle, isServiceMode ? "service" : "product", {
+      dbId = await createAnalysis(prelimTitle, analysisType, {
         category: params.category,
         batch_size: params.batchSize,
       });
