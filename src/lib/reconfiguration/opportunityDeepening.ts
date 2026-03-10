@@ -76,6 +76,22 @@ export interface FirstMove {
   successCriteria: string;
 }
 
+export interface WhyThisMatters {
+  /** Why the insight matters — business consequences */
+  implications: string[];
+  /** What happens if this constraint is solved */
+  ifSolved: string[];
+}
+
+export interface StrategicPrecedent {
+  /** Company name */
+  company: string;
+  /** Brief description of what they did */
+  description: string;
+  /** The strategic pattern this maps to */
+  pattern: string;
+}
+
 export interface DeepenedOpportunity {
   /** Unique ID */
   id: string;
@@ -98,8 +114,14 @@ export interface DeepenedOpportunity {
   feasibility: FeasibilityAssessment;
   /** The first move to test the thesis */
   firstMove: FirstMove;
-  /** Real-world precedents */
+  /** Real-world precedents (legacy string format) */
   precedents: string[];
+  /** Structured strategic precedents with company details */
+  strategicPrecedents?: StrategicPrecedent[];
+  /** Impact layer — why the constraint matters and what changes if solved */
+  whyThisMatters?: WhyThisMatters;
+  /** Second-order effects if this strategic move succeeds */
+  secondOrderEffects?: string[];
   /** Constraints this opportunity resolves */
   resolvesConstraints: string[];
   /** Evidence IDs that support this opportunity */

@@ -44,6 +44,8 @@ export type {
   FeasibilityAssessment,
   FeasibilityLevel,
   FirstMove,
+  WhyThisMatters,
+  StrategicPrecedent,
 } from "./opportunityDeepening";
 
 export { STRATEGIC_DIRECTIONS, selectRelevantDirections, buildDirectionsPromptBlock } from "./strategicDirections";
