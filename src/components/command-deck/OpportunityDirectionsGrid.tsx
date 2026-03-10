@@ -78,7 +78,7 @@ function OpportunityCard({
           <div className="flex items-center gap-1.5">
             <TrendingUp size={11} className="text-muted-foreground" />
             <span className="text-muted-foreground font-semibold truncate max-w-[200px]">
-              {opp.economicMechanism.valueCreation}
+              {trimAt(opp.economicMechanism.valueCreation, 100)}
             </span>
           </div>
         )}
