@@ -30,10 +30,10 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
   const scoreKeys = ["feasibility", "desirability", "profitability", "novelty"] as const;
 
   const getDisplayScore = (key: string) => {
-    return userScores?.[key] ?? idea.scores[key as keyof typeof idea.scores] ?? 0;
+    return userScores?.[key] ?? idea.scores?.[key as keyof typeof idea.scores] ?? 0;
   };
 
-  const aiScore = (key: string) => idea.scores[key as keyof typeof idea.scores] ?? 0;
+  const aiScore = (key: string) => idea.scores?.[key as keyof typeof idea.scores] ?? 0;
   const hasOverride = (key: string) => userScores?.[key] !== undefined && userScores[key] !== aiScore(key);
 
   const avgScore = scoreKeys.reduce((sum, k) => sum + getDisplayScore(k), 0) / 4;
