@@ -344,59 +344,59 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       });
     }
 
-    let response = await callAI("google/gemini-2.5-flash");
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    // Retry helper: retries on 503 with exponential backoff
+    async function callAIWithRetry(model: string, maxRetries = 2): Promise<Response> {
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const res = await callAI(model);
+        if (res.status !== 503 || attempt === maxRetries) return res;
+        console.warn(`[AI] ${model} returned 503, retry ${attempt + 1}/${maxRetries} after ${(attempt + 1) * 2}s`);
+        await new Promise(r => setTimeout(r, (attempt + 1) * 2000));
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage credits exhausted. Please add credits in Settings → Workspace → Usage." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const txt = await response.text();
-      throw new Error(`AI gateway error ${response.status}: ${txt}`);
+      return callAI(model); // unreachable but satisfies TS
     }
 
-    let aiData = await response.json();
+    // Model cascade: Flash → Pro → Flash-Lite (simpler but more available)
+    const MODEL_CASCADE = ["google/gemini-2.5-flash", "google/gemini-2.5-pro", "google/gemini-3-flash-preview"];
 
-    // Structured output extraction with retry fallback
-    let analysis;
-    try {
-      analysis = extractStructuredResponse(aiData);
-    } catch (parseErr) {
-      console.warn("[StructuredOutput] Flash attempt failed, retrying with Pro:", parseErr);
-      response = await callAI("google/gemini-2.5-pro");
+    let response: Response | null = null;
+    let aiData: any = null;
+    let analysis: any = null;
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "AI usage credits exhausted. Please add credits in Settings → Workspace → Usage." }), {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        const txt = await response.text();
-        throw new Error(`AI gateway retry error ${response.status}: ${txt}`);
-      }
-
-      aiData = await response.json();
+    for (const model of MODEL_CASCADE) {
       try {
+        response = await callAIWithRetry(model, model === MODEL_CASCADE[0] ? 1 : 2);
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+              status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          if (response.status === 402) {
+            return new Response(JSON.stringify({ error: "AI usage credits exhausted. Please add credits in Settings → Workspace → Usage." }), {
+              status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          const txt = await response.text();
+          console.warn(`[AI] ${model} failed with ${response.status}: ${txt.slice(0, 200)}`);
+          continue; // try next model
+        }
+
+        aiData = await response.json();
         analysis = extractStructuredResponse(aiData);
-      } catch (retryErr) {
-        console.error("[StructuredOutput] Retry failed:", retryErr);
-        throw new Error("AI returned invalid output after retry. Please try again.");
+        console.log(`[AI] Success with model: ${model}`);
+        break; // success
+      } catch (err) {
+        console.warn(`[AI] ${model} attempt failed:`, err instanceof Error ? err.message : err);
+        if (model === MODEL_CASCADE[MODEL_CASCADE.length - 1]) {
+          throw new Error("All AI models failed. The service may be temporarily unavailable — please try again in a moment.");
+        }
+        // continue to next model
       }
+    }
+
+    if (!analysis) {
+      throw new Error("All AI models failed. Please try again in a moment.");
     }
 
     const structuredValidation = validateStructuredResponse(analysis, "business-model-analysis");
