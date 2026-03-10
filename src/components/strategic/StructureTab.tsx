@@ -566,6 +566,15 @@ export function StructureTab({
                   <CausalConstraintMap commandDeck={systemIntelligence.commandDeck} />
                 </StructureSection>
 
+  // Competitive intelligence from CIM-extracted competitor names
+  const biExtractionData = (analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null;
+  const competitiveResearch = useCompetitiveResearch({
+    biExtraction: biExtractionData,
+    governedData,
+    analysisId: selectedProduct.id || "unknown",
+    autoTrigger: true,
+  });
+
 
                 {systemIntelligence.leverageMap && intelligenceInput.activeLenses.length >= 2 && (
                   <StructureSection
