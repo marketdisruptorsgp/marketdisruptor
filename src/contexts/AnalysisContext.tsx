@@ -209,6 +209,10 @@ export interface AdaptiveContextData {
   selectedChallenges?: { id: string; question: string; context: string; priority: string; related_mode: string }[];
   summary?: string;
   userGuidance?: string;
+  /** Flattened BI extraction context string from uploaded documents — threaded to all pipeline steps */
+  extractedContext?: string;
+  /** Raw structured BI extraction data from uploaded documents */
+  biExtraction?: Record<string, unknown>;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
