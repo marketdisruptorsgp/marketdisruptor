@@ -57,6 +57,7 @@ serve(async (req) => {
 
     const isService = category === "Service";
     const eraLabel = era !== "All Eras / Current" ? `${era} ` : "";
+    const isCurrentEra = era === "All Eras / Current";
 
     // Use different queries for service vs product analysis
     const queries = isService
@@ -70,16 +71,29 @@ serve(async (req) => {
           `${eraLabel}service reviews complaints customer feedback ratings`,
           `${eraLabel}service industry operational bottlenecks scaling challenges workforce`,
         ]
-      : [
-          `${eraLabel}${category} vintage discontinued products collector value price sold`,
-          `${eraLabel}${category} nostalgia review complaints "wish they would bring back" community discussion`,
-          `${eraLabel}${category} product reviews complaints improvement requests nostalgia 2023 2024`,
-          `${eraLabel}${category} vintage products trending handmade revival marketplace`,
-          `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued"`,
-          `${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
-          `${eraLabel}${category} viral nostalgia trend "going viral" "gen z" "millennial" 2024`,
-          `${eraLabel}${category} wholesale supplier manufacturer minimum order quantity`,
-        ];
+      : isCurrentEra
+        ? [
+            // Current-era products: focus on live market, real suppliers, competitors
+            `${category} product reviews complaints "what I hate" "wish it had" 2024 2025`,
+            `${category} market analysis competitor comparison "best selling" pricing`,
+            `${category} supplier manufacturer distributor wholesale "minimum order"`,
+            `${category} product innovation trends disruption new technology 2024 2025`,
+            `${category} supply chain manufacturers vendors retailers market share`,
+            `${category} community forums reddit discussion complaints improvement requests`,
+            `${category} industry analysis market size growth trends revenue`,
+            `${category} product teardown BOM cost breakdown materials sourcing`,
+          ]
+        : [
+            // Vintage/era products: nostalgia + collector + revival angle
+            `${eraLabel}${category} vintage discontinued products collector value price sold`,
+            `${eraLabel}${category} nostalgia review complaints "wish they would bring back" community discussion`,
+            `${eraLabel}${category} product reviews complaints improvement requests nostalgia 2023 2024`,
+            `${eraLabel}${category} vintage products trending handmade revival marketplace`,
+            `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued"`,
+            `${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
+            `${eraLabel}${category} viral nostalgia trend "going viral" "gen z" "millennial" 2024`,
+            `${eraLabel}${category} wholesale supplier manufacturer minimum order quantity`,
+          ];
 
     // If custom products/URLs supplied, add targeted searches for them
     const customSearches: string[] = [];
