@@ -111,7 +111,7 @@ export const WhatsNextPanel = memo(function WhatsNextPanel({
                           style={{ background: `${modeAccent}12`, color: modeAccent }}>
                           {vs.step ?? i + 1}
                         </span>
-                        <span className="leading-relaxed">{vs.action}</span>
+                        <span className="leading-relaxed">{trimAt(vs.action, 150)}</span>
                       </li>
                     ))}
                   </ol>
