@@ -44,6 +44,9 @@ import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { FinancialTrendCharts } from "@/components/command-deck/FinancialTrendCharts";
 import { DueDiligenceQuestions } from "@/components/command-deck/DueDiligenceQuestions";
 import { DealScorecard } from "@/components/command-deck/DealScorecard";
+import { LOIBuilder } from "@/components/command-deck/LOIBuilder";
+import { PostClosePlaybook } from "@/components/command-deck/PostClosePlaybook";
+import { CIMComparisonMode } from "@/components/command-deck/CIMComparisonMode";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
 
 import {
