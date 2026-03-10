@@ -106,8 +106,9 @@ serve(async (req) => {
             customSearches.push(`"${cp.productName}" service reviews customer experience complaints`);
             customSearches.push(`"${cp.productName}" OR similar service alternative competitor`);
           } else {
-            customSearches.push(`"${cp.productName}" product reviews price history suppliers sold`);
-            customSearches.push(`"${cp.productName}" community sentiment review complaints`);
+            customSearches.push(`"${cp.productName}" product reviews price history specifications`);
+            customSearches.push(`"${cp.productName}" supplier manufacturer distributor wholesale`);
+            customSearches.push(`"${cp.productName}" community sentiment review complaints reddit`);
           }
         }
         // Directly scrape custom URLs
