@@ -417,8 +417,32 @@ function buildToolSchema() {
                   additionalProperties: false,
                 },
                 precedents: { type: "array", items: { type: "string" }, description: "2-3 real-world precedents of this structural move" },
+                whyThisMatters: {
+                  type: "object",
+                  properties: {
+                    implications: { type: "array", items: { type: "string" }, description: "3-4 business consequences of the constraint. Plain language, strategic advisor tone." },
+                    ifSolved: { type: "array", items: { type: "string" }, description: "3-4 outcomes if the constraint is resolved. Focus on new capabilities and margin expansion." },
+                  },
+                  required: ["implications", "ifSolved"],
+                  additionalProperties: false,
+                },
+                strategicPrecedents: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      company: { type: "string", description: "Real company name" },
+                      description: { type: "string", description: "One sentence: what they did that's analogous" },
+                      pattern: { type: "string", description: "Strategic pattern name (e.g. platformization, marketplace creation)" },
+                    },
+                    required: ["company", "description", "pattern"],
+                    additionalProperties: false,
+                  },
+                  description: "2-3 real companies that executed a structurally similar move",
+                },
+                secondOrderEffects: { type: "array", items: { type: "string" }, description: "3-5 downstream market consequences if this move succeeds" },
               },
-              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "precedents"],
+              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "precedents", "whyThisMatters", "strategicPrecedents", "secondOrderEffects"],
               additionalProperties: false,
             },
           },
