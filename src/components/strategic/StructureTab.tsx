@@ -605,6 +605,18 @@ export function StructureTab({
                     governedData={governedData}
                   />
                 </StructureSection>
+
+                {/* ETA Acquisition Scorecard */}
+                <StructureSection
+                  title="Acquisition Scorecard"
+                  icon={Target}
+                  defaultOpen={true}
+                >
+                  <ETAAcquisitionScorecard
+                    governedData={governedData}
+                    biExtraction={(analysisData as any)?.biExtraction ?? null}
+                  />
+                </StructureSection>
               </>
             )}
 
