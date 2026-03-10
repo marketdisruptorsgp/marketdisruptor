@@ -291,7 +291,7 @@ export default function Index() {
         products: JSON.parse(JSON.stringify(liveProducts)),
         product_count: liveProducts.length,
         avg_revival_score: Math.round(avgScore * 10) / 10,
-        analysis_type: params.category === "Service" ? "service" : "product",
+        analysis_type: mainTab === "business" ? "business_model" : params.category === "Service" ? "service" : "product",
       });
       setSavedRefreshTrigger((n) => n + 1);
       toast.success("Analysis auto-saved!");

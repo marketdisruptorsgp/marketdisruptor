@@ -122,11 +122,22 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
                   analysis.setActiveMode(m);
                   analysis.setMainTab(m as typeof analysis.mainTab);
                 }}
-                onBusinessAnalysis={(data) => {
+                onBusinessAnalysis={async (data) => {
                   analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
-                  const id = crypto.randomUUID();
-                  analysis.setAnalysisId(id);
-                  navigate(`/business/${id}`);
+                  try {
+                    const id = await analysis.createAnalysis(
+                      (data as any)?.type || "Business Model Analysis",
+                      "business_model",
+                      { category: "Business Model" }
+                    );
+                    await analysis.saveStepData("businessAnalysis", data, id);
+                    navigate(`/analysis/${id}/command-deck`);
+                  } catch (err) {
+                    console.error("Failed to save business analysis:", err);
+                    const fallbackId = crypto.randomUUID();
+                    analysis.setAnalysisId(fallbackId);
+                    navigate(`/business/${fallbackId}`);
+                  }
                 }}
               />
             </div>
