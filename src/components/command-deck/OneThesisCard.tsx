@@ -192,6 +192,36 @@ export const OneThesisCard = memo(function OneThesisCard({
             </span>
           </div>
         )}
+
+        {/* Why This Matters — Impact Layer */}
+        {thesis.whyThisMatters && (
+          <div
+            className="px-5 py-4"
+            style={{ borderTop: "1px solid hsl(var(--border))" }}
+          >
+            <WhyThisMattersSection data={thesis.whyThisMatters} />
+          </div>
+        )}
+
+        {/* Second-Order Effects */}
+        {thesis.secondOrderEffects && thesis.secondOrderEffects.length > 0 && (
+          <div
+            className="px-5 py-4"
+            style={{ borderTop: "1px solid hsl(var(--border))" }}
+          >
+            <SecondOrderEffectsSection effects={thesis.secondOrderEffects} />
+          </div>
+        )}
+
+        {/* Strategic Precedent */}
+        {thesis.strategicPrecedents && thesis.strategicPrecedents.length > 0 && (
+          <div
+            className="px-5 py-4"
+            style={{ borderTop: "1px solid hsl(var(--border))" }}
+          >
+            <StrategicPrecedentSection precedents={thesis.strategicPrecedents} />
+          </div>
+        )}
       </motion.div>
 
       {/* ═══ ALTERNATIVE THESIS (collapsible) ═══ */}
