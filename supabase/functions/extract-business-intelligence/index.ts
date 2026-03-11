@@ -44,10 +44,20 @@ const EXTRACTION_SCHEMA = `{
   },
   "constraints": [
     {
-      "constraint": "string",
+      "constraint": "string — ONLY structural bottlenecks, limitations, and problems that cap growth or create risk",
       "type": "operational | market | financial | technical",
       "causes": ["string"],
-      "effects": ["string"],
+      "effects": ["string — the negative business impact of this constraint"],
+      "evidence": ["string"],
+      "confidence": "high | medium | low"
+    }
+  ],
+  "opportunities": [
+    {
+      "opportunity": "string — untapped capacity, growth runway, expansion potential, or underutilized assets",
+      "type": "capacity | market | operational | financial",
+      "enablers": ["string — what makes this opportunity possible"],
+      "potential_impact": ["string — the upside if captured"],
       "evidence": ["string"],
       "confidence": "high | medium | low"
     }
