@@ -317,7 +317,12 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           console.warn("[StrategicEngine] Sync fallback also failed:", syncErr);
         }
       })
-      .finally(() => setIsComputing(false));
+      .finally(() => {
+        // Only clear computing state if this is still the latest run
+        if (thisRunId === runIdRef.current) {
+          setIsComputing(false);
+        }
+      });
   }, [
     analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
