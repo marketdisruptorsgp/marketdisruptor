@@ -31,6 +31,7 @@ interface CriticalValidationProps {
 export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel, conceptVariants }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   const [userSuggestions, setUserSuggestions] = useState("");
 
   React.useEffect(() => { onLoadingChange?.(loading); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
