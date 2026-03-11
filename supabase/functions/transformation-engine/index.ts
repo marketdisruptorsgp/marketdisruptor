@@ -456,11 +456,13 @@ CRITICAL INSTRUCTIONS:
 4. SMART TECH: What could transform this?
 5. ECOSYSTEM: What dependencies constrain use?
 6. COST/MAINTENANCE: Ongoing burden?
-7. Avoid vague suggestions — every idea needs a physical mechanism
-8. VALIDATION: Reference real analogous products if possible
+7. Avoid vague suggestions — every idea needs a physical mechanism grounded in real physics/materials science
+8. PRODUCT PRECEDENTS: For each flipped idea, cite a REAL product innovation from an adjacent category (NOT business model analogs like "Uber for X" — cite actual product design innovations)
 9. DEMAND SIGNAL: Reference community complaints, behavioral trends
-10. UNIT ECONOMICS: Include BOM estimate, target retail price, margin
-11. MINIMUM COUNTS: Generate at least 5 hiddenAssumptions and at least 4 flippedLogic items
+10. UNIT ECONOMICS: Include BOM estimate per unit at 10K volume, target retail price, margin
+11. CERTIFICATIONS: Name specific industry certifications required for this product category
+12. MANUFACTURING: Specify manufacturing method for each proposed change (injection molding, overmolding, die casting, CNC, etc.)
+13. MINIMUM COUNTS: Generate at least 5 hiddenAssumptions and at least 4 flippedLogic items
 
 VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 1-2 visual specs for the dominant constraint structure
