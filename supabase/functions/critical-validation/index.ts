@@ -241,7 +241,7 @@ FLIPPED LOGIC:
 ${analysisData.flippedLogic?.map((f: { originalAssumption: string; boldAlternative: string }) => "• " + f.originalAssumption + " → " + f.boldAlternative).join("\n") || "None"}
 
 STRUCTURAL TRANSFORMATIONS (viability-gated):
-${analysisData.structuralTransformations?.filter((t: any) => !t.filtered)?.map((t: any) => `• [${(t.transformationType || "unknown").toUpperCase()}] ${t.targetPrimitiveLabel || "?"}: ${t.currentState || "?"} → ${t.proposedState || "?"} (viability: ${t.viabilityGate?.verdict || "unknown"})`).join("\n") || "None"}
+${analysisData.structuralTransformations?.filter((t: any) => !t?.filtered)?.map((t: any) => `• [${String(t?.transformationType ?? "unknown").toUpperCase()}] ${String(t?.targetPrimitiveLabel ?? "?")}: ${String(t?.currentState ?? "?")} → ${String(t?.proposedState ?? "?")} (viability: ${String(t?.viabilityGate?.verdict ?? "unknown")})`).join("\n") || "None"}
 
 TRANSFORMATION CLUSTERS:
 ${analysisData.transformationClusters?.map((c: any) => `• ${c.name}: ${c.description} (power: ${c.strategicPowerScore})`).join("\n") || "None"}
