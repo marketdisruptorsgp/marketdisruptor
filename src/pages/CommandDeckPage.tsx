@@ -51,6 +51,8 @@ import { PostClosePlaybook } from "@/components/command-deck/PostClosePlaybook";
 import { CIMComparisonMode } from "@/components/command-deck/CIMComparisonMode";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
 import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth";
+import { CIMKeyFindings } from "@/components/command-deck/CIMKeyFindings";
+import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
@@ -603,8 +605,16 @@ export default function CommandDeckPage() {
           rationale={narrative?.narrativeSummary ?? null}
           verdict={narrative?.strategicVerdict ?? null}
           opportunityLabel={narrative?.breakthroughOpportunity ?? null}
+          verdictRationale={narrative?.verdictRationale ?? null}
+          whyThisMatters={narrative?.whyThisMatters ?? null}
           confidence={narrative?.verdictConfidence ?? 0}
           completedSteps={completedSteps.size}
+        />
+
+        {/* Contrarian Insight — The "aha moment" */}
+        <ContrarianInsightCard
+          thesis={primaryThesis}
+          modeAccent={modeAccent}
         />
 
         {/* Why This Matters — attached to diagnosis */}
@@ -616,6 +626,12 @@ export default function CommandDeckPage() {
             <WhyThisMattersSection data={primaryThesis.whyThisMatters} />
           </div>
         )}
+
+        {/* CIM Key Findings — extracted constraints with evidence */}
+        <CIMKeyFindings
+          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          modeAccent={modeAccent}
+        />
 
         {/* ══════════════════════════════════════════════════════════
             SECTION 2 — OPPORTUNITIES
