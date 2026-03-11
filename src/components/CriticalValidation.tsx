@@ -31,6 +31,7 @@ interface CriticalValidationProps {
 export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel, conceptVariants }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   const [userSuggestions, setUserSuggestions] = useState("");
 
   React.useEffect(() => { onLoadingChange?.(loading); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -61,6 +62,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
   const runValidation = async () => {
     setLoading(true);
+    setLastError(null);
     try {
       let activeBranch: unknown = undefined;
       if (governedData && activeBranchId) {
@@ -69,16 +71,20 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       }
       const { data: result, error } = await invokeWithTimeout("critical-validation", {
         body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined, competitorIntel: competitorIntel?.length ? competitorIntel : undefined, conceptVariants: conceptVariants?.length ? conceptVariants : undefined },
-      }, 180_000);
+      }, 180_000, 1);
       if (error || !result?.success) {
-        toast.error(result?.error || error?.message || "Validation failed");
+        const msg = result?.error || error?.message || "Validation failed";
+        setLastError(msg);
+        toast.error(msg);
       } else {
         setData(result.validation);
         onDataLoaded?.(result.validation);
         toast.success("Critical validation complete!");
       }
     } catch (err) {
-      toast.error("Unexpected error: " + String(err));
+      const msg = String(err);
+      setLastError(msg);
+      toast.error("Unexpected error: " + msg);
     } finally {
       setLoading(false);
     }
@@ -87,6 +93,27 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   // Loading
   if (!data && loading) {
     return <StepLoadingTracker title="Running Stress Test" tasks={STRESS_TEST_TASKS} estimatedSeconds={30} accentColor="hsl(350 80% 55%)" />;
+  }
+
+  // Error state with retry
+  if (!data && lastError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-5 text-center">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-destructive/10">
+          <Shield size={30} className="text-destructive" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-foreground mb-1">Validation Failed</h3>
+          <p className="text-sm text-muted-foreground max-w-md">{lastError}</p>
+        </div>
+        <button
+          onClick={runValidation}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+        >
+          <RefreshCw size={14} /> Retry Validation
+        </button>
+      </div>
+    );
   }
 
   // Empty

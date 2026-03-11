@@ -185,17 +185,23 @@ export default function CommandDeckPage() {
   const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([]);
   const [baselineNarrative, setBaselineNarrative] = useState<typeof narrative>(null);
 
+  // Store baseline narrative for visual diff on ANY recompute (not just challenge mode)
+  const preRecomputeNarrativeRef = useRef<typeof narrative>(null);
+
   const deltaChanges = useMemo<DeltaItem[]>(() => {
-    if (activeChallenges.length === 0 || !baselineNarrative || !narrative) return [];
+    const base = activeChallenges.length > 0 ? baselineNarrative : preRecomputeNarrativeRef.current;
+    if (!base || !narrative) return [];
+    // Don't show diff if nothing changed
+    if (base === narrative) return [];
     const deltas: DeltaItem[] = [];
-    if (baselineNarrative.primaryConstraint !== narrative.primaryConstraint && narrative.primaryConstraint) {
-      deltas.push({ label: "Constraint", before: baselineNarrative.primaryConstraint || "None", after: narrative.primaryConstraint, direction: "changed" });
+    if (base.primaryConstraint !== narrative.primaryConstraint && narrative.primaryConstraint) {
+      deltas.push({ label: "Constraint", before: base.primaryConstraint || "None", after: narrative.primaryConstraint, direction: "changed" });
     }
-    if (baselineNarrative.strategicVerdict !== narrative.strategicVerdict && narrative.strategicVerdict) {
-      deltas.push({ label: "Verdict", before: baselineNarrative.strategicVerdict || "None", after: narrative.strategicVerdict, direction: "changed" });
+    if (base.strategicVerdict !== narrative.strategicVerdict && narrative.strategicVerdict) {
+      deltas.push({ label: "Verdict", before: base.strategicVerdict || "None", after: narrative.strategicVerdict, direction: "changed" });
     }
-    if (baselineNarrative.breakthroughOpportunity !== narrative.breakthroughOpportunity && narrative.breakthroughOpportunity) {
-      deltas.push({ label: "Opportunity", before: baselineNarrative.breakthroughOpportunity || "None", after: narrative.breakthroughOpportunity, direction: "up" });
+    if (base.breakthroughOpportunity !== narrative.breakthroughOpportunity && narrative.breakthroughOpportunity) {
+      deltas.push({ label: "Opportunity", before: base.breakthroughOpportunity || "None", after: narrative.breakthroughOpportunity, direction: "up" });
     }
     return deltas;
   }, [activeChallenges, baselineNarrative, narrative]);
@@ -222,11 +228,12 @@ export default function CommandDeckPage() {
 
   const handleRecomputeAll = useCallback(() => {
     if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
+    // Capture current narrative as baseline for visual diff
+    if (narrative) preRecomputeNarrativeRef.current = narrative;
     setIsRecomputing(true);
     addEvent("Running strategic analysis…");
     try { runAnalysis(); } catch { addEvent("Strategic intelligence updated"); }
-    // Don't use setTimeout — let engineComputing state drive the UI
-  }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
+  }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis, narrative]);
 
   const handleChallenge = useCallback((nodeStage: string, newValue: string) => {
     if (activeChallenges.length === 0 && narrative) setBaselineNarrative(narrative);

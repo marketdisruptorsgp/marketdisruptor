@@ -3,7 +3,7 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import type { Product, FlippedIdea } from "@/data/mockProducts";
-import { Brain, Sparkles } from "lucide-react";
+import { Brain, Sparkles, AlertTriangle, RefreshCw } from "lucide-react";
 import { StepLoadingTracker, DISRUPT_TASKS, REDESIGN_TASKS } from "@/components/StepLoadingTracker";
 
 // Sub-panels
@@ -69,8 +69,11 @@ export const FirstPrinciplesAnalysis = ({
   // saveToWorkspace removed — data is saved via onDataLoaded → saveStepData("disrupt")
   // which atomically merges into the parent analysis record via merge_analysis_step RPC
 
+  const [lastError, setLastError] = useState<string | null>(null);
+
   const runAnalysis = async () => {
     setLoading(true);
+    setLastError(null);
     onAnalysisStarted?.();
     try {
       const upstreamIntel: Record<string, unknown> = {};
@@ -141,9 +144,10 @@ export const FirstPrinciplesAnalysis = ({
         requestBody.userScores = analysisCtx.userScores;
         requestBody.steeringText = analysisCtx.steeringText;
 
-        const { data: result, error } = await invokeWithTimeout("concept-architecture", { body: requestBody }, 180_000);
+        const { data: result, error } = await invokeWithTimeout("concept-architecture", { body: requestBody }, 180_000, 1);
         if (error || !result?.success) {
           const msg = result?.error || error?.message || "Redesign failed";
+          setLastError(msg);
           toast.error("Redesign failed: " + msg);
           return;
         }
@@ -165,9 +169,10 @@ export const FirstPrinciplesAnalysis = ({
           if (branchPayload) requestBody.activeBranch = branchPayload;
         }
 
-        const { data: result, error } = await invokeWithTimeout("transformation-engine", { body: requestBody }, 180_000);
+        const { data: result, error } = await invokeWithTimeout("transformation-engine", { body: requestBody }, 180_000, 1);
         if (error || !result?.success) {
           const msg = result?.error || error?.message || "Analysis failed";
+          setLastError(msg);
           if (msg.includes("Rate limit") || msg.includes("429")) {
             toast.error("Rate limit hit — please wait a moment and try again.");
           } else if (msg.includes("credits") || msg.includes("402")) {
@@ -187,7 +192,9 @@ export const FirstPrinciplesAnalysis = ({
         toast.success("Structural analysis complete!");
       }
     } catch (err) {
-      toast.error("Unexpected error: " + String(err));
+      const msg = String(err);
+      setLastError(msg);
+      toast.error("Unexpected error: " + msg);
     } finally {
       setLoading(false);
     }
@@ -219,6 +226,27 @@ export const FirstPrinciplesAnalysis = ({
         estimatedSeconds={35}
         accentColor={renderMode === "redesign" ? "hsl(38 92% 50%)" : "hsl(271 81% 55%)"}
       />
+    );
+  }
+
+  // Error state with retry
+  if (!data && lastError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
+        <div className="w-20 h-20 rounded flex items-center justify-center bg-destructive/10">
+          <AlertTriangle size={36} className="text-destructive" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            {renderMode === "redesign" ? "Redesign Failed" : "Analysis Failed"}
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-md leading-relaxed">{lastError}</p>
+        </div>
+        <button onClick={runAnalysis} disabled={loading}
+          className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
+          <RefreshCw size={15} /> Retry
+        </button>
+      </div>
     );
   }
 
