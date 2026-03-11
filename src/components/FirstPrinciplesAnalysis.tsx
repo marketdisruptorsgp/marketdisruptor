@@ -69,8 +69,11 @@ export const FirstPrinciplesAnalysis = ({
   // saveToWorkspace removed — data is saved via onDataLoaded → saveStepData("disrupt")
   // which atomically merges into the parent analysis record via merge_analysis_step RPC
 
+  const [lastError, setLastError] = useState<string | null>(null);
+
   const runAnalysis = async () => {
     setLoading(true);
+    setLastError(null);
     onAnalysisStarted?.();
     try {
       const upstreamIntel: Record<string, unknown> = {};
