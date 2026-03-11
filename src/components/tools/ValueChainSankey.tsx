@@ -32,15 +32,21 @@ interface SLink {
 }
 
 const FRICTION_COLORS = {
-  high: "hsl(0 72% 52%)",
-  medium: "hsl(38 92% 50%)",
-  low: "hsl(152 60% 44%)",
+  high: "hsl(0 72% 48%)",
+  medium: "hsl(38 92% 45%)",
+  low: "hsl(152 60% 38%)",
+} as const;
+
+const FRICTION_COLORS_BRIGHT = {
+  high: "hsl(0 80% 58%)",
+  medium: "hsl(38 95% 55%)",
+  low: "hsl(152 65% 48%)",
 } as const;
 
 const FRICTION_BG = {
-  high: "hsl(0 72% 52% / 0.12)",
-  medium: "hsl(38 92% 50% / 0.12)",
-  low: "hsl(152 60% 44% / 0.12)",
+  high: "hsl(0 72% 48% / 0.15)",
+  medium: "hsl(38 92% 45% / 0.15)",
+  low: "hsl(152 60% 38% / 0.15)",
 } as const;
 
 function truncate(text: string, max: number): string {
@@ -137,9 +143,9 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                 key={i}
                 d={linkPath(link) || ""}
                 fill="none"
-                stroke={FRICTION_COLORS[friction]}
-                strokeWidth={Math.max(link.width || 1, 4)}
-                strokeOpacity={hoveredNode ? (isConnected ? 0.5 : 0.08) : 0.3}
+                stroke={FRICTION_COLORS_BRIGHT[friction]}
+                strokeWidth={Math.max(link.width || 1, 5)}
+                strokeOpacity={hoveredNode ? (isConnected ? 0.7 : 0.1) : 0.45}
                 style={{ transition: "stroke-opacity 0.2s" }}
               />
             );
@@ -182,7 +188,7 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                   y={y0 + h / 2}
                   dy="0.35em"
                   textAnchor={i < graph.nodes.length - 1 ? "start" : "end"}
-                  className="text-[11px] font-bold fill-foreground"
+                  className="text-[12px] font-extrabold fill-foreground"
                   style={{ pointerEvents: "none" }}
                 >
                   {truncate(node.label, 28)}
@@ -193,9 +199,9 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                   y={y0 + h / 2 + 14}
                   dy="0.35em"
                   textAnchor={i < graph.nodes.length - 1 ? "start" : "end"}
-                  className="text-[9px] font-extrabold uppercase"
+                  className="text-[10px] font-extrabold uppercase"
                   fill={FRICTION_COLORS[friction]}
-                  style={{ pointerEvents: "none" }}
+                  fillOpacity={1}
                 >
                   {friction}
                 </text>

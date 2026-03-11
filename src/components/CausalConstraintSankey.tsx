@@ -29,14 +29,14 @@ interface SLink {
 }
 
 const TYPE_CONFIG = {
-  constraint: { label: "Constraint", icon: Lock, color: "hsl(0 72% 50%)", bg: "hsl(0 72% 50% / 0.10)" },
-  leverage: { label: "Leverage", icon: Zap, color: "hsl(229 89% 63%)", bg: "hsl(229 89% 63% / 0.10)" },
-  opportunity: { label: "Opportunity", icon: Lightbulb, color: "hsl(152 60% 44%)", bg: "hsl(152 60% 44% / 0.10)" },
+  constraint: { label: "Constraint", icon: Lock, color: "hsl(0 75% 48%)", bg: "hsl(0 75% 48% / 0.15)", bright: "hsl(0 80% 58%)" },
+  leverage: { label: "Leverage", icon: Zap, color: "hsl(229 85% 58%)", bg: "hsl(229 85% 58% / 0.15)", bright: "hsl(229 90% 68%)" },
+  opportunity: { label: "Opportunity", icon: Lightbulb, color: "hsl(152 60% 38%)", bg: "hsl(152 60% 38% / 0.15)", bright: "hsl(152 65% 48%)" },
 } as const;
 
 const LINK_COLORS = {
-  "constraint-leverage": "hsl(0 72% 50%)",
-  "leverage-opportunity": "hsl(229 89% 63%)",
+  "constraint-leverage": "hsl(0 80% 58%)",
+  "leverage-opportunity": "hsl(229 85% 65%)",
 } as const;
 
 function impactLevel(impact: number): string {
@@ -194,8 +194,8 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
                   d={linkPath(link) || ""}
                   fill="none"
                   stroke={LINK_COLORS[linkType]}
-                  strokeWidth={Math.max(link.width || 1, 3)}
-                  strokeOpacity={connectedNodes ? (isConnected ? 0.45 : 0.06) : 0.2}
+                  strokeWidth={Math.max(link.width || 1, 4)}
+                  strokeOpacity={connectedNodes ? (isConnected ? 0.65 : 0.08) : 0.35}
                   style={{ transition: "stroke-opacity 0.2s" }}
                 />
               );
@@ -235,7 +235,7 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
                     y={y0 + h / 2}
                     dy="0.35em"
                     textAnchor={isFirst ? "end" : "start"}
-                    className="text-[10px] font-bold fill-foreground"
+                    className="text-[11px] font-extrabold fill-foreground"
                     style={{ pointerEvents: "none" }}
                   >
                     {truncate(node.label, isFirst || isLast ? 20 : 18)}
@@ -245,9 +245,9 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
                     y={y0 + h / 2 + 13}
                     dy="0.35em"
                     textAnchor={isFirst ? "end" : "start"}
-                    className="text-[9px] font-extrabold"
+                    className="text-[10px] font-extrabold"
                     fill={cfg.color}
-                    fillOpacity={0.7}
+                    fillOpacity={1}
                     style={{ pointerEvents: "none" }}
                   >
                     {impactLevel(node.impact)}
