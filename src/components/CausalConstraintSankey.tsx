@@ -141,7 +141,13 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
       if (tid === hoveredNode) set.add(sid);
     });
     return set;
-  }, [hoveredNode, graph.links]);
+  }, [hoveredNode, sankeyData]);
+
+  if (!sankeyData) return null;
+
+  const { graph, margin, innerHeight } = sankeyData;
+  const svgHeight = innerHeight + margin.top + margin.bottom;
+  const linkPath = sankeyLinkHorizontal();
 
   return (
     <div className="space-y-3">
