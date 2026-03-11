@@ -497,7 +497,14 @@ ${schema}`;
       decomposition.leverageAnalysis.leveragePrimitives = [];
     }
 
-    // Sort leverage primitives by score descending
+    // Ensure valueChain exists with defaults
+    if (!decomposition.valueChain) {
+      decomposition.valueChain = { stages: [], totalStages: 0, highestFrictionStage: "", primaryValueLeakage: "" };
+    }
+    if (!decomposition.valueChain.stages) {
+      decomposition.valueChain.stages = [];
+    }
+
     decomposition.leverageAnalysis.leveragePrimitives.sort(
       (a: any, b: any) => (b.leverageScore || 0) - (a.leverageScore || 0)
     );
