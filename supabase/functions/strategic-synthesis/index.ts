@@ -513,38 +513,14 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     let minimumValidation = validateArrayMinimums(analysis, "strategic-synthesis");
     if (!minimumValidation.valid) {
       console.warn(`[StrategicSynthesis] Underfilled: ${minimumValidation.underfilled.map(u => `${u.field}:${u.actual}/${u.min}`).join(", ")}`);
-      analysis = enforceMinimumArtifacts(analysis, upstreamIntel);
+      analysis = enforceMinimumArtifacts(analysis, upstreamIntel, product, isService, structuralDecomposition);
     }
 
     // ── Validate concept ──
     const concept = analysis.redesignedConcept as Record<string, unknown> | undefined;
     if (!concept?.conceptName && !concept?.coreInsight) {
       console.warn("[StrategicSynthesis] Missing concept — synthesizing from transformations");
-      const topCluster = Array.isArray(analysis.transformationClusters) ? (analysis.transformationClusters as any[])[0] : null;
-      const topTransform = Array.isArray(analysis.structuralTransformations)
-        ? (analysis.structuralTransformations as any[]).find((t: any) => !t.filtered)
-        : null;
-      analysis.redesignedConcept = {
-        conceptName: topCluster?.name || `Reimagined ${product.name}`,
-        tagline: topCluster?.description || "A ground-up reinvention",
-        coreInsight: topTransform
-          ? `By applying ${topTransform.transformationType} to ${topTransform.targetPrimitiveLabel}, we unlock: ${topTransform.valueCreated}`
-          : "Structural transformation of the core system",
-        radicalDifferences: (analysis.structuralTransformations as any[] || []).filter((t: any) => !t.filtered).slice(0, 4).map((t: any) => t.proposedState || t.mechanism),
-        physicalDescription: topTransform?.mechanism || "Fundamentally restructured approach",
-        sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for core use case",
-        materials: (analysis.structuralTransformations as any[] || []).filter((t: any) => !t.filtered).slice(0, 3).map((t: any) => t.mechanism),
-        smartFeatures: [],
-        userExperienceTransformation: "Before: constrained by legacy. After: freed by structural transformation.",
-        frictionEliminated: (analysis.structuralTransformations as any[] || []).filter((t: any) => !t.filtered).slice(0, 3).map((t: any) => t.valueCreated),
-        whyItHasntBeenDone: "Incumbent economics and organizational inertia",
-        biggestRisk: "Adoption risk — requires behavioral change",
-        manufacturingPath: isService ? "Phased rollout with pilot" : "Prototype → validation → scale",
-        pricePoint: "Market-competitive with improved unit economics",
-        targetUser: "Users who actively experience identified friction",
-        riskLevel: "Medium",
-        capitalRequired: "Medium",
-      };
+      analysis.redesignedConcept = buildFallbackConcept(analysis, product, isService, structuralDecomposition);
     }
 
     // ── Ensure quickValidation exists ──
