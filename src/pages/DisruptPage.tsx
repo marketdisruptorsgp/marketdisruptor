@@ -303,8 +303,8 @@ export default function DisruptPage() {
           </div>
         )}
 
-        {/* Innovation Opportunities — derived from governed artifacts */}
-        {analysis.disruptData && (
+        {/* Innovation Opportunities — shown inside assumptions tab */}
+        {effectiveTab === "assumptions" && analysis.disruptData && (
           <AnalysisContentCard>
             <InnovationOpportunitiesPanel
               governedData={governedData as Record<string, unknown> | null}

@@ -242,19 +242,24 @@ export default function StressTestPage() {
                     convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
                   />
                 </AnalysisContentCard>
-                <AnalysisContentCard>
-                  <ETAExecutionPanel
-                    commandDeck={systemIntelligence.commandDeck}
-                    expandedFriction={systemIntelligence.expandedFriction}
-                    governedData={governedData}
-                  />
-                </AnalysisContentCard>
-                <AnalysisContentCard>
-                  <ETAAcquisitionScorecard
-                    governedData={governedData}
-                    biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-                  />
-                </AnalysisContentCard>
+                {/* Only show ETA panels when biExtraction (deal/CIM data) is present */}
+                {((analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction) && (
+                  <>
+                    <AnalysisContentCard>
+                      <ETAExecutionPanel
+                        commandDeck={systemIntelligence.commandDeck}
+                        expandedFriction={systemIntelligence.expandedFriction}
+                        governedData={governedData}
+                      />
+                    </AnalysisContentCard>
+                    <AnalysisContentCard>
+                      <ETAAcquisitionScorecard
+                        governedData={governedData}
+                        biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+                      />
+                    </AnalysisContentCard>
+                  </>
+                )}
               </>
             ) : (
               <AnalysisContentCard>
