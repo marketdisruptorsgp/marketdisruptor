@@ -876,6 +876,40 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     }
   }
 
+  // ── Synthesize leverage points (structural_insight) from constraints ──
+  const constraintInsights = insights.filter(i => i.insightType === "constraint_cluster");
+  for (const con of constraintInsights) {
+    const cleanLabel = con.label.replace(/^(Constraint|Structural bottleneck|Operational friction|Risk concentration|Inferred constraint): /i, "");
+    insights.push(makeInsight({
+      id: nextId("leverage"),
+      analysisId: input.analysisId,
+      insightType: "structural_insight",
+      label: `Resolve: ${cleanLabel}`,
+      description: `Resolving "${cleanLabel}" creates a high-leverage intervention point that unlocks disproportionate value.`,
+      evidenceIds: con.evidenceIds,
+      relatedInsightIds: [con.id],
+      impact: con.impact,
+      confidence: 0.65,
+      createdAt: now,
+    }));
+  }
+
+  // ── Synthesize strategic pathways from qualified patterns ──
+  for (const qp of qualifiedPatternsResult.slice(0, 3)) {
+    insights.push(makeInsight({
+      id: nextId("pathway"),
+      analysisId: input.analysisId,
+      insightType: "strategic_pathway",
+      label: `${qp.pattern.name}: ${qp.strategicBet.contrarianBelief.slice(0, 80)}`,
+      description: `Pattern "${qp.pattern.name}" qualified with ${qp.qualification.strengthSignals.length} strength signals. ${qp.strategicBet.industryAssumption}`,
+      evidenceIds: qp.qualification.strengthSignals.slice(0, 4),
+      relatedInsightIds: constraintInsights.map(c => c.id),
+      impact: 7 + Math.min(qp.signalDensity, 3),
+      confidence: 0.6 + qp.signalDensity * 0.05,
+      createdAt: now,
+    }));
+  }
+
   for (const deep of deepenedOpps) {
     insights.push(makeInsight({
       id: nextId("thesis"),
