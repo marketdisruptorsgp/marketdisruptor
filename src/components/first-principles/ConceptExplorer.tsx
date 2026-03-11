@@ -7,8 +7,10 @@ import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lightbulb, ChevronDown, ChevronUp, Wrench, Package, FlaskConical,
-  ArrowRight, Eye, EyeOff, Users,
+  ArrowRight, Eye, EyeOff, Users, Zap, Building2, GraduationCap,
+  Rocket, Factory, Truck, Network,
 } from "lucide-react";
+import type { InventionConcept, ConceptSynthesisResult, BreakthroughMetric, PerformerMapping, SystemArchitecture } from "./types";
 import type { InventionConcept, ConceptSynthesisResult } from "./types";
 import { PERSONA_LENS_META } from "./types";
 
