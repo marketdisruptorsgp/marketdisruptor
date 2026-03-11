@@ -597,6 +597,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
   }) => {
     if (!canAnalyze()) {
+      toast.error("You've reached your analysis limit. Upgrade your plan to continue.");
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("Please sign in to run an analysis.");
       return;
     }
 

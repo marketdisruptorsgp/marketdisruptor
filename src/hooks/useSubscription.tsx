@@ -93,6 +93,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const lastCheckRef = useRef<number>(0);
+  const checkInFlightRef = useRef<Promise<void> | null>(null);
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   const checkSubscription = useCallback(async (force = false) => {
@@ -106,19 +107,29 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    try {
-      const { data, error } = await supabase.functions.invoke("check-subscription");
-      if (error) throw error;
-      lastCheckRef.current = Date.now();
-      setTier(data.tier || "explorer");
-      setSubscribed(data.subscribed || false);
-      setSubscriptionEnd(data.subscription_end || null);
-      setUsage(data.usage || { total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 });
-    } catch (err) {
-      console.error("Failed to check subscription:", err);
-    } finally {
-      setLoading(false);
+    // Deduplicate concurrent calls
+    if (checkInFlightRef.current) {
+      await checkInFlightRef.current;
+      return;
     }
+    const doCheck = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("check-subscription");
+        if (error) throw error;
+        lastCheckRef.current = Date.now();
+        setTier(data.tier || "explorer");
+        setSubscribed(data.subscribed || false);
+        setSubscriptionEnd(data.subscription_end || null);
+        setUsage(data.usage || { total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 });
+      } catch (err) {
+        console.error("Failed to check subscription:", err);
+      } finally {
+        setLoading(false);
+        checkInFlightRef.current = null;
+      }
+    };
+    checkInFlightRef.current = doCheck();
+    await checkInFlightRef.current;
   }, [user]);
 
   useEffect(() => {
