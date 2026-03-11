@@ -44,11 +44,11 @@ export default function PipelineTestRunner() {
     setReport(null);
     setAiRaw(null);
 
-    // Step 1: Generate evidence via AI
+    // Step 1: Generate evidence via AI (using business-model-analysis as replacement)
     setIsGenerating(true);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke("analyze-business-structure", {
-        body: { businessName: name, businessDescription: description || "" },
+      const { data, error: fnError } = await supabase.functions.invoke("business-model-analysis", {
+        body: { businessModel: { type: name, description: description || "" } },
       });
 
       if (fnError) throw new Error(fnError.message);

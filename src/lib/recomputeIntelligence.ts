@@ -255,20 +255,10 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
         })),
       };
 
-      console.log(`[Morphological] Injecting ${analogMatches.length} analogs + ${inversions.length} inversions + ${unlocks.length} unlocks + ${temporalUnlocks.length} temporal + ${gaps.length} gaps into AI prompt`);
-
-      const { data, error } = await invokeWithTimeout<{ alternatives: DimensionAlternative[] }>(
-        "generate-opportunity-vectors",
-        { body: enrichedPayload },
-        120_000,
-      );
-
-      if (!error && data?.alternatives && data.alternatives.length > 0) {
-        aiAlternatives = data.alternatives;
-        console.log(`[Morphological] Received ${aiAlternatives.length} AI alternatives for ${activeDimCount} dimensions (full multi-lens enrichment)`);
-      } else {
-        console.warn("[Morphological] Edge function returned no alternatives", error);
-      }
+      console.log(`[Morphological] Skipping AI alternative generation (generate-opportunity-vectors removed). Using deterministic alternatives only.`);
+      // generate-opportunity-vectors was removed in the architecture cleanup.
+      // The deterministic engines (analogs, inversions, unlocks, temporal, gaps) above
+      // already provide sufficient alternative generation without the AI call.
     } else {
       console.log(`[Morphological] Only ${activeDimCount} active dims, skipping AI`);
     }

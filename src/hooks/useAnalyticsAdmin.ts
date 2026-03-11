@@ -81,23 +81,10 @@ export function useAnalyticsAdmin() {
   }, [days]);
 
   const computeInsights = useCallback(async () => {
-    const token = getToken();
-    if (!token) return null;
-
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-    const base = projectId
-      ? `https://${projectId}.supabase.co/functions/v1/compute-analytics-insights`
-      : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/compute-analytics-insights`;
-
-    const res = await fetch(base, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-analytics-token": token,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
-      },
-    });
-    return res.json();
+    // compute-analytics-insights was removed in the architecture cleanup.
+    // Analytics insights are now handled by analytics-admin.
+    console.warn("[AnalyticsAdmin] computeInsights is deprecated — use fetchData instead");
+    return null;
   }, []);
 
   return { authenticated, login, logout, fetchData, computeInsights, loading, error, days, setDays };
