@@ -242,7 +242,7 @@ const RELEASES: ReleaseEntry[] = [
     description: "Implemented standardized resilience patterns across all backend functions: AbortController timeouts (150s–180s), defensive body reading for interrupted network streams, JSON repair logic for truncated AI responses, and Flash-first/Pro-fallback model strategy for cost optimization.",
     valueToUser: "Analyses complete more reliably, even on slow connections or when AI providers experience latency spikes. If a response is partially received before a timeout, the system attempts to repair and extract usable data rather than failing entirely. The Flash-first strategy keeps analysis costs low while automatically escalating to more powerful models when the simpler model fails to produce valid output.",
     location: "Invisible to users — this is infrastructure. You'll notice it as fewer 'analysis failed' errors and faster average completion times. The model fallback strategy is logged in the Pipeline Diagnostics panel for transparency.",
-    dataSources: "All backend functions (analyze-products, business-model-analysis, generate-flip-ideas, first-principles-analysis, generate-pitch-deck, critical-validation, generate-concept-space, generate-opportunity-vectors) implement this pattern. Primary model: Google Gemini 2.5 Flash. Fallback: Google Gemini 2.5 Pro.",
+    dataSources: "Core pipeline functions (structural-decomposition, strategic-synthesis, concept-synthesis, critical-validation, generate-pitch-deck, business-model-analysis) implement this pattern. Primary model: Google Gemini 2.5 Flash. Fallback: Google Gemini 2.5 Pro.",
     tag: "infrastructure",
   },
 
