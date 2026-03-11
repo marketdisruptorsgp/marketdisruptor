@@ -130,17 +130,11 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
     return { graph, margin, innerHeight };
   }, [commandDeck, containerWidth]);
 
-  if (!sankeyData) return null;
-
-  const { graph, margin, innerHeight } = sankeyData;
-  const svgHeight = innerHeight + margin.top + margin.bottom;
-  const linkPath = sankeyLinkHorizontal();
-
   // Compute connected set for hover highlighting
   const connectedNodes = useMemo(() => {
-    if (!hoveredNode) return null;
+    if (!hoveredNode || !sankeyData) return null;
     const set = new Set<string>([hoveredNode]);
-    graph.links.forEach((l: any) => {
+    sankeyData.graph.links.forEach((l: any) => {
       const sid = typeof l.source === "object" ? l.source.id : l.source;
       const tid = typeof l.target === "object" ? l.target.id : l.target;
       if (sid === hoveredNode) set.add(tid);
