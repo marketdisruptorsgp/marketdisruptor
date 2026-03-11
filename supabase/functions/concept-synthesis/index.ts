@@ -199,21 +199,11 @@ RULES:
 - Avoid business model plays (no "SaaS-ify it", no "marketplace", no "subscription model")
 - Focus on mechanical/electrical/material innovation
 
-BREAKTHROUGH METRIC (DARPA-inspired) — For each concept:
-- Classify as "step_change" (10× improvement) or "incremental" (2-5× improvement). Be HONEST — most ideas are incremental. Only classify as step_change if the physics/engineering enables order-of-magnitude improvement.
-- State the specific metric being improved, current benchmark, and target performance.
-- Step-change concepts are rare and exceptional. Default to "incremental" unless you can cite the specific mechanism enabling 10x.
+BREAKTHROUGH METRIC — Classify each concept as "step_change" (10×) or "incremental" (2-5×). Default to incremental. State metric, current benchmark, and target.
 
-PERFORMER NETWORK — For each concept, map WHO would build each piece:
-- 2-4 performers per concept from: university, startup, national_lab, contract_manufacturer, component_supplier
-- Name REAL organizations (e.g., "MIT Media Lab", "Jabil", "Protolabs", "Formlabs")
-- Each performer has a specific role in making this concept real
+PERFORMER NETWORK — For each concept, list 2-4 real organizations (e.g. "MIT", "Jabil") with their role.
 
-SYSTEM ARCHITECTURE — For each concept, model the integrated system:
-- Define 4-8 nodes (inputs → processing → outputs, with feedback loops)
-- Show how components connect as an end-to-end system
-- This models the REASSEMBLED system, not just decomposed parts
-- Include manufacturing path and DFM considerations
+SYSTEM ARCHITECTURE — Model 4-6 nodes (input→process→output) showing the integrated system.
 
 BEFORE/AFTER NARRATIVE — For each concept, write a vivid contrast:
 - "the_old_way": Describe the current reality in a way that makes it sound ABSURD once you see the alternative. Frame it as something people accept without question but shouldn't. Use specific, visceral details. 2-3 sentences.
@@ -319,9 +309,7 @@ CRITICAL:
 7. BEFORE/AFTER: Make the "old way" sound absurd and the "new way" sound inevitable — this is the "aha" moment
 8. PERSONA FIT: Score each concept for garage_inventor, product_company, and deep_tech_startup
 9. CONTRARIAN NARRATIVE: Identify the industry's biggest blind spot — be provocative and specific
-10. BREAKTHROUGH METRIC: Honestly classify each concept — most should be "incremental". Only mark "step_change" if 10× improvement is physically achievable.
-11. PERFORMER NETWORK: Name 2-4 REAL organizations per concept who could build it — be specific about their role
-12. SYSTEM ARCHITECTURE: Model 4-8 nodes showing how the concept works as an integrated system (inputs → processing → outputs → feedback)
+10. Include breakthrough_metric, performer_network, and system_architecture per concept (see schema)
 
 Return ONLY the JSON object.`;
 
@@ -332,7 +320,7 @@ Return ONLY the JSON object.`;
         { role: "user", content: userPrompt },
       ],
       temperature: 0.6,
-      max_tokens: 16000,
+      max_tokens: 12000,
     };
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
