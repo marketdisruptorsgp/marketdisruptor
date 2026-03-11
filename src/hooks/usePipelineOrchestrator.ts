@@ -391,21 +391,35 @@ export function usePipelineOrchestrator(
 
     try {
       // Step 0: Structural Decomposition — MANDATORY with retry
-      let decompResult = await runDecompose(product, extractedContext);
+      // Reuse existing decomposition if available
+      let decompResult = decompositionData;
       if (!decompResult) {
-        console.log("[Pipeline] Decomposition failed, retrying once...");
         decompResult = await runDecompose(product, extractedContext);
         if (!decompResult) {
-          toast.error("Structural decomposition failed after retry. Pipeline aborted — please try again.");
-          return;
+          console.log("[Pipeline] Decomposition failed, retrying once...");
+          decompResult = await runDecompose(product, extractedContext);
+          if (!decompResult) {
+            toast.error("Structural decomposition failed after retry. Pipeline aborted — please try again.");
+            return;
+          }
         }
+      } else {
+        console.log("[Pipeline] Reusing existing decomposition data");
+        updateStatus("decompose", "done");
       }
 
       // Step 1: Transformation Engine (assumptions, flips, transformations, viability, clustering)
-      const disruptResult = await runDisrupt(product, extractedContext, decompResult);
+      // Reuse existing disrupt data if available
+      let disruptResult = disruptData;
       if (!disruptResult) {
-        toast.error("Transformation analysis failed. Pipeline stopped.");
-        return;
+        disruptResult = await runDisrupt(product, extractedContext, decompResult);
+        if (!disruptResult) {
+          toast.error("Transformation analysis failed. Pipeline stopped.");
+          return;
+        }
+      } else {
+        console.log("[Pipeline] Reusing existing disrupt data");
+        updateStatus("disrupt", "done");
       }
 
       // ── EARLY TERMINATION: Check if all transformations were filtered ──
@@ -413,14 +427,19 @@ export function usePipelineOrchestrator(
       const allFiltered = Array.isArray(transforms) && transforms.length > 0 &&
         transforms.every((t: any) => t.filtered || (t.viabilityGate?.compositeScore ?? 5) < 2.5);
 
-      let redesignResult: unknown = null;
-      if (allFiltered) {
-        console.log("[Pipeline] All transformations filtered by viability gate — skipping concept generation");
-        toast.info("Low disruption potential detected — skipping concept generation.");
-        updateStatus("redesign", "skipped");
+      let redesignResult: unknown = redesignData;
+      if (!redesignResult) {
+        if (allFiltered) {
+          console.log("[Pipeline] All transformations filtered by viability gate — skipping concept generation");
+          toast.info("Low disruption potential detected — skipping concept generation.");
+          updateStatus("redesign", "skipped");
+        } else {
+          // Step 2: Concept Architecture (redesigned concept from viable clusters)
+          redesignResult = await runRedesign(product, extractedContext, disruptResult, decompResult);
+        }
       } else {
-        // Step 2: Concept Architecture (redesigned concept from viable clusters)
-        redesignResult = await runRedesign(product, extractedContext, disruptResult, decompResult);
+        console.log("[Pipeline] Reusing existing redesign data");
+        updateStatus("redesign", "done");
       }
 
       // Steps 3 & 4: Stress Test + Pitch — RUN IN PARALLEL
