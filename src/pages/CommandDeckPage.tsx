@@ -219,7 +219,6 @@ export default function CommandDeckPage() {
       });
     } catch { addEvent("Intelligence recompute completed"); }
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent]);
-  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent]);
 
   const handleRecomputeAll = useCallback(() => {
     if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
