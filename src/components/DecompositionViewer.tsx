@@ -1,11 +1,12 @@
 /**
- * DECOMPOSITION VIEWER — Visualizes structural primitives from the
- * first-principles decomposition stage.
+ * DECOMPOSITION VIEWER — Visualizes structural primitives + system dynamics
+ * from the first-principles decomposition stage.
  *
  * Renders mode-specific views:
  *   Product  → Component tree, cost breakdown, tech primitives, constraints
  *   Service  → Task graph, labor inputs, tools, coordination, time constraints
  *   Business → Value creation/capture, cost structure, distribution, scaling
+ *   All modes → System Dynamics: failure modes, feedback loops, bottlenecks, control points, substitutions
  */
 
 import { useMemo } from "react";
@@ -13,6 +14,7 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   Layers, CircleDollarSign, Cpu, ShieldAlert, Target,
   Users, Wrench, Clock, ArrowRight, Zap, Network,
+  AlertTriangle, RefreshCw, Gauge, Lock, Repeat,
 } from "lucide-react";
 import type {
   StructuralDecompositionData,
@@ -20,6 +22,7 @@ import type {
   ServiceDecomposition,
   BusinessModelDecomposition,
   ConstraintPrimitive,
+  SystemDynamics,
 } from "@/lib/structuralDecomposition";
 import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 
@@ -63,6 +66,155 @@ function ConstraintList({ constraints }: { constraints: ConstraintPrimitive[] })
           <span className="text-[10px] font-bold uppercase text-muted-foreground mt-1 inline-block">{c.type}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ── System Dynamics View (shared across all modes) ──
+
+function SystemDynamicsView({ dynamics }: { dynamics: SystemDynamics }) {
+  if (!dynamics) return null;
+
+  const hasContent =
+    (dynamics.failureModes?.length || 0) +
+    (dynamics.feedbackLoops?.length || 0) +
+    (dynamics.bottlenecks?.length || 0) +
+    (dynamics.controlPoints?.length || 0) +
+    (dynamics.substitutionPaths?.length || 0) > 0;
+
+  if (!hasContent) return null;
+
+  return (
+    <div className="space-y-6 mt-8 pt-6" style={{ borderTop: "2px solid hsl(var(--border))" }}>
+      <div className="flex items-center gap-2 mb-1">
+        <RefreshCw size={15} className="text-primary" />
+        <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">System Dynamics</span>
+        <span className="text-xs text-muted-foreground">— How the system behaves over time</span>
+      </div>
+
+      {/* Failure Modes */}
+      {dynamics.failureModes?.length > 0 && (
+        <div>
+          <SectionHeader icon={AlertTriangle} label="Failure Modes" count={dynamics.failureModes.length} />
+          <div className="space-y-2">
+            {dynamics.failureModes.map((fm) => (
+              <div key={fm.id} className="rounded-lg p-3" style={{ background: "hsl(var(--destructive) / 0.03)", border: "1px solid hsl(var(--destructive) / 0.15)" }}>
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <p className="text-xs font-bold text-foreground">{fm.component}</p>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{
+                      background: fm.frequency === "frequent" ? "hsl(var(--destructive) / 0.1)" : fm.frequency === "occasional" ? "hsl(38 92% 50% / 0.1)" : "hsl(var(--muted-foreground) / 0.1)",
+                      color: fm.frequency === "frequent" ? "hsl(var(--destructive))" : fm.frequency === "occasional" ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
+                    }}>{fm.frequency}</span>
+                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{
+                      background: fm.detectability === "hidden" ? "hsl(var(--destructive) / 0.1)" : fm.detectability === "delayed" ? "hsl(38 92% 50% / 0.1)" : "hsl(152 60% 44% / 0.1)",
+                      color: fm.detectability === "hidden" ? "hsl(var(--destructive))" : fm.detectability === "delayed" ? "hsl(38 92% 50%)" : "hsl(152 60% 44%)",
+                    }}>{fm.detectability}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-foreground/80 leading-relaxed">{fm.mode}</p>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <ArrowRight size={10} className="text-destructive flex-shrink-0" />
+                  <p className="text-xs text-destructive/80">{fm.cascadeEffect}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Loops */}
+      {dynamics.feedbackLoops?.length > 0 && (
+        <div>
+          <SectionHeader icon={Repeat} label="Feedback Loops" count={dynamics.feedbackLoops.length} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {dynamics.feedbackLoops.map((fl) => (
+              <div key={fl.id} className="rounded-lg p-3" style={{
+                background: fl.type === "reinforcing" ? "hsl(var(--primary) / 0.04)" : "hsl(38 92% 50% / 0.04)",
+                border: `1px solid ${fl.type === "reinforcing" ? "hsl(var(--primary) / 0.15)" : "hsl(38 92% 50% / 0.15)"}`,
+              }}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs font-bold text-foreground">{fl.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{
+                      background: fl.type === "reinforcing" ? "hsl(var(--primary) / 0.1)" : "hsl(38 92% 50% / 0.1)",
+                      color: fl.type === "reinforcing" ? "hsl(var(--primary))" : "hsl(38 92% 50%)",
+                    }}>{fl.type}</span>
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground">{fl.strength}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-foreground/80 leading-relaxed">{fl.mechanism}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bottlenecks */}
+      {dynamics.bottlenecks?.length > 0 && (
+        <div>
+          <SectionHeader icon={Gauge} label="Bottlenecks" count={dynamics.bottlenecks.length} />
+          <div className="space-y-2">
+            {dynamics.bottlenecks.map((bn) => (
+              <div key={bn.id} className="rounded-lg p-3" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-xs font-bold text-foreground mb-1">{bn.location}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-foreground/80">
+                  <div><span className="font-bold text-muted-foreground">Limit: </span>{bn.throughputLimit}</div>
+                  <div><span className="font-bold text-muted-foreground">Cause: </span>{bn.cause}</div>
+                  <div><span className="font-bold text-muted-foreground">Workaround: </span>{bn.workaround}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Control Points */}
+      {dynamics.controlPoints?.length > 0 && (
+        <div>
+          <SectionHeader icon={Lock} label="Control Points" count={dynamics.controlPoints.length} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {dynamics.controlPoints.map((cp) => (
+              <div key={cp.id} className="rounded-lg p-3" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-xs font-bold text-foreground mb-1">{cp.point}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
+                    {cp.leverageType}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{
+                    background: cp.switchability === "locked" ? "hsl(var(--destructive) / 0.1)" : cp.switchability === "negotiable" ? "hsl(38 92% 50% / 0.1)" : "hsl(152 60% 44% / 0.1)",
+                    color: cp.switchability === "locked" ? "hsl(var(--destructive))" : cp.switchability === "negotiable" ? "hsl(38 92% 50%)" : "hsl(152 60% 44%)",
+                  }}>{cp.switchability}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">Controller: {cp.controller}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Substitution Paths */}
+      {dynamics.substitutionPaths?.length > 0 && (
+        <div>
+          <SectionHeader icon={Zap} label="Substitution Paths" count={dynamics.substitutionPaths.length} />
+          <div className="space-y-2">
+            {dynamics.substitutionPaths.map((sp) => (
+              <div key={sp.id} className="rounded-lg p-3" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-bold text-foreground">{sp.target}</span>
+                  <ArrowRight size={12} className="text-primary flex-shrink-0" />
+                  <span className="text-xs font-bold text-primary">{sp.substitute}</span>
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ml-auto" style={{
+                    background: sp.feasibility === "ready" ? "hsl(152 60% 44% / 0.1)" : sp.feasibility === "emerging" ? "hsl(38 92% 50% / 0.1)" : "hsl(var(--muted-foreground) / 0.1)",
+                    color: sp.feasibility === "ready" ? "hsl(152 60% 44%)" : sp.feasibility === "emerging" ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
+                  }}>{sp.feasibility}</span>
+                </div>
+                <p className="text-xs text-foreground/80 leading-relaxed">{sp.tradeoff}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -183,6 +335,9 @@ function ProductView({ data }: { data: ProductDecomposition }) {
           <ConstraintList constraints={data.physicalConstraints} />
         </div>
       )}
+
+      {/* System Dynamics */}
+      <SystemDynamicsView dynamics={data.systemDynamics} />
     </div>
   );
 }
@@ -312,6 +467,9 @@ function ServiceView({ data }: { data: ServiceDecomposition }) {
           <ConstraintList constraints={data.timeConstraints} />
         </div>
       )}
+
+      {/* System Dynamics */}
+      <SystemDynamicsView dynamics={data.systemDynamics} />
     </div>
   );
 }
@@ -462,6 +620,9 @@ function BusinessView({ data }: { data: BusinessModelDecomposition }) {
           <ConstraintList constraints={data.scalingConstraints} />
         </div>
       )}
+
+      {/* System Dynamics */}
+      <SystemDynamicsView dynamics={data.systemDynamics} />
     </div>
   );
 }
@@ -487,7 +648,7 @@ export function DecompositionViewer() {
       <div className="flex items-center gap-2 mb-1">
         <Layers size={15} className="text-primary" />
         <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">{modeLabel} Decomposition</span>
-        <span className="text-xs text-muted-foreground">— Irreducible structural primitives</span>
+        <span className="text-xs text-muted-foreground">— Structural primitives + system dynamics</span>
       </div>
 
       {data.mode === "product" && <ProductView data={data as ProductDecomposition} />}
