@@ -417,7 +417,7 @@ function AssumptionCard({ item, leverageColor, reasonColor, status, hasDeepInsig
   );
 }
 
-export function StructureTab({
+export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(function StructureTab({
   selectedProduct,
   analysis,
   governedData,
@@ -431,7 +431,7 @@ export function StructureTab({
   runTrigger,
   onLoadingChange,
   viewMode = "all",
-}: StructureTabProps) {
+}, ref) {
   const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || [];
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
