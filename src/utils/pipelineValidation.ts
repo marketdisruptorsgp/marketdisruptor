@@ -71,6 +71,8 @@ const SYSTEM_KEYS = new Set(["userScores", "outdatedSteps", "previousSnapshot", 
 const STEP_UI_LOCATION: Record<string, number> = {
   intelData: 2,
   disrupt: 3,
+  transformationEngine: 3,
+  conceptArchitecture: 4,
   redesign: 4,
   stressTest: 5,
   pitchDeck: 6,
