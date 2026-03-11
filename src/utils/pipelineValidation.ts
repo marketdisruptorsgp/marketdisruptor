@@ -23,6 +23,15 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
     requires: ["intelData"],
     produces: ["assumptions", "flippedIdeas", "challengeMap"],
   },
+  // New split pipeline steps
+  transformationEngine: {
+    requires: ["intelData"],
+    produces: ["assumptions", "flippedIdeas", "challengeMap", "transformations", "clusters", "viability"],
+  },
+  conceptArchitecture: {
+    requires: ["intelData", "transformationEngine"],
+    produces: ["concepts", "illustrations"],
+  },
   redesign: {
     requires: ["intelData", "disrupt"],
     produces: ["concepts", "illustrations"],
