@@ -409,6 +409,9 @@ function ProductView({ data }: { data: ProductDecomposition }) {
 
       {/* System Dynamics */}
       <SystemDynamicsView dynamics={data.systemDynamics} />
+
+      {/* Leverage Analysis */}
+      <LeverageAnalysisView leverage={data.leverageAnalysis} />
     </div>
   );
 }
