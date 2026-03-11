@@ -21,7 +21,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch, governedContext, adaptiveContext: rawAdaptiveCtx, upstreamIntel } = await req.json();
+    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch, governedContext, adaptiveContext: rawAdaptiveCtx, upstreamIntel, structuralDecomposition } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     // Extract active branch context for isolated or combined downstream reasoning
@@ -51,6 +51,11 @@ CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
+${structuralDecomposition ? `
+STRUCTURAL DECOMPOSITION (UPSTREAM — use as your foundation):
+The following structural primitives have been extracted from the entity. Use these as your reasoning foundation — do NOT override or contradict these primitives. Build your analysis ON TOP of them:
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 3000)}
+` : ''}
 
 
 OUTPUT RULES:

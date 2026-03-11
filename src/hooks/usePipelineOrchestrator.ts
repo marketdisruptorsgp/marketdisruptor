@@ -34,6 +34,7 @@ export interface PipelineProgress {
 }
 
 const STEP_DEFS = [
+  { key: "decompose", label: "Structural Decomposition" },
   { key: "disrupt", label: "Structural Analysis" },
   { key: "redesign", label: "Redesign Concept" },
   { key: "stressTest", label: "Strategy Development" },
@@ -47,8 +48,8 @@ export function usePipelineOrchestrator(
   const analysis = useAnalysis();
   const {
     step, selectedProduct, analysisId,
-    disruptData, redesignData, stressTestData, pitchDeckData,
-    setDisruptData, setRedesignData, setStressTestData, setPitchDeckData,
+    decompositionData, disruptData, redesignData, stressTestData, pitchDeckData,
+    setDecompositionData, setDisruptData, setRedesignData, setStressTestData, setPitchDeckData,
     setGovernedData, saveStepData, markStepOutdated, clearStepOutdated,
   } = analysis;
 
@@ -59,6 +60,7 @@ export function usePipelineOrchestrator(
   const triggeredForRef = useRef<string | null>(null);
 
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
+    decompose: "pending",
     disrupt: "pending",
     redesign: "pending",
     stressTest: "pending",
@@ -90,7 +92,45 @@ export function usePipelineOrchestrator(
 
   // ── Individual step runners (reusable for retry) ──
 
-  const runDisrupt = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+  const runDecompose = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+    setCurrentStep("decompose");
+    updateStatus("decompose", "running");
+
+    // Extract upstream intel for grounding
+    const upstreamIntel: Record<string, unknown> = {};
+    const pp = product as any;
+    if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
+    if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
+    if (pp.competitorAnalysis) upstreamIntel.competitorAnalysis = pp.competitorAnalysis;
+    if (pp.operationalIntel) upstreamIntel.operationalIntel = pp.operationalIntel;
+
+    const { data: result, error } = await invokeWithTimeout("structural-decomposition", {
+      body: {
+        product,
+        upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
+        adaptiveContext: analysis.adaptiveContext || undefined,
+        extractedContext: extractedContext || undefined,
+      },
+    }, 120_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Structural decomposition failed";
+      console.warn("[Pipeline] Decompose failed:", msg);
+      updateStatus("decompose", "error", msg);
+      // Non-blocking — pipeline continues without decomposition
+      return null;
+    }
+
+    const decompResult = result.decomposition;
+    setDecompositionData(decompResult);
+    await saveStepData("decomposition", decompResult, analysisId!);
+    updateStatus("decompose", "done");
+    onStepComplete?.("decompose");
+    onRecompute?.();
+    return decompResult;
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete, onRecompute]);
+
+  const runDisrupt = useCallback(async (product: any, extractedContext: string, decompResult?: unknown): Promise<unknown> => {
     if (businessAnalysisData) {
       console.log("[Pipeline] Reusing businessAnalysisData as disrupt step (skipping redundant AI call)");
       const result = businessAnalysisData;
@@ -122,6 +162,7 @@ export function usePipelineOrchestrator(
         upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
+        structuralDecomposition: decompResult || undefined,
       },
     }, 180_000);
 
@@ -278,17 +319,19 @@ export function usePipelineOrchestrator(
     const extractedContext = analysis.adaptiveContext?.extractedContext || "";
 
     try {
-      // Step 1: Disrupt
-      const disruptResult = await runDisrupt(product, extractedContext);
+      // Step 0: Structural Decomposition (first-principles primitives)
+      const decompResult = await runDecompose(product, extractedContext);
+
+      // Step 1: Disrupt (threaded with decomposition)
+      const disruptResult = await runDisrupt(product, extractedContext, decompResult);
 
       // Step 2: Redesign
       const redesignResult = await runRedesign(product, extractedContext, disruptResult);
 
-      // Steps 3 & 4: Stress Test + Pitch — run stress test first with disrupt+redesign data, then pitch
+      // Steps 3 & 4: Stress Test + Pitch
       setCurrentStep("stressTest");
       const stressResult = await runStressTest(product, extractedContext, disruptResult, redesignResult);
 
-      // Pitch now gets all upstream data
       setCurrentStep("pitch");
       await runPitch(product, extractedContext, disruptResult, redesignResult, stressResult);
 
@@ -309,7 +352,7 @@ export function usePipelineOrchestrator(
         toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, onRecompute]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, onRecompute]);
 
   // ── Retry a single failed step ──
   const retryStep = useCallback(async (stepKey: string) => {
@@ -319,8 +362,11 @@ export function usePipelineOrchestrator(
 
     try {
       switch (stepKey) {
+        case "decompose":
+          await runDecompose(product, extractedContext);
+          break;
         case "disrupt":
-          await runDisrupt(product, extractedContext);
+          await runDisrupt(product, extractedContext, decompositionData);
           break;
         case "redesign":
           await runRedesign(product, extractedContext, disruptData);
@@ -336,7 +382,7 @@ export function usePipelineOrchestrator(
       console.error(`[Pipeline] Retry ${stepKey} failed:`, err);
       toast.error(`Retry failed for ${stepKey}`);
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, disruptData, redesignData, stressTestData, runDisrupt, runRedesign, runStressTest, runPitch]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch]);
 
   // Auto-trigger when analysis is done with product/business data but missing critical step data
   useEffect(() => {

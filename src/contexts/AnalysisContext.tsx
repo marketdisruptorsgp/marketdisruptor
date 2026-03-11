@@ -70,6 +70,10 @@ interface AnalysisContextType {
   visitedDetailTabs: Set<string>;
   setVisitedDetailTabs: (s: Set<string>) => void;
 
+  // Structural Decomposition (first-principles primitives)
+  decompositionData: unknown;
+  setDecompositionData: (d: unknown) => void;
+
   // Disrupt
   disruptData: unknown;
   setDisruptData: (d: unknown) => void;
@@ -240,6 +244,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<string>("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
+  const [decompositionData, setDecompositionData] = useState<unknown>(null);
   const [disruptData, setDisruptData] = useState<unknown>(null);
   const [stressTestData, setStressTestData] = useState<unknown>(null);
   const [stressTestTab, setStressTestTab] = useState<"debate" | "validate">("debate");
@@ -322,12 +327,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // Keep stepDataRef in sync so markStepOutdated can guard empty steps
   useEffect(() => {
     stepDataRef.current = {
+      decompose: decompositionData,
       disrupt: disruptData,
       stressTest: stressTestData,
       pitchDeck: pitchDeckData,
       redesign: redesignData,
     };
-  }, [disruptData, stressTestData, pitchDeckData, redesignData]);
+  }, [decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
 
   // ── Insight Preferences (liked/dismissed) ──
   const [insightPreferences, setInsightPreferences] = useState<Record<string, "liked" | "dismissed" | "neutral">>({});
@@ -570,7 +576,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const hydrationSetters: HydrationSetters = useMemo(() => ({
     setAnalysisId, setProducts, setSelectedProduct, setAnalysisParams,
     setMainTab, setActiveMode, setStep, setDetailTab, setLoadedFromSaved,
-    setDisruptData, setStressTestData, setPitchDeckData, setRedesignData,
+    setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData,
     setGovernedData, setBusinessAnalysisData, setBusinessModelInput,
     setBusinessStressTestData,
     setActiveBranchIdState, setStrategicProfileState: setStrategicProfileState,
@@ -1415,6 +1421,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       mainTab, setMainTab, activeMode, setActiveMode,
       elapsedSeconds, loadingLog, stepMessage,
       detailTab, setDetailTab, visitedDetailTabs, setVisitedDetailTabs,
+      decompositionData, setDecompositionData,
       disruptData, setDisruptData,
       stressTestData, setStressTestData, stressTestTab, setStressTestTab,
       visitedStressTestTabs, setVisitedStressTestTabs,

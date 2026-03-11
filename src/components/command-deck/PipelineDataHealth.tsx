@@ -17,6 +17,7 @@ interface DataField {
 
 interface PipelineDataHealthProps {
   product: Record<string, any> | null;
+  decompositionData: unknown;
   disruptData: unknown;
   redesignData: unknown;
   stressTestData: unknown;
@@ -82,6 +83,7 @@ function buildFields(props: PipelineDataHealthProps): DataField[] {
 
   // Pipeline stages
   const pipelineStages: [unknown, string][] = [
+    [props.decompositionData, "Structural Decomposition"],
     [props.disruptData, "Disrupt (First Principles)"],
     [props.redesignData, "Redesign (Flipped Ideas)"],
     [props.stressTestData, "Stress Test"],

@@ -25,6 +25,7 @@ export interface HydrationSetters {
   setLoadedFromSaved: (b: boolean) => void;
 
   // Step data
+  setDecompositionData: (d: unknown) => void;
   setDisruptData: (d: unknown) => void;
   setStressTestData: (d: unknown) => void;
   setPitchDeckData: (d: unknown) => void;
@@ -53,6 +54,7 @@ export interface HydrationSetters {
  * Must be called BEFORE populating with new data.
  */
 export function clearAllState(setters: HydrationSetters) {
+  setters.setDecompositionData(null);
   setters.setDisruptData(null);
   setters.setStressTestData(null);
   setters.setPitchDeckData(null);
@@ -88,7 +90,7 @@ function repairDoubleSerialized(ad: Record<string, unknown> | null): Record<stri
   if (!ad) return null;
   const repaired = { ...ad };
   const keysToCheck = ["strategicEngine", "insightGraph", "disrupt", "stressTest", "pitchDeck",
-    "redesign", "businessStressTest", "businessPitchDeck", "governed", "biExtraction",
+    "redesign", "decomposition", "businessStressTest", "businessPitchDeck", "governed", "biExtraction",
     "adaptiveContext", "geoOpportunity", "regulatoryContext", "competitiveIntel"];
   for (const key of keysToCheck) {
     const val = repaired[key];
@@ -158,6 +160,7 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   setters.setGovernedData(ad?.governed ? (ad.governed as Record<string, unknown>) : null);
   setters.setActiveBranchIdState(ad?.activeBranchId ? (ad.activeBranchId as string) : null);
   if (ad?.strategicProfile) setters.setStrategicProfileState(ad.strategicProfile as StrategicProfile);
+  setters.setDecompositionData(ad?.decomposition || null);
   setters.setDisruptData(ad?.disrupt || null);
   setters.setStressTestData(ad?.stressTest || null);
   setters.setPitchDeckData(ad?.pitchDeck || null);
