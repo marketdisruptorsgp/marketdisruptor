@@ -221,6 +221,75 @@ function SystemDynamicsView({ dynamics }: { dynamics: SystemDynamics }) {
   );
 }
 
+// ── Leverage Analysis View (shared across all modes) ──
+
+function LeverageAnalysisView({ leverage }: { leverage?: LeverageAnalysis }) {
+  if (!leverage) return null;
+  const hasPrimitives = (leverage.leveragePrimitives?.length || 0) > 0;
+  if (!hasPrimitives) return null;
+
+  const TRANSFORM_COLORS: Record<string, { bg: string; text: string }> = {
+    elimination: { bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" },
+    substitution: { bg: "hsl(var(--primary) / 0.1)", text: "hsl(var(--primary))" },
+    reordering: { bg: "hsl(38 92% 50% / 0.1)", text: "hsl(38 92% 50%)" },
+    aggregation: { bg: "hsl(271 81% 56% / 0.1)", text: "hsl(271 81% 56%)" },
+  };
+
+  return (
+    <div className="space-y-4 mt-8 pt-6" style={{ borderTop: "2px solid hsl(var(--border))" }}>
+      <div className="flex items-center gap-2 mb-1">
+        <Crosshair size={15} className="text-primary" />
+        <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">Leverage Analysis</span>
+        <span className="text-xs text-muted-foreground">— Highest-impact disruption targets</span>
+      </div>
+
+      {/* Dependency Graph Summary */}
+      {leverage.dependencyGraph?.length > 0 && (
+        <div className="flex items-center gap-2 mb-2">
+          <GitBranch size={12} className="text-muted-foreground" />
+          <span className="text-[10px] font-bold text-muted-foreground">
+            {leverage.dependencyGraph.length} dependency edges mapped
+          </span>
+        </div>
+      )}
+
+      {/* Leverage Primitives */}
+      <div className="space-y-2">
+        {leverage.leveragePrimitives.map((lp, idx) => {
+          const colors = TRANSFORM_COLORS[lp.bestTransformation] || TRANSFORM_COLORS.substitution;
+          return (
+            <div key={lp.primitiveId || idx} className="rounded-lg p-3" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold tabular-nums text-muted-foreground w-5">#{idx + 1}</span>
+                  <p className="text-xs font-bold text-foreground">{lp.primitiveLabel}</p>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded"
+                    style={{ background: colors.bg, color: colors.text }}>
+                    {lp.bestTransformation}
+                  </span>
+                  <span className="text-xs font-extrabold tabular-nums" style={{
+                    color: lp.leverageScore >= 7 ? "hsl(var(--destructive))" : lp.leverageScore >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
+                  }}>
+                    {lp.leverageScore?.toFixed(1)}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-foreground/80 leading-relaxed mb-2">{lp.reasoning}</p>
+              <div className="flex gap-3 text-[10px] text-muted-foreground">
+                <span>Binding: <b className="text-foreground">{lp.bindingStrength}</b></span>
+                <span>Cascade: <b className="text-foreground">{lp.cascadeReach}</b></span>
+                <span>Challenge: <b className="text-foreground">{lp.challengeability}</b></span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Product View ──
 
 function ProductView({ data }: { data: ProductDecomposition }) {
