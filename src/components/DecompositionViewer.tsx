@@ -15,7 +15,7 @@ import {
   Layers, CircleDollarSign, Cpu, ShieldAlert, Target,
   Users, Wrench, Clock, ArrowRight, Zap, Network,
   AlertTriangle, RefreshCw, Gauge, Lock, Repeat,
-  Crosshair, GitBranch,
+  Crosshair, GitBranch, Package, Factory,
 } from "lucide-react";
 import type {
   StructuralDecompositionData,
