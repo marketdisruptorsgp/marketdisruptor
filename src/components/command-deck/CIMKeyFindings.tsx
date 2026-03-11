@@ -266,13 +266,11 @@ export const CIMKeyFindings = memo(function CIMKeyFindings({
   biExtraction,
   modeAccent,
 }: CIMKeyFindingsProps) {
-  if (!biExtraction) return null;
-
-  const rawConstraints = (biExtraction.constraints ?? []) as ExtractedConstraint[];
-  if (!Array.isArray(rawConstraints) || rawConstraints.length === 0) return null;
+  const rawConstraints = (biExtraction?.constraints ?? []) as ExtractedConstraint[];
 
   // Run contradiction detection on all extracted constraints
   const classifiedFindings = useMemo(() => {
+    if (!Array.isArray(rawConstraints) || rawConstraints.length === 0) return [];
     return rawConstraints.map(c => detectContradiction(c));
   }, [rawConstraints]);
 
@@ -283,6 +281,8 @@ export const CIMKeyFindings = memo(function CIMKeyFindings({
       (a, b) => order[a.classification] - order[b.classification]
     );
   }, [classifiedFindings]);
+
+  if (!biExtraction || classifiedFindings.length === 0) return null;
 
   const oppCount = classifiedFindings.filter(f => f.classification === "opportunity").length;
   const constraintCount = classifiedFindings.filter(f => f.classification === "constraint").length;
@@ -302,8 +302,8 @@ export const CIMKeyFindings = memo(function CIMKeyFindings({
         </h2>
         <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60">
           {constraintCount > 0 && <span>{constraintCount} constraint{constraintCount !== 1 ? "s" : ""}</span>}
-          {oppCount > 0 && <><span>·</span><span className="text-emerald-500">{oppCount} opportunit{oppCount !== 1 ? "ies" : "y"}</span></>}
-          {mixedCount > 0 && <><span>·</span><span className="text-amber-500">{mixedCount} mixed</span></>}
+          {oppCount > 0 && <><span>·</span><span style={{ color: "hsl(152 60% 44%)" }}>{oppCount} opportunit{oppCount !== 1 ? "ies" : "y"}</span></>}
+          {mixedCount > 0 && <><span>·</span><span style={{ color: "hsl(38 92% 50%)" }}>{mixedCount} mixed</span></>}
         </div>
       </div>
 
