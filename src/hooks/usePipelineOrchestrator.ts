@@ -100,6 +100,7 @@ export function usePipelineOrchestrator(
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
     decompose: "pending",
     synthesis: "pending",
+    concepts: "pending",
     stressTest: "pending",
     pitch: "pending",
   });
