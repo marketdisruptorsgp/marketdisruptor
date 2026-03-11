@@ -103,9 +103,9 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
   }, [propWidth]);
 
   const sankeyData = useMemo(() => {
-    if (stages.length < 2) return null;
+    if (activeStages.length < 2) return null;
 
-    const nodes: SNode[] = stages.map((s) => ({
+    const nodes: SNode[] = activeStages.map((s) => ({
       id: s.id,
       label: s.label,
       friction: s.friction,
