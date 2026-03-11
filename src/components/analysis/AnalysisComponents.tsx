@@ -485,7 +485,7 @@ interface ExpandableDetailProps {
   className?: string;
 }
 
-export function ExpandableDetail({ label, icon: Icon, defaultExpanded = false, children, className }: ExpandableDetailProps) {
+export function ExpandableDetail({ label, icon: Icon, defaultExpanded = true, children, className }: ExpandableDetailProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (

@@ -17,7 +17,7 @@ export const PowerToolsPanel = memo(function PowerToolsPanel({
   children,
   toolCount = 3,
 }: PowerToolsPanelProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
