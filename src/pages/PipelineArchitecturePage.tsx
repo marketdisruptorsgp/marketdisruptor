@@ -344,8 +344,8 @@ const STAGES: StageConfig[] = [
       "Automatic intelligence recomputation triggered",
     ],
     processingWeight: "medium",
-    edgeFunction: "reasoning-interrogation, hypothesis-interrogation, generate-market-intel, bundle-deep-dive, help-assistant, compute-platform-intel",
-    description: "User-facing modeling tools and AI reasoning partner creating a closed feedback loop. Saved scenarios and interrogation insights generate Evidence objects that flow back into Stage 1, triggering full recomputation. 8+ custom engines + 6 edge functions. The system gets smarter as users explore.",
+    edgeFunction: "reasoning-interrogation, hypothesis-interrogation, bundle-deep-dive, help-assistant",
+    description: "User-facing modeling tools and AI reasoning partner creating a closed feedback loop. Saved scenarios and interrogation insights generate Evidence objects that flow back into Stage 1, triggering full recomputation.",
   },
 ];
 
