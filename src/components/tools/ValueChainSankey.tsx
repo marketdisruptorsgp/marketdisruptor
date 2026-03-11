@@ -253,6 +253,44 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
         </g>
       </svg>
 
+      {/* Counterfactual: removed stage banner */}
+      <AnimatePresence>
+        {removedStage && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-2 rounded-lg p-2.5"
+            style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.2)" }}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-primary mb-0.5">
+                  Counterfactual: "{removedStage.label}" Removed
+                </p>
+                <p className="text-xs text-foreground leading-relaxed">
+                  {removedStage.friction === "high"
+                    ? `Removing this high-friction stage eliminates its ${removedStage.costShare || "significant"} cost contribution and the associated friction bottleneck.`
+                    : removedStage.friction === "medium"
+                    ? `This medium-friction stage contributes ${removedStage.costShare || "moderate costs"}. Removal simplifies the chain but may shift friction downstream.`
+                    : `This low-friction stage is relatively efficient. Removal may provide marginal gains but could introduce gaps.`
+                  }
+                  {removedStage.disintermediationPotential && removedStage.disintermediationPotential !== "none" && (
+                    ` Disintermediation potential: ${removedStage.disintermediationPotential}.`
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={() => setRemovedStageId(null)}
+                className="p-1 rounded-md hover:bg-muted transition-colors flex-shrink-0"
+              >
+                <X size={14} className="text-muted-foreground" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Value leakage callout */}
       {primaryValueLeakage && (
         <div className="mt-2 rounded-lg bg-destructive/10 border border-destructive/20 p-2.5">
@@ -301,9 +339,19 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
                     <span className="font-bold">Actors:</span> {selectedNode.actors.join(", ")}
                   </p>
                 )}
+                {/* Counterfactual remove button */}
+                {activeStages.length > 2 && (
+                  <button
+                    onClick={() => handleRemoveStage(selectedNode.id)}
+                    className="flex items-center gap-1.5 mt-1 text-[10px] font-bold text-destructive hover:text-destructive/80 transition-colors"
+                  >
+                    <Trash2 size={10} />
+                    What if we removed this stage?
+                  </button>
+                )}
               </div>
               <button onClick={() => setSelectedNode(null)} className="text-muted-foreground hover:text-foreground p-0.5">
-                ✕
+                <X size={12} />
               </button>
             </div>
           </motion.div>
