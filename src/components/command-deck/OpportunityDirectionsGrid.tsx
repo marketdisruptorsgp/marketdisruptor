@@ -36,15 +36,6 @@ const OpportunityCard = forwardRef<HTMLDivElement, {
         border: "1px solid hsl(var(--border))",
       }}
     >
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.06 }}
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: "hsl(var(--card))",
-        border: "1px solid hsl(var(--border))",
-      }}
-    >
       {/* Card header */}
       <button
         onClick={() => setExpanded(!expanded)}
