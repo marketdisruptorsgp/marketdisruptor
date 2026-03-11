@@ -314,6 +314,38 @@ The JSON must follow this EXACT structure:
       "physicalMechanism": "Physical/technical mechanism"
     }
   ],
+  "structuralTransformations": [
+    {
+      "id": "st_1",
+      "targetPrimitiveId": "id from leverageAnalysis.leveragePrimitives",
+      "targetPrimitiveLabel": "Human-readable label",
+      "transformationType": "elimination|substitution|reordering|aggregation",
+      "currentState": "What exists now",
+      "proposedState": "What replaces it",
+      "mechanism": "How the transformation works physically/operationally",
+      "valueCreated": "What improves",
+      "valueLost": "What degrades or is sacrificed",
+      "viabilityGate": {
+        "technical": { "score": 4, "reasoning": "Why technically feasible or not" },
+        "economic": { "score": 3, "reasoning": "Unit economics assessment" },
+        "regulatory": { "score": 5, "reasoning": "Regulatory risk assessment" },
+        "behavioral": { "score": 3, "reasoning": "How much behavior change required" },
+        "compositeScore": 3.75,
+        "verdict": "pass|conditional|fail"
+      },
+      "filtered": false
+    }
+  ],
+  "transformationClusters": [
+    {
+      "id": "tc_1",
+      "name": "Cluster name — the coherent concept direction",
+      "description": "How these transformations work together",
+      "transformationIds": ["st_1", "st_2"],
+      "compatibilityNote": "Why these transformations are compatible (or conflicts to watch)",
+      "strategicPowerScore": 7.5
+    }
+  ],
   "redesignedConcept": {
     "conceptName": "Short punchy name",
     "tagline": "One sentence tagline",
