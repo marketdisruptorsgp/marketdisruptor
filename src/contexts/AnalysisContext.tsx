@@ -140,6 +140,10 @@ interface AnalysisContextType {
   redesignData: unknown;
   setRedesignData: (d: unknown) => void;
 
+  // Invention Engine concepts (Product Mode)
+  conceptsData: unknown;
+  setConceptsData: (d: unknown) => void;
+
   // Insight preferences (liked/dismissed)
   insightPreferences: Record<string, "liked" | "dismissed" | "neutral">;
   setInsightPreference: (id: string, status: "liked" | "dismissed" | "neutral") => void;
