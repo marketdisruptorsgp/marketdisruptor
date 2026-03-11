@@ -129,7 +129,7 @@ export default function ReportPage() {
   // Synthetic product for business model analyses
   const selectedProduct = rawSelectedProduct || (analysis.businessAnalysisData ? {
     id: analysisId || "business-model", name: (analysis.businessModelInput as any)?.type || "Business Model",
-    category: "Business", image: "", revivalScore: 0, flippedIdeas: [],
+    category: "Business", image: "", revivalScore: null, flippedIdeas: [],
   } as any : null);
   const { shouldRedirectHome } = useHydrationGuard();
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";

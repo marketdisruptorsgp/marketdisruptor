@@ -62,7 +62,7 @@ export default function StressTestPage() {
   // Synthetic product for business model analyses
   const selectedProduct = rawSelectedProduct || (analysis.businessAnalysisData ? {
     id: analysisId || "business-model", name: (analysis.businessModelInput as any)?.type || "Business Model",
-    category: "Business", image: "", revivalScore: 0, flippedIdeas: [],
+    category: "Business", image: "", revivalScore: null, flippedIdeas: [],
   } as any : null);
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
@@ -81,7 +81,7 @@ export default function StressTestPage() {
   const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
 
   const intelligenceInput: SystemIntelligenceInput | null = governedData ? {
-    analysisId: selectedProduct.id || "unknown",
+    analysisId: analysisId || selectedProduct.id || "unknown",
     governedData,
     disruptData,
     businessAnalysisData: businessData,
@@ -242,19 +242,24 @@ export default function StressTestPage() {
                     convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
                   />
                 </AnalysisContentCard>
-                <AnalysisContentCard>
-                  <ETAExecutionPanel
-                    commandDeck={systemIntelligence.commandDeck}
-                    expandedFriction={systemIntelligence.expandedFriction}
-                    governedData={governedData}
-                  />
-                </AnalysisContentCard>
-                <AnalysisContentCard>
-                  <ETAAcquisitionScorecard
-                    governedData={governedData}
-                    biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-                  />
-                </AnalysisContentCard>
+                {/* Only show ETA panels when biExtraction (deal/CIM data) is present */}
+                {((analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction) && (
+                  <>
+                    <AnalysisContentCard>
+                      <ETAExecutionPanel
+                        commandDeck={systemIntelligence.commandDeck}
+                        expandedFriction={systemIntelligence.expandedFriction}
+                        governedData={governedData}
+                      />
+                    </AnalysisContentCard>
+                    <AnalysisContentCard>
+                      <ETAAcquisitionScorecard
+                        governedData={governedData}
+                        biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
+                      />
+                    </AnalysisContentCard>
+                  </>
+                )}
               </>
             ) : (
               <AnalysisContentCard>

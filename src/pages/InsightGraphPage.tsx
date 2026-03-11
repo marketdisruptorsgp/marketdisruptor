@@ -103,7 +103,10 @@ export default function InsightGraphPage() {
       navigate(`/analysis/${analysisId}/command-deck`);
       return;
     }
-    toast.success("Strategic intelligence updated");
+    // Force re-render by navigating away and back
+    navigate(`/analysis/${analysisId}/command-deck`);
+    setTimeout(() => navigate(`/analysis/${analysisId}/insight-graph`), 50);
+    toast.success("Insight graph refreshed");
   }, [analysisId, completedSteps, navigate]);
 
   if (!analysisId || analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {

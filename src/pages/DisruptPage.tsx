@@ -175,8 +175,8 @@ export default function DisruptPage() {
             synopsisData={synopsisData}
             rawHypotheses={hasHypotheses ? rawHypotheses! : null}
             hasDisruptData={hasDisruptData}
-            hasSynopsis={false}
-            hasHypotheses={false}
+            hasSynopsis={!!hasSynopsis}
+            hasHypotheses={!!hasHypotheses}
             ranking={ranking}
             products={products}
             runTrigger={runTrigger}
@@ -193,8 +193,8 @@ export default function DisruptPage() {
             synopsisData={synopsisData}
             rawHypotheses={hasHypotheses ? rawHypotheses! : null}
             hasDisruptData={hasDisruptData}
-            hasSynopsis={false}
-            hasHypotheses={false}
+            hasSynopsis={!!hasSynopsis}
+            hasHypotheses={!!hasHypotheses}
             ranking={ranking}
             products={products}
             runTrigger={runTrigger}
@@ -303,8 +303,8 @@ export default function DisruptPage() {
           </div>
         )}
 
-        {/* Innovation Opportunities — derived from governed artifacts */}
-        {analysis.disruptData && (
+        {/* Innovation Opportunities — shown inside assumptions tab */}
+        {effectiveTab === "assumptions" && analysis.disruptData && (
           <AnalysisContentCard>
             <InnovationOpportunitiesPanel
               governedData={governedData as Record<string, unknown> | null}
