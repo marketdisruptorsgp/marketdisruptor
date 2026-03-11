@@ -534,61 +534,50 @@ export default function CommandDeckPage() {
           governedData={governedDataTyped}
         />
 
-        {/* ═══ PIPELINE PROGRESS (auto-run) ═══ */}
-        {(pipelineProgress.isRunning || pipelineProgress.steps.some(s => s.status === "error")) && (
+        {/* ═══ ANALYSIS PROGRESS ═══ */}
+        {pipelineProgress.isRunning && (
           <div
             className="rounded-xl px-5 py-4 space-y-3"
-            style={{ background: "hsl(var(--card))", border: `1.5px solid ${pipelineProgress.steps.some(s => s.status === "error") ? "hsl(var(--destructive) / 0.3)" : "hsl(var(--primary) / 0.3)"}` }}
+            style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--primary) / 0.3)" }}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {pipelineProgress.isRunning && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
-                <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">
-                  {pipelineProgress.isRunning ? "Building Full Intelligence" : "Pipeline Status"}
-                </span>
-              </div>
-              <span className="text-[10px] font-bold text-muted-foreground">
-                {pipelineProgress.completedCount}/{pipelineProgress.totalCount} complete
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">
+                Building Your Analysis
               </span>
             </div>
             <div className="flex gap-2">
               {pipelineProgress.steps.map(s => (
-                <div key={s.key} className="flex-1 space-y-1">
+                <div key={s.key} className="flex-1">
                   <div
                     className="h-1.5 rounded-full transition-all duration-500"
                     style={{
                       background: s.status === "done" ? "hsl(var(--success))"
                         : s.status === "running" ? "hsl(var(--primary))"
-                        : s.status === "error" ? "hsl(var(--destructive))"
                         : "hsl(var(--muted))",
                     }}
                   />
-                  <div className="flex items-center justify-center gap-1">
-                    <p className={`text-[9px] font-bold text-center ${
-                      s.status === "running" ? "text-primary"
-                        : s.status === "error" ? "text-destructive"
-                        : "text-muted-foreground"
-                    }`}>
-                      {s.label}
-                    </p>
-                    {s.status === "error" && (
-                      <button
-                        onClick={() => pipelineProgress.retryStep(s.key)}
-                        className="text-[8px] font-bold text-destructive hover:underline"
-                        title={s.error || "Retry this step"}
-                      >
-                        ↻
-                      </button>
-                    )}
-                  </div>
                 </div>
               ))}
             </div>
-            {pipelineProgress.steps.some(s => s.status === "error") && !pipelineProgress.isRunning && (
-              <p className="text-[10px] text-muted-foreground">
-                Some steps encountered errors. Click ↻ to retry, or continue — partial results are still usable.
-              </p>
-            )}
+          </div>
+        )}
+        {/* Show retry banner only when pipeline is done with errors */}
+        {!pipelineProgress.isRunning && pipelineProgress.steps.some(s => s.status === "error") && (
+          <div
+            className="rounded-xl px-4 py-3 flex items-center justify-between"
+            style={{ background: "hsl(var(--destructive) / 0.05)", border: "1px solid hsl(var(--destructive) / 0.15)" }}
+          >
+            <p className="text-xs text-muted-foreground">
+              Some analysis steps need attention.
+            </p>
+            <button
+              onClick={() => pipelineProgress.steps.filter(s => s.status === "error").forEach(s => pipelineProgress.retryStep(s.key))}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+              style={{ background: "hsl(var(--destructive) / 0.1)", color: "hsl(var(--destructive))" }}
+            >
+              Retry Failed Steps
+            </button>
           </div>
         )}
 
