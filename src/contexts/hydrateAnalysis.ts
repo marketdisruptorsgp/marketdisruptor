@@ -30,6 +30,7 @@ export interface HydrationSetters {
   setStressTestData: (d: unknown) => void;
   setPitchDeckData: (d: unknown) => void;
   setRedesignData: (d: unknown) => void;
+  setConceptsData: (d: unknown) => void;
   setGovernedData: (d: Record<string, unknown> | null) => void;
   setBusinessAnalysisData: (d: BusinessModelAnalysisData | null) => void;
   setBusinessModelInput: (i: BusinessModelInput | null) => void;
@@ -59,6 +60,7 @@ export function clearAllState(setters: HydrationSetters) {
   setters.setStressTestData(null);
   setters.setPitchDeckData(null);
   setters.setRedesignData(null);
+  setters.setConceptsData(null);
   setters.setGovernedData(null);
   setters.setBusinessAnalysisData(null);
   setters.setBusinessStressTestData(null);
@@ -166,6 +168,7 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   setters.setPitchDeckData(ad?.pitchDeck || null);
   setters.setBusinessStressTestData(ad?.businessStressTest || null);
   setters.setRedesignData(ad?.redesign || null);
+  setters.setConceptsData(ad?.concepts || null);
   setters.setGeoData(ad?.geoOpportunity || null);
   setters.setRegulatoryData(ad?.regulatoryContext || null);
   setters.setUserScores(ad?.userScores ? (ad.userScores as Record<string, Record<string, number>>) : {});

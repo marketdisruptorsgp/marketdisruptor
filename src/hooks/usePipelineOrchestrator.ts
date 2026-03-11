@@ -35,6 +35,7 @@ export interface PipelineProgress {
 const STEP_DEFS = [
   { key: "decompose", label: "Structural Decomposition" },
   { key: "synthesis", label: "Strategic Synthesis" },
+  { key: "concepts", label: "Concept Synthesis" },
   { key: "stressTest", label: "Deep Validation" },
   { key: "pitch", label: "Pitch Synthesis" },
 ] as const;
@@ -86,6 +87,7 @@ export function usePipelineOrchestrator(
     decompositionData, disruptData, redesignData, stressTestData, pitchDeckData,
     setDecompositionData, setDisruptData, setRedesignData, setStressTestData, setPitchDeckData,
     setGovernedData, saveStepData, markStepOutdated, clearStepOutdated,
+    conceptsData, setConceptsData,
   } = analysis;
 
   const businessAnalysisData = (analysis as any).businessAnalysisData;
@@ -97,6 +99,7 @@ export function usePipelineOrchestrator(
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
     decompose: "pending",
     synthesis: "pending",
+    concepts: "pending",
     stressTest: "pending",
     pitch: "pending",
   });
@@ -244,7 +247,41 @@ export function usePipelineOrchestrator(
     return synthesisResult;
   }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete]);
 
+  // ── Phase 2.5: Concept Synthesis (Product Mode only) ──
+
+  const runConceptSynthesis = useCallback(async (product: any, synthesisResult: unknown, decompResult: unknown): Promise<unknown> => {
+    setCurrentStep("concepts");
+    updateStatus("concepts", "running");
+
+    const sr = synthesisResult as Record<string, unknown> | null;
+
+    const { data: result, error } = await invokeWithTimeout("concept-synthesis", {
+      body: {
+        product: compressProductPayload(product),
+        structuralDecomposition: decompResult || undefined,
+        assumptions: sr?.hiddenAssumptions || [],
+        flippedLogic: sr?.flippedLogic || [],
+        conceptCount: 5,
+      },
+    }, 180_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Concept synthesis failed";
+      console.warn("[Pipeline] Concept synthesis failed:", msg);
+      updateStatus("concepts", "error", msg);
+      return null;
+    }
+
+    const conceptResult = result.result;
+    setConceptsData(conceptResult);
+    await saveStepData("concepts", conceptResult, analysisId!);
+    updateStatus("concepts", "done");
+    onStepComplete?.("concepts");
+    return conceptResult;
+  }, [analysisId, saveStepData, setConceptsData, updateStatus, onStepComplete]);
+
   // ── Phase 3: Deep Validation (background enrichment) ──
+
 
   const runStressTest = useCallback(async (product: any, extractedContext: string, synthesisResult?: unknown, decompResult?: unknown): Promise<unknown> => {
     updateStatus("stressTest", "running");
@@ -367,8 +404,23 @@ export function usePipelineOrchestrator(
         updateStatus("synthesis", "done");
       }
 
-      // ═══ UI renders now — Phase 2 complete ═══
-      console.log("[Pipeline] Phase 2 complete. Entering Phase 3 enrichment.");
+      // ═══ Phase 2.5: Concept Synthesis (Product Mode only) ═══
+      const isProductMode = analysis.activeMode === "custom" || (analysis.activeMode as string) === "product";
+      if (isProductMode && !conceptsData && synthesisResult) {
+        const conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
+        if (!conceptResult) {
+          console.warn("[Pipeline] Concept synthesis failed — continuing");
+          toast.warning("Concept synthesis had issues. Continuing with validation.");
+        }
+      } else if (isProductMode && conceptsData) {
+        console.log("[Pipeline] Reusing existing concepts data");
+        updateStatus("concepts", "done");
+      } else if (!isProductMode) {
+        updateStatus("concepts", "skipped");
+      }
+
+      // ═══ UI renders now — Phase 2/2.5 complete ═══
+      console.log("[Pipeline] Synthesis phases complete. Entering Phase 3 enrichment.");
 
       // ═══ PHASE 3: Background Enrichment (non-blocking) ═══
       const needsStress = !stressTestData;
@@ -435,7 +487,7 @@ export function usePipelineOrchestrator(
         toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, pitchDeckData, runDecompose, runStrategicSynthesis, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, analysis.activeMode, decompositionData, disruptData, redesignData, conceptsData, stressTestData, pitchDeckData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
 
   // ── Retry a single failed step ──
   const retryStep = useCallback(async (stepKey: string) => {
@@ -454,6 +506,9 @@ export function usePipelineOrchestrator(
         case "stressTest":
           await runStressTest(product, extractedContext, disruptData, decompositionData);
           break;
+        case "concepts":
+          await runConceptSynthesis(product, disruptData, decompositionData);
+          break;
         case "pitch":
           await runPitch(product, extractedContext, disruptData, stressTestData);
           break;
@@ -462,7 +517,7 @@ export function usePipelineOrchestrator(
       console.error(`[Pipeline] Retry ${stepKey} failed:`, err);
       toast.error(`Retry failed for ${stepKey}`);
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runStressTest, runPitch]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch]);
 
   // Auto-trigger when analysis is done but missing ANY pipeline step data
   useEffect(() => {

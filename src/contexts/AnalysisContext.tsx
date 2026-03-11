@@ -140,6 +140,10 @@ interface AnalysisContextType {
   redesignData: unknown;
   setRedesignData: (d: unknown) => void;
 
+  // Invention Engine concepts (Product Mode)
+  conceptsData: unknown;
+  setConceptsData: (d: unknown) => void;
+
   // Insight preferences (liked/dismissed)
   insightPreferences: Record<string, "liked" | "dismissed" | "neutral">;
   setInsightPreference: (id: string, status: "liked" | "dismissed" | "neutral") => void;
@@ -323,6 +327,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
   const [redesignData, setRedesignData] = useState<unknown>(null);
+  const [conceptsData, setConceptsData] = useState<unknown>(null);
 
   // Keep stepDataRef in sync so markStepOutdated can guard empty steps
   useEffect(() => {
@@ -332,8 +337,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       stressTest: stressTestData,
       pitchDeck: pitchDeckData,
       redesign: redesignData,
+      concepts: conceptsData,
     };
-  }, [decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
+  }, [decompositionData, disruptData, stressTestData, pitchDeckData, redesignData, conceptsData]);
 
   // ── Insight Preferences (liked/dismissed) ──
   const [insightPreferences, setInsightPreferences] = useState<Record<string, "liked" | "dismissed" | "neutral">>({});
@@ -576,7 +582,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const hydrationSetters: HydrationSetters = useMemo(() => ({
     setAnalysisId, setProducts, setSelectedProduct, setAnalysisParams,
     setMainTab, setActiveMode, setStep, setDetailTab, setLoadedFromSaved,
-    setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData,
+    setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData, setConceptsData,
     setGovernedData, setBusinessAnalysisData, setBusinessModelInput,
     setBusinessStressTestData,
     setActiveBranchIdState, setStrategicProfileState: setStrategicProfileState,
@@ -1438,6 +1444,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       outdatedSteps, markStepOutdated, clearStepOutdated,
       userScores, setUserScore,
       redesignData, setRedesignData,
+      conceptsData, setConceptsData,
       insightPreferences, setInsightPreference, getLikedInsights, getDismissedInsights,
       steeringText, setSteeringText, saveSteeringText,
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,

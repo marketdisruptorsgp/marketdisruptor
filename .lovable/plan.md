@@ -1,168 +1,105 @@
+# Product Reset Plan: From Pipeline Tool → Strategic Insight Product
 
+## The Problem
+The Command Deck is currently an 812-line engineering dashboard exposing pipeline internals. A user running an analysis sees: confidence meters, reasoning stage overlays, evidence thresholds, node counts, pipeline progress bars, convergence zones, friction dashboards, provenance registries, and developer diagnostics. The *actual strategic value* — the constraint diagnosis, opportunities, and recommended moves — is buried under layers of system chrome.
 
-# Invention Engine — System Architecture Revision (Product Mode)
+## The North Star
+**User inputs a business → gets strategic insight they didn't see before.**
 
-## Summary
+The experience should feel like receiving a strategy consultant's one-page brief, not watching an AI pipeline execute.
 
-Replace the current dual-pipeline architecture (Reconfiguration Engine + Transformation Engine) with a unified **Invention Engine** that generates causally-traced, engineering-grounded invention concepts through structured combination of three knowledge layers: Structural Pressure, Assumption Breaks, and Technical Mechanisms.
+## Current UI Audit (CommandDeckPage.tsx — 812 lines)
 
----
+### What stays (core value):
+1. **SoWhatHeader** — "Do nothing → X. Act now → Y." (Good, decision-forcing)
+2. **OneThesisCard** — Constraint → Belief → Move → Economics → First Move (Strong, this IS the product)
+3. **WhatsNextPanel** — Kill question + first move (Actionable)
 
-## Current State
+### What gets demoted or removed:
 
-The pipeline currently runs:
+| Component | Current Role | Action |
+|---|---|---|
+| `ReasoningStagesOverlay` | Shows "Detecting patterns…" animation | **REMOVE** — internal diagnostic |
+| `RecomputeOverlay` | Loading spinner for recompute | **SIMPLIFY** — just a subtle loading state |
+| `PipelineProgress` bar | Shows 5-step pipeline completion | **REMOVE** from main view |
+| `ModeBadge` | Shows "Product/Service/Business" | **KEEP** but simplify |
+| `StrategicXRay` | Interactive reasoning chain w/ challenge mode | **MOVE** to "Deep Dive" tab |
+| `IndustrySystemMapView` | Industry map visualization | **MOVE** to "Deep Dive" tab |
+| `PowerToolsPanel` (6 tools) | Problem Statement, Current State, Scenario Sim, Scenario Lab, Outcome Sim, Lens Intelligence | **MOVE** to "Deep Dive" tab |
+| `ScenarioBanner` + `DeltaChanges` | Scenario mode UI | **MOVE** to "Deep Dive" tab |
+| `StrategicCommandDeck` component | Friction dashboard, convergence zones, opportunity landscape, constraint/leverage/opportunity 3-col grid | **REPLACE** with clean opportunity cards |
+| `ConfidenceMeter` / confidence tags | Numeric confidence display | **REMOVE** |
+| Pipeline step count ("3/5 steps") | Developer progress | **REMOVE** |
+| Signal counts, evidence counts | Developer metrics | **REMOVE** |
 
-```text
-Phase 1: structural-decomposition (edge function)
-Phase 2: strategic-synthesis (edge function) → produces:
-         - hiddenAssumptions, flippedLogic
-         - structuralTransformations, transformationClusters
-         - redesignedConcept (single concept)
-         - governed data
-Phase 3: critical-validation + pitch-deck (background)
-```
+## New Command Deck Layout (3 sections)
 
-The `strategic-synthesis` edge function merges the old `transformation-engine` + `concept-architecture` into one AI call. The reconfiguration engine (`qualifyPatterns`, `selectRelevantDirections`, `deepenOpportunitiesAsync`) runs client-side in `strategicEngine.ts` to produce Command Deck opportunities.
+### Section 1: Diagnosis
+**What we found** — One bold sentence explaining the structural constraint.
+- Source: `narrative.primaryConstraint` + `narrative.strategicVerdict`
+- Plain English, no jargon
+- No confidence scores, no "preliminary signal" labels
 
-**Problem**: Two independent idea-generation systems. No causal tracing from assumption → mechanism → concept.
+### Section 2: Opportunities (3–5 cards)
+**What you could do** — Multiple strategic directions derived from the constraint.
+- Each card: Title + 1-sentence explanation + "why this works"
+- Source: `autoAnalysis.deepenedOpportunities` (need to ensure we generate 3-5, not just 1-2)
+- Plain, action-oriented language
+- No impact scores, no node types
 
----
+### Section 3: Recommended Move
+**What we'd do first** — The highest-leverage play with clear next step.
+- Source: Top `deepenedOpportunity` with `firstMove`
+- "Here's the move. Here's why. Here's how to start."
+- Timeline estimate in human terms
 
-## Architecture Changes
+### Section 4 (optional): "Show me why" link
+- Links to Deep Dive tab containing: Reasoning Map, X-Ray, Industry Map, Scenario tools
+- This is the explanation layer, NOT the product
 
-### 1. New Edge Function: `concept-synthesis`
+## Opportunity Generation Fix
+Current problem: System often produces only 1 opportunity.
+Required: Generate 3–5 meaningful opportunity directions per constraint.
 
-Replaces the concept generation portion of `strategic-synthesis` for Product Mode.
+### Approach:
+- Enhance `src/lib/reconfiguration.ts` to generate multiple opportunity vectors from a single constraint
+- Use different strategic lenses: automation, platform, marketplace, data, consolidation
+- Each opportunity = a different strategic path, not a variation of the same idea
 
-**Inputs:**
-- `structuralDecomposition` (from Phase 1)
-- `assumptions[]` (from modified strategic-synthesis)
-- `mechanismLibrary[]` (embedded in the edge function)
-- `product` intel
+## Language Cleanup
+All user-facing text must be rewritten:
+- "Convergence zones" → removed
+- "Evidence threshold" → removed  
+- "Node count" → removed
+- "Pipeline step" → removed
+- "Reasoning chain" → "Our analysis shows…"
+- "Leverage point" → "Key advantage"
+- "Friction index" → removed
 
-**Output:**
-```text
-{
-  concepts: [
-    {
-      name, tagline,
-      origin: {
-        structural_driver,      // which weakness
-        assumption_flipped,     // which assumption
-        enabling_mechanism      // which technical mechanism
-      },
-      description,
-      mechanism_description,
-      materials: [],
-      estimated_bom: [],
-      manufacturing_path,
-      certification_considerations: [],
-      precedent_products: [],
-      prototype_approach,
-      dfm_notes
-    }
-  ]  // 4-6 concepts
-}
-```
+## Navigation Changes
+Current 4-page structure:
+1. Command Deck (main)
+2. Intelligence Report
+3. Reasoning Map
+4. Pitch
 
-The mechanism library is a curated dataset of ~30-50 technical enablers (magnetic seals, ultrasonic sensing, shape memory alloys, hydrophobic coatings, piezoelectric actuation, modular snap-fit, etc.) embedded directly in the edge function prompt. Each entry has: mechanism name, physical principle, applicable domains, example products, manufacturing notes.
-
-### 2. Modify `strategic-synthesis` for Product Mode
-
-When `mode === "product"`:
-- Still produce `hiddenAssumptions` (6-10, ranked by leverage) and `flippedLogic`
-- Still produce structural analysis (coreReality, frictionDimensions, etc.)
-- **Remove** `redesignedConcept` generation (moved to `concept-synthesis`)
-- **Remove** `structuralTransformations` and `transformationClusters` (replaced by concept synthesis)
-- Add structured assumption output: each assumption gets `constraint_type`, `leverage_score`, `flip_statement`
-
-Service and Business modes remain unchanged.
-
-### 3. Modify Pipeline Orchestrator (`usePipelineOrchestrator.ts`)
-
-For Product Mode, the pipeline becomes 4 phases:
-
-```text
-Phase 1: structural-decomposition          (unchanged)
-Phase 2: strategic-synthesis (modified)    (assumptions + analysis only)
-Phase 3: concept-synthesis (NEW)           (4-6 traced concepts)
-Phase 4: critical-validation + pitch       (background, unchanged)
-```
-
-`STEP_DEFS` gains a `"concepts"` step between synthesis and stressTest. The orchestrator passes assumptions + decomposition + product intel to the new edge function.
-
-### 4. New UI: Concept Explorer
-
-Replace the current Disrupt → Flipped Ideas → Redesign flow with:
-
-**Step 1 — Hidden Assumptions** (existing, refined)
-- Show 6-10 ranked assumptions with leverage scores
-- Each shows: assumption, why it exists, constraint type, flip statement
-
-**Step 2 — Innovation Paths** (NEW)
-- Derived from structural pressures in decomposition data
-- Themed groupings: "Failure Elimination", "Installation Simplification", "Material Reinvention", etc.
-- Auto-generated from structural weakness clusters
-
-**Step 3 — Concept Explorer** (NEW — replaces Flipped Ideas + single Redesign)
-- 4-6 concept cards, each showing:
-  - Origin trace (structural driver → assumption flipped → mechanism)
-  - Engineering summary
-  - Rough BOM
-  - Precedent technologies
-- User can select concept count (3-6) before generation
-
-**Step 4 — Engineering Deep Dive** (replaces single Redesign concept view)
-- User selects one concept to expand
-- Calls existing `concept-architecture` (modified) for deep engineering detail
-- Detailed BOM, prototype notes, supplier categories, regulatory, test plan
-
-### 5. Remove for Product Mode
-
-- **Command Deck strategic opportunities** (OpportunityDirectionsGrid) — hidden in Product Mode
-- **Flipped Ideas tab** (FlippedIdeasPanel) — absorbed into Concept Explorer origin traces
-- **Single Redesign concept** (RedesignedConceptPanel as primary output) — replaced by multi-concept explorer
-- Client-side `qualifyPatterns()` and `selectRelevantDirections()` calls — skipped in Product Mode in `strategicEngine.ts`
-
-### 6. Files Changed
-
-| Area | Files | Change |
-|------|-------|--------|
-| Edge Functions | `supabase/functions/concept-synthesis/index.ts` | **NEW** — concept synthesis with mechanism library |
-| Edge Functions | `supabase/functions/strategic-synthesis/index.ts` | Modify Product Mode output schema |
-| Orchestrator | `src/hooks/usePipelineOrchestrator.ts` | Add concepts phase for Product Mode |
-| Strategic Engine | `src/lib/strategicEngine.ts` | Skip pattern qualification in Product Mode |
-| UI Components | `src/components/first-principles/ConceptExplorer.tsx` | **NEW** — multi-concept card grid |
-| UI Components | `src/components/first-principles/InnovationPaths.tsx` | **NEW** — themed pressure groupings |
-| UI Components | `src/components/first-principles/EngineeringDeepDive.tsx` | **NEW** — expanded single concept |
-| UI Components | `src/components/FirstPrinciplesAnalysis.tsx` | New step flow for Product Mode |
-| Command Deck | `src/pages/CommandDeckPage.tsx` | Hide opportunity grid in Product Mode |
-| Types | `src/components/first-principles/types.ts` | Add concept synthesis types |
-| Analysis Context | `src/contexts/AnalysisContext.tsx` | Add conceptsData state |
-
-### 7. Mechanism Library (embedded in edge function)
-
-~40 entries covering:
-- **Fluid/Seal**: magnetic fluid seals, hydrophobic coatings, pressure-sensing membranes
-- **Sensing**: ultrasonic flow, piezoelectric, capacitive touch, MEMS accelerometers
-- **Materials**: shape memory alloys, self-healing polymers, antimicrobial surfaces
-- **Assembly**: modular snap-fit, bayonet mount, tool-free replacement
-- **Actuation**: solenoid, servo, pneumatic, bi-metallic thermal
-- **Surface**: self-cleaning, anti-fouling, wear-resistant ceramics
-- **Communication**: BLE, NFC, LoRa, passive RFID
-
-Each entry includes physical principle, applicable domains, manufacturing notes, and example products. The AI uses this as a "palette" when combining with structural weaknesses and assumption flips.
-
----
+New structure:
+1. **Strategic Brief** (the 3-section layout above) — this IS the product
+2. **Deep Dive** (reasoning map, X-Ray, industry map, scenario tools)
+3. **Intelligence Report** (raw evidence)
+4. **Pitch** (investor-ready output)
 
 ## Implementation Order
+1. **Phase 1**: Strip Command Deck to 3 sections (diagnosis, opportunities, recommended move)
+2. **Phase 2**: Create "Deep Dive" tab and move demoted components there
+3. **Phase 3**: Fix opportunity generation to produce 3–5 per analysis
+4. **Phase 4**: Language cleanup across all user-facing components
+5. **Phase 5**: Test with real analyses to ensure consistent, useful output
 
-1. Create `concept-synthesis` edge function with mechanism library
-2. Modify `strategic-synthesis` for Product Mode (remove concept generation, enrich assumptions)
-3. Add new types and context state for concepts data
-4. Modify pipeline orchestrator to add concepts phase
-5. Build Concept Explorer, Innovation Paths, and Engineering Deep Dive UI components
-6. Modify FirstPrinciplesAnalysis step flow for Product Mode
-7. Skip pattern qualification and hide Command Deck opportunities in Product Mode
-8. Wire Engineering Deep Dive to call `concept-architecture` for selected concept expansion
-
+## Success Criteria
+- User runs analysis → reads diagnosis in 3 seconds
+- Sees 3–5 actionable opportunity directions
+- Understands the recommended move and how to start
+- Can optionally explore "why" via Deep Dive
+- Zero developer terminology visible in default view
+- No numeric scores, thresholds, or pipeline indicators

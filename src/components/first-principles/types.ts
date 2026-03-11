@@ -156,3 +156,65 @@ export const REASON_BORDER: Record<string, string> = {
   physics: "hsl(271 81% 50%)",
   habit: "hsl(330 80% 50%)",
 };
+
+// ═══════════════════════════════════════════════════════════════
+//  INVENTION ENGINE TYPES (Product Mode)
+// ═══════════════════════════════════════════════════════════════
+
+export interface ConceptOrigin {
+  structural_driver: string;
+  assumption_flipped: string;
+  enabling_mechanism: string;
+}
+
+export interface ConceptBomItem {
+  component: string;
+  material: string;
+  process: string;
+  unitCost: string;
+  notes?: string;
+}
+
+export interface ConceptPrecedent {
+  product: string;
+  company: string;
+  relevance: string;
+}
+
+export interface InventionConcept {
+  name: string;
+  tagline: string;
+  origin: ConceptOrigin;
+  description: string;
+  mechanism_description: string;
+  materials: string[];
+  estimated_bom: ConceptBomItem[];
+  manufacturing_path: string;
+  certification_considerations: string[];
+  precedent_products: ConceptPrecedent[];
+  prototype_approach: string;
+  dfm_notes: string;
+}
+
+export interface ConceptSynthesisResult {
+  concepts: InventionConcept[];
+  innovation_paths: InnovationPath[];
+}
+
+export interface InnovationPath {
+  theme: string;
+  description: string;
+  structural_pressures: string[];
+  concept_indices: number[];
+}
+
+export interface EngineeringDeepDiveData {
+  concept: InventionConcept;
+  detailed_bom: ConceptBomItem[];
+  materials_deep: { material: string; supplier_types: string[]; cost_range: string; notes: string }[];
+  prototype_plan: { phase: string; duration: string; deliverable: string; cost_estimate: string }[];
+  manufacturing_process: { step: string; equipment: string; cycle_time: string; notes: string }[];
+  supplier_categories: { category: string; examples: string[]; lead_time: string }[];
+  regulatory_requirements: { requirement: string; body: string; timeline: string; cost: string }[];
+  test_plan: { test: string; method: string; pass_criteria: string; equipment: string }[];
+}

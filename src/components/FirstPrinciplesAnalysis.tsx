@@ -11,6 +11,10 @@ import { HiddenAssumptionsPanel } from "./first-principles/HiddenAssumptionsPane
 import { FlippedLogicPanel } from "./first-principles/FlippedLogicPanel";
 import { FlippedIdeasPanel } from "./first-principles/FlippedIdeasPanel";
 import { RedesignedConceptPanel } from "./first-principles/RedesignedConceptPanel";
+import { ConceptExplorer } from "./first-principles/ConceptExplorer";
+import { InnovationPaths } from "./first-principles/InnovationPaths";
+import { EngineeringDeepDive } from "./first-principles/EngineeringDeepDive";
+import type { InventionConcept, ConceptSynthesisResult } from "./first-principles/types";
 
 // Re-export types and constants for backward compatibility
 export type { FirstPrinciplesData } from "./first-principles/types";
@@ -49,6 +53,7 @@ export const FirstPrinciplesAnalysis = ({
     renderMode === "redesign" ? (activeSection || "flip") : "assumptions"
   );
   const [rerunSuggestions, setRerunSuggestions] = useState("");
+  const [deepDiveConcept, setDeepDiveConcept] = useState<InventionConcept | null>(null);
   const autoTriggered = useRef(false);
 
   useEffect(() => {
@@ -263,13 +268,55 @@ export const FirstPrinciplesAnalysis = ({
 
   // ── REDESIGN MODE ──
   if (renderMode === "redesign") {
+    // Check if we have concept synthesis data (Invention Engine)
+    const conceptsSynthesis = analysisCtx.conceptsData as ConceptSynthesisResult | null;
+
+    if (deepDiveConcept) {
+      return (
+        <div className="space-y-4" data-fp-steps>
+          <EngineeringDeepDive
+            concept={deepDiveConcept}
+            onBack={() => setDeepDiveConcept(null)}
+          />
+        </div>
+      );
+    }
+
+    // If concepts data exists, show Invention Engine UI
+    if (conceptsSynthesis && conceptsSynthesis.concepts?.length > 0) {
+      return (
+        <div className="space-y-6" data-fp-steps>
+          {activeStep === "flip" && (
+            <>
+              <FlippedLogicPanel flips={data.flippedLogic || []} assumptions={data.hiddenAssumptions || []} />
+              {conceptsSynthesis.innovation_paths?.length > 0 && (
+                <InnovationPaths paths={conceptsSynthesis.innovation_paths} />
+              )}
+            </>
+          )}
+          {activeStep === "ideas" && (
+            <ConceptExplorer
+              data={conceptsSynthesis}
+              onSelectForDeepDive={(c) => setDeepDiveConcept(c)}
+            />
+          )}
+          {activeStep === "concept" && conceptsSynthesis.concepts[0] && (
+            <ConceptExplorer
+              data={conceptsSynthesis}
+              onSelectForDeepDive={(c) => setDeepDiveConcept(c)}
+            />
+          )}
+        </div>
+      );
+    }
+
+    // Fallback: original redesign mode
     return (
       <div className="space-y-4" data-fp-steps>
         {activeStep === "flip" && (
           <FlippedLogicPanel flips={data.flippedLogic || []} assumptions={data.hiddenAssumptions || []} />
         )}
         {activeStep === "ideas" && (() => {
-          // Derive flipped ideas from AI data if product.flippedIdeas is empty
           const effectiveIdeas = (flippedIdeas && flippedIdeas.length > 0)
             ? flippedIdeas
             : (data.flippedLogic || []).map((fl: any, i: number) => ({
