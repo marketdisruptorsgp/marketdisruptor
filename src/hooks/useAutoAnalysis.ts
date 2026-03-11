@@ -105,6 +105,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
     if (!analysisId || !hasComputableData) return;
 
+    // Deduplicate: increment run counter, capture this run's ID
+    const thisRunId = ++runIdRef.current;
+
     setIsComputing(true);
 
     // Build system intelligence (for legacy compat)
