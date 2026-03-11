@@ -358,6 +358,132 @@ function buildProfileSummary(sp: any): string {
   ].filter(Boolean).join("\n");
 }
 
+function buildDocumentIntelligenceBlock(doc: any): string {
+  if (!doc) return "";
+
+  const parts: string[] = [
+    "═══ DOCUMENT INTELLIGENCE (extracted from uploaded documents) ═══",
+    "USE THIS DATA to ground every thesis in specific business mechanics. Reference actual numbers, workflows, and evidence.",
+    "",
+  ];
+
+  if (doc.company || doc.industry || doc.offering) {
+    parts.push(`COMPANY: ${doc.company || "Unknown"} | INDUSTRY: ${doc.industry || "Unknown"}`);
+    if (doc.offering) parts.push(`PRIMARY OFFERING: ${doc.offering}`);
+    if (doc.valueProp) parts.push(`VALUE PROPOSITION: ${doc.valueProp}`);
+    if (doc.customers?.length) parts.push(`TARGET CUSTOMERS: ${doc.customers.join(", ")}`);
+    parts.push("");
+  }
+
+  if (doc.revenueEngine) {
+    const re = doc.revenueEngine;
+    parts.push("REVENUE ENGINE:");
+    if (re.sources?.length) parts.push(`  Revenue sources: ${re.sources.join(", ")}`);
+    if (re.pricingModel?.length) parts.push(`  Pricing model: ${re.pricingModel.join(", ")}`);
+    if (re.costDrivers?.length) parts.push(`  Cost drivers: ${re.costDrivers.join(", ")}`);
+    if (re.marginLevers?.length) parts.push(`  Margin levers: ${re.marginLevers.join(", ")}`);
+    if (re.evidence?.length) {
+      parts.push("  Evidence from document:");
+      for (const e of re.evidence) parts.push(`    → "${e}"`);
+    }
+    parts.push("");
+  }
+
+  if (doc.valueCreation) {
+    const vc = doc.valueCreation;
+    parts.push("VALUE CREATION SYSTEM:");
+    if (vc.inputs?.length) parts.push(`  Inputs: ${vc.inputs.join(", ")}`);
+    if (vc.coreActivities?.length) parts.push(`  Core activities: ${vc.coreActivities.join(", ")}`);
+    if (vc.outputs?.length) parts.push(`  Outputs: ${vc.outputs.join(", ")}`);
+    if (vc.channels?.length) parts.push(`  Delivery channels: ${vc.channels.join(", ")}`);
+    parts.push("");
+  }
+
+  if (doc.operatingModel) {
+    const om = doc.operatingModel;
+    parts.push("OPERATING MODEL:");
+    if (om.workflowStages?.length) {
+      for (const s of om.workflowStages) {
+        parts.push(`  ${s.stage}: ${s.purpose}`);
+        if (s.dependencies?.length) parts.push(`    Dependencies: ${s.dependencies.join(", ")}`);
+        if (s.risks?.length) parts.push(`    Risks: ${s.risks.join(", ")}`);
+      }
+    }
+    if (om.keyResources?.length) parts.push(`  Key resources: ${om.keyResources.join(", ")}`);
+    if (om.partners?.length) parts.push(`  Partners: ${om.partners.join(", ")}`);
+    parts.push("");
+  }
+
+  if (doc.financials) {
+    const f = doc.financials;
+    parts.push("FINANCIALS:");
+    if (f.sde) parts.push(`  SDE: $${Number(f.sde).toLocaleString()}`);
+    if (f.revenue) parts.push(`  Revenue: $${Number(f.revenue).toLocaleString()}`);
+    if (f.grossMarginPct) parts.push(`  Gross margin: ${f.grossMarginPct}%`);
+    if (f.addbacks?.length) {
+      parts.push("  Claimed addbacks:");
+      for (const ab of f.addbacks) {
+        parts.push(`    ${ab.item}: ${ab.amount ? `$${Number(ab.amount).toLocaleString()}` : "undisclosed"} (confidence: ${ab.confidence})${ab.flag ? ` ⚠ ${ab.flag}` : ""}`);
+      }
+    }
+    if (f.missingFinancials?.length) parts.push(`  MISSING: ${f.missingFinancials.join("; ")}`);
+    parts.push("");
+  }
+
+  if (doc.constraints?.length) {
+    parts.push("DOCUMENT-IDENTIFIED CONSTRAINTS:");
+    for (const c of doc.constraints) {
+      parts.push(`  [${c.type}] ${c.constraint}`);
+      if (c.causes?.length) parts.push(`    Causes: ${c.causes.join("; ")}`);
+      if (c.effects?.length) parts.push(`    Effects: ${c.effects.join("; ")}`);
+    }
+    parts.push("");
+  }
+
+  if (doc.opportunities?.length) {
+    parts.push("DOCUMENT-IDENTIFIED OPPORTUNITIES:");
+    for (const o of doc.opportunities) {
+      parts.push(`  [${o.type}] ${o.opportunity}`);
+      if (o.enablers?.length) parts.push(`    Enablers: ${o.enablers.join("; ")}`);
+      if (o.potentialImpact?.length) parts.push(`    Potential impact: ${o.potentialImpact.join("; ")}`);
+    }
+    parts.push("");
+  }
+
+  if (doc.ownerDependency) {
+    parts.push(`OWNER DEPENDENCY: Score ${doc.ownerDependency.score}/10`);
+    if (doc.ownerDependency.areas?.length) {
+      for (const a of doc.ownerDependency.areas) {
+        parts.push(`  [${a.severity}] ${a.area}: ${a.description}`);
+      }
+    }
+    parts.push("");
+  }
+
+  if (doc.customerConcentration) {
+    const cc = doc.customerConcentration;
+    parts.push(`CUSTOMER CONCENTRATION: Risk=${cc.risk_level}, Top 1=${cc.top_1_pct ?? "?"}%, Top 3=${cc.top_3_pct ?? "?"}%`);
+    if (cc.detail) parts.push(`  ${cc.detail}`);
+    parts.push("");
+  }
+
+  if (doc.systemSignals?.leveragePoints?.length) {
+    parts.push(`LEVERAGE POINTS: ${doc.systemSignals.leveragePoints.join(", ")}`);
+    parts.push("");
+  }
+
+  if (doc.missingInfo?.length) {
+    parts.push(`GAPS IN DOCUMENT: ${doc.missingInfo.join("; ")}`);
+    parts.push("");
+  }
+
+  parts.push("═══ END DOCUMENT INTELLIGENCE ═══");
+  parts.push("CRITICAL: Your theses MUST reference specific data from the document above (dollar amounts, workflow stages, constraints, opportunities). Generic recommendations that ignore document specifics will be rejected.");
+  parts.push("");
+
+  return parts.join("\n");
+}
+
 function buildPatternsSummary(qualifiedPatterns: any[]): string {
   return qualifiedPatterns.map((qp: any) => [
     `Pattern: ${qp.pattern.name} (${qp.pattern.id})`,
