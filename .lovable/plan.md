@@ -1,105 +1,197 @@
-# Product Reset Plan: From Pipeline Tool → Strategic Insight Product
 
-## The Problem
-The Command Deck is currently an 812-line engineering dashboard exposing pipeline internals. A user running an analysis sees: confidence meters, reasoning stage overlays, evidence thresholds, node counts, pipeline progress bars, convergence zones, friction dashboards, provenance registries, and developer diagnostics. The *actual strategic value* — the constraint diagnosis, opportunities, and recommended moves — is buried under layers of system chrome.
 
-## The North Star
-**User inputs a business → gets strategic insight they didn't see before.**
+# 90-Second Pipeline Redesign
 
-The experience should feel like receiving a strategy consultant's one-page brief, not watching an AI pipeline execute.
+## The Core Problem
 
-## Current UI Audit (CommandDeckPage.tsx — 812 lines)
+The current pipeline makes **5 sequential AI calls** (decompose → transform → concept → stress → pitch), each waiting for the previous one. Even with the recent split and parallelization of steps 4+5, the critical path is still 4 deep:
 
-### What stays (core value):
-1. **SoWhatHeader** — "Do nothing → X. Act now → Y." (Good, decision-forcing)
-2. **OneThesisCard** — Constraint → Belief → Move → Economics → First Move (Strong, this IS the product)
-3. **WhatsNextPanel** — Kill question + first move (Actionable)
+```text
+CURRENT CRITICAL PATH (best case)
+─────────────────────────────────
+decompose (20-30s) → transform (40-60s) → concept (30-40s) → stress+pitch parallel (40-60s)
+                                                              
+Total critical path: ~130-190s (2-3 min on a good day, 4-6 on retries)
+```
 
-### What gets demoted or removed:
+The biggest time sink isn't individual calls — it's **sequential dependency**. Each call waits for the previous, AND each call carries a massive prompt (the 273-line reasoning framework alone is ~2500 tokens, injected into every function).
 
-| Component | Current Role | Action |
+## The 90-Second Architecture
+
+### Principle: Two AI calls on the critical path, not five.
+
+```text
+90-SECOND PIPELINE
+──────────────────
+
+Phase 1: PARALLEL FOUNDATION (0-30s)
+  ┌─ structural-decomposition (Flash, 20s)
+  └─ pre-context assembly (local, instant — patent/trend/competitor signals)
+
+Phase 2: UNIFIED STRATEGIC ENGINE (30-75s)
+  └─ strategic-synthesis (Pro, 40-45s)
+     Receives: decomposition + pre-context
+     Produces: ALL of these in ONE call:
+       • hiddenAssumptions
+       • flippedLogic  
+       • structuralTransformations + viability gates
+       • transformationClusters
+       • redesignedConcept (from best cluster)
+       • red team / blue team (top 3 attack vectors only)
+       • elevator pitch (3-sentence)
+       • governed artifacts
+
+Phase 3: PARALLEL ENRICHMENT (75-90s, non-blocking)
+  ┌─ deep-validation (Flash, background — full stress test)
+  └─ pitch-deck (Flash, background — full slide deck)
+  UI renders Phase 2 results immediately.
+  Phase 3 results stream in as they complete.
+```
+
+**Critical path: 2 AI calls. ~65-75 seconds.**
+
+### Why This Works
+
+**The key insight**: the current pipeline asks 5 separate AI calls to reason about the SAME system. Each call re-reads the product, re-reads the reasoning framework, re-discovers the constraints. The 273-line reasoning framework is sent 4 times (transform, concept, stress, pitch). That's ~10,000 wasted tokens on framework repetition alone.
+
+A single Pro call with focused instructions can produce assumptions + transformations + concept + lightweight validation in ONE pass. The model already does this internally — the current pipeline just forces it to output fragments across multiple calls.
+
+### What Changes
+
+**1. Merge transformation-engine + concept-architecture into `strategic-synthesis`**
+
+Instead of:
+- Call 1: Generate assumptions, flips, transformations, clusters (16K max_tokens)
+- Call 2: Take clusters → generate concept (8K max_tokens)
+
+Do:
+- Call 1: Generate ALL of the above in one pass (16K max_tokens — same budget, less overhead)
+
+The concept-architecture function currently receives the viable transformations and clusters from the transformation-engine output. But there's no reason the model can't produce transformations AND the concept in one call — it already has the reasoning context loaded. The split only saves tokens if the viability gate eliminates most transformations, but in practice 60-80% pass.
+
+**Prompt change**: Instead of "do NOT generate a redesignedConcept" (current transformation-engine instruction), remove that restriction. Add: "After clustering, generate a redesignedConcept from the highest-scoring cluster."
+
+**Token savings**: Eliminates ~8K input tokens (no second system prompt, no re-sending product/decomposition/governed context to concept-architecture).
+
+**2. Slim the reasoning framework for decomposition**
+
+The `structural-decomposition` function currently does NOT use `reasoningFramework.ts` (it has its own focused prompt). Good — keep this.
+
+But `strategic-synthesis` should use a **compressed** version of the reasoning framework. The current 273-line, ~2500-token framework includes sections that are redundant when decomposition is already done upstream:
+- Steps 1-3 (Domain Confirmation, Objective Definition, First-Principles Decomposition) — already done by structural-decomposition
+- Visual-First Representation Rule — doesn't affect reasoning quality
+- Progressive Disclosure Model — UX concern, not reasoning concern
+- Distillation Requirements — post-processing concern
+
+A compressed framework (~800 tokens) keeping only Steps 4-9 + Anti-Default Safeguards + Scoring Calibration would cut input tokens by ~1700 per call.
+
+**3. Embed lightweight stress test in strategic-synthesis**
+
+Instead of a full critical-validation call (which produces red team, blue team, counter-examples, feasibility checklist, confidence scores, competitive landscape — much of which users rarely read), embed a lightweight validation in the synthesis:
+
+```
+"quickValidation": {
+  "topThreats": [{ "threat": "...", "severity": "high|medium", "mitigation": "..." }],
+  "feasibilityScore": 3.8,
+  "keyRisk": "...",
+  "confidenceLevel": "conditional"
+}
+```
+
+The full stress test still runs as Phase 3 background enrichment for users who want depth.
+
+**4. Parallelize Phase 3 enrichment (non-blocking)**
+
+After Phase 2 completes and the UI renders, fire off `deep-validation` and `pitch-deck` in parallel. These use Flash (cheaper, faster) and their results appear as progressive enrichment — the stress test tab populates, the pitch deck tab populates, but the user isn't waiting for them.
+
+The orchestrator change:
+
+```typescript
+// Phase 2 complete — render immediately
+setDisruptData(synthesisResult);
+setRedesignData(synthesisResult); // same object, concept included
+onRecompute?.();
+
+// Phase 3 — fire and forget (results stream in)
+Promise.allSettled([
+  runDeepValidation(product, synthesisResult, decompResult),
+  runPitchDeck(product, synthesisResult),
+]).then(([stress, pitch]) => {
+  // Update UI as each completes
+});
+```
+
+**5. Pre-context assembly (zero AI cost)**
+
+Before decomposition, assemble all available signals into a compact context object:
+
+```typescript
+const preContext = {
+  patents: product.patentData ? summarizePatents(product.patentData) : null,
+  trends: product.trendAnalysis ? summarizeTrends(product.trendAnalysis) : null,
+  competitors: product.competitorAnalysis ? top3Competitors(product.competitorAnalysis) : null,
+  complaints: product.communityInsights?.topComplaints?.slice(0, 5) || [],
+};
+```
+
+This is passed to both decomposition AND strategic-synthesis, replacing the current pattern of each function independently extracting and formatting upstream intel.
+
+### Expected Performance
+
+| Metric | Current | 90-Second Design |
 |---|---|---|
-| `ReasoningStagesOverlay` | Shows "Detecting patterns…" animation | **REMOVE** — internal diagnostic |
-| `RecomputeOverlay` | Loading spinner for recompute | **SIMPLIFY** — just a subtle loading state |
-| `PipelineProgress` bar | Shows 5-step pipeline completion | **REMOVE** from main view |
-| `ModeBadge` | Shows "Product/Service/Business" | **KEEP** but simplify |
-| `StrategicXRay` | Interactive reasoning chain w/ challenge mode | **MOVE** to "Deep Dive" tab |
-| `IndustrySystemMapView` | Industry map visualization | **MOVE** to "Deep Dive" tab |
-| `PowerToolsPanel` (6 tools) | Problem Statement, Current State, Scenario Sim, Scenario Lab, Outcome Sim, Lens Intelligence | **MOVE** to "Deep Dive" tab |
-| `ScenarioBanner` + `DeltaChanges` | Scenario mode UI | **MOVE** to "Deep Dive" tab |
-| `StrategicCommandDeck` component | Friction dashboard, convergence zones, opportunity landscape, constraint/leverage/opportunity 3-col grid | **REPLACE** with clean opportunity cards |
-| `ConfidenceMeter` / confidence tags | Numeric confidence display | **REMOVE** |
-| Pipeline step count ("3/5 steps") | Developer progress | **REMOVE** |
-| Signal counts, evidence counts | Developer metrics | **REMOVE** |
+| AI calls on critical path | 4 | 2 |
+| Total AI calls | 5 | 4 (2 critical + 2 background) |
+| Critical path time | 130-190s | 60-75s |
+| Total pipeline time | 180-360s | 75-100s |
+| Input tokens | ~150K | ~80-90K |
+| Reasoning framework copies | 4× | 1× (compressed) |
+| User sees first results at | ~120s | ~65s |
 
-## New Command Deck Layout (3 sections)
+### Implementation Plan
 
-### Section 1: Diagnosis
-**What we found** — One bold sentence explaining the structural constraint.
-- Source: `narrative.primaryConstraint` + `narrative.strategicVerdict`
-- Plain English, no jargon
-- No confidence scores, no "preliminary signal" labels
+**Step 1**: Create `supabase/functions/strategic-synthesis/index.ts`
+- Merge transformation-engine prompt + concept-architecture prompt into one
+- Use compressed reasoning framework (Steps 4-9 only)
+- Add `quickValidation` to output schema
+- Model: gemini-2.5-pro, max_tokens: 16000
 
-### Section 2: Opportunities (3–5 cards)
-**What you could do** — Multiple strategic directions derived from the constraint.
-- Each card: Title + 1-sentence explanation + "why this works"
-- Source: `autoAnalysis.deepenedOpportunities` (need to ensure we generate 3-5, not just 1-2)
-- Plain, action-oriented language
-- No impact scores, no node types
+**Step 2**: Create `src/lib/preContextAssembly.ts`
+- `assemblePreContext(product)` — extracts and compresses patent/trend/competitor/complaint signals
+- Used by orchestrator before any AI calls
 
-### Section 3: Recommended Move
-**What we'd do first** — The highest-leverage play with clear next step.
-- Source: Top `deepenedOpportunity` with `firstMove`
-- "Here's the move. Here's why. Here's how to start."
-- Timeline estimate in human terms
+**Step 3**: Create compressed reasoning framework
+- `supabase/functions/_shared/reasoningFrameworkLite.ts`
+- ~800 tokens vs current ~2500
+- Keeps: friction discovery, constraint mapping, leverage, solution generation, anti-defaults, scoring
+- Drops: domain confirmation (done by decomposition), visual rules, progressive disclosure, distillation
 
-### Section 4 (optional): "Show me why" link
-- Links to Deep Dive tab containing: Reasoning Map, X-Ray, Industry Map, Scenario tools
-- This is the explanation layer, NOT the product
+**Step 4**: Update `usePipelineOrchestrator.ts`
+- Phase 1: `runDecompose()` (unchanged)
+- Phase 2: `runStrategicSynthesis()` (replaces runDisrupt + runRedesign)
+- Phase 3: `Promise.allSettled([runDeepValidation(), runPitchDeck()])` — non-blocking
+- Set disrupt + redesign data from synthesis result
+- Early termination if all transformations fail viability (skip Phase 3)
 
-## Opportunity Generation Fix
-Current problem: System often produces only 1 opportunity.
-Required: Generate 3–5 meaningful opportunity directions per constraint.
+**Step 5**: Update `critical-validation` to use Flash instead of Pro
+- It receives the full synthesis output including quick validation
+- Its job becomes enrichment (full red/blue team, competitive landscape) not core reasoning
+- Flash is sufficient for adversarial testing when grounded in synthesis output
 
-### Approach:
-- Enhance `src/lib/reconfiguration.ts` to generate multiple opportunity vectors from a single constraint
-- Use different strategic lenses: automation, platform, marketplace, data, consolidation
-- Each opportunity = a different strategic path, not a variation of the same idea
+**Step 6**: Backward compatibility
+- `strategic-synthesis` output includes all fields that `transformation-engine` + `concept-architecture` currently produce
+- `flippedLogic`, `hiddenAssumptions`, `structuralTransformations`, `transformationClusters`, `redesignedConcept` all present
+- UI components unchanged — same data shapes
+- Keep `transformation-engine` and `concept-architecture` deployed for manual re-runs via FirstPrinciplesAnalysis.tsx
 
-## Language Cleanup
-All user-facing text must be rewritten:
-- "Convergence zones" → removed
-- "Evidence threshold" → removed  
-- "Node count" → removed
-- "Pipeline step" → removed
-- "Reasoning chain" → "Our analysis shows…"
-- "Leverage point" → "Key advantage"
-- "Friction index" → removed
+### Risks and Mitigations
 
-## Navigation Changes
-Current 4-page structure:
-1. Command Deck (main)
-2. Intelligence Report
-3. Reasoning Map
-4. Pitch
+**Risk**: Single Pro call produces lower quality than two focused calls.
+**Mitigation**: The current concept-architecture call is already lightweight (8K max_tokens, simple prompt). Merging it adds ~200 tokens of instruction to strategic-synthesis. The model has plenty of capacity in 16K output tokens.
 
-New structure:
-1. **Strategic Brief** (the 3-section layout above) — this IS the product
-2. **Deep Dive** (reasoning map, X-Ray, industry map, scenario tools)
-3. **Intelligence Report** (raw evidence)
-4. **Pitch** (investor-ready output)
+**Risk**: Quick validation is shallow compared to full stress test.
+**Mitigation**: Full stress test still runs as Phase 3. Quick validation gives users immediate signal; deep validation follows 15-20s later.
 
-## Implementation Order
-1. **Phase 1**: Strip Command Deck to 3 sections (diagnosis, opportunities, recommended move)
-2. **Phase 2**: Create "Deep Dive" tab and move demoted components there
-3. **Phase 3**: Fix opportunity generation to produce 3–5 per analysis
-4. **Phase 4**: Language cleanup across all user-facing components
-5. **Phase 5**: Test with real analyses to ensure consistent, useful output
+**Risk**: 16K output tokens may truncate for complex analyses.
+**Mitigation**: The current transformation-engine already uses 16K and handles truncation with JSON repair. The merged output is similar size — concept generation adds ~1-2K tokens, quick validation adds ~500 tokens, but we remove the governed artifacts duplication (currently produced twice across two calls).
 
-## Success Criteria
-- User runs analysis → reads diagnosis in 3 seconds
-- Sees 3–5 actionable opportunity directions
-- Understands the recommended move and how to start
-- Can optionally explore "why" via Deep Dive
-- Zero developer terminology visible in default view
-- No numeric scores, thresholds, or pipeline indicators
