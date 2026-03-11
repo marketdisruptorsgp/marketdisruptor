@@ -487,7 +487,7 @@ export function usePipelineOrchestrator(
         toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, pitchDeckData, runDecompose, runStrategicSynthesis, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, analysis.activeMode, decompositionData, disruptData, redesignData, conceptsData, stressTestData, pitchDeckData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
 
   // ── Retry a single failed step ──
   const retryStep = useCallback(async (stepKey: string) => {
