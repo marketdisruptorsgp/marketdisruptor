@@ -586,7 +586,8 @@ export const StrategicDashboard = memo(function StrategicDashboard({
 
   const totalInsights = graph?.nodes.length ?? 0;
   const constraintCount = commandDeck?.topConstraints.length ?? 0;
-  const graphOppCount = graph?.nodes.filter(n => n.type === "opportunity").length ?? 0;
+  const opportunityNodeTypes = ["outcome", "flipped_idea", "concept", "opportunity_vector"];
+  const graphOppCount = graph?.nodes.filter(n => opportunityNodeTypes.includes(n.type)).length ?? 0;
   const oppScore = commandDeck?.topOpportunities.length
     ? Math.round(commandDeck.topOpportunities.reduce((s, o) => s + o.impact, 0) / commandDeck.topOpportunities.length * 10)
     : graphOppCount > 0

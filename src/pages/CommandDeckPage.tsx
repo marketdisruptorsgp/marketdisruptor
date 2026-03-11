@@ -346,9 +346,10 @@ export default function CommandDeckPage() {
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
+  const biExtractionForBenchmark = (analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
   const benchmark = useMemo(() =>
-    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook, biExtraction),
-    [autoAnalysis.flatEvidence, narrative, topPlaybook, biExtraction],
+    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook, biExtractionForBenchmark),
+    [autoAnalysis.flatEvidence, narrative, topPlaybook, biExtractionForBenchmark],
   );
 
   const lastRecomputeHash = useRef<string>("");
