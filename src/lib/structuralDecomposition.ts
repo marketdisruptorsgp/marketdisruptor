@@ -8,6 +8,9 @@
  * Product  → Job, Components, Tech Primitives, Cost Drivers, Physical Constraints
  * Service  → Outcome, Tasks, Labor, Tools, Coordination, Time Constraints
  * Business → Value Creation, Value Capture, Cost Structure, Distribution, Scaling Constraints
+ *
+ * SYSTEM DYNAMICS (shared across all modes):
+ * → Failure Modes, Feedback Loops, Bottlenecks, Control Points, Substitution Paths
  */
 
 // ═══════════════════════════════════════════════════════════════
@@ -31,13 +34,67 @@ export interface ConstraintPrimitive {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  SYSTEM DYNAMICS — How the system behaves, fails, and evolves
+// ═══════════════════════════════════════════════════════════════
+
+export interface FailureMode {
+  id: string;
+  component: string;        // which primitive fails
+  mode: string;              // how it fails
+  cascadeEffect: string;     // what breaks downstream
+  frequency: "rare" | "occasional" | "frequent";
+  detectability: "obvious" | "hidden" | "delayed";
+}
+
+export interface FeedbackLoop {
+  id: string;
+  name: string;
+  type: "reinforcing" | "balancing";
+  components: string[];      // primitive ids involved
+  mechanism: string;
+  strength: "weak" | "moderate" | "strong";
+}
+
+export interface Bottleneck {
+  id: string;
+  location: string;          // which primitive
+  throughputLimit: string;
+  cause: string;
+  workaround: string;
+}
+
+export interface ControlPoint {
+  id: string;
+  point: string;
+  leverageType: "gatekeeping" | "pricing" | "quality" | "access" | "information";
+  controller: string;
+  switchability: "locked" | "negotiable" | "open";
+}
+
+export interface SubstitutionPath {
+  id: string;
+  target: string;            // primitive being replaced
+  substitute: string;
+  feasibility: "ready" | "emerging" | "theoretical";
+  tradeoff: string;
+}
+
+export interface SystemDynamics {
+  failureModes: FailureMode[];
+  feedbackLoops: FeedbackLoop[];
+  bottlenecks: Bottleneck[];
+  controlPoints: ControlPoint[];
+  substitutionPaths: SubstitutionPath[];
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  PRODUCT DECOMPOSITION
 // ═══════════════════════════════════════════════════════════════
 
 export interface ProductDecomposition {
   mode: "product";
   jobToBeDone: {
-    coreJob: string; // "When I [situation], I want to [motivation], so I can [outcome]"
+    coreJob: string;
     functionalNeeds: string[];
     emotionalNeeds: string[];
     socialNeeds: string[];
@@ -46,18 +103,19 @@ export interface ProductDecomposition {
   technologyPrimitives: {
     id: string;
     technology: string;
-    role: string; // what it enables
+    role: string;
     maturityLevel: "mature" | "emerging" | "frontier";
-    alternatives: string[]; // what could replace it
+    alternatives: string[];
   }[];
   costDrivers: {
     id: string;
     driver: string;
     category: "materials" | "manufacturing" | "labor" | "logistics" | "IP" | "compliance" | "overhead";
-    proportionEstimate: string; // e.g., "~30% of unit cost"
+    proportionEstimate: string;
     reducible: boolean;
   }[];
   physicalConstraints: ConstraintPrimitive[];
+  systemDynamics: SystemDynamics;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -104,6 +162,7 @@ export interface ServiceDecomposition {
     failureMode: string;
   }[];
   timeConstraints: ConstraintPrimitive[];
+  systemDynamics: SystemDynamics;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -113,17 +172,17 @@ export interface ServiceDecomposition {
 export interface BusinessModelDecomposition {
   mode: "business";
   valueCreation: {
-    mechanism: string; // how value is actually created
+    mechanism: string;
     coreActivity: string;
     keyResources: string[];
-    valueChainPosition: string; // where in the industry value chain
+    valueChainPosition: string;
     defensibility: string;
   };
   valueCapture: {
-    mechanism: string; // how value is captured as revenue
+    mechanism: string;
     pricingModel: string;
     willingness_to_pay_driver: string;
-    captureEfficiency: string; // what % of value created is captured
+    captureEfficiency: string;
     leakagePoints: string[];
   };
   costStructure: {
@@ -139,6 +198,7 @@ export interface BusinessModelDecomposition {
     switchingCosts: string;
   };
   scalingConstraints: ConstraintPrimitive[];
+  systemDynamics: SystemDynamics;
 }
 
 // ═══════════════════════════════════════════════════════════════
