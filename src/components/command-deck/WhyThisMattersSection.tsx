@@ -66,4 +66,4 @@ export const WhyThisMattersSection = memo(forwardRef<HTMLDivElement, WhyThisMatt
       )}
     </div>
   );
-});
+}));

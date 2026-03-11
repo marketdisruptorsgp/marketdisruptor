@@ -40,4 +40,4 @@ export const SecondOrderEffectsSection = memo(forwardRef<HTMLDivElement, SecondO
       </ul>
     </div>
   );
-});
+}));
