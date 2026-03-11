@@ -331,7 +331,7 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => { setIsRecomputing(false); toast.success(`Loaded scenario`); }, 800);
+    }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
   // ── Derived data ──
