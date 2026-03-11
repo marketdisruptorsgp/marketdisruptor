@@ -66,4 +66,4 @@ export const WhyThisMattersSection = forwardRef<HTMLDivElement, WhyThisMattersSe
       )}
     </div>
   );
-}));
+});

@@ -40,4 +40,4 @@ export const SecondOrderEffectsSection = forwardRef<HTMLDivElement, SecondOrderE
       </ul>
     </div>
   );
-}));
+});
