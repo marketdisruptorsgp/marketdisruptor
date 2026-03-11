@@ -185,17 +185,23 @@ export default function CommandDeckPage() {
   const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([]);
   const [baselineNarrative, setBaselineNarrative] = useState<typeof narrative>(null);
 
+  // Store baseline narrative for visual diff on ANY recompute (not just challenge mode)
+  const preRecomputeNarrativeRef = useRef<typeof narrative>(null);
+
   const deltaChanges = useMemo<DeltaItem[]>(() => {
-    if (activeChallenges.length === 0 || !baselineNarrative || !narrative) return [];
+    const base = activeChallenges.length > 0 ? baselineNarrative : preRecomputeNarrativeRef.current;
+    if (!base || !narrative) return [];
+    // Don't show diff if nothing changed
+    if (base === narrative) return [];
     const deltas: DeltaItem[] = [];
-    if (baselineNarrative.primaryConstraint !== narrative.primaryConstraint && narrative.primaryConstraint) {
-      deltas.push({ label: "Constraint", before: baselineNarrative.primaryConstraint || "None", after: narrative.primaryConstraint, direction: "changed" });
+    if (base.primaryConstraint !== narrative.primaryConstraint && narrative.primaryConstraint) {
+      deltas.push({ label: "Constraint", before: base.primaryConstraint || "None", after: narrative.primaryConstraint, direction: "changed" });
     }
-    if (baselineNarrative.strategicVerdict !== narrative.strategicVerdict && narrative.strategicVerdict) {
-      deltas.push({ label: "Verdict", before: baselineNarrative.strategicVerdict || "None", after: narrative.strategicVerdict, direction: "changed" });
+    if (base.strategicVerdict !== narrative.strategicVerdict && narrative.strategicVerdict) {
+      deltas.push({ label: "Verdict", before: base.strategicVerdict || "None", after: narrative.strategicVerdict, direction: "changed" });
     }
-    if (baselineNarrative.breakthroughOpportunity !== narrative.breakthroughOpportunity && narrative.breakthroughOpportunity) {
-      deltas.push({ label: "Opportunity", before: baselineNarrative.breakthroughOpportunity || "None", after: narrative.breakthroughOpportunity, direction: "up" });
+    if (base.breakthroughOpportunity !== narrative.breakthroughOpportunity && narrative.breakthroughOpportunity) {
+      deltas.push({ label: "Opportunity", before: base.breakthroughOpportunity || "None", after: narrative.breakthroughOpportunity, direction: "up" });
     }
     return deltas;
   }, [activeChallenges, baselineNarrative, narrative]);
