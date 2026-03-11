@@ -11,6 +11,10 @@ import { HiddenAssumptionsPanel } from "./first-principles/HiddenAssumptionsPane
 import { FlippedLogicPanel } from "./first-principles/FlippedLogicPanel";
 import { FlippedIdeasPanel } from "./first-principles/FlippedIdeasPanel";
 import { RedesignedConceptPanel } from "./first-principles/RedesignedConceptPanel";
+import { ConceptExplorer } from "./first-principles/ConceptExplorer";
+import { InnovationPaths } from "./first-principles/InnovationPaths";
+import { EngineeringDeepDive } from "./first-principles/EngineeringDeepDive";
+import type { InventionConcept, ConceptSynthesisResult } from "./first-principles/types";
 
 // Re-export types and constants for backward compatibility
 export type { FirstPrinciplesData } from "./first-principles/types";
