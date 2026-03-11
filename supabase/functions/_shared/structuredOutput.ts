@@ -103,6 +103,7 @@ export function validateStructuredResponse(
   const governed = response.governed as Record<string, unknown> | undefined;
   const requiredByStep: Record<string, string[]> = {
     "first-principles": ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"],
+    "strategic-synthesis": ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"],
     "business-model-analysis": ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"],
     "critical-validation": ["falsification", "decision_synthesis"],
     "generate-flip-ideas": [],
