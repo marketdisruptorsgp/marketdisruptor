@@ -1,10 +1,11 @@
 /**
  * VALUE CHAIN ANALYZER — Identify inefficiencies and disintermediation opportunities
  * Pre-populated from governed first_principles and friction_tiers.
+ * Now uses a D3 Sankey diagram for the value chain flow visualization.
  */
 import { useMemo } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { GitBranch, AlertTriangle, Zap, ArrowRight } from "lucide-react";
+import { ValueChainSankey } from "./ValueChainSankey";
 
 interface Props {
   analysisId: string;
@@ -102,33 +103,7 @@ export function ValueChainAnalyzer({ analysisId }: Props) {
 
       <div>
         <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-3">Value Chain Flow</p>
-        <div className="space-y-2">
-          {chain.map((step, i) => (
-            <div key={i}>
-              <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${frictionColor(step.friction)}12` }}>
-                  {step.friction === "high" ? <AlertTriangle size={13} style={{ color: frictionColor(step.friction) }} />
-                    : step.friction === "medium" ? <GitBranch size={13} style={{ color: frictionColor(step.friction) }} />
-                    : <Zap size={13} style={{ color: frictionColor(step.friction) }} />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-foreground leading-snug">{step.label}</p>
-                  {step.description && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{step.description}</p>}
-                </div>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                  style={{ background: `${frictionColor(step.friction)}12`, color: frictionColor(step.friction) }}>
-                  {step.friction.toUpperCase()}
-                </span>
-              </div>
-              {i < chain.length - 1 && (
-                <div className="flex justify-center py-1">
-                  <ArrowRight size={12} className="text-muted-foreground rotate-90" />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <ValueChainSankey chain={chain} />
       </div>
 
       {constraints.length > 0 && (
