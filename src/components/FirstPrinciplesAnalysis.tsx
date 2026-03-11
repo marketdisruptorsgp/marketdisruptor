@@ -267,13 +267,56 @@ export const FirstPrinciplesAnalysis = ({
 
   // ── REDESIGN MODE ──
   if (renderMode === "redesign") {
+    // Check if we have concept synthesis data (Invention Engine)
+    const conceptsSynthesis = analysisCtx.conceptsData as ConceptSynthesisResult | null;
+    const [deepDiveConcept, setDeepDiveConcept] = useState<InventionConcept | null>(null);
+
+    if (deepDiveConcept) {
+      return (
+        <div className="space-y-4" data-fp-steps>
+          <EngineeringDeepDive
+            concept={deepDiveConcept}
+            onBack={() => setDeepDiveConcept(null)}
+          />
+        </div>
+      );
+    }
+
+    // If concepts data exists, show Invention Engine UI
+    if (conceptsSynthesis && conceptsSynthesis.concepts?.length > 0) {
+      return (
+        <div className="space-y-6" data-fp-steps>
+          {activeStep === "flip" && (
+            <>
+              <FlippedLogicPanel flips={data.flippedLogic || []} assumptions={data.hiddenAssumptions || []} />
+              {conceptsSynthesis.innovation_paths?.length > 0 && (
+                <InnovationPaths paths={conceptsSynthesis.innovation_paths} />
+              )}
+            </>
+          )}
+          {activeStep === "ideas" && (
+            <ConceptExplorer
+              data={conceptsSynthesis}
+              onSelectForDeepDive={(c) => setDeepDiveConcept(c)}
+            />
+          )}
+          {activeStep === "concept" && conceptsSynthesis.concepts[0] && (
+            <ConceptExplorer
+              data={conceptsSynthesis}
+              onSelectForDeepDive={(c) => setDeepDiveConcept(c)}
+            />
+          )}
+        </div>
+      );
+    }
+
+    // Fallback: original redesign mode
     return (
       <div className="space-y-4" data-fp-steps>
         {activeStep === "flip" && (
           <FlippedLogicPanel flips={data.flippedLogic || []} assumptions={data.hiddenAssumptions || []} />
         )}
         {activeStep === "ideas" && (() => {
-          // Derive flipped ideas from AI data if product.flippedIdeas is empty
           const effectiveIdeas = (flippedIdeas && flippedIdeas.length > 0)
             ? flippedIdeas
             : (data.flippedLogic || []).map((fl: any, i: number) => ({
