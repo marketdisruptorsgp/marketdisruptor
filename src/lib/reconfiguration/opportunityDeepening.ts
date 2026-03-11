@@ -210,8 +210,8 @@ export async function deepenOpportunitiesAsync(
   },
   biExtraction?: Record<string, unknown> | null,
 ): Promise<DeepenedOpportunity[]> {
-  // Select relevant strategic directions based on structural profile
-  const scoredDirections = selectRelevantDirections(profile, 5);
+  // Select relevant strategic directions based on structural profile AND analysis type
+  const scoredDirections = selectRelevantDirections(profile, 5, analysisType);
   const hasDirections = scoredDirections.length >= 3;
 
   // Build evidence summary for the AI (top 25 most impactful)
