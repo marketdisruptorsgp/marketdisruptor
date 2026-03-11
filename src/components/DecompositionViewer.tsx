@@ -700,6 +700,9 @@ function BusinessView({ data }: { data: BusinessModelDecomposition }) {
 
       {/* System Dynamics */}
       <SystemDynamicsView dynamics={data.systemDynamics} />
+
+      {/* Leverage Analysis */}
+      <LeverageAnalysisView leverage={data.leverageAnalysis} />
     </div>
   );
 }
