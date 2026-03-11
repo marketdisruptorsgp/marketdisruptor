@@ -445,6 +445,7 @@ function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accent
   const navigate = useNavigate();
   const done = completedSteps.size;
   const total = PIPELINE_STEPS.length;
+  const allDone = done >= total;
 
   return (
     <motion.div {...fadeUp} transition={{ delay: 0.35, duration: 0.5 }}
@@ -452,10 +453,14 @@ function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accent
       style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
     >
       <div className="flex items-center justify-between">
-        <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Pipeline Status</p>
-        <span className="text-sm font-extrabold tabular-nums" style={{ color: accentColor }}>
-          {done}/{total}
-        </span>
+        <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
+          {allDone ? "Analysis Complete" : "Analysis Steps"}
+        </p>
+        {!allDone && (
+          <span className="text-sm font-extrabold tabular-nums" style={{ color: accentColor }}>
+            {done}/{total}
+          </span>
+        )}
       </div>
 
       {/* Progress bar */}
