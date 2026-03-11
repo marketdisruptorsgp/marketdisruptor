@@ -446,7 +446,7 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
   });
 
   return (
-    <div className="space-y-3">
+    <div ref={ref} className="space-y-3">
       {/* ── First Principles Methodology Banner (Assumptions view) ── */}
       {showAssumptions && (
         <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
