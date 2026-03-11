@@ -573,7 +573,11 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
                   icon={GitBranch}
                   defaultOpen={true}
                 >
-                  <CausalConstraintMap commandDeck={systemIntelligence.commandDeck} />
+                  <CausalConstraintSankey commandDeck={systemIntelligence.commandDeck} />
+                  <div className="mt-4 pt-4" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-3">Detailed Node View</p>
+                    <CausalConstraintMap commandDeck={systemIntelligence.commandDeck} />
+                  </div>
                 </StructureSection>
 
 
