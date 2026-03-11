@@ -95,6 +95,27 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
     return <StepLoadingTracker title="Running Stress Test" tasks={STRESS_TEST_TASKS} estimatedSeconds={30} accentColor="hsl(350 80% 55%)" />;
   }
 
+  // Error state with retry
+  if (!data && lastError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-5 text-center">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-destructive/10">
+          <Shield size={30} className="text-destructive" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-foreground mb-1">Validation Failed</h3>
+          <p className="text-sm text-muted-foreground max-w-md">{lastError}</p>
+        </div>
+        <button
+          onClick={runValidation}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+        >
+          <RefreshCw size={14} /> Retry Validation
+        </button>
+      </div>
+    );
+  }
+
   // Empty
   if (!data) {
     return (

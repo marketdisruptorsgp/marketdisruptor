@@ -192,7 +192,9 @@ export const FirstPrinciplesAnalysis = ({
         toast.success("Structural analysis complete!");
       }
     } catch (err) {
-      toast.error("Unexpected error: " + String(err));
+      const msg = String(err);
+      setLastError(msg);
+      toast.error("Unexpected error: " + msg);
     } finally {
       setLoading(false);
     }
