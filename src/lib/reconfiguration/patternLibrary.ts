@@ -388,6 +388,9 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") {
         strengths.push("Labor-heavy delivery suggests abstractable expertise");
       }
+      if (profile.laborIntensity === "mixed") {
+        strengths.push("Mixed labor model — manual components may be candidates for abstraction");
+      }
       if (profile.valueChainPosition === "end_service") {
         strengths.push("End-service position often contains abstractable infrastructure");
       }
@@ -396,6 +399,7 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("linear_scaling")) { resolves.push("linear_scaling"); strengths.push("Linear scaling constraint broken by infrastructure leverage"); }
       if (cNames.has("manual_process")) { resolves.push("manual_process"); strengths.push("Manual processes are candidates for systematization into shared tools"); }
       if (cNames.has("skill_scarcity")) { resolves.push("skill_scarcity"); strengths.push("Scarce skills suggest valuable expertise worth abstracting"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck suggests process knowledge worth systematizing"); }
 
       return {
         qualifies: strengths.length >= 2,
