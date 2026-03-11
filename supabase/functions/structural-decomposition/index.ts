@@ -290,6 +290,18 @@ serve(async (req) => {
       if (upstreamIntel.pricingIntel) intelParts.push(`Pricing: ${JSON.stringify(upstreamIntel.pricingIntel).slice(0, 1000)}`);
       if (upstreamIntel.competitorAnalysis) intelParts.push(`Competitors: ${JSON.stringify(upstreamIntel.competitorAnalysis).slice(0, 1000)}`);
       if (upstreamIntel.operationalIntel) intelParts.push(`Operations: ${JSON.stringify(upstreamIntel.operationalIntel).slice(0, 1000)}`);
+
+      // Patent + Trend data for temporal leverage scoring
+      if (upstreamIntel.patentLandscape || upstreamIntel.patentData) {
+        const patents = upstreamIntel.patentLandscape || upstreamIntel.patentData;
+        intelParts.push(`Patent Intelligence: ${JSON.stringify(patents).slice(0, 1500)}`);
+        intelParts.push(`INSTRUCTION: Use patent expiration dates and IP gaps to adjust challengeability scores. Primitives protected by expiring patents should have HIGHER challengeability.`);
+      }
+      if (upstreamIntel.trendAnalysis) {
+        intelParts.push(`Market Trends: ${JSON.stringify(upstreamIntel.trendAnalysis).slice(0, 1000)}`);
+        intelParts.push(`INSTRUCTION: Use trend momentum to adjust challengeability. Primitives aligned with growing trends have HIGHER challengeability. Declining trends reduce it.`);
+      }
+
       if (intelParts.length > 0) contextBlock += `\n\nUpstream Intelligence:\n${intelParts.join("\n")}`;
     }
 

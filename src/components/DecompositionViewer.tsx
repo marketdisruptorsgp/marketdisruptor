@@ -707,6 +707,91 @@ function BusinessView({ data }: { data: BusinessModelDecomposition }) {
   );
 }
 
+// ── Constraint Mapping View (from governed data) ──
+
+function ConstraintMappingView() {
+  const { governedData } = useAnalysis();
+  const cm = (governedData as any)?.constraint_map;
+  if (!cm) return null;
+
+  const causalChains = cm.causal_chains as Array<{ chain_id: string; links: Array<{ from: string; to: string; mechanism: string }> }> | undefined;
+  const bindingId = cm.binding_constraint_id as string | undefined;
+  const dominanceProof = cm.dominance_proof as string | undefined;
+  const counterfactuals = cm.counterfactual_removal as Array<{ constraint_id: string; system_state_if_removed: string }> | undefined;
+
+  const hasContent = bindingId || (causalChains && causalChains.length > 0) || (counterfactuals && counterfactuals.length > 0);
+  if (!hasContent) return null;
+
+  return (
+    <div className="space-y-4 mt-8 pt-6" style={{ borderTop: "2px solid hsl(var(--border))" }}>
+      <div className="flex items-center gap-2 mb-1">
+        <ShieldAlert size={15} className="text-primary" />
+        <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">Constraint Mapping</span>
+        <span className="text-xs text-muted-foreground">— Binding constraints and causal chains</span>
+      </div>
+
+      {/* Binding Constraint */}
+      {bindingId && (
+        <div className="rounded-lg p-4" style={{ background: "hsl(var(--destructive) / 0.04)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-destructive mb-1">Binding Constraint</p>
+          <p className="text-sm font-bold text-foreground">{bindingId}</p>
+          {dominanceProof && (
+            <p className="text-xs text-foreground/80 mt-1 leading-relaxed">{dominanceProof}</p>
+          )}
+        </div>
+      )}
+
+      {/* Causal Chains */}
+      {causalChains && causalChains.length > 0 && (
+        <div>
+          <SectionHeader icon={ArrowRight} label="Causal Chains" count={causalChains.length} />
+          <div className="space-y-2">
+            {causalChains.map((chain) => (
+              <div key={chain.chain_id} className="rounded-lg p-3" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase text-muted-foreground mb-2">{chain.chain_id}</p>
+                <div className="flex flex-wrap items-center gap-1">
+                  {chain.links?.map((link, i) => (
+                    <div key={i} className="flex items-center gap-1">
+                      <span className="text-xs font-bold text-foreground px-2 py-0.5 rounded" style={{ background: "hsl(var(--primary) / 0.08)" }}>
+                        {link.from}
+                      </span>
+                      <div className="flex items-center gap-0.5">
+                        <ArrowRight size={10} className="text-primary" />
+                        <span className="text-[9px] text-muted-foreground italic">{link.mechanism}</span>
+                        <ArrowRight size={10} className="text-primary" />
+                      </div>
+                      {i === (chain.links?.length || 0) - 1 && (
+                        <span className="text-xs font-bold text-foreground px-2 py-0.5 rounded" style={{ background: "hsl(var(--destructive) / 0.08)" }}>
+                          {link.to}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Counterfactual Removal */}
+      {counterfactuals && counterfactuals.length > 0 && (
+        <div>
+          <SectionHeader icon={Zap} label="If Constraint Removed" count={counterfactuals.length} />
+          <div className="space-y-2">
+            {counterfactuals.map((cf, i) => (
+              <div key={i} className="rounded-lg p-3" style={{ background: "hsl(152 60% 44% / 0.04)", border: "1px solid hsl(152 60% 44% / 0.15)" }}>
+                <p className="text-xs font-bold text-foreground mb-1">{cf.constraint_id}</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{cf.system_state_if_removed}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Viewer ──
 
 export function DecompositionViewer() {
@@ -734,6 +819,9 @@ export function DecompositionViewer() {
       {data.mode === "product" && <ProductView data={data as ProductDecomposition} />}
       {data.mode === "service" && <ServiceView data={data as ServiceDecomposition} />}
       {data.mode === "business" && <BusinessView data={data as BusinessModelDecomposition} />}
+
+      {/* Constraint Mapping (from governed reasoning) */}
+      <ConstraintMappingView />
     </div>
   );
 }
