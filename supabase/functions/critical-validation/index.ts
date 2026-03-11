@@ -277,7 +277,7 @@ IMPORTANT: Use these real geographic data points to:
 ` : ""}
 ${regulatoryData && regulatoryData.regulatoryRelevance !== "none" ? `
 REGULATORY & LEGAL INTELLIGENCE (REAL DATA — use these in Red Team/Green Team arguments):
-- Regulatory Relevance: ${regulatoryData.regulatoryRelevance?.toUpperCase()}
+- Regulatory Relevance: ${String(regulatoryData.regulatoryRelevance ?? "unknown").toUpperCase()}
 - Regulated Category: ${regulatoryData.matchedCategory}
 - Governing Agencies: ${(regulatoryData.agencies || []).join(", ")}
 - Active Rulemaking (Federal Register): ${JSON.stringify((regulatoryData.activeRulemaking || []).slice(0, 3).map((r: any) => ({ title: r.title, type: r.type, date: r.publishedDate, agencies: r.agencyNames })))}
