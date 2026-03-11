@@ -279,7 +279,8 @@ const BUSINESS_SCHEMA = `{
     }
   ],
   ${SYSTEM_DYNAMICS_SCHEMA},
-  ${LEVERAGE_ANALYSIS_SCHEMA}
+  ${LEVERAGE_ANALYSIS_SCHEMA},
+  ${VALUE_CHAIN_SCHEMA}
 }`;
 
 serve(async (req) => {
