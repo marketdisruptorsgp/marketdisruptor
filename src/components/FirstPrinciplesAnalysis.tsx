@@ -53,6 +53,7 @@ export const FirstPrinciplesAnalysis = ({
     renderMode === "redesign" ? (activeSection || "flip") : "assumptions"
   );
   const [rerunSuggestions, setRerunSuggestions] = useState("");
+  const [deepDiveConcept, setDeepDiveConcept] = useState<InventionConcept | null>(null);
   const autoTriggered = useRef(false);
 
   useEffect(() => {
