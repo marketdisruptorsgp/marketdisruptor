@@ -204,10 +204,25 @@ function StrategyCardComponent({ card }: { card: StrategyCard }) {
 }
 
 export function RedesignTab({ disruptData, hypotheses, governedData }: RedesignTabProps) {
+  const analysis = useAnalysis();
+  const conceptsSynthesis = analysis.conceptsData as ConceptSynthesisResult | null;
+
+  // If Invention Engine concepts exist (Product Mode), show ConceptExplorer instead of strategies
+  if (conceptsSynthesis && conceptsSynthesis.concepts?.length > 0) {
+    return (
+      <div className="space-y-6">
+        <div className="px-1">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">Invention Concepts</p>
+          <p className="text-sm text-foreground/70 leading-relaxed">
+            {conceptsSynthesis.concepts.length} engineering-grounded concepts generated from structural pressures, assumption flips, and technical mechanisms.
+          </p>
+        </div>
+        <ConceptExplorer data={conceptsSynthesis} />
+      </div>
+    );
+  }
+
   const strategies = deriveStrategies(disruptData, hypotheses, governedData);
-  const breakStrategies = strategies.filter(s => s.category === "break");
-  const mitigations = strategies.filter(s => s.category === "mitigate");
-  const compounds = strategies.filter(s => s.category === "compound");
 
   if (strategies.length === 0) {
     return null;
