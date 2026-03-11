@@ -207,7 +207,7 @@ export function usePipelineOrchestrator(
         viableTransformations = viableTransformations.filter(
           (t: any) => !t.filtered && (t.viabilityGate?.compositeScore ?? 5) >= 2.5
         );
-        console.log(`[Pipeline] Viability gate: ${viableTransformations.length}/${before} transformations passed`);
+        console.log(`[Pipeline] Viability gate: ${(viableTransformations as any[]).length}/${before} transformations passed`);
       }
 
       // Only pass viable clusters (those referencing surviving transformation IDs)
