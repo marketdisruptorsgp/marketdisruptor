@@ -1032,6 +1032,11 @@ export default function Index() {
                     </div>
                   )}
 
+                  {/* TAB: STRUCTURE (Decomposition) */}
+                  {detailTab === "structure" && (
+                    <DecompositionViewer />
+                  )}
+
                   {/* TAB: COMMUNITY INTEL */}
                   {detailTab === "community" && (
                     <div className="space-y-6">
