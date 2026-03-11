@@ -319,17 +319,19 @@ export function usePipelineOrchestrator(
     const extractedContext = analysis.adaptiveContext?.extractedContext || "";
 
     try {
-      // Step 1: Disrupt
-      const disruptResult = await runDisrupt(product, extractedContext);
+      // Step 0: Structural Decomposition (first-principles primitives)
+      const decompResult = await runDecompose(product, extractedContext);
+
+      // Step 1: Disrupt (threaded with decomposition)
+      const disruptResult = await runDisrupt(product, extractedContext, decompResult);
 
       // Step 2: Redesign
       const redesignResult = await runRedesign(product, extractedContext, disruptResult);
 
-      // Steps 3 & 4: Stress Test + Pitch — run stress test first with disrupt+redesign data, then pitch
+      // Steps 3 & 4: Stress Test + Pitch
       setCurrentStep("stressTest");
       const stressResult = await runStressTest(product, extractedContext, disruptResult, redesignResult);
 
-      // Pitch now gets all upstream data
       setCurrentStep("pitch");
       await runPitch(product, extractedContext, disruptResult, redesignResult, stressResult);
 
