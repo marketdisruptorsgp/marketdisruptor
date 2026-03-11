@@ -111,7 +111,7 @@ export default function RedesignPage() {
 
 
       <AnalysisTabBar
-        tabs={REDESIGN_TABS}
+        tabs={analysis.conceptsData ? INVENTION_ENGINE_TABS : LEGACY_REDESIGN_TABS}
         activeTab={activeTab}
         onTabChange={(t) => setActiveTab(t as RedesignTabId)}
         accentColor={theme.primary}
