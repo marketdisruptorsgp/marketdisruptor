@@ -327,12 +327,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // Keep stepDataRef in sync so markStepOutdated can guard empty steps
   useEffect(() => {
     stepDataRef.current = {
+      decompose: decompositionData,
       disrupt: disruptData,
       stressTest: stressTestData,
       pitchDeck: pitchDeckData,
       redesign: redesignData,
     };
-  }, [disruptData, stressTestData, pitchDeckData, redesignData]);
+  }, [decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
 
   // ── Insight Preferences (liked/dismissed) ──
   const [insightPreferences, setInsightPreferences] = useState<Record<string, "liked" | "dismissed" | "neutral">>({});
