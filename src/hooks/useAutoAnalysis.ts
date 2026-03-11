@@ -77,6 +77,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
   const [isComputing, setIsComputing] = useState(false);
   const [hasRun, setHasRun] = useState(false);
+  const runIdRef = useRef(0); // Monotonic run counter to deduplicate concurrent runs
 
   // Track completed steps
   const completedSteps = useMemo(() => {
@@ -103,6 +104,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const runAnalysis = useCallback(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
     if (!analysisId || !hasComputableData) return;
+
+    // Deduplicate: increment run counter, capture this run's ID
+    const thisRunId = ++runIdRef.current;
 
     setIsComputing(true);
 
@@ -157,6 +161,11 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     };
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {
+      // Deduplicate: skip if a newer run has been triggered
+      if (thisRunId !== runIdRef.current) {
+        console.log("[StrategicEngine] Skipping stale run result (run", thisRunId, "superseded by", runIdRef.current, ")");
+        return;
+      }
       setIntelligence(newIntelligence);
       setStructuralProfile(result.structuralProfile ?? null);
       setGraph(result.graph);
@@ -308,7 +317,12 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           console.warn("[StrategicEngine] Sync fallback also failed:", syncErr);
         }
       })
-      .finally(() => setIsComputing(false));
+      .finally(() => {
+        // Only clear computing state if this is still the latest run
+        if (thisRunId === runIdRef.current) {
+          setIsComputing(false);
+        }
+      });
   }, [
     analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,

@@ -125,8 +125,8 @@ export function validateNodePosition(node: { position?: { x: number; y: number }
 
 // Reasoning chain definitions (order = visual flow)
 const REASONING_CHAIN_DEFS: { type: string; label: string; graphKey: string; minimum: number }[] = [
-  { type: "signal", label: "Signals", graphKey: "signal", minimum: 1 },
-  { type: "assumption", label: "Assumptions", graphKey: "assumption", minimum: 4 },
+  { type: "signal", label: "Signals", graphKey: "signal", minimum: 0 },
+  { type: "assumption", label: "Assumptions", graphKey: "assumption", minimum: 0 },
   { type: "constraint", label: "Constraints", graphKey: "constraint", minimum: 2 },
   { type: "leverage_point", label: "Leverage", graphKey: "leverage_point", minimum: 2 },
   { type: "opportunity", label: "Opportunities", graphKey: "concept", minimum: 2 },

@@ -107,10 +107,13 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
 
       if (profile.supplyFragmentation === "atomized") strengths.push("Highly atomized supply — strong aggregation opportunity");
       if (profile.supplyFragmentation === "fragmented") strengths.push("Fragmented supply amenable to aggregation");
+      if (profile.supplyFragmentation === "moderate") strengths.push("Moderate supply fragmentation — partial aggregation opportunity");
       if (profile.distributionControl === "intermediated") strengths.push("Intermediated distribution suggests disintermediation via aggregation");
+      if (profile.distributionControl === "shared") strengths.push("Shared distribution control — aggregation can shift leverage");
       if (cNames.has("supply_fragmentation")) { resolves.push("supply_fragmentation"); strengths.push("Directly resolves supply fragmentation constraint"); }
       if (cNames.has("information_asymmetry")) { resolves.push("information_asymmetry"); strengths.push("Aggregation reduces information asymmetry"); }
       if (cNames.has("geographic_constraint")) { resolves.push("geographic_constraint"); strengths.push("Digital aggregation removes geographic limitation"); }
+      if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Aggregation reduces vendor concentration risk"); }
 
       return {
         qualifies: strengths.length >= 2,
@@ -160,8 +163,11 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("forced_bundling")) { resolves.push("forced_bundling"); strengths.push("Forced bundling detected — direct unbundling target"); }
       if (cNames.has("perceived_value_mismatch")) { resolves.push("perceived_value_mismatch"); strengths.push("Value mismatch suggests customers overpay for unwanted components"); }
       if (cNames.has("capital_barrier")) { resolves.push("capital_barrier"); strengths.push("High upfront cost may be reducible by unbundling components"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck may be isolated by unbundling affected components"); }
       if (profile.marginStructure === "high_margin") strengths.push("High margins suggest cross-subsidized components");
+      if (profile.marginStructure === "moderate_margin") strengths.push("Moderate margins may hide cross-subsidized components");
       if (profile.switchingCosts === "low" || profile.switchingCosts === "none") strengths.push("Low switching costs enable component-level competition");
+      if (profile.switchingCosts === "moderate") strengths.push("Moderate switching costs may be reduced via component unbundling");
 
       return {
         qualifies: strengths.length >= 2,
@@ -211,11 +217,18 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.supplyFragmentation === "fragmented" || profile.supplyFragmentation === "atomized") {
         strengths.push("Fragmented supply suggests prior unbundling — rebundling opportunity exists");
       }
+      if (profile.supplyFragmentation === "moderate") {
+        strengths.push("Moderate fragmentation — partial rebundling around new value axis possible");
+      }
       if (profile.switchingCosts === "low" || profile.switchingCosts === "none") {
         strengths.push("Low switching costs enable rebundling from multiple point solutions");
       }
+      if (profile.switchingCosts === "moderate") {
+        strengths.push("Moderate switching costs suggest rebundling can create stickier offering");
+      }
       if (cNames.has("awareness_gap")) { resolves.push("awareness_gap"); strengths.push("Rebundled offering may solve discovery problem across fragmented solutions"); }
       if (cNames.has("access_constraint")) { resolves.push("access_constraint"); strengths.push("Unified bundle improves access to currently scattered capabilities"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Rebundling can eliminate operational bottlenecks across fragmented workflows"); }
 
       return {
         qualifies: strengths.length >= 2,
@@ -263,11 +276,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       }
 
       if (profile.distributionControl === "intermediated") strengths.push("Intermediated distribution — bypass or disintermediation opportunity");
+      if (profile.distributionControl === "shared") strengths.push("Shared distribution — opportunity to gain full control via relocation");
       if (profile.marginStructure === "thin_margin") strengths.push("Thin margins suggest margin is captured elsewhere in the chain");
+      if (profile.marginStructure === "moderate_margin" && profile.distributionControl !== "owned") strengths.push("Moderate margins with non-owned distribution — chain position may compress returns");
       if (cNames.has("channel_dependency")) { resolves.push("channel_dependency"); strengths.push("Channel dependency is a direct relocation target"); }
       if (cNames.has("margin_compression")) { resolves.push("margin_compression"); strengths.push("Margin compression may be caused by chain position"); }
       if (cNames.has("geographic_constraint")) { resolves.push("geographic_constraint"); strengths.push("Geographic constraint suggests physical relocation opportunity"); }
       if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Vendor concentration creates upstream relocation opportunity"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck may be resolved by relocating in the chain"); }
 
       return {
         qualifies: strengths.length >= 2,
@@ -326,6 +342,11 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.revenueModel === "project_based" || profile.revenueModel === "transactional") {
         strengths.push("Non-recurring revenue model may have hidden recurring value to capture");
       }
+      if (profile.revenueModel === "mixed") {
+        strengths.push("Mixed revenue model suggests untapped monetization channels");
+      }
+      if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Vendor concentration may enable supplier-side monetization"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck may hide monetizable process knowledge"); }
 
       return {
         qualifies: strengths.length >= 2,
@@ -367,6 +388,9 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") {
         strengths.push("Labor-heavy delivery suggests abstractable expertise");
       }
+      if (profile.laborIntensity === "mixed") {
+        strengths.push("Mixed labor model — manual components may be candidates for abstraction");
+      }
       if (profile.valueChainPosition === "end_service") {
         strengths.push("End-service position often contains abstractable infrastructure");
       }
@@ -375,6 +399,7 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("linear_scaling")) { resolves.push("linear_scaling"); strengths.push("Linear scaling constraint broken by infrastructure leverage"); }
       if (cNames.has("manual_process")) { resolves.push("manual_process"); strengths.push("Manual processes are candidates for systematization into shared tools"); }
       if (cNames.has("skill_scarcity")) { resolves.push("skill_scarcity"); strengths.push("Scarce skills suggest valuable expertise worth abstracting"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck suggests process knowledge worth systematizing"); }
 
       return {
         qualifies: strengths.length >= 2,
