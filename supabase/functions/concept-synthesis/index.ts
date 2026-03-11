@@ -1,17 +1,9 @@
 /**
  * CONCEPT SYNTHESIS — Invention Engine (Product Mode only)
  * 
- * Generates 4-6 causally-traced, engineering-grounded invention concepts
- * by combining three knowledge layers:
- *   Layer 1: Structural Pressure (from decomposition)
- *   Layer 2: Assumption Breaks (from strategic-synthesis)
- *   Layer 3: Technical Mechanisms (embedded library)
- * 
- * Each concept traces: Structure + Assumption + Mechanism → Concept
- * 
- * Enhanced with:
- *   - Before/After Narrative: "The Old Way" vs "The New Way" per concept
- *   - Multi-Lens Comparison: Same analysis refracted through different personas
+ * Generates 4-6 causally-traced, engineering-grounded invention concepts.
+ * Uses model cascade (Flash → Pro) for reliability.
+ * Includes robust JSON repair for truncated AI output.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -22,103 +14,160 @@ const corsHeaders = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-//  MECHANISM LIBRARY — ~40 technical enablers
+//  MECHANISM LIBRARY — ~40 technical enablers (compressed)
 // ═══════════════════════════════════════════════════════════════
 
 const MECHANISM_LIBRARY = `
-TECHNICAL MECHANISM LIBRARY — Use these as your palette when generating concepts.
-Each concept MUST use at least one mechanism from this library (or a closely related variant).
+TECHNICAL MECHANISM LIBRARY — Use these when generating concepts.
 
 ## Fluid/Seal
-1. Magnetic Fluid Seals | Ferrofluid held by magnets creates zero-wear seal | Applicable: rotating shafts, pumps, valves | Mfg: injection + magnet assembly
-2. Hydrophobic/Oleophobic Coatings | Nano-textured surfaces repel water/oil | Applicable: surfaces, filters, optics | Mfg: spray/dip coating
-3. Pressure-Sensing Membranes | Thin film deforms proportionally to pressure | Applicable: flow monitoring, leak detection | Mfg: MEMS fabrication
-4. Elastomeric Lip Seals with Embedded Sensors | Traditional seal + strain gauge | Applicable: rotating equipment condition monitoring | Mfg: co-molding
-5. Self-Healing Gaskets | Polymer matrix with microencapsulated sealant | Applicable: pipe joints, flanges | Mfg: extrusion with additive
+1. Magnetic Fluid Seals | Ferrofluid zero-wear seal | rotating shafts, pumps
+2. Hydrophobic Coatings | Nano-textured surfaces repel water/oil
+3. Self-Healing Gaskets | Polymer + microencapsulated sealant
 
 ## Sensing
-6. Ultrasonic Flow Sensing | Non-invasive transit-time measurement | Applicable: liquid/gas flow, pipe-mounted | Mfg: transducer bonding
-7. Piezoelectric Vibration Sensing | Crystal generates voltage from mechanical stress | Applicable: condition monitoring, impact detection | Mfg: ceramic sintering
-8. Capacitive Touch/Proximity | Detects changes in electric field | Applicable: UI controls, level sensing, proximity | Mfg: PCB traces + firmware
-9. MEMS Accelerometers | Micro-machined silicon mass on springs | Applicable: orientation, vibration, impact | Mfg: semiconductor fab
-10. Infrared Thermography | Non-contact surface temperature mapping | Applicable: equipment monitoring, quality inspection | Mfg: IR sensor module
-11. Ambient Light Sensing (ALS) | Photodiode measures environmental light | Applicable: adaptive displays, energy management | Mfg: SMD component
-12. Time-of-Flight Distance Sensing | Laser/LED pulse timing measures distance | Applicable: level measurement, obstacle detection | Mfg: module integration
+4. Piezoelectric Vibration | Crystal voltage from stress | condition monitoring
+5. MEMS Accelerometers | Micro-machined silicon | orientation, impact
+6. Capacitive Touch/Proximity | Electric field changes | UI, level sensing
+7. ToF Distance Sensing | Laser pulse timing | level, obstacle detection
 
 ## Materials
-13. Shape Memory Alloys (NiTi) | Returns to preset shape when heated | Applicable: actuators, connectors, medical | Mfg: wire drawing, heat treatment
-14. Self-Healing Polymers | Microcapsule or intrinsic reversible bonds | Applicable: coatings, structural components | Mfg: compounding + molding
-15. Antimicrobial Surfaces (Cu/Ag ion) | Metal ions kill bacteria on contact | Applicable: touchpoints, medical, food | Mfg: plating, co-extrusion, additive
-16. Phase-Change Materials (PCM) | Absorb/release latent heat at transition | Applicable: thermal management, comfort | Mfg: microencapsulation
-17. Aerogel Insulation | Ultra-low thermal conductivity solid | Applicable: thermal barriers, lightweight insulation | Mfg: sol-gel process
-18. Carbon Fiber Reinforced Polymer | High strength-to-weight ratio | Applicable: structural components | Mfg: layup, pultrusion, filament winding
-19. Biodegradable Polymers (PLA/PHA) | Compostable alternatives to petro-plastics | Applicable: packaging, disposable components | Mfg: extrusion, injection molding
+8. Shape Memory Alloys (NiTi) | Returns to shape when heated | actuators
+9. Self-Healing Polymers | Microcapsule reversible bonds | coatings
+10. Phase-Change Materials | Absorb/release heat at transition | thermal mgmt
+11. Carbon Fiber Reinforced Polymer | High strength-to-weight
+12. Biodegradable Polymers (PLA/PHA) | Compostable alternatives
 
 ## Assembly
-20. Modular Snap-Fit | Tool-free assembly/disassembly | Applicable: consumer products, field service | Mfg: injection molding with living hinges
-21. Bayonet Mount | Quarter-turn lock mechanism | Applicable: quick-change components, filters | Mfg: stamping + molding
-22. Tool-Free Replacement (Quick-Release) | Lever/cam locks for field swap | Applicable: maintenance-heavy equipment | Mfg: die casting + machining
-23. Magnetic Alignment/Attachment | Rare-earth magnets for self-aligning assembly | Applicable: accessories, modular systems | Mfg: magnet integration
-24. Threaded Insert / Heat-Set Inserts | Brass inserts for repeatable fastening in plastic | Applicable: enclosures needing repeated access | Mfg: ultrasonic or heat insertion
+13. Modular Snap-Fit | Tool-free assembly | consumer products
+14. Bayonet Mount | Quarter-turn lock | quick-change
+15. Magnetic Alignment | Rare-earth self-aligning | accessories
 
 ## Actuation
-25. Solenoid Actuation | Electromagnetic linear push/pull | Applicable: valves, locks, mechanisms | Mfg: coil winding + plunger
-26. Servo/Stepper Motor | Precise rotational positioning | Applicable: positioning, dosing, adjustment | Mfg: motor assembly
-27. Pneumatic Actuation | Compressed air drives linear/rotary motion | Applicable: industrial, high-force | Mfg: cylinder machining
-28. Bi-Metallic Thermal Actuator | Differential expansion moves mechanism | Applicable: passive temperature response | Mfg: bonding dissimilar metals
-29. Electroactive Polymers (EAP) | Polymer deforms under voltage | Applicable: soft robotics, haptics | Mfg: thin film deposition
-30. Piezoelectric Stack Actuators | High force, small displacement | Applicable: precision positioning, fuel injectors | Mfg: ceramic stacking
+16. Solenoid | Electromagnetic linear push/pull | valves, locks
+17. Piezoelectric Stack | High force, small displacement | precision
+18. Electroactive Polymers | Deforms under voltage | haptics
 
 ## Surface
-31. Self-Cleaning (Lotus Effect) | Micro/nanostructure causes superhydrophobicity | Applicable: exterior surfaces, solar panels | Mfg: etching, spray coating
-32. Anti-Fouling Coatings | Prevents biological/mineral buildup | Applicable: marine, plumbing, medical | Mfg: chemical coating
-33. Wear-Resistant Ceramics (Al₂O₃/ZrO₂) | Extreme hardness for abrasion resistance | Applicable: bearings, cutting tools, seals | Mfg: sintering, plasma spray
-34. Diamond-Like Carbon (DLC) | Ultra-hard, low-friction coating | Applicable: sliding surfaces, tooling | Mfg: PVD/CVD
-35. Photocatalytic Surfaces (TiO₂) | UV-activated self-cleaning and antimicrobial | Applicable: building materials, filters | Mfg: sputtering, sol-gel
+19. Self-Cleaning (Lotus Effect) | Superhydrophobic micro/nanostructure
+20. Anti-Fouling Coatings | Prevents biological buildup
+21. DLC (Diamond-Like Carbon) | Ultra-hard, low-friction
 
 ## Communication
-36. Bluetooth Low Energy (BLE) | Short-range, low-power wireless | Applicable: IoT, wearables, consumer | Mfg: SoC module integration
-37. NFC (Near-Field Communication) | Tap-to-connect, passive tags | Applicable: authentication, pairing, data transfer | Mfg: antenna + chip module
-38. LoRa (Long Range) | Low-power, long-range (km scale) | Applicable: remote monitoring, agriculture | Mfg: radio module integration
-39. Passive RFID | No battery, powered by reader field | Applicable: inventory, tracking, authentication | Mfg: tag printing + chip attach
-40. Thread/Matter | Mesh networking for smart home | Applicable: building automation, smart home | Mfg: SoC with Thread stack
+22. BLE | Short-range, low-power wireless | IoT, wearables
+23. NFC | Tap-to-connect, passive tags | authentication
+24. LoRa | Long-range, low-power | remote monitoring
 
 ## Energy
-41. Energy Harvesting (Piezo/Solar/Thermal) | Converts ambient energy to electrical | Applicable: remote sensors, wearables | Mfg: transducer integration
-42. Supercapacitors | High power density, fast charge/discharge | Applicable: burst power, regenerative systems | Mfg: electrode fabrication
-43. Wireless Power Transfer (Qi) | Inductive charging without connectors | Applicable: consumer electronics, medical implants | Mfg: coil + controller integration
+25. Energy Harvesting | Piezo/Solar/Thermal → electrical | remote sensors
+26. Wireless Power Transfer (Qi) | Inductive charging
 `.trim();
 
 // ═══════════════════════════════════════════════════════════════
-//  PERSONA LENSES — Multi-lens comparison
+//  PERSONA LENSES
 // ═══════════════════════════════════════════════════════════════
 
 const PERSONA_LENSES = [
-  {
-    id: "garage_inventor",
-    label: "Garage Inventor",
-    emoji: "🔧",
-    description: "Solo maker with limited budget, access to 3D printing & basic shop tools",
-    constraints: "Budget under $5K for prototype. Must be buildable with consumer-grade tools (3D printer, CNC router, basic electronics). No clean room or specialized equipment. Optimize for rapid iteration and proof-of-concept.",
-    priorities: "Speed to first prototype, low tooling cost, manual assembly OK, can tolerate lower volume manufacturing",
-  },
-  {
-    id: "product_company",
-    label: "Product Company",
-    emoji: "🏭",
-    description: "Established manufacturer with engineering team, tooling budget, and distribution",
-    constraints: "Has injection molding, CNC, and assembly capabilities. Can invest $50K-500K in tooling. Needs to fit existing supply chain and distribution channels. Must meet retail price expectations.",
-    priorities: "Unit economics at 10K+ scale, retail-ready quality, regulatory compliance, existing channel fit, brand differentiation",
-  },
-  {
-    id: "deep_tech_startup",
-    label: "Deep Tech Startup",
-    emoji: "🚀",
-    description: "VC-backed team pushing the frontier of materials science or embedded systems",
-    constraints: "Can invest in R&D (6-18 months before revenue). Access to university labs and specialized equipment. Needs defensible IP. Must demonstrate 10x improvement over incumbents.",
-    priorities: "Patent-worthy novelty, defensible moat, 10x performance improvement, venture-scale market, platform potential",
-  },
+  { id: "garage_inventor", label: "Garage Inventor", constraints: "Budget <$5K, consumer tools, rapid iteration" },
+  { id: "product_company", label: "Product Company", constraints: "Injection molding, $50K-500K tooling, retail-ready" },
+  { id: "deep_tech_startup", label: "Deep Tech Startup", constraints: "VC-backed R&D, needs 10x improvement, defensible IP" },
 ];
+
+// ═══════════════════════════════════════════════════════════════
+//  ROBUST JSON REPAIR
+// ═══════════════════════════════════════════════════════════════
+
+function repairTruncatedJson(raw: string): Record<string, unknown> | null {
+  // Clean markdown fences
+  let cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  const firstBrace = cleaned.indexOf("{");
+  if (firstBrace === -1) return null;
+  cleaned = cleaned.slice(firstBrace);
+
+  // Try direct parse first
+  try { return JSON.parse(cleaned); } catch {}
+
+  // Remove trailing incomplete string/value and close brackets
+  // Strategy: find the last complete key-value pair and close from there
+  let repaired = cleaned;
+
+  // Remove any trailing incomplete string (unterminated quote)
+  const lastQuote = repaired.lastIndexOf('"');
+  const afterLastQuote = repaired.slice(lastQuote + 1).trim();
+  if (afterLastQuote === '' || afterLastQuote.match(/^[^"{}[\],]*$/)) {
+    // We're in the middle of a string or value — truncate to last complete item
+    // Find the last complete comma or closing bracket
+    let cutPoint = repaired.length;
+    for (let i = repaired.length - 1; i >= 0; i--) {
+      const ch = repaired[i];
+      if (ch === ',' || ch === '}' || ch === ']') {
+        cutPoint = ch === ',' ? i : i + 1;
+        break;
+      }
+    }
+    repaired = repaired.slice(0, cutPoint);
+  }
+
+  // Remove trailing commas
+  repaired = repaired.replace(/,\s*$/, '');
+
+  // Count and balance brackets
+  let opens = 0, closes = 0, openArr = 0, closeArr = 0;
+  let inString = false, escaped = false;
+  for (const ch of repaired) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\') { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') opens++;
+    if (ch === '}') closes++;
+    if (ch === '[') openArr++;
+    if (ch === ']') closeArr++;
+  }
+
+  // Close any open strings if we're still in one
+  if (inString) repaired += '"';
+
+  // Close arrays then objects
+  repaired += ']'.repeat(Math.max(0, openArr - closeArr));
+  repaired += '}'.repeat(Math.max(0, opens - closes));
+
+  try { return JSON.parse(repaired); } catch {}
+
+  // Last resort: try to extract just the concepts array
+  const conceptsMatch = repaired.match(/"concepts"\s*:\s*\[/);
+  if (conceptsMatch) {
+    const start = conceptsMatch.index! + conceptsMatch[0].length;
+    let depth = 1;
+    let end = start;
+    inString = false;
+    escaped = false;
+    for (let i = start; i < repaired.length && depth > 0; i++) {
+      const ch = repaired[i];
+      if (escaped) { escaped = false; continue; }
+      if (ch === '\\') { escaped = true; continue; }
+      if (ch === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === '[') depth++;
+      if (ch === ']') depth--;
+      end = i;
+    }
+    const arrayStr = repaired.slice(start, end);
+    // Find last complete object in array
+    const lastCloseBrace = arrayStr.lastIndexOf('}');
+    if (lastCloseBrace > 0) {
+      const partialArray = arrayStr.slice(0, lastCloseBrace + 1);
+      try {
+        const concepts = JSON.parse(`[${partialArray}]`);
+        if (Array.isArray(concepts) && concepts.length > 0) {
+          return { concepts, innovation_paths: [], contrarian_narrative: null };
+        }
+      } catch {}
+    }
+  }
+
+  return null;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -129,274 +178,171 @@ serve(async (req) => {
       structuralDecomposition,
       assumptions,
       flippedLogic,
-      conceptCount = 5,
+      conceptCount = 4,
       userLens,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const requestedCount = Math.max(3, Math.min(6, conceptCount));
+    const requestedCount = Math.max(3, Math.min(5, conceptCount));
 
-    // Extract structural pressures from decomposition
+    // Extract structural pressures
     const leveragePrimitives = structuralDecomposition?.leverageAnalysis?.leveragePrimitives || [];
     const systemDynamics = structuralDecomposition?.systemDynamics || {};
     const functionalComponents = structuralDecomposition?.functionalComponents || [];
 
     const structuralContext = `
-STRUCTURAL PRESSURES (from decomposition):
-${leveragePrimitives.slice(0, 8).map((p: any, i: number) =>
-  `${i + 1}. [${p.disruption_score || "?"}] ${p.label} — ${p.currentBehavior || ""} | Best transform: ${p.bestTransformation || "unknown"}`
+STRUCTURAL PRESSURES:
+${leveragePrimitives.slice(0, 6).map((p: any, i: number) =>
+  `${i + 1}. [${p.disruption_score || "?"}] ${p.label} — ${p.currentBehavior || ""} | Transform: ${p.bestTransformation || "unknown"}`
 ).join("\n")}
-
-FAILURE MODES: ${JSON.stringify(systemDynamics.failureModes?.slice(0, 5) || []).slice(0, 500)}
-BOTTLENECKS: ${JSON.stringify(systemDynamics.bottlenecks?.slice(0, 3) || []).slice(0, 300)}
-KEY COMPONENTS: ${functionalComponents.slice(0, 6).map((c: any) => c.name || c.label).join(", ")}
+FAILURE MODES: ${JSON.stringify(systemDynamics.failureModes?.slice(0, 3) || []).slice(0, 300)}
+BOTTLENECKS: ${JSON.stringify(systemDynamics.bottlenecks?.slice(0, 3) || []).slice(0, 200)}
+KEY COMPONENTS: ${functionalComponents.slice(0, 5).map((c: any) => c.name || c.label).join(", ")}
 `;
 
     const assumptionContext = `
-HIDDEN ASSUMPTIONS (ranked by leverage):
-${(assumptions || []).slice(0, 10).map((a: any, i: number) =>
-  `${i + 1}. [Leverage: ${a.leverageScore || "?"}] "${a.assumption}" — Why: ${a.currentAnswer || ""} | Type: ${a.reason || "unknown"} | Flip: ${a.challengeIdea || ""}`
+HIDDEN ASSUMPTIONS (top leverage):
+${(assumptions || []).slice(0, 8).map((a: any, i: number) =>
+  `${i + 1}. [${a.leverageScore || "?"}] "${a.assumption}" | Flip: ${a.challengeIdea || ""}`
 ).join("\n")}
-
 FLIPPED LOGIC:
-${(flippedLogic || []).slice(0, 6).map((f: any, i: number) =>
-  `${i + 1}. Original: "${f.originalAssumption}" → Bold alternative: "${f.boldAlternative}" | Mechanism: ${f.physicalMechanism || ""}`
+${(flippedLogic || []).slice(0, 5).map((f: any, i: number) =>
+  `${i + 1}. "${f.originalAssumption}" → "${f.boldAlternative}"`
 ).join("\n")}
 `;
 
-    // Build user lens context if available
     const userLensContext = userLens ? `
-USER LENS (tailor concepts to this person):
-- Objective: ${userLens.primary_objective || "Not specified"}
-- Resources: ${userLens.available_resources || "Not specified"}
-- Risk Tolerance: ${userLens.risk_tolerance || "Not specified"}
-- Time Horizon: ${userLens.time_horizon || "Not specified"}
-- Constraints: ${userLens.constraints || "Not specified"}
+USER LENS: Objective: ${userLens.primary_objective || "N/A"} | Resources: ${userLens.available_resources || "N/A"} | Risk: ${userLens.risk_tolerance || "N/A"}
 ` : "";
 
-    // Build persona lens instructions for multi-lens comparison
     const personaInstructions = PERSONA_LENSES.map(p =>
-      `"${p.id}": { label: "${p.label}", constraints: "${p.constraints}", priorities: "${p.priorities}" }`
-    ).join("\n");
+      `"${p.id}": "${p.label}" (${p.constraints})`
+    ).join("; ");
 
-    const systemPrompt = `You are an Invention Synthesis Engine — a first-principles engineering system that generates physically buildable product concepts.
-
-You combine three knowledge layers to produce inventions:
-1. STRUCTURAL PRESSURE — where innovation matters (weaknesses, failure modes, bottlenecks)
-2. ASSUMPTION BREAKS — what can change (challenged assumptions, flipped logic)
-3. TECHNICAL MECHANISMS — how change becomes physically possible (from the mechanism library)
+    const systemPrompt = `You are an Invention Synthesis Engine generating physically buildable product concepts.
 
 CONCEPT = STRUCTURAL WEAKNESS + ASSUMPTION FLIP + TECHNICAL MECHANISM
 
 RULES:
-- Every concept MUST trace to a specific structural weakness, a specific assumption being flipped, and a specific technical mechanism
-- Concepts must be PHYSICALLY BUILDABLE — not software-only, not vaporware
-- Include rough BOM with realistic cost estimates at scale (10K+ units)
-- Include real precedent products that use similar mechanisms
-- Each concept must be genuinely different — not variations of the same idea
-- Avoid business model plays (no "SaaS-ify it", no "marketplace", no "subscription model")
+- Every concept traces to: structural weakness + assumption flip + technical mechanism from library
+- Must be PHYSICALLY BUILDABLE, not software-only
+- Include rough BOM with realistic costs at 10K+ units
+- Each concept genuinely different
 - Focus on mechanical/electrical/material innovation
 
-BREAKTHROUGH METRIC — Classify each concept as "step_change" (10×) or "incremental" (2-5×). Default to incremental. State metric, current benchmark, and target.
-
-PERFORMER NETWORK — For each concept, list 2-4 real organizations (e.g. "MIT", "Jabil") with their role.
-
-SYSTEM ARCHITECTURE — Model 4-6 nodes (input→process→output) showing the integrated system.
-
-BEFORE/AFTER NARRATIVE — For each concept, write a vivid contrast:
-- "the_old_way": Describe the current reality in a way that makes it sound ABSURD once you see the alternative. Frame it as something people accept without question but shouldn't. Use specific, visceral details. 2-3 sentences.
-- "the_new_way": Describe the new approach as OBVIOUS and INEVITABLE once understood. Make the reader feel like they can't unsee it. 2-3 sentences.
-The contrast should create an "aha" moment — the reader should think "why hasn't anyone done this before?"
-
-MULTI-LENS PERSONA FIT — For each concept, evaluate fit across three personas:
-${personaInstructions}
-For each persona, provide a fit_score (1-10), a one-sentence rationale, and the key_adaptation needed.
+For each concept include:
+- breakthrough_metric: classification (step_change/incremental), magnitude, current_benchmark, target_performance, confidence
+- performer_network: 2-3 entries with category, role, example_organizations, why
+- system_architecture: 4-5 nodes (input→process→output) with edges and description
+- before_after: the_old_way (make status quo sound absurd, 2 sentences) and the_new_way (make it feel inevitable, 2 sentences)
+- persona_fit: fit_score (1-10) + rationale + key_adaptation for each of: ${personaInstructions}
 
 ${MECHANISM_LIBRARY}
 
-Respond with a JSON object matching this schema EXACTLY:
-{
-  "concepts": [
-    {
-      "name": "Short punchy product name",
-      "tagline": "One sentence value prop",
-      "origin": {
-        "structural_driver": "Which structural weakness this addresses",
-        "assumption_flipped": "Which assumption is being challenged",
-        "enabling_mechanism": "Which mechanism(s) from the library make this possible"
-      },
-      "before_after": {
-        "the_old_way": "Vivid description of the absurd status quo — make it feel ridiculous",
-        "the_new_way": "Description of the new approach that feels obvious and inevitable"
-      },
-      "description": "2-3 sentence product description",
-      "mechanism_description": "How the technical mechanism works in this specific application — be specific about physics/engineering",
-      "materials": ["Material 1 with reason", "Material 2", ...],
-      "estimated_bom": [
-        { "component": "Name", "material": "Specific material", "process": "Mfg process", "unitCost": "$X.XX", "notes": "Optional" }
-      ],
-      "manufacturing_path": "Specific manufacturing approach, tooling, country, scale considerations",
-      "certification_considerations": ["UL 1234", "FDA 510k", ...],
-      "precedent_products": [
-        { "product": "Name", "company": "Company", "relevance": "What's similar" }
-      ],
-      "prototype_approach": "How to build the first prototype",
-      "dfm_notes": "Design-for-manufacturing considerations",
-      "persona_fit": {
-        "garage_inventor": { "fit_score": 7, "rationale": "Why this works/doesn't for a solo maker", "key_adaptation": "What they'd need to change" },
-        "product_company": { "fit_score": 8, "rationale": "Why this works/doesn't for an established manufacturer", "key_adaptation": "What they'd need to change" },
-        "deep_tech_startup": { "fit_score": 5, "rationale": "Why this works/doesn't for a VC-backed team", "key_adaptation": "What they'd need to change" }
-      },
-      "breakthrough_metric": {
-        "classification": "step_change OR incremental",
-        "magnitude": "e.g. 10x longer lifespan, 5x cost reduction",
-        "current_benchmark": "Current industry performance for this metric",
-        "target_performance": "What this concept achieves",
-        "confidence": "high, medium, or low"
-      },
-      "performer_network": [
-        { "category": "university|startup|national_lab|contract_manufacturer|component_supplier", "role": "What they would build/research", "example_organizations": ["Real org name 1", "Real org name 2"], "why": "Why they are the right performer" }
-      ],
-      "system_architecture": {
-        "nodes": [
-          { "id": "n1", "label": "Sensor Input", "type": "input|process|output|feedback" }
-        ],
-        "edges": [
-          { "from": "n1", "to": "n2", "label": "data flow" }
-        ],
-        "description": "How the integrated system works end-to-end"
-      }
-    }
-  ],
-  "innovation_paths": [
-    {
-      "theme": "e.g. Failure Elimination",
-      "description": "What this innovation direction addresses",
-      "structural_pressures": ["pressure1", "pressure2"],
-      "concept_indices": [0, 2]
-    }
-  ],
-  "contrarian_narrative": {
-    "industry_blind_spot": "The ONE thing the entire industry refuses to see — stated as a provocative, specific claim",
-    "why_blind": "Why is the industry blind to this? What incentive structure or legacy thinking keeps them from seeing it?",
-    "evidence": "What evidence from the structural analysis supports this contrarian view?",
-    "unlock_statement": "If this blind spot were addressed, what massive value would be unlocked? Be specific about magnitude."
-  }
-}`;
+RESPOND WITH VALID JSON ONLY — no markdown, no explanation. Keep descriptions concise.`;
 
-    const userPrompt = `Generate ${requestedCount} invention concepts for this product:
+    const userPrompt = `Generate ${requestedCount} invention concepts for:
 
-PRODUCT: ${product.name}
-CATEGORY: ${product.category}
-DESCRIPTION: ${product.description}
-SPECS: ${product.specs || "Not specified"}
-KEY INSIGHT: ${product.keyInsight || "None"}
+PRODUCT: ${product.name} | CATEGORY: ${product.category}
+DESCRIPTION: ${product.description || "N/A"}
 ${userLensContext}
-
 ${structuralContext}
-
 ${assumptionContext}
 
-CRITICAL:
-1. Generate exactly ${requestedCount} concepts — each genuinely different
-2. Every concept must have a clear origin trace (structural_driver + assumption_flipped + enabling_mechanism)
-3. BOM estimates must be realistic for 10K+ unit production
-4. Include at least 2 precedent products per concept
-5. Group concepts into 2-4 innovation paths/themes
-6. Each concept should target a different structural weakness when possible
-7. BEFORE/AFTER: Make the "old way" sound absurd and the "new way" sound inevitable — this is the "aha" moment
-8. PERSONA FIT: Score each concept for garage_inventor, product_company, and deep_tech_startup
-9. CONTRARIAN NARRATIVE: Identify the industry's biggest blind spot — be provocative and specific
-10. Include breakthrough_metric, performer_network, and system_architecture per concept (see schema)
+JSON schema:
+{
+  "concepts": [{ "name", "tagline", "origin": { "structural_driver", "assumption_flipped", "enabling_mechanism" }, "before_after": { "the_old_way", "the_new_way" }, "description", "mechanism_description", "materials": [], "estimated_bom": [{ "component", "material", "process", "unitCost", "notes" }], "manufacturing_path", "certification_considerations": [], "precedent_products": [{ "product", "company", "relevance" }], "prototype_approach", "dfm_notes", "persona_fit": { "garage_inventor": { "fit_score", "rationale", "key_adaptation" }, "product_company": {...}, "deep_tech_startup": {...} }, "breakthrough_metric": { "classification", "magnitude", "current_benchmark", "target_performance", "confidence" }, "performer_network": [{ "category", "role", "example_organizations": [], "why" }], "system_architecture": { "nodes": [{ "id", "label", "type" }], "edges": [{ "from", "to", "label" }], "description" } }],
+  "innovation_paths": [{ "theme", "description", "structural_pressures": [], "concept_indices": [] }],
+  "contrarian_narrative": { "industry_blind_spot", "why_blind", "evidence", "unlock_statement" }
+}
 
-Return ONLY the JSON object.`;
+Return ONLY valid JSON. Keep each concept's text concise to avoid truncation.`;
 
-    const body = {
-      model: "google/gemini-2.5-pro",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.6,
-      max_tokens: 12000,
-    };
+    // ═══ MODEL CASCADE: try Flash first (faster), fallback to Pro ═══
+    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-pro"];
+    let result: Record<string, unknown> | null = null;
+    let lastError = "";
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const txt = await response.text();
-      throw new Error(`AI gateway error ${response.status}: ${txt}`);
-    }
-
-    const aiData = await response.json();
-    const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
-
-    // Parse JSON from response
-    let result: Record<string, unknown>;
-    try {
-      let cleaned = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-      const firstBrace = cleaned.indexOf("{");
-      const lastBrace = cleaned.lastIndexOf("}");
-      if (firstBrace !== -1 && lastBrace > firstBrace) cleaned = cleaned.slice(firstBrace, lastBrace + 1);
-      result = JSON.parse(cleaned);
-    } catch {
-      // Brace balancing
-      let cleaned = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-      const firstBrace = cleaned.indexOf("{");
-      if (firstBrace !== -1) cleaned = cleaned.slice(firstBrace);
-      let opens = 0, closes = 0;
-      for (const ch of cleaned) { if (ch === '{') opens++; if (ch === '}') closes++; }
-      if (opens > closes) {
-        cleaned = cleaned.replace(/,\s*$/, '') + '}'.repeat(opens - closes);
-      }
+    for (const model of models) {
       try {
-        result = JSON.parse(cleaned);
-      } catch (e) {
-        console.error("[ConceptSynthesis] JSON parse failed:", e);
-        throw new Error("AI returned invalid output. Please try again.");
+        console.log(`[ConceptSynthesis] Trying model: ${model}`);
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            temperature: 0.5,
+            max_tokens: 16000,
+          }),
+        });
+
+        if (!response.ok) {
+          const txt = await response.text();
+          lastError = `${model} error ${response.status}: ${txt.slice(0, 200)}`;
+          console.warn(`[ConceptSynthesis] ${lastError}`);
+          if (response.status === 429) continue; // try next model
+          if (response.status === 402) continue;
+          throw new Error(lastError);
+        }
+
+        const aiData = await response.json();
+        const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
+        
+        if (!rawText || rawText.length < 100) {
+          lastError = `${model} returned empty/short response (${rawText.length} chars)`;
+          console.warn(`[ConceptSynthesis] ${lastError}`);
+          continue;
+        }
+
+        console.log(`[ConceptSynthesis] ${model} returned ${rawText.length} chars`);
+
+        // Robust JSON parsing with repair
+        result = repairTruncatedJson(rawText);
+        
+        if (result && Array.isArray(result.concepts) && result.concepts.length > 0) {
+          console.log(`[ConceptSynthesis] Successfully parsed ${result.concepts.length} concepts from ${model}`);
+          break; // Success!
+        } else {
+          lastError = `${model} JSON repair produced no valid concepts`;
+          console.warn(`[ConceptSynthesis] ${lastError}`);
+          result = null;
+          continue;
+        }
+      } catch (err) {
+        lastError = String(err);
+        console.warn(`[ConceptSynthesis] ${model} failed:`, lastError);
+        continue;
       }
     }
 
-    // Validate concepts array
-    const concepts = Array.isArray(result.concepts) ? result.concepts : [];
-    if (concepts.length === 0) {
-      throw new Error("No concepts generated. Please try again.");
+    if (!result || !Array.isArray(result.concepts) || result.concepts.length === 0) {
+      throw new Error(`All models failed. Last error: ${lastError}`);
     }
 
-    // Validate each concept has origin trace + new fields
+    const concepts = result.concepts as any[];
+
+    // Validate and fill defaults for each concept
     for (const c of concepts) {
       if (!c.origin) {
-        c.origin = {
-          structural_driver: "Structural weakness identified in decomposition",
-          assumption_flipped: "Industry assumption challenged",
-          enabling_mechanism: "Technical mechanism from library",
-        };
+        c.origin = { structural_driver: "Identified structural weakness", assumption_flipped: "Industry assumption challenged", enabling_mechanism: "Technical mechanism applied" };
       }
       if (!c.before_after) {
-        c.before_after = {
-          the_old_way: "The current approach accepts known limitations as permanent constraints.",
-          the_new_way: "This concept eliminates those constraints entirely through a fundamental mechanism change.",
-        };
+        c.before_after = { the_old_way: "The current approach accepts known limitations.", the_new_way: "This concept eliminates those constraints through a mechanism change." };
       }
       if (!c.persona_fit) {
         c.persona_fit = {
           garage_inventor: { fit_score: 5, rationale: "Moderate fit", key_adaptation: "Simplify manufacturing" },
-          product_company: { fit_score: 7, rationale: "Good fit with existing capabilities", key_adaptation: "Integrate with existing lines" },
-          deep_tech_startup: { fit_score: 6, rationale: "Potential for IP differentiation", key_adaptation: "Focus on defensible innovation" },
+          product_company: { fit_score: 7, rationale: "Good fit", key_adaptation: "Integrate with existing lines" },
+          deep_tech_startup: { fit_score: 6, rationale: "IP potential", key_adaptation: "Focus on defensible innovation" },
         };
       }
       if (!c.estimated_bom) c.estimated_bom = [];
@@ -404,52 +350,27 @@ Return ONLY the JSON object.`;
       if (!c.certification_considerations) c.certification_considerations = [];
       if (!c.precedent_products) c.precedent_products = [];
       if (!c.breakthrough_metric) {
-        c.breakthrough_metric = {
-          classification: "incremental",
-          magnitude: "Moderate improvement over existing solutions",
-          current_benchmark: "Industry standard",
-          target_performance: "Improved performance",
-          confidence: "medium",
-        };
+        c.breakthrough_metric = { classification: "incremental", magnitude: "Moderate improvement", current_benchmark: "Industry standard", target_performance: "Improved performance", confidence: "medium" };
       }
       if (!c.performer_network) c.performer_network = [];
       if (!c.system_architecture) {
         c.system_architecture = {
-          nodes: [
-            { id: "n1", label: "Input", type: "input" },
-            { id: "n2", label: "Core Process", type: "process" },
-            { id: "n3", label: "Output", type: "output" },
-          ],
-          edges: [
-            { from: "n1", to: "n2", label: "feeds" },
-            { from: "n2", to: "n3", label: "produces" },
-          ],
+          nodes: [{ id: "n1", label: "Input", type: "input" }, { id: "n2", label: "Process", type: "process" }, { id: "n3", label: "Output", type: "output" }],
+          edges: [{ from: "n1", to: "n2", label: "feeds" }, { from: "n2", to: "n3", label: "produces" }],
           description: "Basic system flow",
         };
       }
     }
 
-    // Ensure innovation_paths exists
     if (!result.innovation_paths || !Array.isArray(result.innovation_paths)) {
-      result.innovation_paths = [{
-        theme: "Primary Innovation Direction",
-        description: "Concepts addressing core structural weaknesses",
-        structural_pressures: [],
-        concept_indices: concepts.map((_: unknown, i: number) => i),
-      }];
+      result.innovation_paths = [{ theme: "Primary Innovation Direction", description: "Concepts addressing core structural weaknesses", structural_pressures: [], concept_indices: concepts.map((_: unknown, i: number) => i) }];
     }
 
-    // Ensure contrarian_narrative exists
     if (!result.contrarian_narrative) {
-      result.contrarian_narrative = {
-        industry_blind_spot: "The industry optimizes for the wrong metric.",
-        why_blind: "Legacy thinking and sunk costs in existing tooling.",
-        evidence: "Structural analysis reveals fundamental misalignment between user needs and product design priorities.",
-        unlock_statement: "Addressing this blind spot could unlock significant market share from underserved segments.",
-      };
+      result.contrarian_narrative = { industry_blind_spot: "The industry optimizes for the wrong metric.", why_blind: "Legacy thinking and sunk costs.", evidence: "Structural analysis reveals misalignment.", unlock_statement: "Addressing this could unlock significant market share." };
     }
 
-    console.log(`[ConceptSynthesis] Generated ${concepts.length} concepts, ${(result.innovation_paths as any[]).length} paths, contrarian narrative: ${!!(result.contrarian_narrative)}`);
+    console.log(`[ConceptSynthesis] ✅ Generated ${concepts.length} concepts, ${(result.innovation_paths as any[]).length} paths`);
 
     return new Response(JSON.stringify({ success: true, result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
