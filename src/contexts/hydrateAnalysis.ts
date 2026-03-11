@@ -160,6 +160,7 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   setters.setGovernedData(ad?.governed ? (ad.governed as Record<string, unknown>) : null);
   setters.setActiveBranchIdState(ad?.activeBranchId ? (ad.activeBranchId as string) : null);
   if (ad?.strategicProfile) setters.setStrategicProfileState(ad.strategicProfile as StrategicProfile);
+  setters.setDecompositionData(ad?.decomposition || null);
   setters.setDisruptData(ad?.disrupt || null);
   setters.setStressTestData(ad?.stressTest || null);
   setters.setPitchDeckData(ad?.pitchDeck || null);
