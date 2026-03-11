@@ -229,6 +229,27 @@ export const FirstPrinciplesAnalysis = ({
     );
   }
 
+  // Error state with retry
+  if (!data && lastError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
+        <div className="w-20 h-20 rounded flex items-center justify-center bg-destructive/10">
+          <AlertTriangle size={36} className="text-destructive" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            {renderMode === "redesign" ? "Redesign Failed" : "Analysis Failed"}
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-md leading-relaxed">{lastError}</p>
+        </div>
+        <button onClick={runAnalysis} disabled={loading}
+          className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
+          <RefreshCw size={15} /> Retry
+        </button>
+      </div>
+    );
+  }
+
   // Empty state
   if (!data) {
     if (renderMode === "redesign") {
