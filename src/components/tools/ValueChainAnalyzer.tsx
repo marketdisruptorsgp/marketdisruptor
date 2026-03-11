@@ -1,10 +1,11 @@
 /**
  * VALUE CHAIN ANALYZER — Identify inefficiencies and disintermediation opportunities
  * Pre-populated from governed first_principles and friction_tiers.
+ * Now uses a D3 Sankey diagram for the value chain flow visualization.
  */
 import { useMemo } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { GitBranch, AlertTriangle, Zap, ArrowRight } from "lucide-react";
+import { ValueChainSankey } from "./ValueChainSankey";
 
 interface Props {
   analysisId: string;
