@@ -90,7 +90,7 @@ function repairDoubleSerialized(ad: Record<string, unknown> | null): Record<stri
   if (!ad) return null;
   const repaired = { ...ad };
   const keysToCheck = ["strategicEngine", "insightGraph", "disrupt", "stressTest", "pitchDeck",
-    "redesign", "businessStressTest", "businessPitchDeck", "governed", "biExtraction",
+    "redesign", "decomposition", "businessStressTest", "businessPitchDeck", "governed", "biExtraction",
     "adaptiveContext", "geoOpportunity", "regulatoryContext", "competitiveIntel"];
   for (const key of keysToCheck) {
     const val = repaired[key];
