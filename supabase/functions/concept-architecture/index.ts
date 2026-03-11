@@ -145,7 +145,18 @@ serve(async (req) => {
     "pricePoint": "Target retail price and justification",
     "targetUser": "Not a demographic — a specific human moment or identity",
     "riskLevel": "[Risk: Low/Medium/High]",
-    "capitalRequired": "[Capital: Low/Medium/High]"
+    "capitalRequired": "[Capital: Low/Medium/High]",
+    "bomBreakdown": [
+      { "component": "Component name", "material": "Material spec", "process": "Mfg process", "unitCost": "$X.XX at 10K units", "notes": "Tooling/supplier notes" }
+    ],
+    "totalBomEstimate": "$X.XX - $X.XX per unit at 10K volume",
+    "certifications": ["Required certification 1", "Required certification 2"],
+    "certificationPath": "Timeline, cost, and testing labs for certification",
+    "prototypeApproach": "How to build the first working prototype — specific materials, tools, and methods",
+    "productPrecedents": [
+      { "product": "Real product name", "company": "Company name", "relevance": "What principle/mechanism they proved that applies here" }
+    ],
+    "dfmNotes": "Design for manufacturability — draft angles, wall thickness, undercuts, assembly steps, tooling considerations"
   },
   "visualSpecs": [
     {
