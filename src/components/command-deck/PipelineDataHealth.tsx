@@ -17,6 +17,7 @@ interface DataField {
 
 interface PipelineDataHealthProps {
   product: Record<string, any> | null;
+  decompositionData: unknown;
   disruptData: unknown;
   redesignData: unknown;
   stressTestData: unknown;
