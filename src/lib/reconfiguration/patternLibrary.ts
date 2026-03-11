@@ -342,6 +342,11 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.revenueModel === "project_based" || profile.revenueModel === "transactional") {
         strengths.push("Non-recurring revenue model may have hidden recurring value to capture");
       }
+      if (profile.revenueModel === "mixed") {
+        strengths.push("Mixed revenue model suggests untapped monetization channels");
+      }
+      if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Vendor concentration may enable supplier-side monetization"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck may hide monetizable process knowledge"); }
 
       return {
         qualifies: strengths.length >= 2,
