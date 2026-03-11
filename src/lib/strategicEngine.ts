@@ -550,7 +550,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     insights.push(makeInsight({
       id: nextId("leverage"),
       analysisId: input.analysisId,
-      insightType: "structural_insight",
+      insightType: "leverage_point",
       label: `Resolve: ${cleanLabel}`,
       description: `Resolving "${cleanLabel}" creates a high-leverage intervention point that unlocks disproportionate value.`,
       evidenceIds: con.evidenceIds,
