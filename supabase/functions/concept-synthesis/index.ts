@@ -243,6 +243,25 @@ Respond with a JSON object matching this schema EXACTLY:
         "garage_inventor": { "fit_score": 7, "rationale": "Why this works/doesn't for a solo maker", "key_adaptation": "What they'd need to change" },
         "product_company": { "fit_score": 8, "rationale": "Why this works/doesn't for an established manufacturer", "key_adaptation": "What they'd need to change" },
         "deep_tech_startup": { "fit_score": 5, "rationale": "Why this works/doesn't for a VC-backed team", "key_adaptation": "What they'd need to change" }
+      },
+      "breakthrough_metric": {
+        "classification": "step_change OR incremental",
+        "magnitude": "e.g. 10x longer lifespan, 5x cost reduction",
+        "current_benchmark": "Current industry performance for this metric",
+        "target_performance": "What this concept achieves",
+        "confidence": "high, medium, or low"
+      },
+      "performer_network": [
+        { "category": "university|startup|national_lab|contract_manufacturer|component_supplier", "role": "What they would build/research", "example_organizations": ["Real org name 1", "Real org name 2"], "why": "Why they are the right performer" }
+      ],
+      "system_architecture": {
+        "nodes": [
+          { "id": "n1", "label": "Sensor Input", "type": "input|process|output|feedback" }
+        ],
+        "edges": [
+          { "from": "n1", "to": "n2", "label": "data flow" }
+        ],
+        "description": "How the integrated system works end-to-end"
       }
     }
   ],
