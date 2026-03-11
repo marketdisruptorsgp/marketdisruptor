@@ -156,8 +156,17 @@ export interface SystemIntelligenceInput {
 export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemIntelligence {
   const { analysisId, governedData, disruptData, businessAnalysisData, intelData, flipIdeas, activeLenses } = input;
 
-  // Check cache
-  const cached = intelligenceCache.get(analysisId);
+  // Content-aware cache key: include data fingerprint so cache invalidates when inputs change
+  const dataFingerprint = [
+    Object.keys(governedData || {}).length,
+    Object.keys(disruptData || {}).length,
+    Object.keys(businessAnalysisData || {}).length,
+    (flipIdeas || []).length,
+    activeLenses.join(","),
+  ].join("|");
+  const cacheKey = `${analysisId}::${dataFingerprint}`;
+
+  const cached = intelligenceCache.get(cacheKey);
   if (cached) return cached;
 
   // ── Stage 1: Structural Model + Lens Artifacts ──
@@ -279,7 +288,7 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
     computedAt: Date.now(),
   };
 
-  intelligenceCache.set(analysisId, result);
+  intelligenceCache.set(cacheKey, result);
   return result;
 }
 

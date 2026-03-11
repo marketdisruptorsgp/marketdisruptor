@@ -288,7 +288,7 @@ export const FirstPrinciplesAnalysis = ({
         <div className="space-y-6" data-fp-steps>
           {activeStep === "flip" && (
             <>
-              <FlippedLogicPanel flips={data.flippedLogic || []} assumptions={data.hiddenAssumptions || []} />
+              <FlippedLogicPanel flips={data.flippedLogic || (analysisCtx.disruptData as any)?.flippedLogic || []} assumptions={data.hiddenAssumptions || (analysisCtx.disruptData as any)?.hiddenAssumptions || []} />
               {conceptsSynthesis.innovation_paths?.length > 0 && (
                 <InnovationPaths paths={conceptsSynthesis.innovation_paths} />
               )}
@@ -314,7 +314,7 @@ export const FirstPrinciplesAnalysis = ({
     return (
       <div className="space-y-4" data-fp-steps>
         {activeStep === "flip" && (
-          <FlippedLogicPanel flips={data.flippedLogic || []} assumptions={data.hiddenAssumptions || []} />
+          <FlippedLogicPanel flips={data.flippedLogic || (analysisCtx.disruptData as any)?.flippedLogic || []} assumptions={data.hiddenAssumptions || (analysisCtx.disruptData as any)?.hiddenAssumptions || []} />
         )}
         {activeStep === "ideas" && (() => {
           const effectiveIdeas = (flippedIdeas && flippedIdeas.length > 0)
