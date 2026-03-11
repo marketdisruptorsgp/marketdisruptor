@@ -1420,6 +1420,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       mainTab, setMainTab, activeMode, setActiveMode,
       elapsedSeconds, loadingLog, stepMessage,
       detailTab, setDetailTab, visitedDetailTabs, setVisitedDetailTabs,
+      decompositionData, setDecompositionData,
       disruptData, setDisruptData,
       stressTestData, setStressTestData, stressTestTab, setStressTestTab,
       visitedStressTestTabs, setVisitedStressTestTabs,
