@@ -352,7 +352,7 @@ export function usePipelineOrchestrator(
         toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, onRecompute]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, onRecompute]);
 
   // ── Retry a single failed step ──
   const retryStep = useCallback(async (stepKey: string) => {
