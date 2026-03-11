@@ -73,6 +73,25 @@ export interface FlippedLogicItem {
   boldAlternative: string;
   rationale: string;
   physicalMechanism: string;
+  physicalPrinciple?: string;
+  manufacturingMethod?: string;
+  certifications?: string[];
+  bomEstimate?: string;
+  productPrecedent?: string;
+}
+
+export interface BomLineItem {
+  component: string;
+  material: string;
+  process: string;
+  unitCost: string;
+  notes?: string;
+}
+
+export interface ProductPrecedent {
+  product: string;
+  company: string;
+  relevance: string;
 }
 
 export interface RedesignedConcept {
@@ -93,6 +112,13 @@ export interface RedesignedConcept {
   targetUser: string;
   riskLevel?: string;
   capitalRequired?: string;
+  bomBreakdown?: BomLineItem[];
+  totalBomEstimate?: string;
+  certifications?: string[];
+  certificationPath?: string;
+  prototypeApproach?: string;
+  productPrecedents?: ProductPrecedent[];
+  dfmNotes?: string;
 }
 
 export interface CurrentStrengths {

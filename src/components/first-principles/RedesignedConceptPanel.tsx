@@ -1,5 +1,6 @@
 import {
   Sparkles, Zap, Package, Cpu, Users, CheckCircle2, ShieldAlert,
+  Wrench, DollarSign, Shield, Lightbulb, FlaskConical, Ruler,
 } from "lucide-react";
 import {
   StepCanvas, InsightCard, FrameworkPanel, SignalCard, MetricCard,
@@ -22,6 +23,11 @@ export function RedesignedConceptPanel({ concept }: RedesignedConceptPanelProps)
       </StepCanvas>
     );
   }
+
+  const hasBom = concept.bomBreakdown && concept.bomBreakdown.length > 0;
+  const hasCerts = concept.certifications && concept.certifications.length > 0;
+  const hasPrecedents = concept.productPrecedents && concept.productPrecedents.length > 0;
+  const hasEngineeringData = hasBom || hasCerts || concept.prototypeApproach || concept.dfmNotes || hasPrecedents;
 
   return (
     <StepCanvas>
@@ -99,6 +105,100 @@ export function RedesignedConceptPanel({ concept }: RedesignedConceptPanelProps)
             ))}
           </VisualGrid>
         </FrameworkPanel>
+      )}
+
+      {/* ══ ENGINEERING & MANUFACTURING SECTION ══ */}
+      {hasEngineeringData && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pt-2">
+            <Wrench size={16} style={{ color: "hsl(200 80% 42%)" }} />
+            <p className="text-sm font-extrabold uppercase tracking-widest" style={{ color: "hsl(200 80% 35%)" }}>
+              Engineering & Manufacturing
+            </p>
+          </div>
+
+          {/* BOM Breakdown */}
+          {hasBom && (
+            <ExpandableDetail label={`Bill of Materials${concept.totalBomEstimate ? ` — ${concept.totalBomEstimate}` : ''}`} icon={DollarSign} defaultExpanded>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+                      <th className="text-left py-2 px-2 font-bold uppercase tracking-widest text-muted-foreground text-[10px]">Component</th>
+                      <th className="text-left py-2 px-2 font-bold uppercase tracking-widest text-muted-foreground text-[10px]">Material</th>
+                      <th className="text-left py-2 px-2 font-bold uppercase tracking-widest text-muted-foreground text-[10px]">Process</th>
+                      <th className="text-right py-2 px-2 font-bold uppercase tracking-widest text-muted-foreground text-[10px]">Unit Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {concept.bomBreakdown!.map((row, i) => (
+                      <tr key={i} style={{ borderBottom: "1px solid hsl(var(--border) / 0.5)" }}>
+                        <td className="py-2 px-2 font-semibold text-foreground">{row.component}</td>
+                        <td className="py-2 px-2 text-foreground/80">{row.material}</td>
+                        <td className="py-2 px-2 text-foreground/80">{row.process}</td>
+                        <td className="py-2 px-2 text-right font-bold" style={{ color: "hsl(142 70% 35%)" }}>{row.unitCost}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {concept.totalBomEstimate && (
+                <div className="mt-3 p-3 rounded-lg flex items-center justify-between" style={{ background: "hsl(142 70% 40% / 0.08)", border: "1px solid hsl(142 70% 40% / 0.15)" }}>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "hsl(142 70% 30%)" }}>Total BOM (10K units)</span>
+                  <span className="text-sm font-extrabold" style={{ color: "hsl(142 70% 30%)" }}>{concept.totalBomEstimate}</span>
+                </div>
+              )}
+            </ExpandableDetail>
+          )}
+
+          {/* Certifications */}
+          {hasCerts && (
+            <ExpandableDetail label="Required Certifications" icon={Shield} defaultExpanded>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {concept.certifications!.map((cert, i) => (
+                  <span key={i} className="px-3 py-1.5 rounded-lg text-xs font-bold" style={{ background: "hsl(38 92% 50% / 0.1)", color: "hsl(38 92% 35%)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+                    {cert}
+                  </span>
+                ))}
+              </div>
+              {concept.certificationPath && (
+                <InsightCard headline={concept.certificationPath} badge="Certification Path" badgeColor="hsl(38 92% 35%)" accentColor="hsl(38 92% 50%)" />
+              )}
+            </ExpandableDetail>
+          )}
+
+          {/* Prototype Approach */}
+          {concept.prototypeApproach && (
+            <ExpandableDetail label="Prototype Approach" icon={FlaskConical} defaultExpanded>
+              <InsightCard headline={concept.prototypeApproach} badge="How to Build v0.1" badgeColor="hsl(200 80% 35%)" accentColor="hsl(200 80% 42%)" />
+            </ExpandableDetail>
+          )}
+
+          {/* DFM Notes */}
+          {concept.dfmNotes && (
+            <ExpandableDetail label="Design for Manufacturability" icon={Ruler} defaultExpanded>
+              <InsightCard headline={concept.dfmNotes} badge="DFM" badgeColor="hsl(271 70% 40%)" accentColor="hsl(271 70% 45%)" />
+            </ExpandableDetail>
+          )}
+
+          {/* Product Precedents */}
+          {hasPrecedents && (
+            <ExpandableDetail label="Product Innovation Precedents" icon={Lightbulb} defaultExpanded>
+              <VisualGrid columns={1}>
+                {concept.productPrecedents!.map((p, i) => (
+                  <InsightCard
+                    key={i}
+                    headline={`${p.product} — ${p.company}`}
+                    subtext={p.relevance}
+                    badge="Proven Mechanism"
+                    badgeColor="hsl(142 70% 35%)"
+                    accentColor="hsl(142 70% 40%)"
+                  />
+                ))}
+              </VisualGrid>
+            </ExpandableDetail>
+          )}
+        </div>
       )}
 
       {/* Business details */}
