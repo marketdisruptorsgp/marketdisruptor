@@ -93,6 +93,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const lastCheckRef = useRef<number>(0);
+  const checkInFlightRef = useRef<Promise<void> | null>(null);
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   const checkSubscription = useCallback(async (force = false) => {
