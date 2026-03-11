@@ -136,21 +136,16 @@ export default function DisruptPage() {
       />
 
 
-      {/* ── Loading Tracker ── */}
-      {analysisLoading && (
+      {/* ── Loading Tracker (matches Redesign quality) ── */}
+      {(analysisLoading || (!hasDisruptData)) && (
         <AnalysisLoadingCard>
           <StepLoadingTracker
             title="Building Structural Analysis"
             tasks={DISRUPT_TASKS}
-            estimatedSeconds={50}
+            estimatedSeconds={120}
             accentColor="hsl(271 81% 55%)"
           />
         </AnalysisLoadingCard>
-      )}
-
-      {/* ── Processing State ── */}
-      {!analysisLoading && !hasDisruptData && (
-        <PipelineProcessingState stepKey="disrupt" />
       )}
 
       {/* ── Tab Content ── */}

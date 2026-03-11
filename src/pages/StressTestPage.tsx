@@ -211,22 +211,32 @@ export default function StressTestPage() {
       >
         {/* ── Opportunities Tab ── */}
         {activeTab === "opportunities" && !analysisLoading && (
-          <AnalysisContentCard>
-            {systemIntelligence && systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary ? (
-              <OpportunityMatrix
-                opportunities={systemIntelligence.scoredOpportunities}
-                summary={systemIntelligence.scoringSummary}
-                governanceReport={systemIntelligence.governanceReport || undefined}
-                expandedFriction={systemIntelligence.expandedFriction || undefined}
+          <div className="space-y-3">
+            <AnalysisContentCard>
+              {systemIntelligence && systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary ? (
+                <OpportunityMatrix
+                  opportunities={systemIntelligence.scoredOpportunities}
+                  summary={systemIntelligence.scoringSummary}
+                  governanceReport={systemIntelligence.governanceReport || undefined}
+                  expandedFriction={systemIntelligence.expandedFriction || undefined}
+                />
+              ) : (
+                <div className="text-center py-12 space-y-2">
+                  <Crosshair size={28} className="mx-auto text-muted-foreground" />
+                  <p className="text-sm font-bold text-foreground">No opportunities scored yet</p>
+                  <p className="text-xs text-muted-foreground">Run the Structural Analysis step first to generate opportunity data.</p>
+                </div>
+              )}
+            </AnalysisContentCard>
+            {/* Innovation Opportunities from friction/constraint analysis */}
+            <AnalysisContentCard>
+              <InnovationOpportunitiesPanel
+                governedData={governedData}
+                analysisData={disruptData}
+                stressTestData={analysis.stressTestData as Record<string, unknown> | null}
               />
-            ) : (
-              <div className="text-center py-12 space-y-2">
-                <Crosshair size={28} className="mx-auto text-muted-foreground" />
-                <p className="text-sm font-bold text-foreground">No opportunities scored yet</p>
-                <p className="text-xs text-muted-foreground">Run the Structural Analysis step first to generate opportunity data.</p>
-              </div>
-            )}
-          </AnalysisContentCard>
+            </AnalysisContentCard>
+          </div>
         )}
 
         {/* ── Strategy Tab ── */}
