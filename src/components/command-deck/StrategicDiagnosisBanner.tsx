@@ -15,6 +15,8 @@ interface StrategicDiagnosisBannerProps {
   rationale: string | null;
   verdict: string | null;
   opportunityLabel: string | null;
+  verdictRationale?: string | null;
+  whyThisMatters?: string | null;
   confidence: number;
   completedSteps: number;
 }
@@ -24,19 +26,30 @@ function buildDiagnosisSentence(
   rationale: string | null,
   verdict: string | null,
   opportunity: string | null,
+  verdictRationale: string | null,
+  whyThisMatters: string | null,
   completedSteps: number,
 ): string {
-  // Best case: we have both constraint and rationale
-  if (constraint && rationale && rationale.length > 20 && rationale.length < 250) {
+  // Best: verdictRationale provides the richest, most specific text
+  if (verdictRationale && verdictRationale.length > 40 && verdictRationale.length < 350) {
+    return verdictRationale;
+  }
+  // Second best: whyThisMatters provides deep strategic context
+  if (whyThisMatters && whyThisMatters.length > 40 && whyThisMatters.length < 350) {
+    return whyThisMatters;
+  }
+  // Rationale if non-template (filter out generic "If the primary thesis" patterns)
+  if (constraint && rationale && rationale.length > 20 && rationale.length < 250 
+      && !rationale.startsWith("If the primary thesis")) {
     return rationale;
   }
-  // Constraint + verdict
+  // Constraint + verdict — build a specific sentence
   if (constraint && verdict) {
-    return `${constraint} is constraining growth. ${verdict}.`;
+    return `${constraint}. The strategic move: ${verdict.toLowerCase()}.`;
   }
   // Constraint + opportunity
   if (constraint && opportunity) {
-    return `${constraint} is limiting growth. Resolving it could unlock ${opportunity.toLowerCase()}.`;
+    return `${constraint}. Resolving it could unlock ${opportunity.toLowerCase()}.`;
   }
   // Just constraint
   if (constraint) {
