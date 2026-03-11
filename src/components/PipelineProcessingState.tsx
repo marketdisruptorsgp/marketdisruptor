@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Sparkles, Zap, Search, Layers, Target } from "lucide-react";
 
 interface PipelineProcessingStateProps {
-  stepKey: "disrupt" | "redesign" | "stressTest" | "pitch" | "intel" | "generic";
+  stepKey: "decompose" | "disrupt" | "redesign" | "stressTest" | "pitch" | "intel" | "generic";
   /** Optional custom title override */
   title?: string;
 }

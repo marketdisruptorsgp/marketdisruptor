@@ -87,6 +87,7 @@ import {
   ScrollText,
 } from "lucide-react";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
+import { DecompositionViewer } from "@/components/DecompositionViewer";
 
 const STEPS = [
   { icon: Search, label: "Discover & Collect" },
@@ -176,7 +177,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "patents" | "action" | "ideas" | "community" | "workflow">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "structure" | "pricing" | "supply" | "patents" | "action" | "ideas" | "community" | "workflow">("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
   const [visitedStressTestTabs, setVisitedStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
   const [intelRerunNotes, setIntelRerunNotes] = useState("");
@@ -873,6 +874,7 @@ export default function Index() {
                   {(() => {
                     const DETAIL_TABS = [
                       { id: "overview" as const, label: "Overview", icon: Target },
+                      { id: "structure" as const, label: "Structure", icon: Layers },
                       { id: "community" as const, label: "Community", icon: Users },
                       { id: "workflow" as const, label: "User Journey", icon: Clock },
                       { id: "pricing" as const, label: "Pricing", icon: DollarSign },
@@ -1028,6 +1030,11 @@ export default function Index() {
                         <AssumptionsMap product={selectedProduct} />
                       </div>
                     </div>
+                  )}
+
+                  {/* TAB: STRUCTURE (Decomposition) */}
+                  {detailTab === "structure" && (
+                    <DecompositionViewer />
                   )}
 
                   {/* TAB: COMMUNITY INTEL */}

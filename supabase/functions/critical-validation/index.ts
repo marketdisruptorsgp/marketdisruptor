@@ -19,7 +19,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx, competitorIntel } = await req.json();
+    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx, competitorIntel, structuralDecomposition } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const mode = resolveMode(product.analysisType, product.category);
@@ -45,6 +45,11 @@ CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
+${structuralDecomposition ? `
+STRUCTURAL DECOMPOSITION (use as grounding for your stress test):
+Ground your Red Team attacks and Green Team defenses in these actual structural primitives — reference specific components, cost drivers, and constraints:
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 2500)}
+` : ''}
 
 
 OUTPUT RULES:
