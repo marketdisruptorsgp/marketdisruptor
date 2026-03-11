@@ -92,7 +92,45 @@ export function usePipelineOrchestrator(
 
   // ── Individual step runners (reusable for retry) ──
 
-  const runDisrupt = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+  const runDecompose = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
+    setCurrentStep("decompose");
+    updateStatus("decompose", "running");
+
+    // Extract upstream intel for grounding
+    const upstreamIntel: Record<string, unknown> = {};
+    const pp = product as any;
+    if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
+    if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
+    if (pp.competitorAnalysis) upstreamIntel.competitorAnalysis = pp.competitorAnalysis;
+    if (pp.operationalIntel) upstreamIntel.operationalIntel = pp.operationalIntel;
+
+    const { data: result, error } = await invokeWithTimeout("structural-decomposition", {
+      body: {
+        product,
+        upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
+        adaptiveContext: analysis.adaptiveContext || undefined,
+        extractedContext: extractedContext || undefined,
+      },
+    }, 120_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Structural decomposition failed";
+      console.warn("[Pipeline] Decompose failed:", msg);
+      updateStatus("decompose", "error", msg);
+      // Non-blocking — pipeline continues without decomposition
+      return null;
+    }
+
+    const decompResult = result.decomposition;
+    setDecompositionData(decompResult);
+    await saveStepData("decomposition", decompResult, analysisId!);
+    updateStatus("decompose", "done");
+    onStepComplete?.("decompose");
+    onRecompute?.();
+    return decompResult;
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete, onRecompute]);
+
+  const runDisrupt = useCallback(async (product: any, extractedContext: string, decompResult?: unknown): Promise<unknown> => {
     if (businessAnalysisData) {
       console.log("[Pipeline] Reusing businessAnalysisData as disrupt step (skipping redundant AI call)");
       const result = businessAnalysisData;
