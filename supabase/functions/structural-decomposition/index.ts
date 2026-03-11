@@ -1,12 +1,11 @@
 /**
- * STRUCTURAL DECOMPOSITION — True first-principles primitive extraction
+ * STRUCTURAL DECOMPOSITION — True first-principles primitive extraction + system dynamics
  *
  * Decomposes a product, service, or business model into its irreducible
- * structural primitives BEFORE any pattern recognition or opportunity analysis.
+ * structural primitives AND system dynamics BEFORE any pattern recognition.
  *
- * Product  → Job-to-be-done, functional components, tech primitives, cost drivers, physical constraints
- * Service  → Outcome, task graph, labor inputs, tools, coordination, time constraints
- * Business → Value creation, value capture, cost structure, distribution, scaling constraints
+ * Structural Primitives: static components, costs, constraints
+ * System Dynamics: failure modes, feedback loops, bottlenecks, control points, substitution paths
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -26,6 +25,58 @@ function resolveMode(category: string): "product" | "service" | "business" {
   if (lower.includes("business") || lower.includes("model") || lower.includes("saas") || lower.includes("platform") || lower.includes("marketplace")) return "business";
   return "product";
 }
+
+// ── SYSTEM DYNAMICS SCHEMA (shared across all modes) ──
+
+const SYSTEM_DYNAMICS_SCHEMA = `"systemDynamics": {
+    "failureModes": [
+      {
+        "id": "fm_1",
+        "component": "Which structural primitive fails (reference a component/task/resource above)",
+        "mode": "How it fails — the specific failure mechanism",
+        "cascadeEffect": "What breaks downstream when this fails",
+        "frequency": "rare|occasional|frequent",
+        "detectability": "obvious|hidden|delayed"
+      }
+    ],
+    "feedbackLoops": [
+      {
+        "id": "fl_1",
+        "name": "Name of the feedback loop",
+        "type": "reinforcing|balancing",
+        "components": ["id_1", "id_2"],
+        "mechanism": "How the loop works — what reinforces or balances what",
+        "strength": "weak|moderate|strong"
+      }
+    ],
+    "bottlenecks": [
+      {
+        "id": "bn_1",
+        "location": "Which primitive or process is the bottleneck",
+        "throughputLimit": "What is the throughput ceiling and in what units",
+        "cause": "Root cause of the bottleneck",
+        "workaround": "Current workaround if any, or 'none'"
+      }
+    ],
+    "controlPoints": [
+      {
+        "id": "cp_1",
+        "point": "What is controlled or gatekept",
+        "leverageType": "gatekeeping|pricing|quality|access|information",
+        "controller": "Who or what controls this point",
+        "switchability": "locked|negotiable|open"
+      }
+    ],
+    "substitutionPaths": [
+      {
+        "id": "sp_1",
+        "target": "Which primitive could be replaced",
+        "substitute": "What could replace it",
+        "feasibility": "ready|emerging|theoretical",
+        "tradeoff": "What you gain and lose from the substitution"
+      }
+    ]
+  }`;
 
 // ── MODE-SPECIFIC PROMPTS ──
 
@@ -72,7 +123,8 @@ const PRODUCT_SCHEMA = `{
       "bindingStrength": 8,
       "challengeable": false
     }
-  ]
+  ],
+  ${SYSTEM_DYNAMICS_SCHEMA}
 }`;
 
 const SERVICE_SCHEMA = `{
@@ -130,7 +182,8 @@ const SERVICE_SCHEMA = `{
       "bindingStrength": 7,
       "challengeable": true
     }
-  ]
+  ],
+  ${SYSTEM_DYNAMICS_SCHEMA}
 }`;
 
 const BUSINESS_SCHEMA = `{
@@ -175,7 +228,8 @@ const BUSINESS_SCHEMA = `{
       "bindingStrength": 7,
       "challengeable": true
     }
-  ]
+  ],
+  ${SYSTEM_DYNAMICS_SCHEMA}
 }`;
 
 serve(async (req) => {
@@ -211,16 +265,18 @@ serve(async (req) => {
       if (intelParts.length > 0) contextBlock += `\n\nUpstream Intelligence:\n${intelParts.join("\n")}`;
     }
 
-    const systemPrompt = `You are a structural decomposition engine. Your ONLY job is to decompose a ${modeLabel} into its irreducible structural primitives.
+    const systemPrompt = `You are a structural decomposition engine. Your job is to decompose a ${modeLabel} into TWO layers:
+1. STRUCTURAL PRIMITIVES — the irreducible static components of the system
+2. SYSTEM DYNAMICS — how those components interact, fail, and evolve over time
 
 CRITICAL RULES:
-- You are performing DECOMPOSITION, not analysis. Break the system into its fundamental parts.
+- You are performing DECOMPOSITION, not analysis. Break the system into its fundamental parts AND map how they behave.
 - Every primitive must be SPECIFIC to this exact ${modeLabel.toLowerCase()}, not generic.
 - Do NOT suggest improvements, opportunities, or changes. Only describe what EXISTS.
 - Do NOT use placeholder text. Every field must contain real, specific information.
 - Components must be genuinely irreducible — if it can be broken down further, break it down.
 - Use real technology names, real material names, real cost categories.
-- Ground everything in the actual entity provided, not in what a generic ${modeLabel.toLowerCase()} might look like.
+- Ground everything in the actual entity provided.
 
 ${mode === "product" ? `PRODUCT DECOMPOSITION MANDATE:
 - jobToBeDone: Use Clayton Christensen's Jobs framework. The job is what the CUSTOMER hires this product to do.
@@ -244,6 +300,14 @@ ${mode === "business" ? `BUSINESS MODEL DECOMPOSITION MANDATE:
 - distribution: How do customers actually find and access this? What channels exist?
 - scalingConstraints: What limits growth? Capital, talent, regulation, technology, coordination?` : ""}
 
+SYSTEM DYNAMICS MANDATE (REQUIRED for all modes):
+- failureModes: How does each critical component FAIL? What cascades when it does? How detectable is the failure?
+- feedbackLoops: What reinforcing loops accelerate growth or decline? What balancing loops maintain equilibrium? Reference specific component IDs.
+- bottlenecks: Where does throughput hit a ceiling? What causes it? What workarounds exist?
+- controlPoints: Who or what gatekeeps critical resources, pricing, quality, access, or information? How locked-in are they?
+- substitutionPaths: Which primitives could be replaced with alternatives? What's the feasibility and tradeoff?
+- Generate at least 2-3 items per dynamics category. These must reference SPECIFIC structural primitives from above.
+
 Respond ONLY with a single valid JSON object matching this schema:
 ${schema}`;
 
@@ -257,10 +321,10 @@ ${schema}`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Decompose this ${modeLabel.toLowerCase()} into its structural primitives:\n${contextBlock}` },
+          { role: "user", content: `Decompose this ${modeLabel.toLowerCase()} into its structural primitives AND system dynamics:\n${contextBlock}` },
         ],
         temperature: 0.3,
-        max_tokens: 4000,
+        max_tokens: 6000,
       }),
     });
 
@@ -280,7 +344,6 @@ ${schema}`;
     try {
       decomposition = JSON.parse(rawContent);
     } catch (parseErr) {
-      // Try to extract JSON from the response
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         decomposition = JSON.parse(jsonMatch[0]);
@@ -290,10 +353,21 @@ ${schema}`;
       }
     }
 
-    // Ensure mode is set
+    // Ensure mode is set and systemDynamics exists
     decomposition.mode = mode;
+    if (!decomposition.systemDynamics) {
+      decomposition.systemDynamics = {
+        failureModes: [],
+        feedbackLoops: [],
+        bottlenecks: [],
+        controlPoints: [],
+        substitutionPaths: [],
+      };
+    }
 
-    console.log(`[structural-decomposition] ${mode} decomposition complete — ${JSON.stringify(decomposition).length} bytes`);
+    console.log(`[structural-decomposition] ${mode} decomposition complete — ${JSON.stringify(decomposition).length} bytes, dynamics: ${
+      (decomposition.systemDynamics.failureModes?.length || 0) + (decomposition.systemDynamics.feedbackLoops?.length || 0) + (decomposition.systemDynamics.bottlenecks?.length || 0)
+    } items`);
 
     return new Response(
       JSON.stringify({ success: true, decomposition }),

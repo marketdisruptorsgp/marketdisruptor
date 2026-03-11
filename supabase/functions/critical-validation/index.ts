@@ -46,9 +46,14 @@ CORE PRINCIPLES:
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
 ${structuralDecomposition ? `
-STRUCTURAL DECOMPOSITION (use as grounding for your stress test):
-Ground your Red Team attacks and Green Team defenses in these actual structural primitives — reference specific components, cost drivers, and constraints:
-${JSON.stringify(structuralDecomposition, null, 1).slice(0, 2500)}
+STRUCTURAL DECOMPOSITION + SYSTEM DYNAMICS (use as grounding for your stress test):
+Ground your Red Team attacks and Green Team defenses in these actual structural primitives AND system dynamics. Reference specific:
+- FAILURE MODES: What components fail and cascade? Use these as Red Team attack vectors.
+- BOTTLENECKS: Where throughput is limited — stress test scalability claims against these.
+- CONTROL POINTS: Who gatekeeps critical resources? Attack or defend based on switchability.
+- FEEDBACK LOOPS: Which reinforcing loops could accelerate success or doom the concept?
+- SUBSTITUTION PATHS: What could replace key primitives? These are both threats and opportunities.
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 3500)}
 ` : ''}
 
 

@@ -53,8 +53,9 @@ CORE PRINCIPLES:
 - Never present modeled or inferred data as verified fact
 ${structuralDecomposition ? `
 STRUCTURAL DECOMPOSITION (UPSTREAM — use as your foundation):
-The following structural primitives have been extracted from the entity. Use these as your reasoning foundation — do NOT override or contradict these primitives. Build your analysis ON TOP of them:
-${JSON.stringify(structuralDecomposition, null, 1).slice(0, 3000)}
+The following structural primitives AND system dynamics have been extracted from the entity. Use these as your reasoning foundation — do NOT override or contradict these primitives. Build your analysis ON TOP of them.
+IMPORTANT: When identifying hidden assumptions, reference specific FAILURE MODES, FEEDBACK LOOPS, and CONTROL POINTS from the system dynamics. These reveal where the system is fragile and where assumptions are most vulnerable.
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 4000)}
 ` : ''}
 
 
