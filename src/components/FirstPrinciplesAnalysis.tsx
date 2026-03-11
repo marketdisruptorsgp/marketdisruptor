@@ -99,18 +99,30 @@ export const FirstPrinciplesAnalysis = ({
           gapAnalysis: product.patentData.gapAnalysis,
         };
       }
-      const requestBody: Record<string, unknown> = {
-        product, userSuggestions: rerunSuggestions || undefined,
-        adaptiveContext: analysisCtx.adaptiveContext || undefined,
-        upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
-      };
+
+      // ── USE SPLIT PIPELINE: transformation-engine for disrupt, concept-architecture for redesign ──
       if (renderMode === "redesign") {
-        requestBody.insightPreferences = analysisCtx.insightPreferences;
-        requestBody.userScores = analysisCtx.userScores;
-        requestBody.steeringText = analysisCtx.steeringText;
+        // Redesign mode: call concept-architecture with existing disrupt data
+        const requestBody: Record<string, unknown> = {
+          product,
+          viableTransformations: [],
+          allClusters: [],
+          hiddenAssumptions: null,
+          flippedLogic: null,
+        };
         if (analysisCtx.disruptData) {
           const dd = analysisCtx.disruptData as Record<string, unknown>;
-          requestBody.disruptContext = { hiddenAssumptions: dd.hiddenAssumptions || null, flippedLogic: dd.flippedLogic || null };
+          requestBody.hiddenAssumptions = dd.hiddenAssumptions || null;
+          requestBody.flippedLogic = dd.flippedLogic || null;
+          // Filter viable transformations
+          if (Array.isArray(dd.structuralTransformations)) {
+            requestBody.viableTransformations = (dd.structuralTransformations as any[]).filter(
+              (t: any) => !t.filtered && (t.viabilityGate?.compositeScore ?? 5) >= 2.5
+            );
+          }
+          if (Array.isArray(dd.transformationClusters)) {
+            requestBody.allClusters = dd.transformationClusters;
+          }
         }
         if (analysisCtx.governedData) {
           requestBody.governedContext = {
@@ -119,31 +131,56 @@ export const FirstPrinciplesAnalysis = ({
             root_hypotheses: analysisCtx.governedData.root_hypotheses,
           };
         }
-      }
-      if (analysisCtx.activeBranchId && analysisCtx.governedData) {
-        const { getBranchPayload } = await import("@/lib/branchContext");
-        const branchPayload = getBranchPayload(analysisCtx.governedData, analysisCtx.activeBranchId, analysisCtx.strategicProfile);
-        if (branchPayload) requestBody.activeBranch = branchPayload;
-      }
-      const { data: result, error } = await invokeWithTimeout("first-principles-analysis", { body: requestBody }, 180_000);
+        requestBody.decomposition = analysisCtx.decompositionData || undefined;
+        requestBody.insightPreferences = analysisCtx.insightPreferences;
+        requestBody.userScores = analysisCtx.userScores;
+        requestBody.steeringText = analysisCtx.steeringText;
 
-      if (error || !result?.success) {
-        const msg = result?.error || error?.message || "Analysis failed";
-        if (msg.includes("Rate limit") || msg.includes("429")) {
-          toast.error("Rate limit hit — please wait a moment and try again.");
-        } else if (msg.includes("credits") || msg.includes("402")) {
-          toast.error("Analysis credits exhausted — add credits in Settings → Workspace → Usage.");
-        } else {
-          toast.error("First principles analysis failed: " + msg);
+        const { data: result, error } = await invokeWithTimeout("concept-architecture", { body: requestBody }, 180_000);
+        if (error || !result?.success) {
+          const msg = result?.error || error?.message || "Redesign failed";
+          toast.error("Redesign failed: " + msg);
+          return;
         }
-        return;
-      }
+        setData(result.analysis);
+        onDataLoaded?.(result.analysis);
+        setActiveStep("flip");
+        toast.success("Redesign concept generated!");
+      } else {
+        // Disrupt mode: call transformation-engine
+        const requestBody: Record<string, unknown> = {
+          product,
+          upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
+          adaptiveContext: analysisCtx.adaptiveContext || undefined,
+          structuralDecomposition: analysisCtx.decompositionData || undefined,
+        };
+        if (analysisCtx.activeBranchId && analysisCtx.governedData) {
+          const { getBranchPayload } = await import("@/lib/branchContext");
+          const branchPayload = getBranchPayload(analysisCtx.governedData, analysisCtx.activeBranchId, analysisCtx.strategicProfile);
+          if (branchPayload) requestBody.activeBranch = branchPayload;
+        }
 
-      setData(result.analysis);
-      onDataLoaded?.(result.analysis);
-      setActiveStep(renderMode === "redesign" ? "flip" : "assumptions");
-      toast.success("Disrupt analysis complete!");
-      // Data already saved via onDataLoaded callback
+        const { data: result, error } = await invokeWithTimeout("transformation-engine", { body: requestBody }, 180_000);
+        if (error || !result?.success) {
+          const msg = result?.error || error?.message || "Analysis failed";
+          if (msg.includes("Rate limit") || msg.includes("429")) {
+            toast.error("Rate limit hit — please wait a moment and try again.");
+          } else if (msg.includes("credits") || msg.includes("402")) {
+            toast.error("Analysis credits exhausted — add credits in Settings → Workspace → Usage.");
+          } else {
+            toast.error("Structural analysis failed: " + msg);
+          }
+          return;
+        }
+        setData(result.analysis);
+        onDataLoaded?.(result.analysis);
+        // Extract governed data
+        if (result.analysis?.governed) {
+          analysisCtx.setGovernedData(result.analysis.governed);
+        }
+        setActiveStep("assumptions");
+        toast.success("Structural analysis complete!");
+      }
     } catch (err) {
       toast.error("Unexpected error: " + String(err));
     } finally {
