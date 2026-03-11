@@ -455,6 +455,21 @@ const ConceptCard = memo(function ConceptCard({
                   </div>
                 )}
 
+              {/* Breakthrough Metric Badge */}
+              {concept.breakthrough_metric && (
+                <BreakthroughMetricBadge metric={concept.breakthrough_metric} />
+              )}
+
+              {/* System Architecture */}
+              {concept.system_architecture && concept.system_architecture.nodes?.length > 0 && (
+                <SystemArchitectureDiagram architecture={concept.system_architecture} />
+              )}
+
+              {/* Performer Network */}
+              {concept.performer_network && concept.performer_network.length > 0 && (
+                <PerformerNetworkPanel performers={concept.performer_network} />
+              )}
+
               {/* DFM Notes */}
               {concept.dfm_notes && (
                 <div>
