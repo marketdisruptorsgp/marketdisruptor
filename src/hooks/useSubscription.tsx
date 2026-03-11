@@ -135,7 +135,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
       // Delay to let Stripe process
-      setTimeout(checkSubscription, 2000);
+      setTimeout(() => checkSubscription(true), 2000);
     }
   }, [checkSubscription]);
 
