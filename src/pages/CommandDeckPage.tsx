@@ -252,7 +252,7 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => { setIsRecomputing(false); toast.success(`Strategic scenario updated`); }, 1000);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis, activeChallenges, narrative]);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis, activeChallenges, narrative]);
 
   const handleResetScenario = useCallback(() => {
