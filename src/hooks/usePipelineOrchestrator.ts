@@ -442,21 +442,38 @@ export function usePipelineOrchestrator(
         updateStatus("redesign", "done");
       }
 
-      // Steps 3 & 4: Stress Test + Pitch — RUN IN PARALLEL
-      setCurrentStep("stressTest");
-      const [stressSettled, pitchSettled] = await Promise.allSettled([
-        runStressTest(product, extractedContext, disruptResult, redesignResult, decompResult),
-        runPitch(product, extractedContext, disruptResult, redesignResult, null),
-      ]);
+      // Steps 3 & 4: Stress Test + Pitch — RUN IN PARALLEL (skip if already exist)
+      const needsStress = !stressTestData;
+      const needsPitch = !pitchDeckData;
 
-      const stressResult = stressSettled.status === "fulfilled" ? stressSettled.value : null;
-      const _pitchResult = pitchSettled.status === "fulfilled" ? pitchSettled.value : null;
+      if (needsStress || needsPitch) {
+        setCurrentStep("stressTest");
+        const promises: Promise<unknown>[] = [];
+        if (needsStress) {
+          promises.push(runStressTest(product, extractedContext, disruptResult, redesignResult, decompResult));
+        } else {
+          updateStatus("stressTest", "done");
+          promises.push(Promise.resolve(stressTestData));
+        }
+        if (needsPitch) {
+          promises.push(runPitch(product, extractedContext, disruptResult, redesignResult, null));
+        } else {
+          updateStatus("pitch", "done");
+          promises.push(Promise.resolve(pitchDeckData));
+        }
 
-      if (stressSettled.status === "rejected") {
-        console.error("[Pipeline] Stress test rejected:", stressSettled.reason);
-      }
-      if (pitchSettled.status === "rejected") {
-        console.error("[Pipeline] Pitch rejected:", pitchSettled.reason);
+        const [stressSettled, pitchSettled] = await Promise.allSettled(promises);
+
+        if (stressSettled.status === "rejected") {
+          console.error("[Pipeline] Stress test rejected:", stressSettled.reason);
+        }
+        if (pitchSettled.status === "rejected") {
+          console.error("[Pipeline] Pitch rejected:", pitchSettled.reason);
+        }
+      } else {
+        console.log("[Pipeline] All steps already complete — skipping");
+        updateStatus("stressTest", "done");
+        updateStatus("pitch", "done");
       }
 
     } catch (err) {
@@ -475,7 +492,7 @@ export function usePipelineOrchestrator(
         toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, pitchDeckData, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
 
   // ── Retry a single failed step ──
   const retryStep = useCallback(async (stepKey: string) => {
