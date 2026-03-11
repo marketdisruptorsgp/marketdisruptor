@@ -25,6 +25,7 @@ export interface HydrationSetters {
   setLoadedFromSaved: (b: boolean) => void;
 
   // Step data
+  setDecompositionData: (d: unknown) => void;
   setDisruptData: (d: unknown) => void;
   setStressTestData: (d: unknown) => void;
   setPitchDeckData: (d: unknown) => void;
