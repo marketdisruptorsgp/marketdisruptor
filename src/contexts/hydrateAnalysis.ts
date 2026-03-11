@@ -168,6 +168,7 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   setters.setPitchDeckData(ad?.pitchDeck || null);
   setters.setBusinessStressTestData(ad?.businessStressTest || null);
   setters.setRedesignData(ad?.redesign || null);
+  setters.setConceptsData(ad?.concepts || null);
   setters.setGeoData(ad?.geoOpportunity || null);
   setters.setRegulatoryData(ad?.regulatoryContext || null);
   setters.setUserScores(ad?.userScores ? (ad.userScores as Record<string, Record<string, number>>) : {});
