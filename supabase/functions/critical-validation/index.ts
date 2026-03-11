@@ -19,7 +19,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx, competitorIntel } = await req.json();
+    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx, competitorIntel, structuralDecomposition } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const mode = resolveMode(product.analysisType, product.category);
