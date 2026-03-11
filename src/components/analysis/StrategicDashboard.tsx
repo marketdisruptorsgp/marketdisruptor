@@ -601,12 +601,12 @@ export const StrategicDashboard = memo(function StrategicDashboard({
 
   return (
     <div className="space-y-4">
-      {/* Row 1: Metrics */}
+      {/* Row 1: Metrics — user-friendly labels, no dev scores */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricTile label="Total Insights" value={totalInsights} icon={Target} color={accentColor} delay={0} />
+        <MetricTile label="Insights Found" value={totalInsights} icon={Target} color={accentColor} delay={0} />
         <MetricTile label="Constraints" value={constraintCount} icon={Shield} color="hsl(0 72% 52%)" delay={0.05} />
-        <MetricTile label="Opp. Score" value={oppScore} icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.1} />
-        <MetricTile label="Pipeline" value={`${completionPct}%`} icon={Zap} color="hsl(38 92% 50%)" delay={0.15} />
+        <MetricTile label="Opportunities" value={commandDeck?.topOpportunities.length ?? graphOppCount} icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.1} />
+        <MetricTile label="Analysis" value={completionPct >= 80 ? "Ready" : `${completionPct}%`} icon={Zap} color="hsl(38 92% 50%)" delay={0.15} />
       </div>
 
       {/* Row 2: Constraint Radar + Opportunity Landscape */}
