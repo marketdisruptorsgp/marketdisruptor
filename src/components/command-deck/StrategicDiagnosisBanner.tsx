@@ -79,10 +79,12 @@ export const StrategicDiagnosisBanner = memo(function StrategicDiagnosisBanner(p
   const { confidence, completedSteps } = props;
   const rationale = props.rationale ? trimAt(props.rationale, 250) : null;
   const verdict = props.verdict ? humanizeLabel(props.verdict) : null;
+  const verdictRationale = props.verdictRationale ? trimAt(props.verdictRationale, 350) : null;
+  const whyThisMatters = props.whyThisMatters ? trimAt(props.whyThisMatters, 350) : null;
 
   const sentence = useMemo(
-    () => buildDiagnosisSentence(constraint, rationale, verdict, opportunity, completedSteps),
-    [constraint, rationale, verdict, opportunity, completedSteps],
+    () => buildDiagnosisSentence(constraint, rationale, verdict, opportunity, verdictRationale, whyThisMatters, completedSteps),
+    [constraint, rationale, verdict, opportunity, verdictRationale, whyThisMatters, completedSteps],
   );
 
   const tag = confidenceTag(confidence);
