@@ -515,8 +515,8 @@ export default function CommandDeckPage() {
 
         {/* ═══ DEAL METRICS STRIP ═══ */}
         <DealMetricsStrip
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
+          biExtraction={biExtraction}
+          governedData={governedDataTyped}
         />
 
         {/* ═══ PIPELINE PROGRESS (auto-run) ═══ */}
@@ -577,32 +577,21 @@ export default function CommandDeckPage() {
           </div>
         )}
 
-        {/* ═══ DOCUMENT INTELLIGENCE HEALTH ═══ */}
-        <DocumentIntelligenceBanner
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
-          adaptiveContextLoaded={!!analysis.adaptiveContext}
-        />
-
-        {/* ═══ PIPELINE DATA HEALTH ═══ */}
-        <PipelineDataHealth
-          product={selectedProduct as Record<string, any> | null}
-          decompositionData={analysis.decompositionData}
-          disruptData={analysis.disruptData}
-          redesignData={analysis.redesignData}
-          stressTestData={analysis.stressTestData}
-          pitchDeckData={analysis.pitchDeckData}
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
-          businessAnalysisData={analysis.businessAnalysisData as Record<string, any> | null}
-        />
-
         {/* ═══ SCENARIO BANNER (only when active) ═══ */}
         <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
         <DeltaChanges deltas={deltaChanges} />
 
         {/* ══════════════════════════════════════════════════════════
-            SECTION 1 — DIAGNOSIS
+            SECTION 1 — THE AHA MOMENT
+            Contrarian Insight first — this is why the user is here
+           ══════════════════════════════════════════════════════════ */}
+        <ContrarianInsightCard
+          thesis={primaryThesis}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 2 — DIAGNOSIS
             What we found: the core constraint and why it matters
            ══════════════════════════════════════════════════════════ */}
         <SoWhatHeader
@@ -622,12 +611,6 @@ export default function CommandDeckPage() {
           completedSteps={completedSteps.size}
         />
 
-        {/* Contrarian Insight — The "aha moment" */}
-        <ContrarianInsightCard
-          thesis={primaryThesis}
-          modeAccent={modeAccent}
-        />
-
         {/* Why This Matters — attached to diagnosis */}
         {primaryThesis?.whyThisMatters && (
           <div
@@ -638,9 +621,9 @@ export default function CommandDeckPage() {
           </div>
         )}
 
-        {/* CIM Key Findings — extracted constraints with evidence */}
+        {/* CIM Key Findings — extracted constraints & opportunities with evidence */}
         <CIMKeyFindings
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          biExtraction={biExtraction}
           modeAccent={modeAccent}
         />
 
