@@ -32,15 +32,21 @@ interface SLink {
 }
 
 const FRICTION_COLORS = {
-  high: "hsl(0 72% 52%)",
-  medium: "hsl(38 92% 50%)",
-  low: "hsl(152 60% 44%)",
+  high: "hsl(0 72% 48%)",
+  medium: "hsl(38 92% 45%)",
+  low: "hsl(152 60% 38%)",
+} as const;
+
+const FRICTION_COLORS_BRIGHT = {
+  high: "hsl(0 80% 58%)",
+  medium: "hsl(38 95% 55%)",
+  low: "hsl(152 65% 48%)",
 } as const;
 
 const FRICTION_BG = {
-  high: "hsl(0 72% 52% / 0.12)",
-  medium: "hsl(38 92% 50% / 0.12)",
-  low: "hsl(152 60% 44% / 0.12)",
+  high: "hsl(0 72% 48% / 0.15)",
+  medium: "hsl(38 92% 45% / 0.15)",
+  low: "hsl(152 60% 38% / 0.15)",
 } as const;
 
 function truncate(text: string, max: number): string {
