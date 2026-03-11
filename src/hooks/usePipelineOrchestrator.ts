@@ -506,6 +506,9 @@ export function usePipelineOrchestrator(
         case "stressTest":
           await runStressTest(product, extractedContext, disruptData, decompositionData);
           break;
+        case "concepts":
+          await runConceptSynthesis(product, disruptData, decompositionData);
+          break;
         case "pitch":
           await runPitch(product, extractedContext, disruptData, stressTestData);
           break;
