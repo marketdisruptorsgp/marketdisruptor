@@ -89,7 +89,6 @@ export function usePipelineOrchestrator(
     setGovernedData, saveStepData, markStepOutdated, clearStepOutdated,
     conceptsData, setConceptsData,
   } = analysis;
-  } = analysis;
 
   const businessAnalysisData = (analysis as any).businessAnalysisData;
   const businessModelInput = (analysis as any).businessModelInput as { type?: string; description?: string } | null;
