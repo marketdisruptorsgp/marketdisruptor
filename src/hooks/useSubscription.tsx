@@ -92,14 +92,24 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [usage, setUsage] = useState({ total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 });
   const [loading, setLoading] = useState(true);
 
-  const checkSubscription = useCallback(async () => {
+  const lastCheckRef = useRef<number>(0);
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+  const checkSubscription = useCallback(async (force = false) => {
     if (!user) {
+      setLoading(false);
+      return;
+    }
+    // Skip if checked recently (unless forced)
+    const now = Date.now();
+    if (!force && lastCheckRef.current && (now - lastCheckRef.current) < CACHE_TTL_MS) {
       setLoading(false);
       return;
     }
     try {
       const { data, error } = await supabase.functions.invoke("check-subscription");
       if (error) throw error;
+      lastCheckRef.current = Date.now();
       setTier(data.tier || "explorer");
       setSubscribed(data.subscribed || false);
       setSubscriptionEnd(data.subscription_end || null);
@@ -113,8 +123,8 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     checkSubscription();
-    // Re-check every 60s
-    const interval = setInterval(checkSubscription, 60000);
+    // Re-check every 5 minutes (matches cache TTL)
+    const interval = setInterval(() => checkSubscription(true), CACHE_TTL_MS);
     return () => clearInterval(interval);
   }, [checkSubscription]);
 
