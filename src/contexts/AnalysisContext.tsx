@@ -244,6 +244,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<string>("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
+  const [decompositionData, setDecompositionData] = useState<unknown>(null);
   const [disruptData, setDisruptData] = useState<unknown>(null);
   const [stressTestData, setStressTestData] = useState<unknown>(null);
   const [stressTestTab, setStressTestTab] = useState<"debate" | "validate">("debate");
