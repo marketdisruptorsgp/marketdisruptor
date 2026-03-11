@@ -161,6 +161,11 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     };
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {
+      // Deduplicate: skip if a newer run has been triggered
+      if (thisRunId !== runIdRef.current) {
+        console.log("[StrategicEngine] Skipping stale run result (run", thisRunId, "superseded by", runIdRef.current, ")");
+        return;
+      }
       setIntelligence(newIntelligence);
       setStructuralProfile(result.structuralProfile ?? null);
       setGraph(result.graph);
