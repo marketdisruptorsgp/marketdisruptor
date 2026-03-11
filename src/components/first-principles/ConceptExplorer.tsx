@@ -11,7 +11,6 @@ import {
   Rocket, Factory, Truck, Network,
 } from "lucide-react";
 import type { InventionConcept, ConceptSynthesisResult, BreakthroughMetric, PerformerMapping, SystemArchitecture } from "./types";
-import type { InventionConcept, ConceptSynthesisResult } from "./types";
 import { PERSONA_LENS_META } from "./types";
 
 interface ConceptExplorerProps {
