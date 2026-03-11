@@ -4,7 +4,7 @@
  * Clean, advisor-grade layout with no developer terminology.
  */
 
-import { memo, useState } from "react";
+import { memo, useState, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, ChevronDown, ChevronUp, Building2, TrendingUp } from "lucide-react";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
@@ -17,19 +17,16 @@ interface OpportunityDirectionsGridProps {
   modeAccent: string;
 }
 
-function OpportunityCard({
-  opp,
-  index,
-  modeAccent,
-}: {
+const OpportunityCard = forwardRef<HTMLDivElement, {
   opp: DeepenedOpportunity;
   index: number;
   modeAccent: string;
-}) {
+}>(function OpportunityCard({ opp, index, modeAccent }, ref) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.06 }}
@@ -167,7 +164,7 @@ function OpportunityCard({
       </AnimatePresence>
     </motion.div>
   );
-}
+});
 
 export const OpportunityDirectionsGrid = memo(function OpportunityDirectionsGrid({
   opportunities,

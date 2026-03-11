@@ -253,11 +253,8 @@ export default function ReportPage() {
         analysisId={analysisId}
         accentColor={modeAccent}
         onRun={() => {
-          if (analysis.activeMode === "business") {
-            navigate(`/analysis/new`);
-          } else {
-            navigate(`/analysis/new`);
-          }
+          autoAnalysis.runAnalysis();
+          toast.info("Re-running strategic intelligence…");
         }}
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
