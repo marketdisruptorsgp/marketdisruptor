@@ -194,8 +194,8 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
                   d={linkPath(link) || ""}
                   fill="none"
                   stroke={LINK_COLORS[linkType]}
-                  strokeWidth={Math.max(link.width || 1, 3)}
-                  strokeOpacity={connectedNodes ? (isConnected ? 0.45 : 0.06) : 0.2}
+                  strokeWidth={Math.max(link.width || 1, 4)}
+                  strokeOpacity={connectedNodes ? (isConnected ? 0.65 : 0.08) : 0.35}
                   style={{ transition: "stroke-opacity 0.2s" }}
                 />
               );
