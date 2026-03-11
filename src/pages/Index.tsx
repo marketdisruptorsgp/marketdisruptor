@@ -177,7 +177,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "patents" | "action" | "ideas" | "community" | "workflow">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "structure" | "pricing" | "supply" | "patents" | "action" | "ideas" | "community" | "workflow">("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
   const [visitedStressTestTabs, setVisitedStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
   const [intelRerunNotes, setIntelRerunNotes] = useState("");
