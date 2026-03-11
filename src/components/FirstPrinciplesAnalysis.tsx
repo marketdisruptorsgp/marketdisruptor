@@ -270,7 +270,6 @@ export const FirstPrinciplesAnalysis = ({
   if (renderMode === "redesign") {
     // Check if we have concept synthesis data (Invention Engine)
     const conceptsSynthesis = analysisCtx.conceptsData as ConceptSynthesisResult | null;
-    const [deepDiveConcept, setDeepDiveConcept] = useState<InventionConcept | null>(null);
 
     if (deepDiveConcept) {
       return (
