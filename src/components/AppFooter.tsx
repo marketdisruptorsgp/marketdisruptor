@@ -32,4 +32,4 @@ export const AppFooter = React.forwardRef<HTMLElement>(function AppFooter(_props
       </div>
     </footer>
   );
-}
+});
