@@ -705,6 +705,39 @@ export default function CommandDeckPage() {
         <IndustryBenchmarkPanel benchmark={benchmark} />
 
         {/* ══════════════════════════════════════════════════════════
+            REVIVAL SCORE — Overall disruption/revival potential gauge
+           ══════════════════════════════════════════════════════════ */}
+        <RevivalScoreCard
+          score={selectedProduct?.revivalScore ?? (analysis as any)?.avg_revival_score ?? null}
+          modeAccent={modeAccent}
+          narrative={narrative}
+          metrics={{
+            opportunityScore: metrics.opportunityScore,
+            leverageScore: metrics.leverageScore,
+            frictionIndex: metrics.frictionIndex,
+            riskScore: metrics.riskScore,
+          }}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            COMPETITIVE MOAT — Radar chart for defensibility
+           ══════════════════════════════════════════════════════════ */}
+        <CompetitiveMoatRadar
+          governedData={governedDataTyped}
+          narrative={narrative}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            LEVERAGE → DIRECTIONS — What unlocks what
+           ══════════════════════════════════════════════════════════ */}
+        <LeverageToDirectionsLink
+          opportunities={allOpportunities}
+          decompositionData={analysis.decompositionData}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
             DEAL-SPECIFIC SECTIONS — Only show when biExtraction has financial data
            ══════════════════════════════════════════════════════════ */}
         {biExtraction && (biExtraction.financials || biExtraction.asking_price || biExtraction.revenue_sources) && (
