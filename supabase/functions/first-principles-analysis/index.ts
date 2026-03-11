@@ -53,9 +53,28 @@ CORE PRINCIPLES:
 - Never present modeled or inferred data as verified fact
 ${structuralDecomposition ? `
 STRUCTURAL DECOMPOSITION (UPSTREAM — use as your foundation):
-The following structural primitives AND system dynamics have been extracted from the entity. Use these as your reasoning foundation — do NOT override or contradict these primitives. Build your analysis ON TOP of them.
-IMPORTANT: When identifying hidden assumptions, reference specific FAILURE MODES, FEEDBACK LOOPS, and CONTROL POINTS from the system dynamics. These reveal where the system is fragile and where assumptions are most vulnerable.
-${JSON.stringify(structuralDecomposition, null, 1).slice(0, 4000)}
+The following structural primitives, system dynamics, AND leverage analysis have been extracted from the entity. Use these as your reasoning foundation — do NOT override or contradict these primitives. Build your analysis ON TOP of them.
+
+CRITICAL — LEVERAGE-TARGETED INVERSION:
+The leverageAnalysis.leveragePrimitives array ranks which system primitives have the highest disruption potential (sorted by leverageScore descending). Each includes a bestTransformation type.
+When generating hiddenAssumptions and flippedLogic, you MUST:
+1. Target the TOP leverage primitives first — these are the highest-impact inversion targets
+2. Reference specific failure modes, feedback loops, and control points from system dynamics
+3. Ensure each flipped logic entry maps to a specific leverage primitive when possible
+
+STRUCTURAL TRANSFORMATIONS MANDATE:
+In addition to flippedLogic, generate a "structuralTransformations" array with 8-12 transformations.
+Each transformation MUST:
+- Target a specific leverage primitive from the decomposition
+- Use one of four types: elimination, substitution, reordering, aggregation
+- Include a viabilityGate assessment (technical, economic, regulatory, behavioral — each scored 1-5)
+- Be marked as filtered=true if compositeScore < 2.5 (fails viability)
+
+Generate at least 2 transformations per type (elimination, substitution, reordering, aggregation).
+
+After generating structuralTransformations, group the surviving (non-filtered) ones into 2-4 "transformationClusters" — compatible sets that could form coherent concept architectures.
+
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 5000)}
 ` : ''}
 
 
