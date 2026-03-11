@@ -173,6 +173,16 @@ export function usePipelineOrchestrator(
       console.log("[Pipeline] Reusing businessAnalysisData as synthesis step");
       setDisruptData(businessAnalysisData);
       await saveStepData("disrupt", businessAnalysisData, analysisId!);
+
+      // Also set redesignData from business analysis to prevent re-trigger loops
+      const redesignPayload = {
+        redesignedConcept: (businessAnalysisData as any)?.redesignedConcept || null,
+        visualSpecs: (businessAnalysisData as any)?.visualSpecs || null,
+        actionPlans: (businessAnalysisData as any)?.actionPlans || null,
+      };
+      setRedesignData(redesignPayload);
+      await saveStepData("redesign", redesignPayload, analysisId!);
+
       updateStatus("synthesis", "done");
       onStepComplete?.("synthesis");
       onRecompute?.();
