@@ -240,6 +240,12 @@ ${analysisData.hiddenAssumptions?.map((a: { assumption: string }) => "• " + a.
 FLIPPED LOGIC:
 ${analysisData.flippedLogic?.map((f: { originalAssumption: string; boldAlternative: string }) => "• " + f.originalAssumption + " → " + f.boldAlternative).join("\n") || "None"}
 
+STRUCTURAL TRANSFORMATIONS (viability-gated):
+${analysisData.structuralTransformations?.filter((t: any) => !t.filtered)?.map((t: any) => `• [${t.transformationType.toUpperCase()}] ${t.targetPrimitiveLabel}: ${t.currentState} → ${t.proposedState} (viability: ${t.viabilityGate?.verdict || "unknown"})`).join("\n") || "None"}
+
+TRANSFORMATION CLUSTERS:
+${analysisData.transformationClusters?.map((c: any) => `• ${c.name}: ${c.description} (power: ${c.strategicPowerScore})`).join("\n") || "None"}
+
 CRITICAL INSTRUCTIONS:
 1. RED TEAM: Be SPECIFIC. Every attack must name a real competitor, cite a real market data point, or identify a specific technical constraint. NO generic dismissals.
 2. GREEN TEAM: Be EVIDENCE-BASED. Every defense must cite a real analogous success (company name, revenue/growth data, year).
