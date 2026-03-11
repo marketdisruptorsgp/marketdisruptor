@@ -1,7 +1,10 @@
-import { useState } from "react";
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
+import { useState, forwardRef } from "react";
+import { RadarChart, PolarGrid as RawPolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 import { ChevronDown, ChevronUp, TrendingUp, ShieldAlert, Target, Zap, DollarSign, Layers } from "lucide-react";
 import { InfoExplainer } from "@/components/InfoExplainer";
+
+// Wrap PolarGrid to suppress ref warning (Recharts function component issue)
+const PolarGrid = forwardRef<any, any>((props, _ref) => <RawPolarGrid {...props} />);
 
 interface SavedAnalysis {
   id: string;

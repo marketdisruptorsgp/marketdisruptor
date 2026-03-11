@@ -17,7 +17,6 @@ import { Target, Atom, Lightbulb, GitBranch, Brain, Shield } from "lucide-react"
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
-import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 
@@ -136,21 +135,16 @@ export default function DisruptPage() {
       />
 
 
-      {/* ── Loading Tracker ── */}
-      {analysisLoading && (
+      {/* ── Loading Tracker (matches Redesign quality) ── */}
+      {(analysisLoading || (!hasDisruptData)) && (
         <AnalysisLoadingCard>
           <StepLoadingTracker
             title="Building Structural Analysis"
             tasks={DISRUPT_TASKS}
-            estimatedSeconds={50}
+            estimatedSeconds={120}
             accentColor="hsl(271 81% 55%)"
           />
         </AnalysisLoadingCard>
-      )}
-
-      {/* ── Processing State ── */}
-      {!analysisLoading && !hasDisruptData && (
-        <PipelineProcessingState stepKey="disrupt" />
       )}
 
       {/* ── Tab Content ── */}
