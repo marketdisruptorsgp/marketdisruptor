@@ -51,6 +51,8 @@ import { PostClosePlaybook } from "@/components/command-deck/PostClosePlaybook";
 import { CIMComparisonMode } from "@/components/command-deck/CIMComparisonMode";
 import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIntelligenceBanner";
 import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth";
+import { CIMKeyFindings } from "@/components/command-deck/CIMKeyFindings";
+import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
