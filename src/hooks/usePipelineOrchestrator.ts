@@ -286,9 +286,9 @@ export function usePipelineOrchestrator(
     clearStepOutdated("stressTest");
     updateStatus("stressTest", "done");
     onStepComplete?.("stressTest");
-    onRecompute?.();
+    // DON'T call onRecompute here — wait until pipeline is fully complete
     return stressResult;
-  }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+  }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Phase 3: Pitch (background enrichment) ──
 
