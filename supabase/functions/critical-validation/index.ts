@@ -45,6 +45,11 @@ CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
+${structuralDecomposition ? `
+STRUCTURAL DECOMPOSITION (use as grounding for your stress test):
+Ground your Red Team attacks and Green Team defenses in these actual structural primitives — reference specific components, cost drivers, and constraints:
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 2500)}
+` : ''}
 
 
 OUTPUT RULES:
