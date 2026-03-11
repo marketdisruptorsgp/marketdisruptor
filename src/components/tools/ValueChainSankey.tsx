@@ -2,9 +2,10 @@
  * ValueChainSankey — D3-powered Sankey diagram for governed value chain stages
  * Renders product-specific stages with friction-coded ribbons, cost shares, and actor details.
  */
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { sankey, sankeyLinkHorizontal, sankeyJustify } from "d3-sankey";
 import { motion, AnimatePresence } from "framer-motion";
+import { X, Trash2 } from "lucide-react";
 
 export interface ValueChainStage {
   id: string;
