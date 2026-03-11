@@ -241,7 +241,7 @@ FLIPPED LOGIC:
 ${analysisData.flippedLogic?.map((f: { originalAssumption: string; boldAlternative: string }) => "• " + f.originalAssumption + " → " + f.boldAlternative).join("\n") || "None"}
 
 STRUCTURAL TRANSFORMATIONS (viability-gated):
-${analysisData.structuralTransformations?.filter((t: any) => !t.filtered)?.map((t: any) => `• [${(t.transformationType || "unknown").toUpperCase()}] ${t.targetPrimitiveLabel || "?"}: ${t.currentState || "?"} → ${t.proposedState || "?"} (viability: ${t.viabilityGate?.verdict || "unknown"})`).join("\n") || "None"}
+${analysisData.structuralTransformations?.filter((t: any) => !t?.filtered)?.map((t: any) => `• [${String(t?.transformationType ?? "unknown").toUpperCase()}] ${String(t?.targetPrimitiveLabel ?? "?")}: ${String(t?.currentState ?? "?")} → ${String(t?.proposedState ?? "?")} (viability: ${String(t?.viabilityGate?.verdict ?? "unknown")})`).join("\n") || "None"}
 
 TRANSFORMATION CLUSTERS:
 ${analysisData.transformationClusters?.map((c: any) => `• ${c.name}: ${c.description} (power: ${c.strategicPowerScore})`).join("\n") || "None"}
@@ -277,7 +277,7 @@ IMPORTANT: Use these real geographic data points to:
 ` : ""}
 ${regulatoryData && regulatoryData.regulatoryRelevance !== "none" ? `
 REGULATORY & LEGAL INTELLIGENCE (REAL DATA — use these in Red Team/Green Team arguments):
-- Regulatory Relevance: ${regulatoryData.regulatoryRelevance?.toUpperCase()}
+- Regulatory Relevance: ${String(regulatoryData.regulatoryRelevance ?? "unknown").toUpperCase()}
 - Regulated Category: ${regulatoryData.matchedCategory}
 - Governing Agencies: ${(regulatoryData.agencies || []).join(", ")}
 - Active Rulemaking (Federal Register): ${JSON.stringify((regulatoryData.activeRulemaking || []).slice(0, 3).map((r: any) => ({ title: r.title, type: r.type, date: r.publishedDate, agencies: r.agencyNames })))}
