@@ -245,9 +245,9 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
                     y={y0 + h / 2 + 13}
                     dy="0.35em"
                     textAnchor={isFirst ? "end" : "start"}
-                    className="text-[9px] font-extrabold"
+                    className="text-[10px] font-extrabold"
                     fill={cfg.color}
-                    fillOpacity={0.7}
+                    fillOpacity={1}
                     style={{ pointerEvents: "none" }}
                   >
                     {impactLevel(node.impact)}

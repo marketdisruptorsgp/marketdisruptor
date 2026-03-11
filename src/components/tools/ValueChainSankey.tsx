@@ -199,9 +199,9 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                   y={y0 + h / 2 + 14}
                   dy="0.35em"
                   textAnchor={i < graph.nodes.length - 1 ? "start" : "end"}
-                  className="text-[9px] font-extrabold uppercase"
+                  className="text-[10px] font-extrabold uppercase"
                   fill={FRICTION_COLORS[friction]}
-                  style={{ pointerEvents: "none" }}
+                  fillOpacity={1}
                 >
                   {friction}
                 </text>
