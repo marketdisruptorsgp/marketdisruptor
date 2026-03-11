@@ -161,9 +161,9 @@ export function usePipelineOrchestrator(
     await saveStepData("decomposition", decompResult, analysisId!);
     updateStatus("decompose", "done");
     onStepComplete?.("decompose");
-    onRecompute?.();
+    // DON'T call onRecompute here — wait until pipeline is fully complete
     return decompResult;
-  }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete, onRecompute]);
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete]);
 
   // ── Phase 2: Strategic Synthesis (replaces transform + concept) ──
 
