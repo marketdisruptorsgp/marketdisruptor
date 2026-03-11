@@ -283,7 +283,12 @@ Focus ONLY on analysis, assumptions, transformations, viability, and clustering.
       "originalAssumption": "The assumption being flipped",
       "boldAlternative": "The radical structural alternative",
       "rationale": "Why this flip creates real value",
-      "physicalMechanism": "How it would actually work physically/technically"
+      "physicalMechanism": "How it would actually work physically/technically",
+      "physicalPrinciple": "The specific physics/chemistry/materials science principle this relies on (e.g. 'capillary action', 'EPDM rubber compression set resistance', 'injection molding draft angles')",
+      "manufacturingMethod": "How this would be manufactured (e.g. 'injection molded PP', 'overmolded silicone on ABS', 'die-cast zinc alloy')",
+      "certifications": ["Required certifications/standards (e.g. 'UPC', 'ASSE 1037', 'NSF 61', 'CSA B125.1')"],
+      "bomEstimate": "Rough per-unit cost at 10K units (e.g. '$1.80-2.40/unit')",
+      "productPrecedent": "A REAL product innovation in an adjacent category that proves this approach works (e.g. 'Moen Magnetix shower head eliminated mechanical dock with magnetic mount — same principle of replacing contact seal with contactless mechanism')"
     }
   ],
   "structuralTransformations": [
@@ -370,9 +375,19 @@ ${analysisSchema}`
 - Don Norman (cognitive load, affordances, friction archaeology)
 - IDEO (user journey mapping, pain archaeology)
 
-Your mission: completely deconstruct a product and uncover radical redesign opportunities.
+Your mission: completely deconstruct a PHYSICAL PRODUCT and uncover radical redesign opportunities from an INVENTOR/ENGINEER perspective.
 Investigate friction across ALL dimensions — physical, skill, cost, safety, ecosystem, maintenance, social, workflow.
 Identify which dimensions carry the MOST friction for THIS specific product.
+
+INVENTOR/ENGINEER GROUNDING MANDATE:
+You are advising a product inventor who will PROTOTYPE and MANUFACTURE a competing product. Every output must be grounded in:
+1. PHYSICS & MATERIALS SCIENCE — Reference specific physical principles (thermodynamics, fluid dynamics, material properties, tolerances)
+2. MANUFACTURING FEASIBILITY — Specify manufacturing methods (injection molding, CNC, die casting, 3D printing for prototypes)
+3. REGULATORY/CERTIFICATION — Name specific required certifications (UPC, ASSE, NSF, CSA, UL, CE, etc.) relevant to the product category
+4. BOM REALITY — Include rough bill-of-materials cost estimates at production volumes (10K units)
+5. PRODUCT INNOVATION PRECEDENTS — Instead of business model analogs (no "Shopify for X"), reference REAL product innovations in adjacent categories that prove the physical mechanism works (e.g., "Dyson used cyclonic separation from sawmills", "Moen Magnetix replaced mechanical docks with magnets")
+6. DO NOT suggest "platformize", "marketplace", "SaaS-ify" or business model plays — focus on physical product reinvention
+7. Every flipped idea must pass the "can I build this in a garage/lab?" test — if it requires a software platform or business model change, it's not a product flip
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation.
 The JSON must follow this EXACT structure:
@@ -441,11 +456,13 @@ CRITICAL INSTRUCTIONS:
 4. SMART TECH: What could transform this?
 5. ECOSYSTEM: What dependencies constrain use?
 6. COST/MAINTENANCE: Ongoing burden?
-7. Avoid vague suggestions — every idea needs a physical mechanism
-8. VALIDATION: Reference real analogous products if possible
+7. Avoid vague suggestions — every idea needs a physical mechanism grounded in real physics/materials science
+8. PRODUCT PRECEDENTS: For each flipped idea, cite a REAL product innovation from an adjacent category (NOT business model analogs like "Uber for X" — cite actual product design innovations)
 9. DEMAND SIGNAL: Reference community complaints, behavioral trends
-10. UNIT ECONOMICS: Include BOM estimate, target retail price, margin
-11. MINIMUM COUNTS: Generate at least 5 hiddenAssumptions and at least 4 flippedLogic items
+10. UNIT ECONOMICS: Include BOM estimate per unit at 10K volume, target retail price, margin
+11. CERTIFICATIONS: Name specific industry certifications required for this product category
+12. MANUFACTURING: Specify manufacturing method for each proposed change (injection molding, overmolding, die casting, CNC, etc.)
+13. MINIMUM COUNTS: Generate at least 5 hiddenAssumptions and at least 4 flippedLogic items
 
 VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 1-2 visual specs for the dominant constraint structure
