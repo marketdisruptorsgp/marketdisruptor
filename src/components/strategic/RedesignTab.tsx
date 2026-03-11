@@ -207,22 +207,12 @@ function StrategyCardComponent({ card }: { card: StrategyCard }) {
 
 export function RedesignTab({ disruptData, hypotheses, governedData }: RedesignTabProps) {
   const analysis = useAnalysis();
-  const theme = useModeTheme();
   const conceptsSynthesis = analysis.conceptsData as ConceptSynthesisResult | null;
 
   // If Invention Engine concepts exist (Product Mode), show ConceptExplorer instead of strategies
   if (conceptsSynthesis && conceptsSynthesis.concepts?.length > 0) {
-    // Try to get the primary thesis for the Contrarian Insight Card
-    const primaryThesis = (analysis as any)?.deepenedOpportunities?.[0] ?? null;
-
     return (
       <div className="space-y-6">
-        {/* Contrarian Insight Hero — the "aha moment" at the top */}
-        <ContrarianInsightCard
-          thesis={primaryThesis}
-          modeAccent={theme.primary}
-        />
-
         <div className="px-1">
           <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">Invention Concepts</p>
           <p className="text-sm text-foreground/70 leading-relaxed">
