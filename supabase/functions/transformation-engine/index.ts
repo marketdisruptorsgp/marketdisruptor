@@ -283,7 +283,12 @@ Focus ONLY on analysis, assumptions, transformations, viability, and clustering.
       "originalAssumption": "The assumption being flipped",
       "boldAlternative": "The radical structural alternative",
       "rationale": "Why this flip creates real value",
-      "physicalMechanism": "How it would actually work physically/technically"
+      "physicalMechanism": "How it would actually work physically/technically",
+      "physicalPrinciple": "The specific physics/chemistry/materials science principle this relies on (e.g. 'capillary action', 'EPDM rubber compression set resistance', 'injection molding draft angles')",
+      "manufacturingMethod": "How this would be manufactured (e.g. 'injection molded PP', 'overmolded silicone on ABS', 'die-cast zinc alloy')",
+      "certifications": ["Required certifications/standards (e.g. 'UPC', 'ASSE 1037', 'NSF 61', 'CSA B125.1')"],
+      "bomEstimate": "Rough per-unit cost at 10K units (e.g. '$1.80-2.40/unit')",
+      "productPrecedent": "A REAL product innovation in an adjacent category that proves this approach works (e.g. 'Moen Magnetix shower head eliminated mechanical dock with magnetic mount — same principle of replacing contact seal with contactless mechanism')"
     }
   ],
   "structuralTransformations": [
