@@ -694,45 +694,33 @@ export default function CommandDeckPage() {
         <IndustryBenchmarkPanel benchmark={benchmark} />
 
         {/* ══════════════════════════════════════════════════════════
-            DEAL SCORECARD — Go/No-Go verdict with deal structure
+            DEAL-SPECIFIC SECTIONS — Only show when biExtraction has financial data
            ══════════════════════════════════════════════════════════ */}
-        <DealScorecard
-          biExtraction={biExtraction}
-          governedData={governedDataTyped}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            LOI / OFFER BUILDER — Draft letter of intent
-           ══════════════════════════════════════════════════════════ */}
-        <LOIBuilder
-          biExtraction={biExtraction}
-          governedData={governedDataTyped}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            90-DAY PLAYBOOK — Post-close action plan
-           ══════════════════════════════════════════════════════════ */}
-        <PostClosePlaybook
-          biExtraction={biExtraction}
-          governedData={governedDataTyped}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            CIM COMPARISON — Side-by-side deal comparison
-           ══════════════════════════════════════════════════════════ */}
-        <CIMComparisonMode
-          currentAnalysisId={analysisId || ""}
-          currentBiExtraction={biExtraction}
-          currentGovernedData={governedDataTyped}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            DUE DILIGENCE — Hard-hitting questions for sellers
-           ══════════════════════════════════════════════════════════ */}
-        <DueDiligenceQuestions
-          biExtraction={biExtraction}
-          governedData={governedDataTyped}
-        />
+        {biExtraction && (biExtraction.financials || biExtraction.asking_price || biExtraction.revenue_sources) && (
+          <>
+            <DealScorecard
+              biExtraction={biExtraction}
+              governedData={governedDataTyped}
+            />
+            <LOIBuilder
+              biExtraction={biExtraction}
+              governedData={governedDataTyped}
+            />
+            <PostClosePlaybook
+              biExtraction={biExtraction}
+              governedData={governedDataTyped}
+            />
+            <CIMComparisonMode
+              currentAnalysisId={analysisId || ""}
+              currentBiExtraction={biExtraction}
+              currentGovernedData={governedDataTyped}
+            />
+            <DueDiligenceQuestions
+              biExtraction={biExtraction}
+              governedData={governedDataTyped}
+            />
+          </>
+        )}
 
         {/* ══════════════════════════════════════════════════════════
             DEEP DIVE — Collapsed advanced analysis tools

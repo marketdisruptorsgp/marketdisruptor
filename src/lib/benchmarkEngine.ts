@@ -152,8 +152,9 @@ export function computeBenchmarks(
   evidence: Evidence[],
   narrative: StrategicNarrative | null,
   playbook: TransformationPlaybook | null,
+  biExtraction?: Record<string, any> | null,
 ): BenchmarkResult {
-  const arch = classifyArchetype(evidence, narrative);
+  const arch = classifyArchetype(evidence, narrative, biExtraction);
 
   // Derive actual scores from evidence + playbook
   const catCounts = new Map<string, number>();
