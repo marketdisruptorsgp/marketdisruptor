@@ -218,7 +218,7 @@ export default function CommandDeckPage() {
         geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
       });
     } catch { addEvent("Intelligence recompute completed"); }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic intelligence updated"); }, 800);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent]);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent]);
 
   const handleRecomputeAll = useCallback(() => {
