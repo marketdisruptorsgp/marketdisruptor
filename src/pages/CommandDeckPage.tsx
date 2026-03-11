@@ -273,7 +273,6 @@ export default function CommandDeckPage() {
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
-  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
   // ── Save Scenario ──
   const [savedLabScenarios, setSavedLabScenarios] = useState<ScenarioSnapshot[]>(() =>
