@@ -103,6 +103,26 @@ const LEVERAGE_ANALYSIS_SCHEMA = `"leverageAnalysis": {
     ]
   }`;
 
+// ── VALUE CHAIN SCHEMA (shared across all modes) ──
+
+const VALUE_CHAIN_SCHEMA = `"valueChain": {
+    "stages": [
+      {
+        "id": "vc_1",
+        "label": "Short name for this value chain stage (e.g. 'Raw Materials Sourcing', 'Assembly', 'Distribution')",
+        "description": "What happens at this stage — be specific to this exact product/service/business",
+        "friction": "high|medium|low — how much friction or inefficiency exists at this stage",
+        "frictionDetail": "Specific explanation of what causes friction at this stage (or why it's low friction)",
+        "costShare": "Estimated percentage of total cost attributable to this stage, e.g. '~25%'",
+        "actors": ["Who performs work at this stage — e.g. 'Supplier', 'OEM', 'Retailer'"],
+        "disintermediationPotential": "none|low|medium|high — could this stage be bypassed or collapsed?"
+      }
+    ],
+    "totalStages": 5,
+    "highestFrictionStage": "id of the stage with highest friction",
+    "primaryValueLeakage": "Where in the chain value is most lost to intermediaries, inefficiency, or margin capture"
+  }`;
+
 // ── MODE-SPECIFIC PROMPTS ──
 
 const PRODUCT_SCHEMA = `{
