@@ -1,82 +1,105 @@
+# Product Reset Plan: From Pipeline Tool → Strategic Insight Product
 
+## The Problem
+The Command Deck is currently an 812-line engineering dashboard exposing pipeline internals. A user running an analysis sees: confidence meters, reasoning stage overlays, evidence thresholds, node counts, pipeline progress bars, convergence zones, friction dashboards, provenance registries, and developer diagnostics. The *actual strategic value* — the constraint diagnosis, opportunities, and recommended moves — is buried under layers of system chrome.
 
-## Plan: Pipeline Optimization — Split, Filter, Parallelize, Compress
+## The North Star
+**User inputs a business → gets strategic insight they didn't see before.**
 
-This implements the highest-impact optimizations from the audit, targeting ~40-50% reduction in pipeline time and ~30% token savings without adding new AI calls.
+The experience should feel like receiving a strategy consultant's one-page brief, not watching an AI pipeline execute.
 
-### Changes (ordered by impact)
+## Current UI Audit (CommandDeckPage.tsx — 812 lines)
 
-**1. Split `first-principles-analysis` into two edge functions**
+### What stays (core value):
+1. **SoWhatHeader** — "Do nothing → X. Act now → Y." (Good, decision-forcing)
+2. **OneThesisCard** — Constraint → Belief → Move → Economics → First Move (Strong, this IS the product)
+3. **WhatsNextPanel** — Kill question + first move (Actionable)
 
-Create `supabase/functions/transformation-engine/index.ts`:
-- Receives: product, upstream intel, decomposition, adaptive context
-- Produces: `hiddenAssumptions`, `flippedLogic`, `structuralTransformations`, `transformationClusters`, `viabilityGate` results, `coreReality`, `frictionDimensions`, `userWorkflow`, `smartTechAnalysis`, `currentStrengths`
-- Also produces `governed` reasoning artifacts (domain_confirmation through constraint_map)
-- Model: gemini-2.5-pro, max_tokens: 16000 (down from 24000)
-- Reuses all shared utilities (modeEnforcement, reasoningFramework, governedSchema, structuredOutput, etc.)
+### What gets demoted or removed:
 
-Create `supabase/functions/concept-architecture/index.ts`:
-- Receives: product, viable transformations (pre-filtered), winning cluster, governed context, decomposition
-- Produces: `redesignedConcept`, `visualSpecs`, `actionPlans`, final governed artifacts (decision_synthesis)
-- Model: gemini-2.5-pro, max_tokens: 8000
-- Much smaller prompt — only concept generation instructions + the winning cluster context
-- No duplicate schema for assumptions/flips/transformations
+| Component | Current Role | Action |
+|---|---|---|
+| `ReasoningStagesOverlay` | Shows "Detecting patterns…" animation | **REMOVE** — internal diagnostic |
+| `RecomputeOverlay` | Loading spinner for recompute | **SIMPLIFY** — just a subtle loading state |
+| `PipelineProgress` bar | Shows 5-step pipeline completion | **REMOVE** from main view |
+| `ModeBadge` | Shows "Product/Service/Business" | **KEEP** but simplify |
+| `StrategicXRay` | Interactive reasoning chain w/ challenge mode | **MOVE** to "Deep Dive" tab |
+| `IndustrySystemMapView` | Industry map visualization | **MOVE** to "Deep Dive" tab |
+| `PowerToolsPanel` (6 tools) | Problem Statement, Current State, Scenario Sim, Scenario Lab, Outcome Sim, Lens Intelligence | **MOVE** to "Deep Dive" tab |
+| `ScenarioBanner` + `DeltaChanges` | Scenario mode UI | **MOVE** to "Deep Dive" tab |
+| `StrategicCommandDeck` component | Friction dashboard, convergence zones, opportunity landscape, constraint/leverage/opportunity 3-col grid | **REPLACE** with clean opportunity cards |
+| `ConfidenceMeter` / confidence tags | Numeric confidence display | **REMOVE** |
+| Pipeline step count ("3/5 steps") | Developer progress | **REMOVE** |
+| Signal counts, evidence counts | Developer metrics | **REMOVE** |
 
-Keep `first-principles-analysis` as-is temporarily for backward compatibility (the `FirstPrinciplesAnalysis.tsx` component calls it directly for manual re-runs). Add a deprecation log.
+## New Command Deck Layout (3 sections)
 
-Update `supabase/config.toml` with the two new functions.
+### Section 1: Diagnosis
+**What we found** — One bold sentence explaining the structural constraint.
+- Source: `narrative.primaryConstraint` + `narrative.strategicVerdict`
+- Plain English, no jargon
+- No confidence scores, no "preliminary signal" labels
 
-**2. Update orchestrator pipeline sequence**
+### Section 2: Opportunities (3–5 cards)
+**What you could do** — Multiple strategic directions derived from the constraint.
+- Each card: Title + 1-sentence explanation + "why this works"
+- Source: `autoAnalysis.deepenedOpportunities` (need to ensure we generate 3-5, not just 1-2)
+- Plain, action-oriented language
+- No impact scores, no node types
 
-Modify `usePipelineOrchestrator.ts`:
-- Step 0: `structural-decomposition` (unchanged)
-- Step 1: `transformation-engine` (replaces `first-principles-analysis` for disrupt)
-- Step 2: `concept-architecture` (replaces `first-principles-analysis` for redesign) — receives only viable transformations
-- Steps 3+4: `critical-validation` + `generate-pitch-deck` run in **parallel** via `Promise.allSettled`
+### Section 3: Recommended Move
+**What we'd do first** — The highest-leverage play with clear next step.
+- Source: Top `deepenedOpportunity` with `firstMove`
+- "Here's the move. Here's why. Here's how to start."
+- Timeline estimate in human terms
 
-The viability gate enforcement already exists in the orchestrator (lines 201-220) — it filters transformations before passing to redesign. Now the concept-architecture function receives a much smaller payload.
+### Section 4 (optional): "Show me why" link
+- Links to Deep Dive tab containing: Reasoning Map, X-Ray, Industry Map, Scenario tools
+- This is the explanation layer, NOT the product
 
-**3. Parallelize stress test + pitch**
+## Opportunity Generation Fix
+Current problem: System often produces only 1 opportunity.
+Required: Generate 3–5 meaningful opportunity directions per constraint.
 
-Change the sequential calls at lines 357-362 to:
-```
-const [stressSettled, pitchSettled] = await Promise.allSettled([
-  runStressTest(product, extractedContext, disruptResult, redesignResult, decompResult),
-  runPitch(product, extractedContext, disruptResult, redesignResult, null),
-]);
-```
-If stress test finishes first and pitch hasn't started, pass stress data to pitch. Otherwise pitch runs without stress data (it already handles this gracefully).
+### Approach:
+- Enhance `src/lib/reconfiguration.ts` to generate multiple opportunity vectors from a single constraint
+- Use different strategic lenses: automation, platform, marketplace, data, consolidation
+- Each opportunity = a different strategic path, not a variation of the same idea
 
-**4. Make decomposition mandatory with retry**
+## Language Cleanup
+All user-facing text must be rewritten:
+- "Convergence zones" → removed
+- "Evidence threshold" → removed  
+- "Node count" → removed
+- "Pipeline step" → removed
+- "Reasoning chain" → "Our analysis shows…"
+- "Leverage point" → "Key advantage"
+- "Friction index" → removed
 
-Change `runDecompose` to retry once on failure before continuing. If both attempts fail, abort pipeline with a clear error message instead of silently degrading.
+## Navigation Changes
+Current 4-page structure:
+1. Command Deck (main)
+2. Intelligence Report
+3. Reasoning Map
+4. Pitch
 
-**5. Compress inter-stage payloads**
+New structure:
+1. **Strategic Brief** (the 3-section layout above) — this IS the product
+2. **Deep Dive** (reasoning map, X-Ray, industry map, scenario tools)
+3. **Intelligence Report** (raw evidence)
+4. **Pitch** (investor-ready output)
 
-In `runDisrupt` and `runRedesign`, trim the product object before sending — strip large arrays (reviews beyond top 5, full supply chain lists beyond top 3) to reduce input tokens. Create a `compressProductPayload()` utility.
+## Implementation Order
+1. **Phase 1**: Strip Command Deck to 3 sections (diagnosis, opportunities, recommended move)
+2. **Phase 2**: Create "Deep Dive" tab and move demoted components there
+3. **Phase 3**: Fix opportunity generation to produce 3–5 per analysis
+4. **Phase 4**: Language cleanup across all user-facing components
+5. **Phase 5**: Test with real analyses to ensure consistent, useful output
 
-**6. Add early termination**
-
-After transformation-engine returns, check if all transformations were filtered (all failed viability). If so, skip concept-architecture and show a "low disruption potential" message instead of wasting a Pro call.
-
-### Files to create
-- `supabase/functions/transformation-engine/index.ts` — extracted from first-principles-analysis (assumptions, flips, transformations, viability)
-- `supabase/functions/concept-architecture/index.ts` — extracted from first-principles-analysis (concept generation only)
-
-### Files to modify
-- `supabase/config.toml` — add two new function entries
-- `src/hooks/usePipelineOrchestrator.ts` — new pipeline sequence, parallel steps 3+4, mandatory decomposition, payload compression, early termination
-- `src/components/FirstPrinciplesAnalysis.tsx` — update to call new functions for manual triggers
-- `src/utils/pipelineValidation.ts` — add new step contracts
-
-### Backward compatibility
-- `first-principles-analysis` edge function remains deployed (used by `FirstPrinciplesAnalysis.tsx` for manual re-runs)
-- All output schemas remain identical — `transformation-engine` + `concept-architecture` combined produce the same fields as the current single function
-- `flippedLogic` array preserved alongside `structuralTransformations`
-- No UI component changes needed — `FlippedLogicPanel`, `HiddenAssumptionsPanel`, `RedesignedConceptPanel` all receive the same data shapes
-
-### Expected impact
-- Pipeline time: ~4-6 min → ~2.5-3.5 min (parallel steps + smaller prompts + early termination)
-- Token usage: ~150k → ~95-110k (split prompts + payload compression + viability filtering)
-- Reliability: higher (each function has a focused prompt under 3000 tokens of schema)
-
+## Success Criteria
+- User runs analysis → reads diagnosis in 3 seconds
+- Sees 3–5 actionable opportunity directions
+- Understands the recommended move and how to start
+- Can optionally explore "why" via Deep Dive
+- Zero developer terminology visible in default view
+- No numeric scores, thresholds, or pipeline indicators

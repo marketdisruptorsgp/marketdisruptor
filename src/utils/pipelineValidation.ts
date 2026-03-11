@@ -23,6 +23,15 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
     requires: ["intelData"],
     produces: ["assumptions", "flippedIdeas", "challengeMap"],
   },
+  // New split pipeline steps
+  transformationEngine: {
+    requires: ["intelData"],
+    produces: ["assumptions", "flippedIdeas", "challengeMap", "transformations", "clusters", "viability"],
+  },
+  conceptArchitecture: {
+    requires: ["intelData", "transformationEngine"],
+    produces: ["concepts", "illustrations"],
+  },
   redesign: {
     requires: ["intelData", "disrupt"],
     produces: ["concepts", "illustrations"],
@@ -62,6 +71,8 @@ const SYSTEM_KEYS = new Set(["userScores", "outdatedSteps", "previousSnapshot", 
 const STEP_UI_LOCATION: Record<string, number> = {
   intelData: 2,
   disrupt: 3,
+  transformationEngine: 3,
+  conceptArchitecture: 4,
   redesign: 4,
   stressTest: 5,
   pitchDeck: 6,

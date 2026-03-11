@@ -1,19 +1,17 @@
 /**
  * PIPELINE ORCHESTRATOR — Auto-runs all pipeline steps after analysis creation
  *
- * When analysis reaches "done" state with a selected product but no step data,
- * this hook sequentially invokes all 5 edge functions, saves results to
- * context + DB, then triggers a strategic recompute.
- *
- * Pipeline: Disrupt → Redesign → Stress Test + Pitch (parallel)
+ * Pipeline: Decompose → Transform → Concept → Stress Test + Pitch (parallel)
  *
  * Key behaviors:
+ *   - Decomposition is mandatory with retry (pipeline aborts if it fails)
+ *   - Transformation engine produces assumptions, flips, transformations, viability, clustering
+ *   - Concept architecture generates redesigned concept from viable clusters
+ *   - Early termination if all transformations fail viability
+ *   - Stress test & pitch run in parallel for speed
+ *   - Payload compression reduces inter-stage token usage
  *   - Skips disrupt AI call if businessAnalysisData already exists
- *   - Runs stress test & pitch in parallel for speed
- *   - Feeds stress test results into pitch when available
  *   - Triggers incremental recompute after each step
- *   - Shows error recovery UI when steps fail
- *   - Deduplicates by analysisId to prevent double runs
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -29,7 +27,6 @@ export interface PipelineProgress {
   steps: { key: string; label: string; status: PipelineStepStatus; error?: string }[];
   completedCount: number;
   totalCount: number;
-  /** Allows UI to retry a specific failed step */
   retryStep: (stepKey: string) => void;
 }
 
@@ -40,6 +37,46 @@ const STEP_DEFS = [
   { key: "stressTest", label: "Strategy Development" },
   { key: "pitch", label: "Pitch Synthesis" },
 ] as const;
+
+/**
+ * Compress product payload to reduce inter-stage token usage.
+ * Strips large arrays to essential subsets.
+ */
+function compressProductPayload(product: any): any {
+  if (!product) return product;
+  const compressed: any = {
+    name: product.name,
+    category: product.category,
+    era: product.era,
+    description: product.description,
+    specs: product.specs,
+    keyInsight: product.keyInsight,
+    marketSizeEstimate: product.marketSizeEstimate,
+    assumptionsMap: product.assumptionsMap,
+    id: product.id,
+    revivalScore: product.revivalScore,
+  };
+  if (product.reviews) {
+    compressed.reviews = product.reviews.slice(0, 5);
+  }
+  if (product.communityInsights) {
+    compressed.communityInsights = {
+      ...product.communityInsights,
+      topComplaints: product.communityInsights.topComplaints?.slice(0, 5),
+      improvementRequests: product.communityInsights.improvementRequests?.slice(0, 5),
+    };
+  }
+  if (product.supplyChain) {
+    compressed.supplyChain = {
+      suppliers: product.supplyChain.suppliers?.slice(0, 3),
+      manufacturers: product.supplyChain.manufacturers?.slice(0, 3),
+      distributors: product.supplyChain.distributors?.slice(0, 3),
+    };
+  }
+  if (product.pricingIntel) compressed.pricingIntel = product.pricingIntel;
+  if (product.patentData) compressed.patentData = product.patentData;
+  return compressed;
+}
 
 export function usePipelineOrchestrator(
   onRecompute?: () => void,
@@ -90,13 +127,12 @@ export function usePipelineOrchestrator(
     description: businessModelInput?.description || "",
   } as any : null);
 
-  // ── Individual step runners (reusable for retry) ──
+  // ── Individual step runners ──
 
   const runDecompose = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
     setCurrentStep("decompose");
     updateStatus("decompose", "running");
 
-    // Extract upstream intel for grounding — including patent + trend data
     const upstreamIntel: Record<string, unknown> = {};
     const pp = product as any;
     if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
@@ -120,7 +156,6 @@ export function usePipelineOrchestrator(
       const msg = result?.error || error?.message || "Structural decomposition failed";
       console.warn("[Pipeline] Decompose failed:", msg);
       updateStatus("decompose", "error", msg);
-      // Non-blocking — pipeline continues without decomposition
       return null;
     }
 
@@ -148,20 +183,26 @@ export function usePipelineOrchestrator(
     setCurrentStep("disrupt");
     updateStatus("disrupt", "running");
 
-    // ── Extract ALL upstream intelligence from the product object ──
+    // ── Compress upstream intel to reduce token usage ──
     const upstreamIntel: Record<string, unknown> = {};
     const pp = product as any;
     if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
-    if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
-    if (pp.communityInsights) upstreamIntel.communityInsights = pp.communityInsights;
-    if (pp.userWorkflow) upstreamIntel.userWorkflow = pp.userWorkflow;
+    if (pp.supplyChain) upstreamIntel.supplyChain = {
+      suppliers: pp.supplyChain.suppliers?.slice(0, 3),
+      manufacturers: pp.supplyChain.manufacturers?.slice(0, 3),
+    };
+    if (pp.communityInsights) upstreamIntel.communityInsights = {
+      communitySentiment: pp.communityInsights.communitySentiment,
+      topComplaints: pp.communityInsights.topComplaints?.slice(0, 5),
+      improvementRequests: pp.communityInsights.improvementRequests?.slice(0, 5),
+    };
     if (pp.competitorAnalysis) upstreamIntel.competitorAnalysis = pp.competitorAnalysis;
-    if (pp.operationalIntel) upstreamIntel.operationalIntel = pp.operationalIntel;
     if (pp.trendAnalysis) upstreamIntel.trendAnalysis = pp.trendAnalysis;
+    if (pp.patentData || pp.patentLandscape) upstreamIntel.patentLandscape = pp.patentLandscape || pp.patentData;
 
-    const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
+    const { data: result, error } = await invokeWithTimeout("transformation-engine", {
       body: {
-        product,
+        product: compressProductPayload(product),
         upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
@@ -177,65 +218,70 @@ export function usePipelineOrchestrator(
     }
 
     const disruptResult = result.analysis;
+
+    // Extract governed data for downstream steps
+    if (disruptResult?.governed) {
+      setGovernedData(disruptResult.governed);
+    }
+
     setDisruptData(disruptResult);
     await saveStepData("disrupt", disruptResult, analysisId!);
     updateStatus("disrupt", "done");
     onStepComplete?.("disrupt");
     onRecompute?.();
     return disruptResult;
-  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, updateStatus, onStepComplete, onRecompute]);
+  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setGovernedData, updateStatus, onStepComplete, onRecompute]);
 
   const runRedesign = useCallback(async (product: any, extractedContext: string, disruptResult: unknown, decompResult?: unknown): Promise<unknown> => {
     setCurrentStep("redesign");
     updateStatus("redesign", "running");
 
-    const requestBody: Record<string, unknown> = {
-      product,
-      adaptiveContext: analysis.adaptiveContext || undefined,
-      extractedContext: extractedContext || undefined,
-      structuralDecomposition: decompResult || analysis.decompositionData || undefined,
-    };
+    // ── VIABILITY GATE ENFORCEMENT ──
+    let viableTransformations: any[] = [];
+    let viableClusters: any[] = [];
+    let hiddenAssumptions: any = null;
+    let flippedLogic: any = null;
+
     if (disruptResult) {
       const dd = disruptResult as Record<string, unknown>;
+      hiddenAssumptions = dd.hiddenAssumptions || null;
+      flippedLogic = dd.flippedLogic || null;
 
-      // ── VIABILITY GATE ENFORCEMENT ──
-      // Filter out transformations that failed viability (compositeScore < 2.5)
-      // before passing to the redesign step. Only viable transformations feed forward.
-      let viableTransformations = dd.structuralTransformations;
-      if (Array.isArray(viableTransformations)) {
-        const before = viableTransformations.length;
-        viableTransformations = viableTransformations.filter(
+      if (Array.isArray(dd.structuralTransformations)) {
+        const before = (dd.structuralTransformations as any[]).length;
+        viableTransformations = (dd.structuralTransformations as any[]).filter(
           (t: any) => !t.filtered && (t.viabilityGate?.compositeScore ?? 5) >= 2.5
         );
-        console.log(`[Pipeline] Viability gate: ${(viableTransformations as any[]).length}/${before} transformations passed`);
+        console.log(`[Pipeline] Viability gate: ${viableTransformations.length}/${before} transformations passed`);
       }
 
-      // Only pass viable clusters (those referencing surviving transformation IDs)
-      let viableClusters = dd.transformationClusters;
-      if (Array.isArray(viableClusters) && Array.isArray(viableTransformations)) {
-        const viableIds = new Set((viableTransformations as any[]).map((t: any) => t.id));
-        viableClusters = (viableClusters as any[]).filter((c: any) =>
+      if (Array.isArray(dd.transformationClusters)) {
+        const viableIds = new Set(viableTransformations.map((t: any) => t.id));
+        viableClusters = (dd.transformationClusters as any[]).filter((c: any) =>
           c.transformationIds?.some((id: string) => viableIds.has(id))
         );
       }
-
-      requestBody.disruptContext = {
-        hiddenAssumptions: dd.hiddenAssumptions || null,
-        flippedLogic: dd.flippedLogic || null,
-        structuralTransformations: viableTransformations || null,
-        transformationClusters: viableClusters || null,
-      };
-    }
-    if (analysis.governedData) {
-      requestBody.governedContext = {
-        reasoning_synopsis: analysis.governedData.reasoning_synopsis,
-        constraint_map: analysis.governedData.constraint_map,
-        root_hypotheses: analysis.governedData.root_hypotheses,
-      };
     }
 
-    const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
-      body: requestBody,
+    // ── Call concept-architecture (focused concept generation) ──
+    const { data: result, error } = await invokeWithTimeout("concept-architecture", {
+      body: {
+        product: compressProductPayload(product),
+        viableTransformations,
+        allClusters: viableClusters,
+        hiddenAssumptions,
+        flippedLogic,
+        governedContext: analysis.governedData ? {
+          reasoning_synopsis: analysis.governedData.reasoning_synopsis,
+          constraint_map: analysis.governedData.constraint_map,
+          root_hypotheses: analysis.governedData.root_hypotheses,
+        } : undefined,
+        decomposition: decompResult || analysis.decompositionData || undefined,
+        // Curation context
+        insightPreferences: (analysis as any).insightPreferences || undefined,
+        userScores: (analysis as any).userScores || undefined,
+        steeringText: (analysis as any).steeringText || undefined,
+      },
     }, 180_000);
 
     if (error || !result?.success) {
@@ -253,12 +299,11 @@ export function usePipelineOrchestrator(
     onStepComplete?.("redesign");
     onRecompute?.();
     return redesignResult;
-  }, [analysisId, analysis.adaptiveContext, analysis.governedData, saveStepData, setRedesignData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+  }, [analysisId, analysis.adaptiveContext, analysis.governedData, analysis.decompositionData, saveStepData, setRedesignData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
 
   const runStressTest = useCallback(async (product: any, extractedContext: string, disruptResult?: unknown, redesignResult?: unknown, decompResult?: unknown): Promise<unknown> => {
     updateStatus("stressTest", "running");
 
-    // ── CRITICAL FIX: Pass actual disrupt/redesign data as analysisData ──
     const analysisPayload: Record<string, unknown> = { ...product };
     if (disruptResult && typeof disruptResult === "object") {
       const dr = disruptResult as Record<string, unknown>;
@@ -277,7 +322,7 @@ export function usePipelineOrchestrator(
 
     const { data: result, error } = await invokeWithTimeout("critical-validation", {
       body: {
-        product,
+        product: compressProductPayload(product),
         analysisData: analysisPayload,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
@@ -300,14 +345,14 @@ export function usePipelineOrchestrator(
     onStepComplete?.("stressTest");
     onRecompute?.();
     return stressResult;
-  }, [analysisId, analysis.adaptiveContext, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+  }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
 
   const runPitch = useCallback(async (product: any, extractedContext: string, disruptResult: unknown, redesignResult: unknown, stressResult: unknown): Promise<void> => {
     updateStatus("pitch", "running");
 
     const { data: result, error } = await invokeWithTimeout("generate-pitch-deck", {
       body: {
-        product,
+        product: compressProductPayload(product),
         disruptData: disruptResult || undefined,
         stressTestData: stressResult || undefined,
         redesignData: redesignResult || undefined,
@@ -345,21 +390,55 @@ export function usePipelineOrchestrator(
     const extractedContext = analysis.adaptiveContext?.extractedContext || "";
 
     try {
-      // Step 0: Structural Decomposition (first-principles primitives)
-      const decompResult = await runDecompose(product, extractedContext);
+      // Step 0: Structural Decomposition — MANDATORY with retry
+      let decompResult = await runDecompose(product, extractedContext);
+      if (!decompResult) {
+        console.log("[Pipeline] Decomposition failed, retrying once...");
+        decompResult = await runDecompose(product, extractedContext);
+        if (!decompResult) {
+          toast.error("Structural decomposition failed after retry. Pipeline aborted — please try again.");
+          return;
+        }
+      }
 
-      // Step 1: Disrupt (threaded with decomposition)
+      // Step 1: Transformation Engine (assumptions, flips, transformations, viability, clustering)
       const disruptResult = await runDisrupt(product, extractedContext, decompResult);
+      if (!disruptResult) {
+        toast.error("Transformation analysis failed. Pipeline stopped.");
+        return;
+      }
 
-      // Step 2: Redesign (threaded with decomposition)
-      const redesignResult = await runRedesign(product, extractedContext, disruptResult, decompResult);
+      // ── EARLY TERMINATION: Check if all transformations were filtered ──
+      const transforms = (disruptResult as any).structuralTransformations;
+      const allFiltered = Array.isArray(transforms) && transforms.length > 0 &&
+        transforms.every((t: any) => t.filtered || (t.viabilityGate?.compositeScore ?? 5) < 2.5);
 
-      // Steps 3 & 4: Stress Test + Pitch (threaded with decomposition)
+      let redesignResult: unknown = null;
+      if (allFiltered) {
+        console.log("[Pipeline] All transformations filtered by viability gate — skipping concept generation");
+        toast.info("Low disruption potential detected — skipping concept generation.");
+        updateStatus("redesign", "skipped");
+      } else {
+        // Step 2: Concept Architecture (redesigned concept from viable clusters)
+        redesignResult = await runRedesign(product, extractedContext, disruptResult, decompResult);
+      }
+
+      // Steps 3 & 4: Stress Test + Pitch — RUN IN PARALLEL
       setCurrentStep("stressTest");
-      const stressResult = await runStressTest(product, extractedContext, disruptResult, redesignResult, decompResult);
+      const [stressSettled, pitchSettled] = await Promise.allSettled([
+        runStressTest(product, extractedContext, disruptResult, redesignResult, decompResult),
+        runPitch(product, extractedContext, disruptResult, redesignResult, null),
+      ]);
 
-      setCurrentStep("pitch");
-      await runPitch(product, extractedContext, disruptResult, redesignResult, stressResult);
+      const stressResult = stressSettled.status === "fulfilled" ? stressSettled.value : null;
+      const _pitchResult = pitchSettled.status === "fulfilled" ? pitchSettled.value : null;
+
+      if (stressSettled.status === "rejected") {
+        console.error("[Pipeline] Stress test rejected:", stressSettled.reason);
+      }
+      if (pitchSettled.status === "rejected") {
+        console.error("[Pipeline] Pitch rejected:", pitchSettled.reason);
+      }
 
     } catch (err) {
       console.error("[Pipeline] Unexpected pipeline error:", err);
@@ -369,7 +448,6 @@ export function usePipelineOrchestrator(
       runningRef.current = false;
       onRecompute?.();
 
-      // Show completion message based on results
       const statuses = { ...stepStatuses };
       const errorCount = Object.values(statuses).filter(s => s === "error").length;
       if (errorCount > 0) {
@@ -378,7 +456,7 @@ export function usePipelineOrchestrator(
         toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, onRecompute]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
 
   // ── Retry a single failed step ──
   const retryStep = useCallback(async (stepKey: string) => {
