@@ -173,6 +173,16 @@ export function usePipelineOrchestrator(
       console.log("[Pipeline] Reusing businessAnalysisData as synthesis step");
       setDisruptData(businessAnalysisData);
       await saveStepData("disrupt", businessAnalysisData, analysisId!);
+
+      // Also set redesignData from business analysis to prevent re-trigger loops
+      const redesignPayload = {
+        redesignedConcept: (businessAnalysisData as any)?.redesignedConcept || null,
+        visualSpecs: (businessAnalysisData as any)?.visualSpecs || null,
+        actionPlans: (businessAnalysisData as any)?.actionPlans || null,
+      };
+      setRedesignData(redesignPayload);
+      await saveStepData("redesign", redesignPayload, analysisId!);
+
       updateStatus("synthesis", "done");
       onStepComplete?.("synthesis");
       onRecompute?.();
@@ -454,20 +464,22 @@ export function usePipelineOrchestrator(
     }
   }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runStressTest, runPitch]);
 
-  // Auto-trigger when analysis is done but missing critical step data
+  // Auto-trigger when analysis is done but missing ANY pipeline step data
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
     const hasMissingCriticalStep = !disruptData || !decompositionData;
-    const hasNoStepData = !disruptData && !redesignData && !stressTestData && !pitchDeckData;
+    const hasMissingDownstreamStep = !stressTestData || !pitchDeckData || !redesignData;
+    const hasMissingAnyStep = hasMissingCriticalStep || hasMissingDownstreamStep;
     if (
       step === "done" &&
       hasAnalyzableData &&
       analysisId &&
-      (hasNoStepData || hasMissingCriticalStep) &&
+      hasMissingAnyStep &&
       !runningRef.current &&
       triggeredForRef.current !== analysisId
     ) {
       triggeredForRef.current = analysisId;
+      console.log(`[Pipeline] Auto-trigger: missing critical=${hasMissingCriticalStep}, downstream=${hasMissingDownstreamStep}`);
       const timer = setTimeout(() => {
         runPipeline();
       }, 1500);
