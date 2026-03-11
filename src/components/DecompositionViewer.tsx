@@ -544,6 +544,9 @@ function ServiceView({ data }: { data: ServiceDecomposition }) {
 
       {/* System Dynamics */}
       <SystemDynamicsView dynamics={data.systemDynamics} />
+
+      {/* Leverage Analysis */}
+      <LeverageAnalysisView leverage={data.leverageAnalysis} />
     </div>
   );
 }
