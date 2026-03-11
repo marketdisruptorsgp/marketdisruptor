@@ -3,7 +3,7 @@
  * of a constraint and what changes if it's solved.
  */
 
-import { memo, forwardRef } from "react";
+import { forwardRef } from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { trimAt } from "@/lib/humanize";
 import type { WhyThisMatters } from "@/lib/reconfiguration";
@@ -12,7 +12,7 @@ interface WhyThisMattersSectionProps {
   data: WhyThisMatters;
 }
 
-export const WhyThisMattersSection = memo(forwardRef<HTMLDivElement, WhyThisMattersSectionProps>(function WhyThisMattersSection({
+export const WhyThisMattersSection = forwardRef<HTMLDivElement, WhyThisMattersSectionProps>(function WhyThisMattersSection({
   data,
 }, ref) {
   if (!data?.implications?.length && !data?.ifSolved?.length) return null;
@@ -66,4 +66,4 @@ export const WhyThisMattersSection = memo(forwardRef<HTMLDivElement, WhyThisMatt
       )}
     </div>
   );
-}));
+});

@@ -3,7 +3,7 @@
  * if a strategic move succeeds.
  */
 
-import { memo, forwardRef } from "react";
+import { forwardRef } from "react";
 import { TrendingUp } from "lucide-react";
 import { trimAt } from "@/lib/humanize";
 
@@ -11,7 +11,7 @@ interface SecondOrderEffectsSectionProps {
   effects: string[];
 }
 
-export const SecondOrderEffectsSection = memo(forwardRef<HTMLDivElement, SecondOrderEffectsSectionProps>(function SecondOrderEffectsSection({
+export const SecondOrderEffectsSection = forwardRef<HTMLDivElement, SecondOrderEffectsSectionProps>(function SecondOrderEffectsSection({
   effects,
 }, ref) {
   if (!effects?.length) return null;
@@ -40,4 +40,4 @@ export const SecondOrderEffectsSection = memo(forwardRef<HTMLDivElement, SecondO
       </ul>
     </div>
   );
-}));
+});
