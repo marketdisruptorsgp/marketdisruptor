@@ -337,8 +337,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       stressTest: stressTestData,
       pitchDeck: pitchDeckData,
       redesign: redesignData,
+      concepts: conceptsData,
     };
-  }, [decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
+  }, [decompositionData, disruptData, stressTestData, pitchDeckData, redesignData, conceptsData]);
 
   // ── Insight Preferences (liked/dismissed) ──
   const [insightPreferences, setInsightPreferences] = useState<Record<string, "liked" | "dismissed" | "neutral">>({});
