@@ -218,7 +218,7 @@ export default function CommandDeckPage() {
     setIsRecomputing(true);
     addEvent("Running strategic analysis…");
     try { runAnalysis(); } catch { addEvent("Strategic intelligence updated"); }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic analysis complete"); }, 1000);
+    // Don't use setTimeout — let engineComputing state drive the UI
   }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
 
   const handleChallenge = useCallback((nodeStage: string, newValue: string) => {
