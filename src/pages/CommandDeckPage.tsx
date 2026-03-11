@@ -457,6 +457,10 @@ export default function CommandDeckPage() {
   const allOpportunities = autoAnalysis.deepenedOpportunities;
   const alternativeOpportunities = allOpportunities.slice(1);
 
+  // ── Centralized biExtraction access ──
+  const biExtraction = (analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
+  const governedDataTyped = analysis.governedData as Record<string, any> | null;
+
   return (
     <div className="flex-1 bg-background overflow-y-auto">
       <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
