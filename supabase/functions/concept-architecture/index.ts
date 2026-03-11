@@ -186,7 +186,12 @@ CRITICAL RULES:
 - It must be STRUCTURALLY different from the current product/service — not a feature add
 - Every claim must have an operational mechanism and implementation path
 - ${isService ? "The concept must be implementable within 12-18 months" : "The concept must be manufacturable within 2-3 years"}
-- VALIDATION: Reference real analogous ${isService ? "services" : "products"} if possible
+- ${isService ? "" : "BOM BREAKDOWN: Include a detailed bill-of-materials with per-component cost at 10K units"}
+- ${isService ? "" : "CERTIFICATIONS: Name specific industry certifications required and the path to getting them"}
+- ${isService ? "" : "PROTOTYPE PATH: Describe how to build the first working prototype (materials, tools, methods)"}
+- ${isService ? "" : "DFM: Include design-for-manufacturability notes (draft angles, wall thickness, assembly)"}
+- ${isService ? "" : "PRODUCT PRECEDENTS: Cite 2-3 REAL product innovations that prove key mechanisms work (NOT business model analogs)"}
+- ${isService ? "VALIDATION: Reference real analogous services if possible" : "VALIDATION: Reference real product innovations, NOT business model plays (no 'Uber for X')"}
 - UNIT ECONOMICS: Include specific pricing math
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation.
