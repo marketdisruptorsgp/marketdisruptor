@@ -235,7 +235,7 @@ export const CausalConstraintSankey = memo(function CausalConstraintSankey({
                     y={y0 + h / 2}
                     dy="0.35em"
                     textAnchor={isFirst ? "end" : "start"}
-                    className="text-[10px] font-bold fill-foreground"
+                    className="text-[11px] font-extrabold fill-foreground"
                     style={{ pointerEvents: "none" }}
                   >
                     {truncate(node.label, isFirst || isLast ? 20 : 18)}
