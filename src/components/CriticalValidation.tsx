@@ -62,6 +62,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
   const runValidation = async () => {
     setLoading(true);
+    setLastError(null);
     try {
       let activeBranch: unknown = undefined;
       if (governedData && activeBranchId) {
@@ -70,16 +71,20 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       }
       const { data: result, error } = await invokeWithTimeout("critical-validation", {
         body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined, competitorIntel: competitorIntel?.length ? competitorIntel : undefined, conceptVariants: conceptVariants?.length ? conceptVariants : undefined },
-      }, 180_000);
+      }, 180_000, 1);
       if (error || !result?.success) {
-        toast.error(result?.error || error?.message || "Validation failed");
+        const msg = result?.error || error?.message || "Validation failed";
+        setLastError(msg);
+        toast.error(msg);
       } else {
         setData(result.validation);
         onDataLoaded?.(result.validation);
         toast.success("Critical validation complete!");
       }
     } catch (err) {
-      toast.error("Unexpected error: " + String(err));
+      const msg = String(err);
+      setLastError(msg);
+      toast.error("Unexpected error: " + msg);
     } finally {
       setLoading(false);
     }
