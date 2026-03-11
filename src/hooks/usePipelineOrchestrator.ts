@@ -194,9 +194,33 @@ export function usePipelineOrchestrator(
     };
     if (disruptResult) {
       const dd = disruptResult as Record<string, unknown>;
+
+      // ── VIABILITY GATE ENFORCEMENT ──
+      // Filter out transformations that failed viability (compositeScore < 2.5)
+      // before passing to the redesign step. Only viable transformations feed forward.
+      let viableTransformations = dd.structuralTransformations;
+      if (Array.isArray(viableTransformations)) {
+        const before = viableTransformations.length;
+        viableTransformations = viableTransformations.filter(
+          (t: any) => !t.filtered && (t.viabilityGate?.compositeScore ?? 5) >= 2.5
+        );
+        console.log(`[Pipeline] Viability gate: ${viableTransformations.length}/${before} transformations passed`);
+      }
+
+      // Only pass viable clusters (those referencing surviving transformation IDs)
+      let viableClusters = dd.transformationClusters;
+      if (Array.isArray(viableClusters) && Array.isArray(viableTransformations)) {
+        const viableIds = new Set((viableTransformations as any[]).map((t: any) => t.id));
+        viableClusters = (viableClusters as any[]).filter((c: any) =>
+          c.transformationIds?.some((id: string) => viableIds.has(id))
+        );
+      }
+
       requestBody.disruptContext = {
         hiddenAssumptions: dd.hiddenAssumptions || null,
         flippedLogic: dd.flippedLogic || null,
+        structuralTransformations: viableTransformations || null,
+        transformationClusters: viableClusters || null,
       };
     }
     if (analysis.governedData) {
