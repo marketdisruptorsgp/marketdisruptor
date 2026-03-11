@@ -288,7 +288,7 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
     computedAt: Date.now(),
   };
 
-  intelligenceCache.set(analysisId, result);
+  intelligenceCache.set(cacheKey, result);
   return result;
 }
 
