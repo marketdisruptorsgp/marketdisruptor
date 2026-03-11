@@ -15,7 +15,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
-import { FlipHorizontal, Zap, Sparkles } from "lucide-react";
+import { FlipHorizontal, Zap, Sparkles, Lightbulb, Wrench } from "lucide-react";
 
 // ── Shared layout components ──
 import {
