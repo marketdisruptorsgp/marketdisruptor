@@ -53,6 +53,7 @@ import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIn
 import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth";
 import { CIMKeyFindings } from "@/components/command-deck/CIMKeyFindings";
 import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
+import { DealMetricsStrip } from "@/components/command-deck/DealMetricsStrip";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
