@@ -589,6 +589,19 @@ export default function CommandDeckPage() {
         <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
         <DeltaChanges deltas={deltaChanges} />
 
+        {/* ═══ DEEPENING INDICATOR ═══ */}
+        {isDeepening && hasRun && (
+          <div
+            className="rounded-xl px-4 py-3 flex items-center gap-2"
+            style={{ background: `${modeAccent}08`, border: `1px solid ${modeAccent}20` }}
+          >
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: modeAccent }} />
+            <span className="text-xs font-bold" style={{ color: modeAccent }}>
+              Deepening strategic analysis — insights will update momentarily…
+            </span>
+          </div>
+        )}
+
         {/* ══════════════════════════════════════════════════════════
             SECTION 1 — THE AHA MOMENT
             Contrarian Insight first — this is why the user is here
