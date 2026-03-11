@@ -21,6 +21,7 @@ import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 import { OpportunityMatrix } from "@/components/OpportunityMatrix";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
 import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
+import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 
 // ── Shared layout components ──
 import {
