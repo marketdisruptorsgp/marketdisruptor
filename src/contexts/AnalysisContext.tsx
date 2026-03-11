@@ -582,7 +582,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const hydrationSetters: HydrationSetters = useMemo(() => ({
     setAnalysisId, setProducts, setSelectedProduct, setAnalysisParams,
     setMainTab, setActiveMode, setStep, setDetailTab, setLoadedFromSaved,
-    setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData,
+    setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData, setConceptsData,
     setGovernedData, setBusinessAnalysisData, setBusinessModelInput,
     setBusinessStressTestData,
     setActiveBranchIdState, setStrategicProfileState: setStrategicProfileState,
