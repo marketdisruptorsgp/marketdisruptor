@@ -33,11 +33,11 @@ export interface PipelineProgress {
 }
 
 const STEP_DEFS = [
-  { key: "decompose", label: "Structural Decomposition" },
-  { key: "synthesis", label: "Strategic Synthesis" },
-  { key: "concepts", label: "Concept Synthesis" },
-  { key: "stressTest", label: "Deep Validation" },
-  { key: "pitch", label: "Pitch Synthesis" },
+  { key: "decompose", label: "Understanding Structure" },
+  { key: "synthesis", label: "Finding Opportunities" },
+  { key: "concepts", label: "Generating Concepts" },
+  { key: "stressTest", label: "Stress Testing" },
+  { key: "pitch", label: "Building Pitch" },
 ] as const;
 
 /**
