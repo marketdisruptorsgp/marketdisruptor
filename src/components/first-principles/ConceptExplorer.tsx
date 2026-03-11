@@ -353,9 +353,23 @@ const ConceptCard = memo(function ConceptCard({
           <span className="text-xs font-black text-primary">{index + 1}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm sm:text-base font-black text-foreground leading-snug">
-            {concept.name}
-          </h4>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="text-sm sm:text-base font-black text-foreground leading-snug">
+              {concept.name}
+            </h4>
+            {concept.breakthrough_metric?.classification === "step_change" && (
+              <span
+                className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider"
+                style={{
+                  background: "hsl(142 70% 45% / 0.1)",
+                  color: "hsl(142 70% 35%)",
+                  border: "1px solid hsl(142 70% 45% / 0.25)",
+                }}
+              >
+                ⚡ 10×
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground leading-relaxed mt-1">
             {concept.tagline}
           </p>
