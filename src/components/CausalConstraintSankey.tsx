@@ -29,14 +29,14 @@ interface SLink {
 }
 
 const TYPE_CONFIG = {
-  constraint: { label: "Constraint", icon: Lock, color: "hsl(0 72% 50%)", bg: "hsl(0 72% 50% / 0.10)" },
-  leverage: { label: "Leverage", icon: Zap, color: "hsl(229 89% 63%)", bg: "hsl(229 89% 63% / 0.10)" },
-  opportunity: { label: "Opportunity", icon: Lightbulb, color: "hsl(152 60% 44%)", bg: "hsl(152 60% 44% / 0.10)" },
+  constraint: { label: "Constraint", icon: Lock, color: "hsl(0 75% 48%)", bg: "hsl(0 75% 48% / 0.15)", bright: "hsl(0 80% 58%)" },
+  leverage: { label: "Leverage", icon: Zap, color: "hsl(229 85% 58%)", bg: "hsl(229 85% 58% / 0.15)", bright: "hsl(229 90% 68%)" },
+  opportunity: { label: "Opportunity", icon: Lightbulb, color: "hsl(152 60% 38%)", bg: "hsl(152 60% 38% / 0.15)", bright: "hsl(152 65% 48%)" },
 } as const;
 
 const LINK_COLORS = {
-  "constraint-leverage": "hsl(0 72% 50%)",
-  "leverage-opportunity": "hsl(229 89% 63%)",
+  "constraint-leverage": "hsl(0 80% 58%)",
+  "leverage-opportunity": "hsl(229 85% 65%)",
 } as const;
 
 function impactLevel(impact: number): string {
