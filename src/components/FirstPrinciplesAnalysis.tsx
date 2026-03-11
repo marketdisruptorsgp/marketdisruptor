@@ -169,9 +169,10 @@ export const FirstPrinciplesAnalysis = ({
           if (branchPayload) requestBody.activeBranch = branchPayload;
         }
 
-        const { data: result, error } = await invokeWithTimeout("transformation-engine", { body: requestBody }, 180_000);
+        const { data: result, error } = await invokeWithTimeout("transformation-engine", { body: requestBody }, 180_000, 1);
         if (error || !result?.success) {
           const msg = result?.error || error?.message || "Analysis failed";
+          setLastError(msg);
           if (msg.includes("Rate limit") || msg.includes("429")) {
             toast.error("Rate limit hit — please wait a moment and try again.");
           } else if (msg.includes("credits") || msg.includes("402")) {
