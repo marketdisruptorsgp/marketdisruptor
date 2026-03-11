@@ -362,8 +362,11 @@ export function usePipelineOrchestrator(
 
     try {
       switch (stepKey) {
+        case "decompose":
+          await runDecompose(product, extractedContext);
+          break;
         case "disrupt":
-          await runDisrupt(product, extractedContext);
+          await runDisrupt(product, extractedContext, decompositionData);
           break;
         case "redesign":
           await runRedesign(product, extractedContext, disruptData);
@@ -379,7 +382,7 @@ export function usePipelineOrchestrator(
       console.error(`[Pipeline] Retry ${stepKey} failed:`, err);
       toast.error(`Retry failed for ${stepKey}`);
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, disruptData, redesignData, stressTestData, runDisrupt, runRedesign, runStressTest, runPitch]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch]);
 
   // Auto-trigger when analysis is done with product/business data but missing critical step data
   useEffect(() => {
