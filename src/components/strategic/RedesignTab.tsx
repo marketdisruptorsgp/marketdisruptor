@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { Wrench, Shield, TrendingUp, ChevronDown, Zap, Clock, Target, CheckCircle2 } from "lucide-react";
+import { Wrench, Shield, TrendingUp, ChevronDown, Zap, Clock, Target, CheckCircle2, Lightbulb } from "lucide-react";
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import { ConceptExplorer } from "@/components/first-principles/ConceptExplorer";
+import type { ConceptSynthesisResult } from "@/components/first-principles/types";
 import type { StrategicHypothesis } from "@/lib/strategicOS";
 
 interface StrategyCard {
