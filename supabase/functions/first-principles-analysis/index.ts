@@ -370,7 +370,12 @@ The JSON must follow this EXACT structure:
         "compositeScore": 3.75,
         "verdict": "pass|conditional|fail"
       },
-      "filtered": false
+      "filtered": false,
+      "systemImpact": {
+        "valueFlowChanges": ["How value creation/delivery changes if this transformation is applied"],
+        "newBottleneck": "What becomes the new system bottleneck after this change",
+        "cascadeEffects": ["Downstream effect 1 on other system components", "Effect 2"]
+      }
     }
   ],
   "transformationClusters": [
