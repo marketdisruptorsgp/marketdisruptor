@@ -1,9 +1,9 @@
 /**
  * STRATEGIC DIRECTION CATEGORIES — Hybrid Scaffolding Layer
  *
- * Defines 8 user-facing strategic direction archetypes that any
- * constraint can fan into. These serve as scaffolding for the AI
- * to generate business-specific opportunities.
+ * Defines strategic direction archetypes that any constraint can fan into.
+ * Mode-aware: Product mode uses inventor/engineering directions,
+ * other modes use business-model directions.
  *
  * Each direction has:
  *   - A relevance scorer based on the structural profile
@@ -33,7 +33,70 @@ export interface StrategicDirection {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  THE 8 DIRECTION ARCHETYPES
+//  PRODUCT MODE — INVENTOR/ENGINEER DIRECTIONS
+// ═══════════════════════════════════════════════════════════════
+
+export const PRODUCT_DIRECTIONS: StrategicDirection[] = [
+  {
+    id: "redesign_mechanism",
+    label: "Redesign the core mechanism",
+    description: "Replace the fundamental operating mechanism with a superior physical principle that eliminates the primary failure mode.",
+    aiPromptHint: "Identify the core physical mechanism (valve, seal, spring, hinge, etc.). What physics principle does it rely on? What failure mode does that cause? Propose a SPECIFIC alternative mechanism using a different physical principle. Include: the new mechanism, why it's superior, material candidates, and estimated BOM impact. Example: 'Replace rubber flapper seal with silicone diaphragm valve — eliminates chlorine degradation (the #1 failure cause), adds $0.15/unit but extends lifespan 4x.'",
+    relevance: (_p) => 9, // Always highly relevant for products
+  },
+  {
+    id: "material_substitution",
+    label: "Advanced material substitution",
+    description: "Replace legacy materials with modern alternatives that improve durability, reduce cost, or enable new capabilities.",
+    aiPromptHint: "Identify each material in the current product. For each: what's the failure mode? What modern material would eliminate it? Be SPECIFIC — name the polymer, alloy, or composite. Include: material name, supplier ecosystem, cost delta per unit at 10K volume, and the performance improvement. Example: 'Replace ABS housing with glass-filled nylon (PA66-GF30) — 3x impact resistance, +$0.08/unit, eliminates brittleness cracking in cold climates.'",
+    relevance: (_p) => 8,
+  },
+  {
+    id: "universal_fit",
+    label: "Universal compatibility system",
+    description: "Design an adapter or modular system that fits multiple product variants with a single SKU, reducing complexity for both manufacturer and consumer.",
+    aiPromptHint: "Map the current compatibility landscape — how many variants exist? What causes incompatibility (dimensions, threading, mounting)? Design a SPECIFIC universal fit mechanism (compression adapter, adjustable geometry, modular inserts). Include: the mechanical approach, what % of installed base it covers, tooling requirements, and how it simplifies the consumer's purchase decision. Reference real universal-fit precedents in adjacent categories.",
+    relevance: (_p) => 7,
+  },
+  {
+    id: "smart_sensing",
+    label: "Add sensing & diagnostics",
+    description: "Integrate low-cost sensors to detect failure before it happens, transforming a dumb component into a predictive maintenance tool.",
+    aiPromptHint: "Identify the primary failure modes and their warning signals (vibration, flow rate change, acoustic signature, temperature). Propose a SPECIFIC sensor integration: sensor type, placement, power source (battery, harvested, passive), communication method (BLE, NFC, visual indicator). Include BOM cost of the electronics at 10K units. Keep it practical — if a $0.50 thermistor can detect 80% of failures, prefer that over a $15 IoT module. Reference real products that added sensing to traditionally dumb components.",
+    relevance: (_p) => 6,
+  },
+  {
+    id: "manufacturing_innovation",
+    label: "Manufacturing process innovation",
+    description: "Change the manufacturing method to reduce cost, improve quality, or enable geometries impossible with current processes.",
+    aiPromptHint: "Analyze the current manufacturing process (injection molding, stamping, machining, assembly). What are its constraints? Propose a SPECIFIC alternative: overmolding to eliminate assembly steps, 3D printing for complex internal channels, die-casting to replace multi-part assemblies. Include: process name, required capital equipment, unit cost at 10K/100K volumes, and quality improvements. Example: 'Replace 4-part assembly (housing + seal + spring + cap) with single overmolded part — eliminates 3 assembly steps, reduces unit cost from $2.40 to $1.65, improves seal reliability.'",
+    relevance: (_p) => 7,
+  },
+  {
+    id: "eliminate_failure",
+    label: "Eliminate the #1 failure mode",
+    description: "Engineer out the most common product failure through design change, material change, or mechanism change.",
+    aiPromptHint: "From user complaints, warranty data patterns, and physical analysis: what is the #1 failure mode? What causes it (wear, corrosion, mineral buildup, UV degradation, impact)? Design a SPECIFIC engineering solution that eliminates or dramatically reduces this failure. Include: root cause, proposed design change, expected lifespan improvement (with reasoning), and any cost/complexity trade-offs. This should be something a product engineer could prototype in a week.",
+    relevance: (_p) => 9,
+  },
+  {
+    id: "tool_free_install",
+    label: "Tool-free installation",
+    description: "Redesign the product for tool-free, mistake-proof installation that any consumer can complete in under 5 minutes.",
+    aiPromptHint: "Map the current installation process step by step. Where do consumers fail or need tools? Design SPECIFIC tool-free mechanisms: quarter-turn locks, snap-fit connections, bayonet mounts, compression fittings, color-coded alignment guides. Include: the mechanical connection type, tolerance requirements, and how the design prevents incorrect installation. Reference real products that transformed installation UX (e.g., Dyson filter replacement, Brita cartridge click-in).",
+    relevance: (_p) => 7,
+  },
+  {
+    id: "reduce_sku_complexity",
+    label: "SKU consolidation",
+    description: "Reduce the number of product variants through modular design or adjustable geometry, cutting inventory costs and simplifying distribution.",
+    aiPromptHint: "How many SKUs currently exist and why? Map the dimensional or functional variations. Design a SPECIFIC modular or adjustable system that covers multiple variants: telescoping parts, reversible components, adjustable stops, universal threads. Include: current SKU count vs. proposed, the mechanical adjustment mechanism, and the inventory/logistics cost savings. Example: 'Adjustable overflow tube with indexed height stops replaces 6 fixed-height SKUs with 1, cutting warehouse inventory 83%.'",
+    relevance: (_p) => 6,
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  BUSINESS MODE — STRATEGIC DIRECTIONS (original)
 // ═══════════════════════════════════════════════════════════════
 
 export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
@@ -142,7 +205,6 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
       if (p.valueChainPosition === "infrastructure" || p.valueChainPosition === "platform") score += 3;
       if (p.customerConcentration === "diversified") score += 2;
       if (p.distributionControl === "owned" || p.distributionControl === "shared") score += 1;
-      // Data advantage is always somewhat relevant if there's scale
       const hasInfoConstraint = p.bindingConstraints.some(c =>
         /data|inform|visib|transparen|insight|intel|pricing|benchmark/i.test(c.constraintName + " " + c.explanation)
       );
@@ -190,7 +252,7 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════
-//  DIRECTION SELECTION
+//  DIRECTION SELECTION (MODE-AWARE)
 // ═══════════════════════════════════════════════════════════════
 
 export interface ScoredDirection {
@@ -201,12 +263,19 @@ export interface ScoredDirection {
 /**
  * Score all directions against a structural profile and return
  * the top N most relevant (default 5, min 3).
+ * Mode-aware: Product mode uses inventor directions.
  */
 export function selectRelevantDirections(
   profile: StructuralProfile,
   count: number = 5,
+  analysisType?: string,
 ): ScoredDirection[] {
-  const scored = STRATEGIC_DIRECTIONS.map(d => ({
+  // Product mode → use inventor/engineer directions
+  const directions = analysisType === "product"
+    ? PRODUCT_DIRECTIONS
+    : STRATEGIC_DIRECTIONS;
+
+  const scored = directions.map(d => ({
     direction: d,
     relevanceScore: d.relevance(profile),
   }));
