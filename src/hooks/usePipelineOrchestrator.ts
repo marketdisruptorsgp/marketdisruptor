@@ -368,10 +368,10 @@ export function usePipelineOrchestrator(
           await runDisrupt(product, extractedContext, decompositionData);
           break;
         case "redesign":
-          await runRedesign(product, extractedContext, disruptData);
+          await runRedesign(product, extractedContext, disruptData, decompositionData);
           break;
         case "stressTest":
-          await runStressTest(product, extractedContext, disruptData, redesignData);
+          await runStressTest(product, extractedContext, disruptData, redesignData, decompositionData);
           break;
         case "pitch":
           await runPitch(product, extractedContext, disruptData, redesignData, stressTestData);
