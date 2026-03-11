@@ -574,6 +574,7 @@ export default function CommandDeckPage() {
         {/* ═══ PIPELINE DATA HEALTH ═══ */}
         <PipelineDataHealth
           product={selectedProduct as Record<string, any> | null}
+          decompositionData={analysis.decompositionData}
           disruptData={analysis.disruptData}
           redesignData={analysis.redesignData}
           stressTestData={analysis.stressTestData}
