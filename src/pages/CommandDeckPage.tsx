@@ -228,11 +228,12 @@ export default function CommandDeckPage() {
 
   const handleRecomputeAll = useCallback(() => {
     if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
+    // Capture current narrative as baseline for visual diff
+    if (narrative) preRecomputeNarrativeRef.current = narrative;
     setIsRecomputing(true);
     addEvent("Running strategic analysis…");
     try { runAnalysis(); } catch { addEvent("Strategic intelligence updated"); }
-    // Don't use setTimeout — let engineComputing state drive the UI
-  }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
+  }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis, narrative]);
 
   const handleChallenge = useCallback((nodeStage: string, newValue: string) => {
     if (activeChallenges.length === 0 && narrative) setBaselineNarrative(narrative);
