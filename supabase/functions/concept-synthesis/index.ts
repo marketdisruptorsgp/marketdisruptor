@@ -415,6 +415,30 @@ Return ONLY the JSON object.`;
       if (!c.materials) c.materials = [];
       if (!c.certification_considerations) c.certification_considerations = [];
       if (!c.precedent_products) c.precedent_products = [];
+      if (!c.breakthrough_metric) {
+        c.breakthrough_metric = {
+          classification: "incremental",
+          magnitude: "Moderate improvement over existing solutions",
+          current_benchmark: "Industry standard",
+          target_performance: "Improved performance",
+          confidence: "medium",
+        };
+      }
+      if (!c.performer_network) c.performer_network = [];
+      if (!c.system_architecture) {
+        c.system_architecture = {
+          nodes: [
+            { id: "n1", label: "Input", type: "input" },
+            { id: "n2", label: "Core Process", type: "process" },
+            { id: "n3", label: "Output", type: "output" },
+          ],
+          edges: [
+            { from: "n1", to: "n2", label: "feeds" },
+            { from: "n2", to: "n3", label: "produces" },
+          ],
+          description: "Basic system flow",
+        };
+      }
     }
 
     // Ensure innovation_paths exists
