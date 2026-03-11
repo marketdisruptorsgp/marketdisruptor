@@ -167,6 +167,24 @@ export interface ConceptOrigin {
   enabling_mechanism: string;
 }
 
+export interface ConceptBeforeAfter {
+  the_old_way: string;
+  the_new_way: string;
+}
+
+export interface PersonaFitScore {
+  fit_score: number;
+  rationale: string;
+  key_adaptation: string;
+}
+
+export interface ConceptPersonaFit {
+  garage_inventor?: PersonaFitScore;
+  product_company?: PersonaFitScore;
+  deep_tech_startup?: PersonaFitScore;
+  [key: string]: PersonaFitScore | undefined;
+}
+
 export interface ConceptBomItem {
   component: string;
   material: string;
@@ -185,6 +203,8 @@ export interface InventionConcept {
   name: string;
   tagline: string;
   origin: ConceptOrigin;
+  before_after?: ConceptBeforeAfter;
+  persona_fit?: ConceptPersonaFit;
   description: string;
   mechanism_description: string;
   materials: string[];
@@ -196,9 +216,17 @@ export interface InventionConcept {
   dfm_notes: string;
 }
 
+export interface ContrarianNarrative {
+  industry_blind_spot: string;
+  why_blind: string;
+  evidence: string;
+  unlock_statement: string;
+}
+
 export interface ConceptSynthesisResult {
   concepts: InventionConcept[];
   innovation_paths: InnovationPath[];
+  contrarian_narrative?: ContrarianNarrative;
 }
 
 export interface InnovationPath {
@@ -207,6 +235,12 @@ export interface InnovationPath {
   structural_pressures: string[];
   concept_indices: number[];
 }
+
+export const PERSONA_LENS_META: Record<string, { label: string; emoji: string; description: string }> = {
+  garage_inventor: { label: "Garage Inventor", emoji: "🔧", description: "Solo maker, limited budget, basic shop tools" },
+  product_company: { label: "Product Company", emoji: "🏭", description: "Established manufacturer with engineering team" },
+  deep_tech_startup: { label: "Deep Tech Startup", emoji: "🚀", description: "VC-backed team pushing frontiers" },
+};
 
 export interface EngineeringDeepDiveData {
   concept: InventionConcept;
