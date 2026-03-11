@@ -15,7 +15,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
-import { FlipHorizontal, Zap, Sparkles } from "lucide-react";
+import { FlipHorizontal, Zap, Sparkles, Lightbulb, Wrench } from "lucide-react";
 
 // ── Shared layout components ──
 import {
@@ -32,10 +32,16 @@ import {
 
 const { useState } = React;
 
-const REDESIGN_TABS: TabDef<"flip" | "ideas" | "concept">[] = [
+const LEGACY_REDESIGN_TABS: TabDef<"flip" | "ideas" | "concept">[] = [
   { id: "flip", label: "Flip the Logic", icon: FlipHorizontal },
   { id: "ideas", label: "Flipped Ideas", icon: Zap },
   { id: "concept", label: "Redesigned Concept", icon: Sparkles },
+];
+
+const INVENTION_ENGINE_TABS: TabDef<"flip" | "ideas" | "concept">[] = [
+  { id: "flip", label: "Hidden Assumptions", icon: FlipHorizontal },
+  { id: "ideas", label: "Invention Concepts", icon: Lightbulb },
+  { id: "concept", label: "Engineering Deep Dive", icon: Wrench },
 ];
 
 type RedesignTabId = "flip" | "ideas" | "concept";
@@ -105,7 +111,7 @@ export default function RedesignPage() {
 
 
       <AnalysisTabBar
-        tabs={REDESIGN_TABS}
+        tabs={analysis.conceptsData ? INVENTION_ENGINE_TABS : LEGACY_REDESIGN_TABS}
         activeTab={activeTab}
         onTabChange={(t) => setActiveTab(t as RedesignTabId)}
         accentColor={theme.primary}

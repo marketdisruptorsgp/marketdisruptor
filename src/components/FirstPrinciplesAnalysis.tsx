@@ -300,10 +300,10 @@ export const FirstPrinciplesAnalysis = ({
               onSelectForDeepDive={(c) => setDeepDiveConcept(c)}
             />
           )}
-          {activeStep === "concept" && conceptsSynthesis.concepts[0] && (
-            <ConceptExplorer
-              data={conceptsSynthesis}
-              onSelectForDeepDive={(c) => setDeepDiveConcept(c)}
+          {activeStep === "concept" && (
+            <EngineeringDeepDive
+              concept={conceptsSynthesis.concepts[0]}
+              onBack={() => setActiveStep("ideas")}
             />
           )}
         </div>
