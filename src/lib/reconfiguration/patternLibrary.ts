@@ -217,11 +217,18 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.supplyFragmentation === "fragmented" || profile.supplyFragmentation === "atomized") {
         strengths.push("Fragmented supply suggests prior unbundling — rebundling opportunity exists");
       }
+      if (profile.supplyFragmentation === "moderate") {
+        strengths.push("Moderate fragmentation — partial rebundling around new value axis possible");
+      }
       if (profile.switchingCosts === "low" || profile.switchingCosts === "none") {
         strengths.push("Low switching costs enable rebundling from multiple point solutions");
       }
+      if (profile.switchingCosts === "moderate") {
+        strengths.push("Moderate switching costs suggest rebundling can create stickier offering");
+      }
       if (cNames.has("awareness_gap")) { resolves.push("awareness_gap"); strengths.push("Rebundled offering may solve discovery problem across fragmented solutions"); }
       if (cNames.has("access_constraint")) { resolves.push("access_constraint"); strengths.push("Unified bundle improves access to currently scattered capabilities"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Rebundling can eliminate operational bottlenecks across fragmented workflows"); }
 
       return {
         qualifies: strengths.length >= 2,
