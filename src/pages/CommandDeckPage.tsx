@@ -440,7 +440,7 @@ export default function CommandDeckPage() {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={90} />
+            <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={180} />
           </div>
         </div>
       );
