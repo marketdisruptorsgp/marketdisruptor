@@ -156,6 +156,8 @@ export interface StrategicAnalysisInput {
   regulatoryData?: any | null;
   /** Lens configuration — when ETA, shapes structural diagnosis with acquisition dimensions */
   lensConfig?: DiagnosisLensConfig | null;
+  /** Full structured BI extraction from uploaded documents (CIMs, etc.) */
+  biExtraction?: Record<string, unknown> | null;
 }
 
 export interface StrategicAnalysisOutput {
