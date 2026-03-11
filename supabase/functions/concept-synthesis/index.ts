@@ -8,6 +8,10 @@
  *   Layer 3: Technical Mechanisms (embedded library)
  * 
  * Each concept traces: Structure + Assumption + Mechanism → Concept
+ * 
+ * Enhanced with:
+ *   - Before/After Narrative: "The Old Way" vs "The New Way" per concept
+ *   - Multi-Lens Comparison: Same analysis refracted through different personas
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -85,6 +89,37 @@ Each concept MUST use at least one mechanism from this library (or a closely rel
 43. Wireless Power Transfer (Qi) | Inductive charging without connectors | Applicable: consumer electronics, medical implants | Mfg: coil + controller integration
 `.trim();
 
+// ═══════════════════════════════════════════════════════════════
+//  PERSONA LENSES — Multi-lens comparison
+// ═══════════════════════════════════════════════════════════════
+
+const PERSONA_LENSES = [
+  {
+    id: "garage_inventor",
+    label: "Garage Inventor",
+    emoji: "🔧",
+    description: "Solo maker with limited budget, access to 3D printing & basic shop tools",
+    constraints: "Budget under $5K for prototype. Must be buildable with consumer-grade tools (3D printer, CNC router, basic electronics). No clean room or specialized equipment. Optimize for rapid iteration and proof-of-concept.",
+    priorities: "Speed to first prototype, low tooling cost, manual assembly OK, can tolerate lower volume manufacturing",
+  },
+  {
+    id: "product_company",
+    label: "Product Company",
+    emoji: "🏭",
+    description: "Established manufacturer with engineering team, tooling budget, and distribution",
+    constraints: "Has injection molding, CNC, and assembly capabilities. Can invest $50K-500K in tooling. Needs to fit existing supply chain and distribution channels. Must meet retail price expectations.",
+    priorities: "Unit economics at 10K+ scale, retail-ready quality, regulatory compliance, existing channel fit, brand differentiation",
+  },
+  {
+    id: "deep_tech_startup",
+    label: "Deep Tech Startup",
+    emoji: "🚀",
+    description: "VC-backed team pushing the frontier of materials science or embedded systems",
+    constraints: "Can invest in R&D (6-18 months before revenue). Access to university labs and specialized equipment. Needs defensible IP. Must demonstrate 10x improvement over incumbents.",
+    priorities: "Patent-worthy novelty, defensible moat, 10x performance improvement, venture-scale market, platform potential",
+  },
+];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -95,6 +130,7 @@ serve(async (req) => {
       assumptions,
       flippedLogic,
       conceptCount = 5,
+      userLens,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -130,6 +166,21 @@ ${(flippedLogic || []).slice(0, 6).map((f: any, i: number) =>
 ).join("\n")}
 `;
 
+    // Build user lens context if available
+    const userLensContext = userLens ? `
+USER LENS (tailor concepts to this person):
+- Objective: ${userLens.primary_objective || "Not specified"}
+- Resources: ${userLens.available_resources || "Not specified"}
+- Risk Tolerance: ${userLens.risk_tolerance || "Not specified"}
+- Time Horizon: ${userLens.time_horizon || "Not specified"}
+- Constraints: ${userLens.constraints || "Not specified"}
+` : "";
+
+    // Build persona lens instructions for multi-lens comparison
+    const personaInstructions = PERSONA_LENSES.map(p =>
+      `"${p.id}": { label: "${p.label}", constraints: "${p.constraints}", priorities: "${p.priorities}" }`
+    ).join("\n");
+
     const systemPrompt = `You are an Invention Synthesis Engine — a first-principles engineering system that generates physically buildable product concepts.
 
 You combine three knowledge layers to produce inventions:
@@ -149,6 +200,15 @@ RULES:
 - Focus on mechanical/electrical/material innovation
 - Include manufacturing path and DFM considerations
 
+BEFORE/AFTER NARRATIVE — For each concept, write a vivid contrast:
+- "the_old_way": Describe the current reality in a way that makes it sound ABSURD once you see the alternative. Frame it as something people accept without question but shouldn't. Use specific, visceral details. 2-3 sentences.
+- "the_new_way": Describe the new approach as OBVIOUS and INEVITABLE once understood. Make the reader feel like they can't unsee it. 2-3 sentences.
+The contrast should create an "aha" moment — the reader should think "why hasn't anyone done this before?"
+
+MULTI-LENS PERSONA FIT — For each concept, evaluate fit across three personas:
+${personaInstructions}
+For each persona, provide a fit_score (1-10), a one-sentence rationale, and the key_adaptation needed.
+
 ${MECHANISM_LIBRARY}
 
 Respond with a JSON object matching this schema EXACTLY:
@@ -162,6 +222,10 @@ Respond with a JSON object matching this schema EXACTLY:
         "assumption_flipped": "Which assumption is being challenged",
         "enabling_mechanism": "Which mechanism(s) from the library make this possible"
       },
+      "before_after": {
+        "the_old_way": "Vivid description of the absurd status quo — make it feel ridiculous",
+        "the_new_way": "Description of the new approach that feels obvious and inevitable"
+      },
       "description": "2-3 sentence product description",
       "mechanism_description": "How the technical mechanism works in this specific application — be specific about physics/engineering",
       "materials": ["Material 1 with reason", "Material 2", ...],
@@ -174,7 +238,12 @@ Respond with a JSON object matching this schema EXACTLY:
         { "product": "Name", "company": "Company", "relevance": "What's similar" }
       ],
       "prototype_approach": "How to build the first prototype",
-      "dfm_notes": "Design-for-manufacturing considerations"
+      "dfm_notes": "Design-for-manufacturing considerations",
+      "persona_fit": {
+        "garage_inventor": { "fit_score": 7, "rationale": "Why this works/doesn't for a solo maker", "key_adaptation": "What they'd need to change" },
+        "product_company": { "fit_score": 8, "rationale": "Why this works/doesn't for an established manufacturer", "key_adaptation": "What they'd need to change" },
+        "deep_tech_startup": { "fit_score": 5, "rationale": "Why this works/doesn't for a VC-backed team", "key_adaptation": "What they'd need to change" }
+      }
     }
   ],
   "innovation_paths": [
@@ -184,7 +253,13 @@ Respond with a JSON object matching this schema EXACTLY:
       "structural_pressures": ["pressure1", "pressure2"],
       "concept_indices": [0, 2]
     }
-  ]
+  ],
+  "contrarian_narrative": {
+    "industry_blind_spot": "The ONE thing the entire industry refuses to see — stated as a provocative, specific claim",
+    "why_blind": "Why is the industry blind to this? What incentive structure or legacy thinking keeps them from seeing it?",
+    "evidence": "What evidence from the structural analysis supports this contrarian view?",
+    "unlock_statement": "If this blind spot were addressed, what massive value would be unlocked? Be specific about magnitude."
+  }
 }`;
 
     const userPrompt = `Generate ${requestedCount} invention concepts for this product:
@@ -194,6 +269,7 @@ CATEGORY: ${product.category}
 DESCRIPTION: ${product.description}
 SPECS: ${product.specs || "Not specified"}
 KEY INSIGHT: ${product.keyInsight || "None"}
+${userLensContext}
 
 ${structuralContext}
 
@@ -206,6 +282,9 @@ CRITICAL:
 4. Include at least 2 precedent products per concept
 5. Group concepts into 2-4 innovation paths/themes
 6. Each concept should target a different structural weakness when possible
+7. BEFORE/AFTER: Make the "old way" sound absurd and the "new way" sound inevitable — this is the "aha" moment
+8. PERSONA FIT: Score each concept for garage_inventor, product_company, and deep_tech_startup
+9. CONTRARIAN NARRATIVE: Identify the industry's biggest blind spot — be provocative and specific
 
 Return ONLY the JSON object.`;
 
@@ -216,7 +295,7 @@ Return ONLY the JSON object.`;
         { role: "user", content: userPrompt },
       ],
       temperature: 0.6,
-      max_tokens: 12000,
+      max_tokens: 16000,
     };
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -273,13 +352,26 @@ Return ONLY the JSON object.`;
       throw new Error("No concepts generated. Please try again.");
     }
 
-    // Validate each concept has origin trace
+    // Validate each concept has origin trace + new fields
     for (const c of concepts) {
       if (!c.origin) {
         c.origin = {
           structural_driver: "Structural weakness identified in decomposition",
           assumption_flipped: "Industry assumption challenged",
           enabling_mechanism: "Technical mechanism from library",
+        };
+      }
+      if (!c.before_after) {
+        c.before_after = {
+          the_old_way: "The current approach accepts known limitations as permanent constraints.",
+          the_new_way: "This concept eliminates those constraints entirely through a fundamental mechanism change.",
+        };
+      }
+      if (!c.persona_fit) {
+        c.persona_fit = {
+          garage_inventor: { fit_score: 5, rationale: "Moderate fit", key_adaptation: "Simplify manufacturing" },
+          product_company: { fit_score: 7, rationale: "Good fit with existing capabilities", key_adaptation: "Integrate with existing lines" },
+          deep_tech_startup: { fit_score: 6, rationale: "Potential for IP differentiation", key_adaptation: "Focus on defensible innovation" },
         };
       }
       if (!c.estimated_bom) c.estimated_bom = [];
@@ -298,7 +390,17 @@ Return ONLY the JSON object.`;
       }];
     }
 
-    console.log(`[ConceptSynthesis] Generated ${concepts.length} concepts, ${(result.innovation_paths as any[]).length} paths`);
+    // Ensure contrarian_narrative exists
+    if (!result.contrarian_narrative) {
+      result.contrarian_narrative = {
+        industry_blind_spot: "The industry optimizes for the wrong metric.",
+        why_blind: "Legacy thinking and sunk costs in existing tooling.",
+        evidence: "Structural analysis reveals fundamental misalignment between user needs and product design priorities.",
+        unlock_statement: "Addressing this blind spot could unlock significant market share from underserved segments.",
+      };
+    }
+
+    console.log(`[ConceptSynthesis] Generated ${concepts.length} concepts, ${(result.innovation_paths as any[]).length} paths, contrarian narrative: ${!!(result.contrarian_narrative)}`);
 
     return new Response(JSON.stringify({ success: true, result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
