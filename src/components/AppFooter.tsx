@@ -1,11 +1,12 @@
+import React from "react";
 import { ShieldCheck, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-export function AppFooter() {
+export const AppFooter = React.forwardRef<HTMLElement>(function AppFooter(_props, ref) {
   const { profile } = useAuth();
 
   return (
-    <footer className="border-t border-border pb-20 md:pb-0">
+    <footer ref={ref} className="border-t border-border pb-20 md:pb-0">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
           <span className="flex items-center gap-1">
@@ -31,4 +32,4 @@ export function AppFooter() {
       </div>
     </footer>
   );
-}
+});

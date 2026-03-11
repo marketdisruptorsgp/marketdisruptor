@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, useRef, useCallback, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -34,10 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const signingOut = useRef(false);
+  const profileFetchedFor = useRef<string | null>(null);
 
   const isReturningUser = localStorage.getItem(DEVICE_VERIFIED) === "true";
 
-  const fetchOrCreateProfile = async (userId: string) => {
+  const fetchOrCreateProfile = useCallback(async (userId: string) => {
+    // Deduplicate: only fetch once per user per mount
+    if (profileFetchedFor.current === userId) return;
+    profileFetchedFor.current = userId;
     const { data } = await supabase
       .from("profiles")
       .select("user_id, first_name")
@@ -62,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {

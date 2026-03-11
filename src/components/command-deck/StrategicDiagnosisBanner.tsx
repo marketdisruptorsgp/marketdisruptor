@@ -59,11 +59,11 @@ function buildDiagnosisSentence(
   if (verdict) {
     return verdict;
   }
-  // Early state
+  // Early state — pipeline running but no structured data yet
   if (completedSteps > 0) {
-    return "Early demand signals suggest structural constraints on the current model. Run the full analysis to identify specific bottlenecks.";
+    return "Analysis in progress — synthesizing structural data. The diagnosis will update automatically when the engine completes.";
   }
-  return "Run the analysis pipeline to generate a strategic diagnosis.";
+  return "Start the analysis pipeline to generate a strategic diagnosis.";
 }
 
 function confidenceTag(c: number) {
