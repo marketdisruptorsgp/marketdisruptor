@@ -104,50 +104,75 @@ Generate ${thesisCount} deepened strategic opportunities. Each must be specific 
 
     const tools = [buildToolSchema()];
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 150_000);
+    // Model cascade: try cheaper models first, fall back to Pro only if needed
+    const MODEL_CASCADE = [
+      "google/gemini-2.5-flash",
+      "google/gemini-2.5-pro",
+    ];
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools,
-        tool_choice: { type: "function", function: { name: "return_deepened_theses" } },
-        temperature: 0.4,
-      }),
-      signal: controller.signal,
-    });
+    let response: Response | null = null;
+    let lastError = "";
 
-    clearTimeout(timeoutId);
+    for (const model of MODEL_CASCADE) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 150_000);
 
-    if (!response.ok) {
-      const status = response.status;
-      const text = await response.text();
-      console.error(`AI gateway error [${status}]:`, text);
-
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            tools,
+            tool_choice: { type: "function", function: { name: "return_deepened_theses" } },
+            temperature: 0.4,
+          }),
+          signal: controller.signal,
         });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits in Settings." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+        clearTimeout(timeoutId);
 
-      return new Response(JSON.stringify({ error: "AI gateway error", details: text.slice(0, 500) }), {
-        status: 500,
+        if (response.ok) {
+          console.log(`[deepen-thesis] Success with model: ${model}`);
+          break;
+        }
+
+        const status = response.status;
+        const text = await response.text();
+        lastError = text;
+        console.warn(`[deepen-thesis] Model ${model} failed [${status}]: ${text.slice(0, 200)}`);
+
+        if (status === 402) {
+          // Credits exhausted — try next model (might be cheaper), or return fallback
+          console.warn(`[deepen-thesis] 402 on ${model}, trying next model...`);
+          response = null;
+          continue;
+        }
+        if (status === 429) {
+          // Rate limited — try next model
+          response = null;
+          continue;
+        }
+        // Other errors — try next model
+        response = null;
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        console.warn(`[deepen-thesis] Fetch error with ${model}:`, fetchErr);
+        response = null;
+      }
+    }
+
+    // If all models failed, return graceful fallback instead of error status
+    if (!response || !response.ok) {
+      console.error("[deepen-thesis] All models failed, returning fallback signal");
+      return new Response(JSON.stringify({ theses: [], fallback: true, reason: "all_models_failed", details: lastError.slice(0, 300) }), {
+        status: 200, // Return 200 so client can use deterministic fallback
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
