@@ -182,7 +182,7 @@ export function usePipelineOrchestrator(
     return disruptResult;
   }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, updateStatus, onStepComplete, onRecompute]);
 
-  const runRedesign = useCallback(async (product: any, extractedContext: string, disruptResult: unknown): Promise<unknown> => {
+  const runRedesign = useCallback(async (product: any, extractedContext: string, disruptResult: unknown, decompResult?: unknown): Promise<unknown> => {
     setCurrentStep("redesign");
     updateStatus("redesign", "running");
 
@@ -190,6 +190,7 @@ export function usePipelineOrchestrator(
       product,
       adaptiveContext: analysis.adaptiveContext || undefined,
       extractedContext: extractedContext || undefined,
+      structuralDecomposition: decompResult || analysis.decompositionData || undefined,
     };
     if (disruptResult) {
       const dd = disruptResult as Record<string, unknown>;
