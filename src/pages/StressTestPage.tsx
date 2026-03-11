@@ -81,7 +81,7 @@ export default function StressTestPage() {
   const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
 
   const intelligenceInput: SystemIntelligenceInput | null = governedData ? {
-    analysisId: selectedProduct.id || "unknown",
+    analysisId: analysisId || selectedProduct.id || "unknown",
     governedData,
     disruptData,
     businessAnalysisData: businessData,
