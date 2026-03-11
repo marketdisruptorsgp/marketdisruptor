@@ -39,52 +39,11 @@ serve(async (req) => {
     // ── Build Directions Block ──
     const directionsBlock = hasDirections ? buildDirectionsBlock(strategicDirections) : "";
 
-    const systemPrompt = `You are a strategic business reconfiguration analyst. Given a structural profile of a business, you generate SPECIFIC, CONCRETE strategic opportunities — not generic consulting advice.
+    const isProductMode = (analysisType || "").toLowerCase() === "product";
 
-You must generate ${thesisCount} distinct strategic opportunities, each representing a STRUCTURALLY DIFFERENT path the business could take.
-
-${hasDirections ? `Each opportunity corresponds to a strategic direction category provided below. Your job is to make each direction SPECIFIC and CONCRETE for this particular business.` : `Generate one thesis per qualified pattern.`}
-
-CRITICAL RULES:
-1. The "reconfigurationLabel" must describe the SPECIFIC business move in plain language. Not "Infrastructure Abstraction" but "Productize internal dispatch workflow into a SaaS scheduling platform for independent plumbers."
-2. The "causalChain" must trace a specific constraint to a specific outcome through a specific mechanism.
-3. The "economicMechanism" must describe concrete value creation — how revenue changes, what costs shift, what defensibility emerges.
-4. The "firstMove" must be something a business owner can literally do next week.
-5. The "strategicBet" must articulate a genuine contrarian belief — something most people in this industry would disagree with.
-6. Every field must reference specifics from the structural profile and evidence.
-7. Each opportunity must be STRUCTURALLY DISTINCT — different strategic paths, not variations of the same idea.
-
-REQUIRED OUTPUT LAYERS — Every thesis MUST include these:
-
-A) "whyThisMatters" — For the constraint this opportunity addresses:
-   - "implications": 3-4 bullet points explaining BUSINESS CONSEQUENCES of the constraint. Write as a strategic advisor would to a founder. Focus on growth limits, margin pressure, competitive vulnerability.
-   - "ifSolved": 3-4 bullet points describing what changes if the constraint is resolved. Focus on new capabilities unlocked, margin expansion, scalability.
-
-B) "strategicPrecedents" — 2-3 REAL companies that executed a structurally similar move:
-   - "company": Real company name (must be a real company)
-   - "description": One sentence explaining what they did that's analogous
-   - "pattern": The strategic pattern name (e.g. "platformization", "workflow automation", "marketplace creation")
-
-C) "secondOrderEffects" — 3-5 downstream consequences if this strategic move succeeds:
-   - How the move reshapes the market position over time
-   - Network effects, switching costs, data advantages, ecosystem lock-in
-   - How competitors or customers are affected
-   - Write as strategic implications, not features
-
-STRATEGIC REASONING LENSES — Use these to generate non-obvious insights:
-1. CROSS-INDUSTRY ANALOGS: What companies in DIFFERENT industries solved a structurally similar constraint?
-2. CONSTRAINT INVERSIONS: Can the binding constraint itself become a competitive advantage?
-3. SECOND-ORDER EFFECTS: If this constraint were resolved, what NEW capability becomes accessible?
-4. TEMPORAL ARBITRAGE: What recent changes make a previously impossible move now viable?
-5. NEGATIVE SPACE: What is NO competitor doing? Why? Is the reason structural or assumed?
-6. THREE-LENS MANDATE: Evaluate through: (a) structural viability, (b) economic mechanism, (c) operator execution capacity.
-
-DIFFERENTIATION MANDATE:
-${differentiationBias}
-
-${lensBlock}
-
-${directionsBlock}`;
+    const systemPrompt = isProductMode
+      ? buildProductModeSystemPrompt(thesisCount, hasDirections, differentiationBias, lensBlock, directionsBlock)
+      : buildBusinessModeSystemPrompt(thesisCount, hasDirections, differentiationBias, lensBlock, directionsBlock);
 
     const profileSummary = buildProfileSummary(structuralProfile);
     const patternsSummary = qualifiedPatterns?.length > 0 ? buildPatternsSummary(qualifiedPatterns) : "No qualified structural patterns (using strategic directions instead).";
