@@ -172,6 +172,14 @@ export default function CommandDeckPage() {
 
   // ── Recompute ──
   const [isRecomputing, setIsRecomputing] = useState(false);
+  const isDeepening = engineComputing || isRecomputing;
+
+  // Clear isRecomputing when engine finishes
+  useEffect(() => {
+    if (!engineComputing && isRecomputing) {
+      setIsRecomputing(false);
+    }
+  }, [engineComputing, isRecomputing]);
 
   // ── Scenario state (Challenge Mode) ──
   const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([]);
