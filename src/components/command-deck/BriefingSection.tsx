@@ -22,7 +22,7 @@ export const BriefingSection = memo(function BriefingSection({
   title,
   icon: Icon,
   children,
-  defaultOpen = false,
+  defaultOpen = true,
   preview,
   badge,
 }: BriefingSectionProps) {
