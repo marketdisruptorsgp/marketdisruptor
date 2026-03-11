@@ -175,8 +175,8 @@ export default function DisruptPage() {
             synopsisData={synopsisData}
             rawHypotheses={hasHypotheses ? rawHypotheses! : null}
             hasDisruptData={hasDisruptData}
-            hasSynopsis={false}
-            hasHypotheses={false}
+            hasSynopsis={!!hasSynopsis}
+            hasHypotheses={!!hasHypotheses}
             ranking={ranking}
             products={products}
             runTrigger={runTrigger}
