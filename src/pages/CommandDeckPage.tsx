@@ -172,6 +172,14 @@ export default function CommandDeckPage() {
 
   // ── Recompute ──
   const [isRecomputing, setIsRecomputing] = useState(false);
+  const isDeepening = engineComputing || isRecomputing;
+
+  // Clear isRecomputing when engine finishes
+  useEffect(() => {
+    if (!engineComputing && isRecomputing) {
+      setIsRecomputing(false);
+    }
+  }, [engineComputing, isRecomputing]);
 
   // ── Scenario state (Challenge Mode) ──
   const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([]);
@@ -210,7 +218,6 @@ export default function CommandDeckPage() {
         geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
       });
     } catch { addEvent("Intelligence recompute completed"); }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic intelligence updated"); }, 800);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent]);
 
   const handleRecomputeAll = useCallback(() => {
@@ -218,7 +225,7 @@ export default function CommandDeckPage() {
     setIsRecomputing(true);
     addEvent("Running strategic analysis…");
     try { runAnalysis(); } catch { addEvent("Strategic intelligence updated"); }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic analysis complete"); }, 1000);
+    // Don't use setTimeout — let engineComputing state drive the UI
   }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
 
   const handleChallenge = useCallback((nodeStage: string, newValue: string) => {
@@ -244,7 +251,6 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => { setIsRecomputing(false); toast.success(`Strategic scenario updated`); }, 1000);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis, activeChallenges, narrative]);
 
   const handleResetScenario = useCallback(() => {
@@ -266,7 +272,6 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Reset to baseline"); }, 800);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
   // ── Save Scenario ──
@@ -326,7 +331,6 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => { setIsRecomputing(false); toast.success(`Loaded scenario`); }, 800);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
   // ── Derived data ──
@@ -440,7 +444,7 @@ export default function CommandDeckPage() {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={90} />
+            <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={180} />
           </div>
         </div>
       );
@@ -580,6 +584,19 @@ export default function CommandDeckPage() {
         {/* ═══ SCENARIO BANNER (only when active) ═══ */}
         <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
         <DeltaChanges deltas={deltaChanges} />
+
+        {/* ═══ DEEPENING INDICATOR ═══ */}
+        {isDeepening && hasRun && (
+          <div
+            className="rounded-xl px-4 py-3 flex items-center gap-2"
+            style={{ background: `${modeAccent}08`, border: `1px solid ${modeAccent}20` }}
+          >
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: modeAccent }} />
+            <span className="text-xs font-bold" style={{ color: modeAccent }}>
+              Deepening strategic analysis — insights will update momentarily…
+            </span>
+          </div>
+        )}
 
         {/* ══════════════════════════════════════════════════════════
             SECTION 1 — THE AHA MOMENT

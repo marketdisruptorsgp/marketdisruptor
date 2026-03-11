@@ -161,9 +161,9 @@ export function usePipelineOrchestrator(
     await saveStepData("decomposition", decompResult, analysisId!);
     updateStatus("decompose", "done");
     onStepComplete?.("decompose");
-    onRecompute?.();
+    // DON'T call onRecompute here — wait until pipeline is fully complete
     return decompResult;
-  }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete, onRecompute]);
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete]);
 
   // ── Phase 2: Strategic Synthesis (replaces transform + concept) ──
 
@@ -240,9 +240,9 @@ export function usePipelineOrchestrator(
     clearStepOutdated("redesign");
     updateStatus("synthesis", "done");
     onStepComplete?.("synthesis");
-    onRecompute?.();
+    // DON'T call onRecompute here — wait until pipeline is fully complete
     return synthesisResult;
-  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Phase 3: Deep Validation (background enrichment) ──
 
@@ -286,9 +286,9 @@ export function usePipelineOrchestrator(
     clearStepOutdated("stressTest");
     updateStatus("stressTest", "done");
     onStepComplete?.("stressTest");
-    onRecompute?.();
+    // DON'T call onRecompute here — wait until pipeline is fully complete
     return stressResult;
-  }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+  }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Phase 3: Pitch (background enrichment) ──
 
@@ -320,8 +320,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("pitch");
     updateStatus("pitch", "done");
     onStepComplete?.("pitch");
-    onRecompute?.();
-  }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+    // DON'T call onRecompute here — wait until pipeline is fully complete
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Full 3-Phase Pipeline ──
 
