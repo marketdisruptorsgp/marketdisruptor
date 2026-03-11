@@ -509,6 +509,12 @@ export default function CommandDeckPage() {
           </div>
         </div>
 
+        {/* ═══ DEAL METRICS STRIP ═══ */}
+        <DealMetricsStrip
+          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
+
         {/* ═══ PIPELINE PROGRESS (auto-run) ═══ */}
         {(pipelineProgress.isRunning || pipelineProgress.steps.some(s => s.status === "error")) && (
           <div
