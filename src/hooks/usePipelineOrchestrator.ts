@@ -300,6 +300,9 @@ export function usePipelineOrchestrator(
       if (sr.transformationClusters) analysisPayload.transformationClusters = sr.transformationClusters;
     }
 
+    // Extract governed data from synthesis result for confidence computation
+    const upstreamGoverned = (synthesisResult as any)?.governed || undefined;
+
     const { data: result, error } = await invokeWithTimeout("critical-validation", {
       body: {
         product: compressProductPayload(product),
@@ -307,6 +310,7 @@ export function usePipelineOrchestrator(
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
         structuralDecomposition: decompResult || analysis.decompositionData || undefined,
+        upstreamGoverned,
       },
     }, 180_000);
 

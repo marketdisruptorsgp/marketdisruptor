@@ -59,7 +59,7 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
         </div>
         <div className="flex justify-between mt-2">
           <span className="text-[10px] text-muted-foreground">{elapsedSeconds}s elapsed</span>
-          <span className="text-[10px] text-muted-foreground">Est. 45–120s</span>
+          <span className="text-[10px] text-muted-foreground">Est. 2–4 min</span>
         </div>
       </div>
 
