@@ -803,6 +803,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
           input.analysisType,
           undefined, // businessContext — auto-derived
           lensContext,
+          input.biExtraction ?? null,
         );
         // No more .slice(0, 2) — allow 3-5 opportunities through
         deepenedOpps = deepenedOpps.slice(0, 5);

@@ -208,6 +208,7 @@ export async function deepenOpportunitiesAsync(
     available_resources?: string;
     evaluation_priorities?: Record<string, number>;
   },
+  biExtraction?: Record<string, unknown> | null,
 ): Promise<DeepenedOpportunity[]> {
   // Select relevant strategic directions based on structural profile
   const scoredDirections = selectRelevantDirections(profile, 5);
@@ -252,6 +253,11 @@ export async function deepenOpportunitiesAsync(
       businessContext: businessContext ?? buildBusinessContextFromEvidence(evidence),
       operatorLens: operatorLens || null,
     };
+
+    // Include full structured BI extraction for deep business reasoning
+    if (biExtraction) {
+      bodyPayload.documentIntelligence = buildDocumentIntelligencePayload(biExtraction);
+    }
 
     // Include qualified patterns if available
     if (qualifiedPatterns.length > 0) {
