@@ -95,6 +95,7 @@ export function usePipelineOrchestrator(
 
   const runningRef = useRef(false);
   const triggeredForRef = useRef<string | null>(null);
+  const lastCompletedStepRef = useRef<string | null>(null); // Track for resume
 
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
     decompose: "pending",
@@ -106,6 +107,17 @@ export function usePipelineOrchestrator(
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+
+  // Warn user if navigating away during active pipeline
+  useEffect(() => {
+    if (!isRunning) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "Analysis pipeline is still running. Completed steps are saved, but the current step will need to re-run.";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isRunning]);
 
   const updateStatus = useCallback((key: string, status: PipelineStepStatus, error?: string) => {
     setStepStatuses(prev => ({ ...prev, [key]: status }));
