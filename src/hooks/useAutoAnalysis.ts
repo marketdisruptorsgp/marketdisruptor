@@ -77,6 +77,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
   const [isComputing, setIsComputing] = useState(false);
   const [hasRun, setHasRun] = useState(false);
+  const runIdRef = useRef(0); // Monotonic run counter to deduplicate concurrent runs
 
   // Track completed steps
   const completedSteps = useMemo(() => {
