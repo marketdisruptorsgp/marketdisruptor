@@ -54,6 +54,9 @@ import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth
 import { CIMKeyFindings } from "@/components/command-deck/CIMKeyFindings";
 import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
 import { DealMetricsStrip } from "@/components/command-deck/DealMetricsStrip";
+import { RevivalScoreCard } from "@/components/command-deck/RevivalScoreCard";
+import { CompetitiveMoatRadar } from "@/components/command-deck/CompetitiveMoatRadar";
+import { LeverageToDirectionsLink } from "@/components/command-deck/LeverageToDirectionsLink";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
