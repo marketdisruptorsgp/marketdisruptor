@@ -386,6 +386,19 @@ LEVERAGE ANALYSIS MANDATE (REQUIRED for all modes):
   * aggregation — combine multiple components into one
 - Sort leveragePrimitives by leverageScore descending (highest first).
 
+VALUE CHAIN MANDATE (REQUIRED for all modes):
+- Map 4-7 sequential stages that value flows through from inputs to final delivery/revenue.
+- Each stage must be SPECIFIC to this exact ${modeLabel.toLowerCase()} — not generic industry stages.
+- For a kitchen faucet: "Brass/Zinc Alloy Sourcing" → "Valve Cartridge Manufacturing" → "Assembly & QC" → "Retail Distribution" → "Installation/Plumbing" → "After-Sales/Warranty"
+- For a SaaS: "Infrastructure Provisioning" → "Feature Development" → "Customer Acquisition" → "Onboarding" → "Retention/Expansion"
+- friction: Be honest about where friction exists. High = significant cost, delay, or quality risk. Low = smooth and efficient.
+- frictionDetail: Explain WHY this stage has its friction level — reference specific cost drivers, bottlenecks, or control points from above.
+- costShare: Estimate what % of total cost this stage represents.
+- actors: Who actually performs work at this stage?
+- disintermediationPotential: Could this stage be bypassed (e.g. DTC bypasses retail)?
+- highestFrictionStage: Reference the stage id with most friction.
+- primaryValueLeakage: Where do intermediaries or inefficiency capture the most value?
+
 Respond ONLY with a single valid JSON object matching this schema:
 ${schema}`;
 
