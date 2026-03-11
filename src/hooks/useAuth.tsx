@@ -34,7 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const signingOut = useRef(false);
-  const profileFetchedFor = useRef<string | null>(null);
+  // Persist across HMR — module-level guard survives hot reload
+  const profileFetchedFor = useRef<string | null>(
+    (window as any).__md_profileFetchedFor ?? null
+  );
 
   const isReturningUser = localStorage.getItem(DEVICE_VERIFIED) === "true";
 
