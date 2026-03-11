@@ -122,7 +122,7 @@ export function ShowcaseGallery() {
 
       {/* Lightbox with arrows & swipe */}
       <Dialog open={lightboxIdx !== null} onOpenChange={() => setLightboxIdx(null)}>
-        <DialogContent className="max-w-5xl w-[95vw] p-2 sm:p-4 rounded-xl">
+        <DialogContent className="max-w-5xl w-[95vw] p-2 sm:p-4 rounded-xl" onOpenAutoFocus={(e) => e.preventDefault()}>
           <VisuallyHidden>
             <DialogTitle>{lightbox?.caption ?? "Screenshot"}</DialogTitle>
           </VisuallyHidden>
