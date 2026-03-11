@@ -445,6 +445,7 @@ function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accent
   const navigate = useNavigate();
   const done = completedSteps.size;
   const total = PIPELINE_STEPS.length;
+  const allDone = done >= total;
 
   return (
     <motion.div {...fadeUp} transition={{ delay: 0.35, duration: 0.5 }}
@@ -452,10 +453,14 @@ function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accent
       style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
     >
       <div className="flex items-center justify-between">
-        <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Pipeline Status</p>
-        <span className="text-sm font-extrabold tabular-nums" style={{ color: accentColor }}>
-          {done}/{total}
-        </span>
+        <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
+          {allDone ? "Analysis Complete" : "Analysis Steps"}
+        </p>
+        {!allDone && (
+          <span className="text-sm font-extrabold tabular-nums" style={{ color: accentColor }}>
+            {done}/{total}
+          </span>
+        )}
       </div>
 
       {/* Progress bar */}
@@ -601,12 +606,12 @@ export const StrategicDashboard = memo(function StrategicDashboard({
 
   return (
     <div className="space-y-4">
-      {/* Row 1: Metrics */}
+      {/* Row 1: Metrics — user-friendly labels, no dev scores */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricTile label="Total Insights" value={totalInsights} icon={Target} color={accentColor} delay={0} />
+        <MetricTile label="Insights Found" value={totalInsights} icon={Target} color={accentColor} delay={0} />
         <MetricTile label="Constraints" value={constraintCount} icon={Shield} color="hsl(0 72% 52%)" delay={0.05} />
-        <MetricTile label="Opp. Score" value={oppScore} icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.1} />
-        <MetricTile label="Pipeline" value={`${completionPct}%`} icon={Zap} color="hsl(38 92% 50%)" delay={0.15} />
+        <MetricTile label="Opportunities" value={commandDeck?.topOpportunities.length ?? graphOppCount} icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.1} />
+        <MetricTile label="Analysis" value={completionPct >= 80 ? "Ready" : `${completionPct}%`} icon={Zap} color="hsl(38 92% 50%)" delay={0.15} />
       </div>
 
       {/* Row 2: Constraint Radar + Opportunity Landscape */}

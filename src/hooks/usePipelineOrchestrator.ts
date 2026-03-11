@@ -33,11 +33,11 @@ export interface PipelineProgress {
 }
 
 const STEP_DEFS = [
-  { key: "decompose", label: "Structural Decomposition" },
-  { key: "synthesis", label: "Strategic Synthesis" },
-  { key: "concepts", label: "Concept Synthesis" },
-  { key: "stressTest", label: "Deep Validation" },
-  { key: "pitch", label: "Pitch Synthesis" },
+  { key: "decompose", label: "Understanding Structure" },
+  { key: "synthesis", label: "Finding Opportunities" },
+  { key: "concepts", label: "Generating Concepts" },
+  { key: "stressTest", label: "Stress Testing" },
+  { key: "pitch", label: "Building Pitch" },
 ] as const;
 
 /**
@@ -420,13 +420,19 @@ export function usePipelineOrchestrator(
         updateStatus("synthesis", "done");
       }
 
-      // ═══ Phase 2.5: Concept Synthesis (Product Mode only) ═══
+      // ═══ Phase 2.5: Concept Synthesis (Product Mode only, auto-retry) ═══
       const isProductMode = analysis.activeMode === "custom" || (analysis.activeMode as string) === "product";
       if (isProductMode && !conceptsData && synthesisResult) {
-        const conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
+        let conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
         if (!conceptResult) {
-          console.warn("[Pipeline] Concept synthesis failed — continuing");
-          toast.warning("Concept synthesis had issues. Continuing with validation.");
+          console.log("[Pipeline] Concept synthesis failed, retrying once...");
+          // Reset status for retry
+          updateStatus("concepts", "running");
+          conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
+          if (!conceptResult) {
+            console.warn("[Pipeline] Concept synthesis failed after retry — continuing");
+            // Don't toast a scary warning — just note it
+          }
         }
       } else if (isProductMode && conceptsData) {
         console.log("[Pipeline] Reusing existing concepts data");
