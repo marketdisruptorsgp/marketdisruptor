@@ -145,7 +145,7 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
     });
 
     return { graph, margin, innerHeight: nodeHeight };
-  }, [stages, containerWidth, highestFrictionStage]);
+  }, [activeStages, containerWidth, highestFrictionStage]);
 
   if (!sankeyData) return null;
 
