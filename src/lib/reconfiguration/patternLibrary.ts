@@ -276,11 +276,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       }
 
       if (profile.distributionControl === "intermediated") strengths.push("Intermediated distribution — bypass or disintermediation opportunity");
+      if (profile.distributionControl === "shared") strengths.push("Shared distribution — opportunity to gain full control via relocation");
       if (profile.marginStructure === "thin_margin") strengths.push("Thin margins suggest margin is captured elsewhere in the chain");
+      if (profile.marginStructure === "moderate_margin" && profile.distributionControl !== "owned") strengths.push("Moderate margins with non-owned distribution — chain position may compress returns");
       if (cNames.has("channel_dependency")) { resolves.push("channel_dependency"); strengths.push("Channel dependency is a direct relocation target"); }
       if (cNames.has("margin_compression")) { resolves.push("margin_compression"); strengths.push("Margin compression may be caused by chain position"); }
       if (cNames.has("geographic_constraint")) { resolves.push("geographic_constraint"); strengths.push("Geographic constraint suggests physical relocation opportunity"); }
       if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Vendor concentration creates upstream relocation opportunity"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck may be resolved by relocating in the chain"); }
 
       return {
         qualifies: strengths.length >= 2,
