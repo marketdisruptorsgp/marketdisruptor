@@ -34,10 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const signingOut = useRef(false);
+  const profileFetchedFor = useRef<string | null>(null);
 
   const isReturningUser = localStorage.getItem(DEVICE_VERIFIED) === "true";
 
-  const fetchOrCreateProfile = async (userId: string) => {
+  const fetchOrCreateProfile = useCallback(async (userId: string) => {
+    // Deduplicate: only fetch once per user per mount
+    if (profileFetchedFor.current === userId) return;
+    profileFetchedFor.current = userId;
     const { data } = await supabase
       .from("profiles")
       .select("user_id, first_name")
