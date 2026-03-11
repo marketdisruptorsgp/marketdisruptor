@@ -63,3 +63,12 @@ verify_jwt = false
 [functions.industry-benchmarks]
 verify_jwt = false
 
+[functions.structural-decomposition]
+verify_jwt = false
+
+[functions.transformation-engine]
+verify_jwt = false
+
+[functions.concept-architecture]
+verify_jwt = false
+
