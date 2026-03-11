@@ -405,7 +405,7 @@ export function usePipelineOrchestrator(
       }
 
       // ═══ Phase 2.5: Concept Synthesis (Product Mode only) ═══
-      const isProductMode = analysis.activeMode === "custom" || analysis.activeMode === "product";
+      const isProductMode = analysis.activeMode === "custom" || (analysis.activeMode as string) === "product";
       if (isProductMode && !conceptsData && synthesisResult) {
         const conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
         if (!conceptResult) {
