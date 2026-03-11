@@ -240,9 +240,9 @@ export function usePipelineOrchestrator(
     clearStepOutdated("redesign");
     updateStatus("synthesis", "done");
     onStepComplete?.("synthesis");
-    onRecompute?.();
+    // DON'T call onRecompute here — wait until pipeline is fully complete
     return synthesisResult;
-  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Phase 3: Deep Validation (background enrichment) ──
 
