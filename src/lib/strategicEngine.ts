@@ -156,6 +156,8 @@ export interface StrategicAnalysisInput {
   regulatoryData?: any | null;
   /** Lens configuration — when ETA, shapes structural diagnosis with acquisition dimensions */
   lensConfig?: DiagnosisLensConfig | null;
+  /** Full structured BI extraction from uploaded documents (CIMs, etc.) */
+  biExtraction?: Record<string, unknown> | null;
 }
 
 export interface StrategicAnalysisOutput {
@@ -801,6 +803,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
           input.analysisType,
           undefined, // businessContext — auto-derived
           lensContext,
+          input.biExtraction ?? null,
         );
         // No more .slice(0, 2) — allow 3-5 opportunities through
         deepenedOpps = deepenedOpps.slice(0, 5);

@@ -134,6 +134,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         }
       : null;
 
+    // Get biExtraction for deep document intelligence
+    const biExtraction = (analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null;
+
     const input: StrategicAnalysisInput = {
       products,
       selectedProduct,
@@ -150,6 +153,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       geoMarketData: geoData,
       regulatoryData,
       lensConfig,
+      biExtraction,
     };
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {
