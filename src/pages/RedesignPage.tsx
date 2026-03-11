@@ -32,10 +32,16 @@ import {
 
 const { useState } = React;
 
-const REDESIGN_TABS: TabDef<"flip" | "ideas" | "concept">[] = [
+const LEGACY_REDESIGN_TABS: TabDef<"flip" | "ideas" | "concept">[] = [
   { id: "flip", label: "Flip the Logic", icon: FlipHorizontal },
   { id: "ideas", label: "Flipped Ideas", icon: Zap },
   { id: "concept", label: "Redesigned Concept", icon: Sparkles },
+];
+
+const INVENTION_ENGINE_TABS: TabDef<"flip" | "ideas" | "concept">[] = [
+  { id: "flip", label: "Hidden Assumptions", icon: FlipHorizontal },
+  { id: "ideas", label: "Invention Concepts", icon: Lightbulb },
+  { id: "concept", label: "Engineering Deep Dive", icon: Wrench },
 ];
 
 type RedesignTabId = "flip" | "ideas" | "concept";
