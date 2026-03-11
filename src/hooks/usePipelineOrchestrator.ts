@@ -34,6 +34,7 @@ export interface PipelineProgress {
 }
 
 const STEP_DEFS = [
+  { key: "decompose", label: "Structural Decomposition" },
   { key: "disrupt", label: "Structural Analysis" },
   { key: "redesign", label: "Redesign Concept" },
   { key: "stressTest", label: "Strategy Development" },
