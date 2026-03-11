@@ -3,7 +3,7 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import type { Product, FlippedIdea } from "@/data/mockProducts";
-import { Brain, Sparkles } from "lucide-react";
+import { Brain, Sparkles, AlertTriangle, RefreshCw } from "lucide-react";
 import { StepLoadingTracker, DISRUPT_TASKS, REDESIGN_TASKS } from "@/components/StepLoadingTracker";
 
 // Sub-panels
