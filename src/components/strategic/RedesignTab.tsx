@@ -2,10 +2,8 @@ import React, { useState } from "react";
 import { Wrench, Shield, TrendingUp, ChevronDown, Zap, Clock, Target, CheckCircle2, Lightbulb } from "lucide-react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { ConceptExplorer } from "@/components/first-principles/ConceptExplorer";
-import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
 import type { ConceptSynthesisResult } from "@/components/first-principles/types";
 import type { StrategicHypothesis } from "@/lib/strategicOS";
-import { useModeTheme } from "@/hooks/useModeTheme";
 
 interface StrategyCard {
   id: string;
