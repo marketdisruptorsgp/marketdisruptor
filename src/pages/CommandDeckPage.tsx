@@ -53,6 +53,7 @@ import { DocumentIntelligenceBanner } from "@/components/command-deck/DocumentIn
 import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth";
 import { CIMKeyFindings } from "@/components/command-deck/CIMKeyFindings";
 import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
+import { DealMetricsStrip } from "@/components/command-deck/DealMetricsStrip";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
@@ -507,6 +508,12 @@ export default function CommandDeckPage() {
             <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           </div>
         </div>
+
+        {/* ═══ DEAL METRICS STRIP ═══ */}
+        <DealMetricsStrip
+          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          governedData={analysis.governedData as Record<string, any> | null}
+        />
 
         {/* ═══ PIPELINE PROGRESS (auto-run) ═══ */}
         {(pipelineProgress.isRunning || pipelineProgress.steps.some(s => s.status === "error")) && (
