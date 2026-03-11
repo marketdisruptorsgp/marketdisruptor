@@ -48,8 +48,8 @@ export function usePipelineOrchestrator(
   const analysis = useAnalysis();
   const {
     step, selectedProduct, analysisId,
-    disruptData, redesignData, stressTestData, pitchDeckData,
-    setDisruptData, setRedesignData, setStressTestData, setPitchDeckData,
+    decompositionData, disruptData, redesignData, stressTestData, pitchDeckData,
+    setDecompositionData, setDisruptData, setRedesignData, setStressTestData, setPitchDeckData,
     setGovernedData, saveStepData, markStepOutdated, clearStepOutdated,
   } = analysis;
 
