@@ -320,8 +320,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("pitch");
     updateStatus("pitch", "done");
     onStepComplete?.("pitch");
-    onRecompute?.();
-  }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+    // DON'T call onRecompute here — wait until pipeline is fully complete
+  }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Full 3-Phase Pipeline ──
 
