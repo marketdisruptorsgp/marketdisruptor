@@ -103,6 +103,7 @@ export function validateStructuredResponse(
   const governed = response.governed as Record<string, unknown> | undefined;
   const requiredByStep: Record<string, string[]> = {
     "first-principles": ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"],
+    "strategic-synthesis": ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"],
     "business-model-analysis": ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"],
     "critical-validation": ["falsification", "decision_synthesis"],
     "generate-flip-ideas": [],
@@ -127,6 +128,10 @@ export function validateStructuredResponse(
 
 const MIN_ARRAY_ITEMS_BY_STEP: Record<string, Record<string, number>> = {
   "first-principles": {
+    hiddenAssumptions: 5,
+    flippedLogic: 4,
+  },
+  "strategic-synthesis": {
     hiddenAssumptions: 5,
     flippedLogic: 4,
   },
@@ -441,6 +446,95 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
       },
     },
     required: ["hiddenAssumptions", "flippedLogic", "redesignedConcept", "governed"],
+    additionalProperties: true,
+  },
+  "strategic-synthesis": {
+    type: "object",
+    properties: {
+      currentStrengths: { type: "object", additionalProperties: true },
+      coreReality: { type: "object", additionalProperties: true },
+      frictionDimensions: { type: "object", additionalProperties: true },
+      userWorkflow: { type: "object", additionalProperties: true },
+      smartTechAnalysis: { type: "object", additionalProperties: true },
+      hiddenAssumptions: {
+        type: "array",
+        minItems: 5,
+        items: {
+          type: "object",
+          properties: {
+            assumption: { type: "string" },
+            currentAnswer: { type: "string" },
+            reason: { type: "string" },
+            isChallengeable: { type: "boolean" },
+            challengeIdea: { type: "string" },
+            leverageScore: { type: "number" },
+            impactScenario: { type: "string" },
+            competitiveBlindSpot: { type: "string" },
+            urgencySignal: { type: "string" },
+            urgencyReason: { type: "string" },
+          },
+          required: ["assumption", "currentAnswer", "reason", "isChallengeable", "challengeIdea", "leverageScore", "impactScenario", "competitiveBlindSpot", "urgencySignal", "urgencyReason"],
+          additionalProperties: false,
+        },
+      },
+      flippedLogic: {
+        type: "array",
+        minItems: 4,
+        items: {
+          type: "object",
+          properties: {
+            originalAssumption: { type: "string" },
+            boldAlternative: { type: "string" },
+            rationale: { type: "string" },
+            physicalMechanism: { type: "string" },
+          },
+          required: ["originalAssumption", "boldAlternative", "rationale", "physicalMechanism"],
+          additionalProperties: false,
+        },
+      },
+      structuralTransformations: { type: "array", items: { type: "object", additionalProperties: true } },
+      transformationClusters: { type: "array", items: { type: "object", additionalProperties: true } },
+      redesignedConcept: { type: "object", additionalProperties: true },
+      quickValidation: {
+        type: "object",
+        properties: {
+          topThreats: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                threat: { type: "string" },
+                severity: { type: "string" },
+                mitigation: { type: "string" },
+              },
+              required: ["threat", "severity", "mitigation"],
+              additionalProperties: false,
+            },
+          },
+          feasibilityScore: { type: "number" },
+          keyRisk: { type: "string" },
+          confidenceLevel: { type: "string" },
+        },
+        required: ["topThreats", "feasibilityScore", "keyRisk", "confidenceLevel"],
+        additionalProperties: false,
+      },
+      visualSpecs: { type: "array", items: { type: "object", additionalProperties: true } },
+      actionPlans: { type: "array", items: { type: "object", additionalProperties: true } },
+      governed: {
+        type: "object",
+        properties: {
+          domain_confirmation: GOVERNED_CORE_PROPERTIES.domain_confirmation,
+          first_principles: GOVERNED_CORE_PROPERTIES.first_principles,
+          friction_tiers: GOVERNED_CORE_PROPERTIES.friction_tiers,
+          constraint_map: GOVERNED_CORE_PROPERTIES.constraint_map,
+          decision_synthesis: GOVERNED_CORE_PROPERTIES.decision_synthesis,
+          reasoning_synopsis: GOVERNED_CORE_PROPERTIES.reasoning_synopsis,
+        },
+        required: ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis", "reasoning_synopsis"],
+        additionalProperties: true,
+      },
+    },
+    required: ["hiddenAssumptions", "flippedLogic", "structuralTransformations", "transformationClusters", "redesignedConcept", "quickValidation", "governed"],
     additionalProperties: true,
   },
   "critical-validation": {
