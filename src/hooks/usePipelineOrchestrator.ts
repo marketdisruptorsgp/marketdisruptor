@@ -96,13 +96,16 @@ export function usePipelineOrchestrator(
     setCurrentStep("decompose");
     updateStatus("decompose", "running");
 
-    // Extract upstream intel for grounding
+    // Extract upstream intel for grounding — including patent + trend data
     const upstreamIntel: Record<string, unknown> = {};
     const pp = product as any;
     if (pp.supplyChain) upstreamIntel.supplyChain = pp.supplyChain;
     if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
     if (pp.competitorAnalysis) upstreamIntel.competitorAnalysis = pp.competitorAnalysis;
     if (pp.operationalIntel) upstreamIntel.operationalIntel = pp.operationalIntel;
+    if (pp.patentLandscape) upstreamIntel.patentLandscape = pp.patentLandscape;
+    if (pp.trendAnalysis) upstreamIntel.trendAnalysis = pp.trendAnalysis;
+    if (pp.patentData) upstreamIntel.patentData = pp.patentData;
 
     const { data: result, error } = await invokeWithTimeout("structural-decomposition", {
       body: {

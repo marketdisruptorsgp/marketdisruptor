@@ -120,6 +120,12 @@ export interface LeverageAnalysis {
 //  STRUCTURAL TRANSFORMATIONS — Systematic inversion types
 // ═══════════════════════════════════════════════════════════════
 
+export interface SystemImpact {
+  valueFlowChanges: string[];
+  newBottleneck: string;
+  cascadeEffects: string[];
+}
+
 export interface StructuralTransformation {
   id: string;
   targetPrimitiveId: string;
@@ -132,6 +138,7 @@ export interface StructuralTransformation {
   valueLost: string;
   viabilityGate: ViabilityGate;
   filtered: boolean;  // true = failed viability, excluded from redesign
+  systemImpact?: SystemImpact;  // Lightweight counterfactual — what changes if this transformation executes
 }
 
 export interface ViabilityGate {
