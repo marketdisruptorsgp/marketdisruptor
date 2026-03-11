@@ -223,6 +223,9 @@ export function RedesignTab({ disruptData, hypotheses, governedData }: RedesignT
   }
 
   const strategies = deriveStrategies(disruptData, hypotheses, governedData);
+  const breakStrategies = strategies.filter(s => s.category === "break");
+  const mitigations = strategies.filter(s => s.category === "mitigate");
+  const compounds = strategies.filter(s => s.category === "compound");
 
   if (strategies.length === 0) {
     return null;
