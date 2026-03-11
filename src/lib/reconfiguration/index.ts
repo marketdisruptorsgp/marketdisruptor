@@ -48,7 +48,7 @@ export type {
   StrategicPrecedent,
 } from "./opportunityDeepening";
 
-export { STRATEGIC_DIRECTIONS, selectRelevantDirections, buildDirectionsPromptBlock } from "./strategicDirections";
+export { STRATEGIC_DIRECTIONS, PRODUCT_DIRECTIONS, selectRelevantDirections, buildDirectionsPromptBlock } from "./strategicDirections";
 export type { StrategicDirection, ScoredDirection } from "./strategicDirections";
 
 export { PRECEDENT_LIBRARY, getFallbackPrecedents } from "./precedentLibrary";
