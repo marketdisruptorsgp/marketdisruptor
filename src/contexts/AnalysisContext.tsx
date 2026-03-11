@@ -327,6 +327,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
   const [redesignData, setRedesignData] = useState<unknown>(null);
+  const [conceptsData, setConceptsData] = useState<unknown>(null);
 
   // Keep stepDataRef in sync so markStepOutdated can guard empty steps
   useEffect(() => {
