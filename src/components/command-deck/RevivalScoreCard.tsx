@@ -49,9 +49,8 @@ export const RevivalScoreCard = memo(function RevivalScoreCard({
   narrative,
   metrics,
 }: RevivalScoreCardProps) {
-  if (score === null || score === undefined || score <= 0) return null;
-
   const factors = useMemo(() => {
+    if (score === null || score === undefined || score <= 0) return [];
     const opp = metrics?.opportunityScore ?? score * 0.8;
     const lev = metrics?.leverageScore ?? score * 0.7;
     const feas = Math.max(1, 10 - (metrics?.frictionIndex ?? 3));
@@ -63,6 +62,8 @@ export const RevivalScoreCard = memo(function RevivalScoreCard({
       { ...FACTORS[3], value: Math.min(10, Math.round(timing * 10) / 10) },
     ];
   }, [score, metrics]);
+
+  if (score === null || score === undefined || score <= 0) return null;
 
   const color = scoreColor(score);
   const circumference = 2 * Math.PI * 40;
