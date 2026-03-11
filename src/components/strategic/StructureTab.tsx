@@ -14,6 +14,7 @@ import { FrictionHeatmap } from "@/components/FrictionHeatmap";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
 import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
 import { CausalConstraintMap } from "@/components/CausalConstraintMap";
+import { CausalConstraintSankey } from "@/components/CausalConstraintSankey";
 import { CompetitiveLandscape } from "@/components/CompetitiveLandscape";
 
 export type StructureViewMode = "assumptions" | "deconstruct" | "all";
