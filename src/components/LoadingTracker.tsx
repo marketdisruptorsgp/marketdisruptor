@@ -23,8 +23,8 @@ const ANALYZE_TASKS = [
 
 export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrackerProps) {
   const isScraping = step === "scraping";
-  const SCRAPE_EST = 35;
-  const ANALYZE_EST = 55;
+  const SCRAPE_EST = 60;
+  const ANALYZE_EST = 140;
   const totalEst = SCRAPE_EST + ANALYZE_EST;
   const effectiveElapsed = isScraping
     ? Math.min(elapsedSeconds, SCRAPE_EST)
