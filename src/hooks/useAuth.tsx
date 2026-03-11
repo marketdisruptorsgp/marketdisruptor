@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Deduplicate: only fetch once per user per mount
     if (profileFetchedFor.current === userId) return;
     profileFetchedFor.current = userId;
+    (window as any).__md_profileFetchedFor = userId;
     const { data } = await supabase
       .from("profiles")
       .select("user_id, first_name")
