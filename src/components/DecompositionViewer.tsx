@@ -15,6 +15,7 @@ import {
   Layers, CircleDollarSign, Cpu, ShieldAlert, Target,
   Users, Wrench, Clock, ArrowRight, Zap, Network,
   AlertTriangle, RefreshCw, Gauge, Lock, Repeat,
+  Crosshair, GitBranch,
 } from "lucide-react";
 import type {
   StructuralDecompositionData,
@@ -23,6 +24,7 @@ import type {
   BusinessModelDecomposition,
   ConstraintPrimitive,
   SystemDynamics,
+  LeverageAnalysis,
 } from "@/lib/structuralDecomposition";
 import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 
