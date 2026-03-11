@@ -44,6 +44,14 @@ export interface BIExtraction {
     evidence: string[];
     confidence: "high" | "medium" | "low";
   }[];
+  opportunities: {
+    opportunity: string;
+    type: "capacity" | "market" | "operational" | "financial";
+    enablers: string[];
+    potential_impact: string[];
+    evidence: string[];
+    confidence: "high" | "medium" | "low";
+  }[];
   signals_for_visualization: {
     primary_system_nodes: string[];
     causal_relationships: {
