@@ -17,19 +17,25 @@ interface OpportunityDirectionsGridProps {
   modeAccent: string;
 }
 
-function OpportunityCard({
-  opp,
-  index,
-  modeAccent,
-}: {
+const OpportunityCard = forwardRef<HTMLDivElement, {
   opp: DeepenedOpportunity;
   index: number;
   modeAccent: string;
-}) {
+}>(function OpportunityCard({ opp, index, modeAccent }, ref) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.06 }}
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: "hsl(var(--card))",
+        border: "1px solid hsl(var(--border))",
+      }}
+    >
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.06 }}
