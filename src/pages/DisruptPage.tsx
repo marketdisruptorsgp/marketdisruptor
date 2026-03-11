@@ -16,7 +16,6 @@ import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from
 import { Target, Atom, Lightbulb, GitBranch, Brain, Shield } from "lucide-react";
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
-import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
