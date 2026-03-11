@@ -347,8 +347,8 @@ export default function CommandDeckPage() {
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
   const benchmark = useMemo(() =>
-    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook),
-    [autoAnalysis.flatEvidence, narrative, topPlaybook],
+    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook, biExtraction),
+    [autoAnalysis.flatEvidence, narrative, topPlaybook, biExtraction],
   );
 
   const lastRecomputeHash = useRef<string>("");
