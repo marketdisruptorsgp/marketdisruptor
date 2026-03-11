@@ -1,105 +1,91 @@
-# Product Reset Plan: From Pipeline Tool → Strategic Insight Product
 
-## The Problem
-The Command Deck is currently an 812-line engineering dashboard exposing pipeline internals. A user running an analysis sees: confidence meters, reasoning stage overlays, evidence thresholds, node counts, pipeline progress bars, convergence zones, friction dashboards, provenance registries, and developer diagnostics. The *actual strategic value* — the constraint diagnosis, opportunities, and recommended moves — is buried under layers of system chrome.
 
-## The North Star
-**User inputs a business → gets strategic insight they didn't see before.**
+## Plan: Add System Dynamics to Structural Decomposition
 
-The experience should feel like receiving a strategy consultant's one-page brief, not watching an AI pipeline execute.
+Your reasoning is sound. The engine currently extracts static structure (what the parts are) but not dynamic behavior (how they interact and fail). Adding system dynamics closes the gap between decomposition and the downstream analysis layers.
 
-## Current UI Audit (CommandDeckPage.tsx — 812 lines)
+### What changes
 
-### What stays (core value):
-1. **SoWhatHeader** — "Do nothing → X. Act now → Y." (Good, decision-forcing)
-2. **OneThesisCard** — Constraint → Belief → Move → Economics → First Move (Strong, this IS the product)
-3. **WhatsNextPanel** — Kill question + first move (Actionable)
+**1. Extend types (`src/lib/structuralDecomposition.ts`)**
 
-### What gets demoted or removed:
+Add a shared `SystemDynamics` interface applied to all three modes:
 
-| Component | Current Role | Action |
-|---|---|---|
-| `ReasoningStagesOverlay` | Shows "Detecting patterns…" animation | **REMOVE** — internal diagnostic |
-| `RecomputeOverlay` | Loading spinner for recompute | **SIMPLIFY** — just a subtle loading state |
-| `PipelineProgress` bar | Shows 5-step pipeline completion | **REMOVE** from main view |
-| `ModeBadge` | Shows "Product/Service/Business" | **KEEP** but simplify |
-| `StrategicXRay` | Interactive reasoning chain w/ challenge mode | **MOVE** to "Deep Dive" tab |
-| `IndustrySystemMapView` | Industry map visualization | **MOVE** to "Deep Dive" tab |
-| `PowerToolsPanel` (6 tools) | Problem Statement, Current State, Scenario Sim, Scenario Lab, Outcome Sim, Lens Intelligence | **MOVE** to "Deep Dive" tab |
-| `ScenarioBanner` + `DeltaChanges` | Scenario mode UI | **MOVE** to "Deep Dive" tab |
-| `StrategicCommandDeck` component | Friction dashboard, convergence zones, opportunity landscape, constraint/leverage/opportunity 3-col grid | **REPLACE** with clean opportunity cards |
-| `ConfidenceMeter` / confidence tags | Numeric confidence display | **REMOVE** |
-| Pipeline step count ("3/5 steps") | Developer progress | **REMOVE** |
-| Signal counts, evidence counts | Developer metrics | **REMOVE** |
+```typescript
+interface FailureMode {
+  id: string;
+  component: string;        // which primitive fails
+  mode: string;              // how it fails
+  cascadeEffect: string;     // what breaks downstream
+  frequency: "rare" | "occasional" | "frequent";
+  detectability: "obvious" | "hidden" | "delayed";
+}
 
-## New Command Deck Layout (3 sections)
+interface FeedbackLoop {
+  id: string;
+  name: string;
+  type: "reinforcing" | "balancing";
+  components: string[];      // primitive ids involved
+  mechanism: string;
+  strength: "weak" | "moderate" | "strong";
+}
 
-### Section 1: Diagnosis
-**What we found** — One bold sentence explaining the structural constraint.
-- Source: `narrative.primaryConstraint` + `narrative.strategicVerdict`
-- Plain English, no jargon
-- No confidence scores, no "preliminary signal" labels
+interface Bottleneck {
+  id: string;
+  location: string;          // which primitive
+  throughputLimit: string;
+  cause: string;
+  workaround: string;
+}
 
-### Section 2: Opportunities (3–5 cards)
-**What you could do** — Multiple strategic directions derived from the constraint.
-- Each card: Title + 1-sentence explanation + "why this works"
-- Source: `autoAnalysis.deepenedOpportunities` (need to ensure we generate 3-5, not just 1-2)
-- Plain, action-oriented language
-- No impact scores, no node types
+interface ControlPoint {
+  id: string;
+  point: string;
+  leverageType: "gatekeeping" | "pricing" | "quality" | "access" | "information";
+  controller: string;
+  switchability: "locked" | "negotiable" | "open";
+}
 
-### Section 3: Recommended Move
-**What we'd do first** — The highest-leverage play with clear next step.
-- Source: Top `deepenedOpportunity` with `firstMove`
-- "Here's the move. Here's why. Here's how to start."
-- Timeline estimate in human terms
+interface SubstitutionPath {
+  id: string;
+  target: string;            // primitive being replaced
+  substitute: string;
+  feasibility: "ready" | "emerging" | "theoretical";
+  tradeoff: string;
+}
 
-### Section 4 (optional): "Show me why" link
-- Links to Deep Dive tab containing: Reasoning Map, X-Ray, Industry Map, Scenario tools
-- This is the explanation layer, NOT the product
+interface SystemDynamics {
+  failureModes: FailureMode[];
+  feedbackLoops: FeedbackLoop[];
+  bottlenecks: Bottleneck[];
+  controlPoints: ControlPoint[];
+  substitutionPaths: SubstitutionPath[];
+}
+```
 
-## Opportunity Generation Fix
-Current problem: System often produces only 1 opportunity.
-Required: Generate 3–5 meaningful opportunity directions per constraint.
+Add `systemDynamics: SystemDynamics` to all three decomposition interfaces (`ProductDecomposition`, `ServiceDecomposition`, `BusinessModelDecomposition`).
 
-### Approach:
-- Enhance `src/lib/reconfiguration.ts` to generate multiple opportunity vectors from a single constraint
-- Use different strategic lenses: automation, platform, marketplace, data, consolidation
-- Each opportunity = a different strategic path, not a variation of the same idea
+**2. Update edge function (`supabase/functions/structural-decomposition/index.ts`)**
 
-## Language Cleanup
-All user-facing text must be rewritten:
-- "Convergence zones" → removed
-- "Evidence threshold" → removed  
-- "Node count" → removed
-- "Pipeline step" → removed
-- "Reasoning chain" → "Our analysis shows…"
-- "Leverage point" → "Key advantage"
-- "Friction index" → removed
+- Add `systemDynamics` block to all three JSON schemas (PRODUCT_SCHEMA, SERVICE_SCHEMA, BUSINESS_SCHEMA)
+- Add system dynamics extraction mandate to the system prompt for each mode
+- Increase `max_tokens` from 4000 to 6000 to accommodate the additional output
 
-## Navigation Changes
-Current 4-page structure:
-1. Command Deck (main)
-2. Intelligence Report
-3. Reasoning Map
-4. Pitch
+**3. Thread dynamics into downstream edge functions**
 
-New structure:
-1. **Strategic Brief** (the 3-section layout above) — this IS the product
-2. **Deep Dive** (reasoning map, X-Ray, industry map, scenario tools)
-3. **Intelligence Report** (raw evidence)
-4. **Pitch** (investor-ready output)
+The orchestrator already passes `structuralDecomposition` into disrupt, redesign, and stress test. The decomposition object will now include `systemDynamics`, so downstream functions automatically receive it. Minor prompt additions in:
 
-## Implementation Order
-1. **Phase 1**: Strip Command Deck to 3 sections (diagnosis, opportunities, recommended move)
-2. **Phase 2**: Create "Deep Dive" tab and move demoted components there
-3. **Phase 3**: Fix opportunity generation to produce 3–5 per analysis
-4. **Phase 4**: Language cleanup across all user-facing components
-5. **Phase 5**: Test with real analyses to ensure consistent, useful output
+- `first-principles-analysis/index.ts` — reference failure modes and feedback loops when identifying hidden assumptions
+- `critical-validation/index.ts` — reference bottlenecks and control points when stress-testing concepts
 
-## Success Criteria
-- User runs analysis → reads diagnosis in 3 seconds
-- Sees 3–5 actionable opportunity directions
-- Understands the recommended move and how to start
-- Can optionally explore "why" via Deep Dive
-- Zero developer terminology visible in default view
-- No numeric scores, thresholds, or pipeline indicators
+**4. Update DecompositionViewer (`src/components/DecompositionViewer.tsx`)**
+
+Add a "System Dynamics" section to the viewer for all three modes, rendering:
+- Failure modes with cascade chains and frequency/detectability badges
+- Feedback loops with reinforcing/balancing indicators and component links
+- Bottlenecks with throughput limits
+- Control points with leverage type and switchability
+- Substitution paths with feasibility ratings
+
+**5. Update PipelineDataHealth**
+
+Add `systemDynamics` as a tracked sub-field within the decomposition health check.
