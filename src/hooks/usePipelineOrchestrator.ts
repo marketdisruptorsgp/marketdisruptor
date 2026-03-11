@@ -489,9 +489,10 @@ export function usePipelineOrchestrator(
   }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch]);
 
   // Auto-trigger when analysis is done with product/business data but missing critical step data
+  // Also triggers when decomposition is missing (backfill for existing analyses)
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
-    const hasMissingCriticalStep = !disruptData;
+    const hasMissingCriticalStep = !disruptData || !decompositionData;
     const hasNoStepData = !disruptData && !redesignData && !stressTestData && !pitchDeckData;
     if (
       step === "done" &&
@@ -507,7 +508,7 @@ export function usePipelineOrchestrator(
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, redesignData, stressTestData, pitchDeckData, runPipeline]);
+  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, redesignData, stressTestData, pitchDeckData, runPipeline]);
 
   const steps = STEP_DEFS.map(d => ({
     key: d.key,
