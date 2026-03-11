@@ -517,7 +517,7 @@ export function usePipelineOrchestrator(
       console.error(`[Pipeline] Retry ${stepKey} failed:`, err);
       toast.error(`Retry failed for ${stepKey}`);
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runStressTest, runPitch]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch]);
 
   // Auto-trigger when analysis is done but missing ANY pipeline step data
   useEffect(() => {
