@@ -874,6 +874,7 @@ export default function Index() {
                   {(() => {
                     const DETAIL_TABS = [
                       { id: "overview" as const, label: "Overview", icon: Target },
+                      { id: "structure" as const, label: "Structure", icon: Layers },
                       { id: "community" as const, label: "Community", icon: Users },
                       { id: "workflow" as const, label: "User Journey", icon: Clock },
                       { id: "pricing" as const, label: "Pricing", icon: DollarSign },
