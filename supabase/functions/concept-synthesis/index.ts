@@ -309,9 +309,7 @@ CRITICAL:
 7. BEFORE/AFTER: Make the "old way" sound absurd and the "new way" sound inevitable — this is the "aha" moment
 8. PERSONA FIT: Score each concept for garage_inventor, product_company, and deep_tech_startup
 9. CONTRARIAN NARRATIVE: Identify the industry's biggest blind spot — be provocative and specific
-10. BREAKTHROUGH METRIC: Honestly classify each concept — most should be "incremental". Only mark "step_change" if 10× improvement is physically achievable.
-11. PERFORMER NETWORK: Name 2-4 REAL organizations per concept who could build it — be specific about their role
-12. SYSTEM ARCHITECTURE: Model 4-8 nodes showing how the concept works as an integrated system (inputs → processing → outputs → feedback)
+10. Include breakthrough_metric, performer_network, and system_architecture per concept (see schema)
 
 Return ONLY the JSON object.`;
 
