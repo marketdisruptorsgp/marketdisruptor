@@ -1,7 +1,8 @@
+import React from "react";
 import { ShieldCheck, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-export function AppFooter() {
+export const AppFooter = React.forwardRef<HTMLElement>(function AppFooter(_props, ref) {
   const { profile } = useAuth();
 
   return (
