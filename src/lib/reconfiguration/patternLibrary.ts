@@ -163,8 +163,11 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("forced_bundling")) { resolves.push("forced_bundling"); strengths.push("Forced bundling detected — direct unbundling target"); }
       if (cNames.has("perceived_value_mismatch")) { resolves.push("perceived_value_mismatch"); strengths.push("Value mismatch suggests customers overpay for unwanted components"); }
       if (cNames.has("capital_barrier")) { resolves.push("capital_barrier"); strengths.push("High upfront cost may be reducible by unbundling components"); }
+      if (cNames.has("operational_bottleneck")) { resolves.push("operational_bottleneck"); strengths.push("Operational bottleneck may be isolated by unbundling affected components"); }
       if (profile.marginStructure === "high_margin") strengths.push("High margins suggest cross-subsidized components");
+      if (profile.marginStructure === "moderate_margin") strengths.push("Moderate margins may hide cross-subsidized components");
       if (profile.switchingCosts === "low" || profile.switchingCosts === "none") strengths.push("Low switching costs enable component-level competition");
+      if (profile.switchingCosts === "moderate") strengths.push("Moderate switching costs may be reduced via component unbundling");
 
       return {
         qualifies: strengths.length >= 2,
