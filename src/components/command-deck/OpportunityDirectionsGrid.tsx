@@ -164,7 +164,7 @@ const OpportunityCard = forwardRef<HTMLDivElement, {
       </AnimatePresence>
     </motion.div>
   );
-}
+});
 
 export const OpportunityDirectionsGrid = memo(function OpportunityDirectionsGrid({
   opportunities,
