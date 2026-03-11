@@ -107,10 +107,13 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
 
       if (profile.supplyFragmentation === "atomized") strengths.push("Highly atomized supply — strong aggregation opportunity");
       if (profile.supplyFragmentation === "fragmented") strengths.push("Fragmented supply amenable to aggregation");
+      if (profile.supplyFragmentation === "moderate") strengths.push("Moderate supply fragmentation — partial aggregation opportunity");
       if (profile.distributionControl === "intermediated") strengths.push("Intermediated distribution suggests disintermediation via aggregation");
+      if (profile.distributionControl === "shared") strengths.push("Shared distribution control — aggregation can shift leverage");
       if (cNames.has("supply_fragmentation")) { resolves.push("supply_fragmentation"); strengths.push("Directly resolves supply fragmentation constraint"); }
       if (cNames.has("information_asymmetry")) { resolves.push("information_asymmetry"); strengths.push("Aggregation reduces information asymmetry"); }
       if (cNames.has("geographic_constraint")) { resolves.push("geographic_constraint"); strengths.push("Digital aggregation removes geographic limitation"); }
+      if (cNames.has("vendor_concentration")) { resolves.push("vendor_concentration"); strengths.push("Aggregation reduces vendor concentration risk"); }
 
       return {
         qualifies: strengths.length >= 2,
