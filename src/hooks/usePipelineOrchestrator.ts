@@ -162,6 +162,7 @@ export function usePipelineOrchestrator(
         upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
+        structuralDecomposition: decompResult || undefined,
       },
     }, 180_000);
 
