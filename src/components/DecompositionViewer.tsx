@@ -346,11 +346,27 @@ function ProductView({ data }: { data: ProductDecomposition }) {
       {totalCostDrivers > 0 && (
         <div>
           <SectionHeader icon={CircleDollarSign} label="Cost Drivers" count={totalCostDrivers} />
+          {/* Reducible summary */}
+          {(() => {
+            const reducibleCount = data.costDrivers.filter(cd => cd.reducible).length;
+            if (reducibleCount === 0) return null;
+            return (
+              <div className="mb-2 rounded-lg px-3 py-2" style={{ background: "hsl(152 60% 38% / 0.06)", border: "1px solid hsl(152 60% 38% / 0.15)" }}>
+                <p className="text-[10px] font-bold" style={{ color: "hsl(152 60% 38%)" }}>
+                  {reducibleCount} of {totalCostDrivers} cost drivers are reducible — potential for margin improvement
+                </p>
+              </div>
+            );
+          })()}
           <div className="space-y-1.5">
             {data.costDrivers.map((cd) => {
               const pct = parseInt(cd.proportionEstimate?.replace(/[^0-9]/g, "") || "0");
+              const isReducible = cd.reducible;
               return (
-                <div key={cd.id} className="flex items-center gap-3 rounded-lg p-2.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <div key={cd.id} className="flex items-center gap-3 rounded-lg p-2.5" style={{
+                  background: isReducible ? "hsl(152 60% 38% / 0.04)" : "hsl(var(--muted))",
+                  border: `1px solid ${isReducible ? "hsl(152 60% 38% / 0.15)" : "hsl(var(--border))"}`,
+                }}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-bold text-foreground truncate">{cd.driver}</p>
@@ -358,11 +374,20 @@ function ProductView({ data }: { data: ProductDecomposition }) {
                         style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
                         {cd.category}
                       </span>
+                      {isReducible && (
+                        <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded flex-shrink-0"
+                          style={{ background: "hsl(152 60% 38% / 0.1)", color: "hsl(152 60% 38%)" }}>
+                          Reducible
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted-foreground) / 0.15)" }}>
-                      <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: "hsl(var(--primary))" }} />
+                      <div className="h-full rounded-full" style={{
+                        width: `${Math.min(pct, 100)}%`,
+                        background: isReducible ? "hsl(152 60% 38%)" : "hsl(var(--primary))",
+                      }} />
                     </div>
                     <span className="text-xs font-bold tabular-nums text-foreground w-10 text-right">{cd.proportionEstimate}</span>
                   </div>

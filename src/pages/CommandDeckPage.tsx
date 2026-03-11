@@ -54,6 +54,9 @@ import { PipelineDataHealth } from "@/components/command-deck/PipelineDataHealth
 import { CIMKeyFindings } from "@/components/command-deck/CIMKeyFindings";
 import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
 import { DealMetricsStrip } from "@/components/command-deck/DealMetricsStrip";
+import { RevivalScoreCard } from "@/components/command-deck/RevivalScoreCard";
+import { CompetitiveMoatRadar } from "@/components/command-deck/CompetitiveMoatRadar";
+import { LeverageToDirectionsLink } from "@/components/command-deck/LeverageToDirectionsLink";
 
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
@@ -700,6 +703,39 @@ export default function CommandDeckPage() {
             INDUSTRY BENCHMARK — Archetype-based comparison
            ══════════════════════════════════════════════════════════ */}
         <IndustryBenchmarkPanel benchmark={benchmark} />
+
+        {/* ══════════════════════════════════════════════════════════
+            REVIVAL SCORE — Overall disruption/revival potential gauge
+           ══════════════════════════════════════════════════════════ */}
+        <RevivalScoreCard
+          score={selectedProduct?.revivalScore ?? (analysis as any)?.avg_revival_score ?? null}
+          modeAccent={modeAccent}
+          narrative={narrative}
+          metrics={{
+            opportunityScore: metrics.opportunityScore,
+            leverageScore: metrics.leverageScore,
+            frictionIndex: metrics.frictionIndex,
+            riskScore: metrics.riskScore,
+          }}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            COMPETITIVE MOAT — Radar chart for defensibility
+           ══════════════════════════════════════════════════════════ */}
+        <CompetitiveMoatRadar
+          governedData={governedDataTyped}
+          narrative={narrative}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            LEVERAGE → DIRECTIONS — What unlocks what
+           ══════════════════════════════════════════════════════════ */}
+        <LeverageToDirectionsLink
+          opportunities={allOpportunities}
+          decompositionData={analysis.decompositionData}
+          modeAccent={modeAccent}
+        />
 
         {/* ══════════════════════════════════════════════════════════
             DEAL-SPECIFIC SECTIONS — Only show when biExtraction has financial data
