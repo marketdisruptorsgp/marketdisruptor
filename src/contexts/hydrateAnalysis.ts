@@ -54,6 +54,7 @@ export interface HydrationSetters {
  * Must be called BEFORE populating with new data.
  */
 export function clearAllState(setters: HydrationSetters) {
+  setters.setDecompositionData(null);
   setters.setDisruptData(null);
   setters.setStressTestData(null);
   setters.setPitchDeckData(null);
