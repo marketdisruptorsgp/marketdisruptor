@@ -72,6 +72,22 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
   const [containerWidth, setContainerWidth] = useState(propWidth || 400);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<SNode | null>(null);
+  const [removedStageId, setRemovedStageId] = useState<string | null>(null);
+
+  const activeStages = useMemo(() => {
+    if (!removedStageId) return stages;
+    return stages.filter(s => s.id !== removedStageId);
+  }, [stages, removedStageId]);
+
+  const removedStage = useMemo(() => {
+    if (!removedStageId) return null;
+    return stages.find(s => s.id === removedStageId) || null;
+  }, [stages, removedStageId]);
+
+  const handleRemoveStage = useCallback((stageId: string) => {
+    setRemovedStageId(prev => prev === stageId ? null : stageId);
+    setSelectedNode(null);
+  }, []);
 
   useEffect(() => {
     if (propWidth) return;
