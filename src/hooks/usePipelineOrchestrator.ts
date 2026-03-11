@@ -404,8 +404,23 @@ export function usePipelineOrchestrator(
         updateStatus("synthesis", "done");
       }
 
-      // ═══ UI renders now — Phase 2 complete ═══
-      console.log("[Pipeline] Phase 2 complete. Entering Phase 3 enrichment.");
+      // ═══ Phase 2.5: Concept Synthesis (Product Mode only) ═══
+      const isProductMode = analysis.activeMode === "custom" || analysis.activeMode === "product";
+      if (isProductMode && !conceptsData && synthesisResult) {
+        const conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
+        if (!conceptResult) {
+          console.warn("[Pipeline] Concept synthesis failed — continuing");
+          toast.warning("Concept synthesis had issues. Continuing with validation.");
+        }
+      } else if (isProductMode && conceptsData) {
+        console.log("[Pipeline] Reusing existing concepts data");
+        updateStatus("concepts", "done");
+      } else if (!isProductMode) {
+        updateStatus("concepts", "skipped");
+      }
+
+      // ═══ UI renders now — Phase 2/2.5 complete ═══
+      console.log("[Pipeline] Synthesis phases complete. Entering Phase 3 enrichment.");
 
       // ═══ PHASE 3: Background Enrichment (non-blocking) ═══
       const needsStress = !stressTestData;
