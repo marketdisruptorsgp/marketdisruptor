@@ -54,8 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data) {
       setProfile(data as Profile);
-      // Update last seen for returning users
-      supabase.rpc("update_last_seen", { p_user_id: userId }).then(() => {});
+      // Update last seen — throttled to once per session
+      const lastSeenKey = `md_last_seen_${userId}`;
+      const lastFired = sessionStorage.getItem(lastSeenKey);
+      if (!lastFired) {
+        sessionStorage.setItem(lastSeenKey, Date.now().toString());
+        supabase.rpc("update_last_seen", { p_user_id: userId }).then(() => {});
+      }
     } else {
       const pendingName = localStorage.getItem("pending_first_name");
       if (pendingName) {
