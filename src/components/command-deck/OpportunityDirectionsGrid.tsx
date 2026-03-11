@@ -4,7 +4,7 @@
  * Clean, advisor-grade layout with no developer terminology.
  */
 
-import { memo, useState } from "react";
+import { memo, useState, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, ChevronDown, ChevronUp, Building2, TrendingUp } from "lucide-react";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
