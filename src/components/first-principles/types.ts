@@ -199,6 +199,39 @@ export interface ConceptPrecedent {
   relevance: string;
 }
 
+export interface PerformerMapping {
+  category: "university" | "startup" | "national_lab" | "contract_manufacturer" | "component_supplier";
+  role: string;
+  example_organizations: string[];
+  why: string;
+}
+
+export interface BreakthroughMetric {
+  classification: "step_change" | "incremental";
+  magnitude: string;
+  current_benchmark: string;
+  target_performance: string;
+  confidence: "high" | "medium" | "low";
+}
+
+export interface SystemArchitectureNode {
+  id: string;
+  label: string;
+  type: "input" | "process" | "output" | "feedback";
+}
+
+export interface SystemArchitectureEdge {
+  from: string;
+  to: string;
+  label?: string;
+}
+
+export interface SystemArchitecture {
+  nodes: SystemArchitectureNode[];
+  edges: SystemArchitectureEdge[];
+  description: string;
+}
+
 export interface InventionConcept {
   name: string;
   tagline: string;
@@ -214,6 +247,9 @@ export interface InventionConcept {
   precedent_products: ConceptPrecedent[];
   prototype_approach: string;
   dfm_notes: string;
+  breakthrough_metric?: BreakthroughMetric;
+  performer_network?: PerformerMapping[];
+  system_architecture?: SystemArchitecture;
 }
 
 export interface ContrarianNarrative {

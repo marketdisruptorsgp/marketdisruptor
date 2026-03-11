@@ -7,9 +7,10 @@ import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lightbulb, ChevronDown, ChevronUp, Wrench, Package, FlaskConical,
-  ArrowRight, Eye, EyeOff, Users,
+  ArrowRight, Eye, EyeOff, Users, Zap, Building2, GraduationCap,
+  Rocket, Factory, Truck, Network,
 } from "lucide-react";
-import type { InventionConcept, ConceptSynthesisResult } from "./types";
+import type { InventionConcept, ConceptSynthesisResult, BreakthroughMetric, PerformerMapping, SystemArchitecture } from "./types";
 import { PERSONA_LENS_META } from "./types";
 
 interface ConceptExplorerProps {
@@ -75,6 +76,161 @@ const BeforeAfterNarrative = memo(function BeforeAfterNarrative({
         <p className="text-xs text-foreground leading-relaxed font-medium">
           "{before_after.the_new_way}"
         </p>
+      </div>
+    </div>
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  BREAKTHROUGH METRIC BADGE — DARPA-inspired 10× gate
+// ═══════════════════════════════════════════════════════════════
+
+const PERFORMER_ICONS: Record<string, typeof Building2> = {
+  university: GraduationCap,
+  startup: Rocket,
+  national_lab: FlaskConical,
+  contract_manufacturer: Factory,
+  component_supplier: Truck,
+};
+
+const BreakthroughMetricBadge = memo(function BreakthroughMetricBadge({
+  metric,
+}: {
+  metric: BreakthroughMetric;
+}) {
+  const isStepChange = metric.classification === "step_change";
+  const color = isStepChange ? "hsl(142 70% 35%)" : "hsl(38 92% 42%)";
+  const bg = isStepChange ? "hsl(142 70% 45% / 0.06)" : "hsl(38 92% 50% / 0.06)";
+  const border = isStepChange ? "hsl(142 70% 45% / 0.2)" : "hsl(38 92% 50% / 0.2)";
+
+  return (
+    <div className="rounded-lg px-4 py-3" style={{ background: bg, border: `1px solid ${border}` }}>
+      <div className="flex items-center gap-2 mb-2">
+        <Zap size={12} style={{ color }} />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color }}>
+          {isStepChange ? "⚡ Step-Change (10×)" : "Incremental Improvement"}
+        </span>
+        <span
+          className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded"
+          style={{ background: `${color}15`, color }}
+        >
+          {metric.confidence} confidence
+        </span>
+      </div>
+      <p className="text-sm font-bold text-foreground mb-1">{metric.magnitude}</p>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <span className="text-muted-foreground">Current: </span>
+          <span className="text-foreground font-medium">{metric.current_benchmark}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Target: </span>
+          <span className="text-foreground font-medium" style={{ color }}>{metric.target_performance}</span>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  SYSTEM ARCHITECTURE DIAGRAM — Inputs → Process → Output
+// ═══════════════════════════════════════════════════════════════
+
+const NODE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  input: { bg: "hsl(217 91% 60% / 0.08)", border: "hsl(217 91% 60% / 0.3)", text: "hsl(217 91% 50%)" },
+  process: { bg: "hsl(271 81% 56% / 0.08)", border: "hsl(271 81% 56% / 0.3)", text: "hsl(271 81% 46%)" },
+  output: { bg: "hsl(142 70% 45% / 0.08)", border: "hsl(142 70% 45% / 0.3)", text: "hsl(142 70% 35%)" },
+  feedback: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.3)", text: "hsl(38 92% 40%)" },
+};
+
+const SystemArchitectureDiagram = memo(function SystemArchitectureDiagram({
+  architecture,
+}: {
+  architecture: SystemArchitecture;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+        <Network size={10} className="inline mr-1" />
+        System Architecture
+      </p>
+      {architecture.description && (
+        <p className="text-xs text-foreground/70 leading-relaxed mb-2">{architecture.description}</p>
+      )}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {architecture.nodes.map((node, i) => {
+          const style = NODE_COLORS[node.type] || NODE_COLORS.process;
+          const edge = architecture.edges.find(e => e.from === node.id);
+          return (
+            <div key={node.id} className="flex items-center gap-1.5">
+              <div
+                className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold"
+                style={{ background: style.bg, border: `1px solid ${style.border}`, color: style.text }}
+              >
+                {node.label}
+              </div>
+              {edge && i < architecture.nodes.length - 1 && (
+                <div className="flex items-center gap-0.5">
+                  {edge.label && (
+                    <span className="text-[8px] text-muted-foreground">{edge.label}</span>
+                  )}
+                  <ArrowRight size={10} className="text-muted-foreground/50" />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  PERFORMER NETWORK — Who builds what
+// ═══════════════════════════════════════════════════════════════
+
+const PerformerNetworkPanel = memo(function PerformerNetworkPanel({
+  performers,
+}: {
+  performers: PerformerMapping[];
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+        <Building2 size={10} className="inline mr-1" />
+        Performer Network — Who Builds This
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {performers.map((p, i) => {
+          const Icon = PERFORMER_ICONS[p.category] || Building2;
+          return (
+            <div
+              key={i}
+              className="rounded-lg px-3 py-2.5"
+              style={{ background: "hsl(var(--muted) / 0.4)", border: "1px solid hsl(var(--border))" }}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <Icon size={11} className="text-primary" />
+                <span className="text-[9px] font-extrabold uppercase tracking-wider text-primary">
+                  {p.category.replace(/_/g, " ")}
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-foreground mb-0.5">{p.role}</p>
+              <div className="flex flex-wrap gap-1 mb-1">
+                {p.example_organizations.map((org, j) => (
+                  <span
+                    key={j}
+                    className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                    style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}
+                  >
+                    {org}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground">{p.why}</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -197,9 +353,23 @@ const ConceptCard = memo(function ConceptCard({
           <span className="text-xs font-black text-primary">{index + 1}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm sm:text-base font-black text-foreground leading-snug">
-            {concept.name}
-          </h4>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="text-sm sm:text-base font-black text-foreground leading-snug">
+              {concept.name}
+            </h4>
+            {concept.breakthrough_metric?.classification === "step_change" && (
+              <span
+                className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider"
+                style={{
+                  background: "hsl(142 70% 45% / 0.1)",
+                  color: "hsl(142 70% 35%)",
+                  border: "1px solid hsl(142 70% 45% / 0.25)",
+                }}
+              >
+                ⚡ 10×
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground leading-relaxed mt-1">
             {concept.tagline}
           </p>
@@ -452,6 +622,21 @@ const ConceptCard = memo(function ConceptCard({
                     </div>
                   </div>
                 )}
+
+              {/* Breakthrough Metric Badge */}
+              {concept.breakthrough_metric && (
+                <BreakthroughMetricBadge metric={concept.breakthrough_metric} />
+              )}
+
+              {/* System Architecture */}
+              {concept.system_architecture && concept.system_architecture.nodes?.length > 0 && (
+                <SystemArchitectureDiagram architecture={concept.system_architecture} />
+              )}
+
+              {/* Performer Network */}
+              {concept.performer_network && concept.performer_network.length > 0 && (
+                <PerformerNetworkPanel performers={concept.performer_network} />
+              )}
 
               {/* DFM Notes */}
               {concept.dfm_notes && (

@@ -198,6 +198,21 @@ RULES:
 - Each concept must be genuinely different — not variations of the same idea
 - Avoid business model plays (no "SaaS-ify it", no "marketplace", no "subscription model")
 - Focus on mechanical/electrical/material innovation
+
+BREAKTHROUGH METRIC (DARPA-inspired) — For each concept:
+- Classify as "step_change" (10× improvement) or "incremental" (2-5× improvement). Be HONEST — most ideas are incremental. Only classify as step_change if the physics/engineering enables order-of-magnitude improvement.
+- State the specific metric being improved, current benchmark, and target performance.
+- Step-change concepts are rare and exceptional. Default to "incremental" unless you can cite the specific mechanism enabling 10x.
+
+PERFORMER NETWORK — For each concept, map WHO would build each piece:
+- 2-4 performers per concept from: university, startup, national_lab, contract_manufacturer, component_supplier
+- Name REAL organizations (e.g., "MIT Media Lab", "Jabil", "Protolabs", "Formlabs")
+- Each performer has a specific role in making this concept real
+
+SYSTEM ARCHITECTURE — For each concept, model the integrated system:
+- Define 4-8 nodes (inputs → processing → outputs, with feedback loops)
+- Show how components connect as an end-to-end system
+- This models the REASSEMBLED system, not just decomposed parts
 - Include manufacturing path and DFM considerations
 
 BEFORE/AFTER NARRATIVE — For each concept, write a vivid contrast:
@@ -243,6 +258,25 @@ Respond with a JSON object matching this schema EXACTLY:
         "garage_inventor": { "fit_score": 7, "rationale": "Why this works/doesn't for a solo maker", "key_adaptation": "What they'd need to change" },
         "product_company": { "fit_score": 8, "rationale": "Why this works/doesn't for an established manufacturer", "key_adaptation": "What they'd need to change" },
         "deep_tech_startup": { "fit_score": 5, "rationale": "Why this works/doesn't for a VC-backed team", "key_adaptation": "What they'd need to change" }
+      },
+      "breakthrough_metric": {
+        "classification": "step_change OR incremental",
+        "magnitude": "e.g. 10x longer lifespan, 5x cost reduction",
+        "current_benchmark": "Current industry performance for this metric",
+        "target_performance": "What this concept achieves",
+        "confidence": "high, medium, or low"
+      },
+      "performer_network": [
+        { "category": "university|startup|national_lab|contract_manufacturer|component_supplier", "role": "What they would build/research", "example_organizations": ["Real org name 1", "Real org name 2"], "why": "Why they are the right performer" }
+      ],
+      "system_architecture": {
+        "nodes": [
+          { "id": "n1", "label": "Sensor Input", "type": "input|process|output|feedback" }
+        ],
+        "edges": [
+          { "from": "n1", "to": "n2", "label": "data flow" }
+        ],
+        "description": "How the integrated system works end-to-end"
       }
     }
   ],
@@ -285,6 +319,9 @@ CRITICAL:
 7. BEFORE/AFTER: Make the "old way" sound absurd and the "new way" sound inevitable — this is the "aha" moment
 8. PERSONA FIT: Score each concept for garage_inventor, product_company, and deep_tech_startup
 9. CONTRARIAN NARRATIVE: Identify the industry's biggest blind spot — be provocative and specific
+10. BREAKTHROUGH METRIC: Honestly classify each concept — most should be "incremental". Only mark "step_change" if 10× improvement is physically achievable.
+11. PERFORMER NETWORK: Name 2-4 REAL organizations per concept who could build it — be specific about their role
+12. SYSTEM ARCHITECTURE: Model 4-8 nodes showing how the concept works as an integrated system (inputs → processing → outputs → feedback)
 
 Return ONLY the JSON object.`;
 
@@ -378,6 +415,30 @@ Return ONLY the JSON object.`;
       if (!c.materials) c.materials = [];
       if (!c.certification_considerations) c.certification_considerations = [];
       if (!c.precedent_products) c.precedent_products = [];
+      if (!c.breakthrough_metric) {
+        c.breakthrough_metric = {
+          classification: "incremental",
+          magnitude: "Moderate improvement over existing solutions",
+          current_benchmark: "Industry standard",
+          target_performance: "Improved performance",
+          confidence: "medium",
+        };
+      }
+      if (!c.performer_network) c.performer_network = [];
+      if (!c.system_architecture) {
+        c.system_architecture = {
+          nodes: [
+            { id: "n1", label: "Input", type: "input" },
+            { id: "n2", label: "Core Process", type: "process" },
+            { id: "n3", label: "Output", type: "output" },
+          ],
+          edges: [
+            { from: "n1", to: "n2", label: "feeds" },
+            { from: "n2", to: "n3", label: "produces" },
+          ],
+          description: "Basic system flow",
+        };
+      }
     }
 
     // Ensure innovation_paths exists
