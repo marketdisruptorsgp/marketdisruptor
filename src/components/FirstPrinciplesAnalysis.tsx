@@ -144,9 +144,10 @@ export const FirstPrinciplesAnalysis = ({
         requestBody.userScores = analysisCtx.userScores;
         requestBody.steeringText = analysisCtx.steeringText;
 
-        const { data: result, error } = await invokeWithTimeout("concept-architecture", { body: requestBody }, 180_000);
+        const { data: result, error } = await invokeWithTimeout("concept-architecture", { body: requestBody }, 180_000, 1);
         if (error || !result?.success) {
           const msg = result?.error || error?.message || "Redesign failed";
+          setLastError(msg);
           toast.error("Redesign failed: " + msg);
           return;
         }
