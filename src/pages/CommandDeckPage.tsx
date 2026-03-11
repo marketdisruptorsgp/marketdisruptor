@@ -274,7 +274,7 @@ export default function CommandDeckPage() {
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Reset to baseline"); }, 800);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
   // ── Save Scenario ──
