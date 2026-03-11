@@ -143,9 +143,9 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                 key={i}
                 d={linkPath(link) || ""}
                 fill="none"
-                stroke={FRICTION_COLORS[friction]}
-                strokeWidth={Math.max(link.width || 1, 4)}
-                strokeOpacity={hoveredNode ? (isConnected ? 0.5 : 0.08) : 0.3}
+                stroke={FRICTION_COLORS_BRIGHT[friction]}
+                strokeWidth={Math.max(link.width || 1, 5)}
+                strokeOpacity={hoveredNode ? (isConnected ? 0.7 : 0.1) : 0.45}
                 style={{ transition: "stroke-opacity 0.2s" }}
               />
             );
