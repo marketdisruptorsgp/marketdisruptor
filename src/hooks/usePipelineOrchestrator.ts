@@ -60,6 +60,7 @@ export function usePipelineOrchestrator(
   const triggeredForRef = useRef<string | null>(null);
 
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
+    decompose: "pending",
     disrupt: "pending",
     redesign: "pending",
     stressTest: "pending",
