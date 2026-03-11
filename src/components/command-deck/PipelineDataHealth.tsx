@@ -99,6 +99,16 @@ function buildFields(props: PipelineDataHealthProps): DataField[] {
     });
   }
 
+  // System Dynamics sub-field (from decomposition)
+  const decomp = props.decompositionData as any;
+  const dynamics = decomp?.systemDynamics;
+  fields.push({
+    label: "System Dynamics",
+    group: "pipeline",
+    status: fieldStatus(dynamics),
+    detail: dynamics ? `${(dynamics.failureModes?.length || 0) + (dynamics.feedbackLoops?.length || 0) + (dynamics.bottlenecks?.length || 0) + (dynamics.controlPoints?.length || 0) + (dynamics.substitutionPaths?.length || 0)} items` : undefined,
+  });
+
   // Document / BI extraction
   fields.push({
     label: "Document Extraction (BI)",
