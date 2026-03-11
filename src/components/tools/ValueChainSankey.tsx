@@ -118,17 +118,17 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
     }));
 
     const links: SLink[] = [];
-    for (let i = 0; i < stages.length - 1; i++) {
-      const frictionWeight = stages[i + 1].friction === "high" ? 3 : stages[i + 1].friction === "medium" ? 2 : 1;
+    for (let i = 0; i < activeStages.length - 1; i++) {
+      const frictionWeight = activeStages[i + 1].friction === "high" ? 3 : activeStages[i + 1].friction === "medium" ? 2 : 1;
       links.push({
         source: i,
         target: i + 1,
         value: frictionWeight,
-        friction: stages[i + 1].friction,
+        friction: activeStages[i + 1].friction,
       });
     }
 
-    const nodeHeight = Math.max(160, stages.length * 32);
+    const nodeHeight = Math.max(160, activeStages.length * 32);
     const margin = { top: 12, right: 16, bottom: 12, left: 16 };
     const innerWidth = containerWidth - margin.left - margin.right;
 
