@@ -513,38 +513,14 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     let minimumValidation = validateArrayMinimums(analysis, "strategic-synthesis");
     if (!minimumValidation.valid) {
       console.warn(`[StrategicSynthesis] Underfilled: ${minimumValidation.underfilled.map(u => `${u.field}:${u.actual}/${u.min}`).join(", ")}`);
-      analysis = enforceMinimumArtifacts(analysis, upstreamIntel);
+      analysis = enforceMinimumArtifacts(analysis, upstreamIntel, product, isService, structuralDecomposition);
     }
 
     // ── Validate concept ──
     const concept = analysis.redesignedConcept as Record<string, unknown> | undefined;
     if (!concept?.conceptName && !concept?.coreInsight) {
       console.warn("[StrategicSynthesis] Missing concept — synthesizing from transformations");
-      const topCluster = Array.isArray(analysis.transformationClusters) ? (analysis.transformationClusters as any[])[0] : null;
-      const topTransform = Array.isArray(analysis.structuralTransformations)
-        ? (analysis.structuralTransformations as any[]).find((t: any) => !t.filtered)
-        : null;
-      analysis.redesignedConcept = {
-        conceptName: topCluster?.name || `Reimagined ${product.name}`,
-        tagline: topCluster?.description || "A ground-up reinvention",
-        coreInsight: topTransform
-          ? `By applying ${topTransform.transformationType} to ${topTransform.targetPrimitiveLabel}, we unlock: ${topTransform.valueCreated}`
-          : "Structural transformation of the core system",
-        radicalDifferences: (analysis.structuralTransformations as any[] || []).filter((t: any) => !t.filtered).slice(0, 4).map((t: any) => t.proposedState || t.mechanism),
-        physicalDescription: topTransform?.mechanism || "Fundamentally restructured approach",
-        sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for core use case",
-        materials: (analysis.structuralTransformations as any[] || []).filter((t: any) => !t.filtered).slice(0, 3).map((t: any) => t.mechanism),
-        smartFeatures: [],
-        userExperienceTransformation: "Before: constrained by legacy. After: freed by structural transformation.",
-        frictionEliminated: (analysis.structuralTransformations as any[] || []).filter((t: any) => !t.filtered).slice(0, 3).map((t: any) => t.valueCreated),
-        whyItHasntBeenDone: "Incumbent economics and organizational inertia",
-        biggestRisk: "Adoption risk — requires behavioral change",
-        manufacturingPath: isService ? "Phased rollout with pilot" : "Prototype → validation → scale",
-        pricePoint: "Market-competitive with improved unit economics",
-        targetUser: "Users who actively experience identified friction",
-        riskLevel: "Medium",
-        capitalRequired: "Medium",
-      };
+      analysis.redesignedConcept = buildFallbackConcept(analysis, product, isService, structuralDecomposition);
     }
 
     // ── Ensure quickValidation exists ──
@@ -645,11 +621,14 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
 });
 
 // ── Helper: enforce minimum artifact counts ──
-function enforceMinimumArtifacts(base: Record<string, unknown>, upstreamIntel?: any): Record<string, unknown> {
+function enforceMinimumArtifacts(
+  base: Record<string, unknown>,
+  upstreamIntel?: any,
+  product?: any,
+  isService?: boolean,
+  decomposition?: any,
+): Record<string, unknown> {
   const next = { ...base };
-  const existingAssumptions = Array.isArray(next.hiddenAssumptions)
-    ? [...(next.hiddenAssumptions as Array<Record<string, unknown>>)]
-    : [];
   const frictionDims = (next.frictionDimensions as Record<string, unknown> | undefined) || {};
   const workflow = (next.userWorkflow as Record<string, unknown> | undefined) || {};
   const upstream = (upstreamIntel as Record<string, unknown> | undefined) || {};
@@ -664,6 +643,10 @@ function enforceMinimumArtifacts(base: Record<string, unknown>, upstreamIntel?: 
     : [];
   const seedPool = [...gapSeeds, ...workflowSeeds, ...complaintSeeds].filter(Boolean);
 
+  // ── Pad hiddenAssumptions ──
+  const existingAssumptions = Array.isArray(next.hiddenAssumptions)
+    ? [...(next.hiddenAssumptions as Array<Record<string, unknown>>)]
+    : [];
   while (existingAssumptions.length < 5) {
     const seed = seedPool[existingAssumptions.length] || `Recurring friction point ${existingAssumptions.length + 1}`;
     existingAssumptions.push({
@@ -679,7 +662,9 @@ function enforceMinimumArtifacts(base: Record<string, unknown>, upstreamIntel?: 
       urgencyReason: "User complaints and market behavior indicate this friction is becoming less acceptable.",
     });
   }
+  next.hiddenAssumptions = existingAssumptions;
 
+  // ── Pad flippedLogic ──
   const existingFlips = Array.isArray(next.flippedLogic)
     ? [...(next.flippedLogic as Array<Record<string, unknown>>)]
     : [];
@@ -692,8 +677,144 @@ function enforceMinimumArtifacts(base: Record<string, unknown>, upstreamIntel?: 
       physicalMechanism: "Implement with a constrained pilot, instrument outcomes, then scale.",
     });
   }
-
-  next.hiddenAssumptions = existingAssumptions;
   next.flippedLogic = existingFlips;
+
+  // ── Pad structuralTransformations ──
+  const existingTransforms = Array.isArray(next.structuralTransformations)
+    ? [...(next.structuralTransformations as Array<Record<string, unknown>>)]
+    : [];
+
+  // Extract leverage primitives from decomposition for grounded padding
+  const leveragePrimitives = decomposition?.leverageAnalysis?.leveragePrimitives || [];
+  const transformTypes = ["elimination", "substitution", "reordering", "aggregation"] as const;
+
+  while (existingTransforms.length < 6) {
+    const idx = existingTransforms.length;
+    const primitive = leveragePrimitives[idx % leveragePrimitives.length];
+    const tType = transformTypes[idx % transformTypes.length];
+    const seed = seedPool[idx] || existingAssumptions[idx % existingAssumptions.length]?.assumption || "System constraint";
+    const primId = primitive?.id || `lp_${idx + 1}`;
+    const primLabel = primitive?.label || String(seed).slice(0, 60);
+
+    existingTransforms.push({
+      id: `st_${idx + 1}`,
+      targetPrimitiveId: primId,
+      targetPrimitiveLabel: primLabel,
+      transformationType: tType,
+      currentState: primitive?.currentBehavior || `Current: ${String(seed).slice(0, 80)}`,
+      proposedState: `Apply ${tType} to restructure ${primLabel}`,
+      mechanism: `Systematically ${tType === "elimination" ? "remove" : tType === "substitution" ? "replace" : tType === "reordering" ? "resequence" : "aggregate"} the ${primLabel} component`,
+      valueCreated: primitive?.bestTransformation || "Reduced cost/friction, improved throughput",
+      valueLost: "Requires change management and pilot validation",
+      viabilityGate: {
+        technical: { score: 4, reasoning: "Technically feasible with existing infrastructure" },
+        economic: { score: 3, reasoning: "Requires investment but positive ROI within 18 months" },
+        regulatory: { score: 4, reasoning: "No major regulatory barriers identified" },
+        behavioral: { score: 3, reasoning: "Moderate behavioral change required" },
+        compositeScore: 3.5,
+        verdict: "conditional",
+      },
+      filtered: false,
+      systemImpact: {
+        valueFlowChanges: [`Restructured ${primLabel} flow`],
+        newBottleneck: "Adjacent system component becomes new constraint",
+        cascadeEffects: ["Downstream processes need adaptation"],
+      },
+    });
+  }
+  next.structuralTransformations = existingTransforms;
+
+  // ── Pad transformationClusters ──
+  const existingClusters = Array.isArray(next.transformationClusters)
+    ? [...(next.transformationClusters as Array<Record<string, unknown>>)]
+    : [];
+  if (existingClusters.length < 2) {
+    const nonFiltered = existingTransforms.filter((t: any) => !t.filtered);
+    const half = Math.ceil(nonFiltered.length / 2);
+    const cluster1Ids = nonFiltered.slice(0, half).map((t: any) => t.id);
+    const cluster2Ids = nonFiltered.slice(half).map((t: any) => t.id);
+
+    if (existingClusters.length < 1 && cluster1Ids.length > 0) {
+      existingClusters.push({
+        id: "tc_1",
+        name: `${product?.name || "System"} Core Restructuring`,
+        description: `Primary structural interventions targeting the most constrained components of ${product?.name || "the system"}`,
+        transformationIds: cluster1Ids,
+        compatibilityNote: "These transformations target complementary system primitives",
+        strategicPowerScore: 7.0,
+      });
+    }
+    if (existingClusters.length < 2 && cluster2Ids.length > 0) {
+      existingClusters.push({
+        id: "tc_2",
+        name: `${product?.name || "System"} Efficiency Redesign`,
+        description: `Secondary interventions that optimize delivery and reduce operational friction`,
+        transformationIds: cluster2Ids,
+        compatibilityNote: "These complement the core restructuring cluster",
+        strategicPowerScore: 6.0,
+      });
+    }
+  }
+  next.transformationClusters = existingClusters;
+
+  // ── If concept still missing, build it ──
+  const concept = next.redesignedConcept as Record<string, unknown> | undefined;
+  if (!concept?.conceptName && !concept?.coreInsight) {
+    next.redesignedConcept = buildFallbackConcept(next, product, isService, decomposition);
+  }
+
   return next;
+}
+
+// ── Helper: build a grounded fallback concept ──
+function buildFallbackConcept(
+  analysis: Record<string, unknown>,
+  product: any,
+  isService?: boolean,
+  decomposition?: any,
+): Record<string, unknown> {
+  const topCluster = Array.isArray(analysis.transformationClusters) ? (analysis.transformationClusters as any[])[0] : null;
+  const nonFilteredTransforms = Array.isArray(analysis.structuralTransformations)
+    ? (analysis.structuralTransformations as any[]).filter((t: any) => !t.filtered)
+    : [];
+  const topTransform = nonFilteredTransforms[0] || null;
+
+  // Build a real name from product context
+  const productName = product?.name || "System";
+  const category = product?.category || "";
+  const primaryFriction = (analysis.frictionDimensions as any)?.primaryFriction || "";
+
+  // Generate a meaningful concept name
+  let conceptName = topCluster?.name;
+  if (!conceptName || conceptName.includes("Reimagined")) {
+    // Use the dominant transformation type + product context
+    const dominantType = topTransform?.transformationType || "redesign";
+    const verb = dominantType === "elimination" ? "Streamlined"
+      : dominantType === "substitution" ? "Reimagined"
+      : dominantType === "reordering" ? "Restructured"
+      : "Unified";
+    conceptName = `${verb} ${productName}${primaryFriction ? ` — ${primaryFriction.split(" ").slice(0, 3).join(" ")} Solved` : ""}`;
+  }
+
+  return {
+    conceptName,
+    tagline: topCluster?.description || `A first-principles ${isService ? "service" : "product"} reinvention of ${productName}`,
+    coreInsight: topTransform
+      ? `By applying ${topTransform.transformationType} to ${topTransform.targetPrimitiveLabel}, we unlock: ${topTransform.valueCreated}`
+      : `Structural transformation of ${productName}'s core ${isService ? "delivery model" : "architecture"}`,
+    radicalDifferences: nonFilteredTransforms.slice(0, 4).map((t: any) => t.proposedState || t.mechanism),
+    physicalDescription: topTransform?.mechanism || `Fundamentally restructured ${isService ? "service experience" : "form factor and interaction"}`,
+    sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for core use case",
+    materials: nonFilteredTransforms.slice(0, 3).map((t: any) => t.mechanism || t.valueCreated),
+    smartFeatures: nonFilteredTransforms.slice(0, 3).map((t: any) => `${t.transformationType}: ${(t.proposedState || "").slice(0, 60)}`),
+    userExperienceTransformation: `Before: ${primaryFriction || "constrained by legacy patterns"}. After: friction removed through structural ${topTransform?.transformationType || "redesign"}.`,
+    frictionEliminated: nonFilteredTransforms.slice(0, 3).map((t: any) => t.valueCreated || t.proposedState),
+    whyItHasntBeenDone: "Incumbent economics, organizational inertia, and optimization of legacy architecture",
+    biggestRisk: "Adoption risk — requires behavioral change from existing users and stakeholders",
+    manufacturingPath: isService ? "Phased rollout: pilot → validate → scale over 12-18 months" : "Prototype → field validation → production tooling over 18-24 months",
+    pricePoint: "Market-competitive with improved unit economics from structural efficiency gains",
+    targetUser: `Users who directly experience the identified friction in ${category || productName}`,
+    riskLevel: "Medium",
+    capitalRequired: "Medium",
+  };
 }

@@ -348,8 +348,9 @@ export function usePipelineOrchestrator(
       if (!synthesisResult) {
         synthesisResult = await runStrategicSynthesis(product, extractedContext, decompResult);
         if (!synthesisResult) {
-          toast.error("Strategic synthesis failed. Pipeline stopped.");
-          return;
+          console.warn("[Pipeline] Synthesis failed — continuing to Phase 3 with partial data");
+          toast.warning("Strategic synthesis had issues. Running validation with available data.");
+          // Don't return — let Phase 3 still fire with whatever we have
         }
       } else {
         console.log("[Pipeline] Reusing existing synthesis data");
@@ -357,20 +358,25 @@ export function usePipelineOrchestrator(
       }
 
       // ═══ UI renders now — Phase 2 complete ═══
+      console.log("[Pipeline] Phase 2 complete. Entering Phase 3 enrichment.");
 
       // ═══ PHASE 3: Background Enrichment (non-blocking) ═══
       const needsStress = !stressTestData;
       const needsPitch = !pitchDeckData;
+      // Use whatever synthesis data we have (even partial) for Phase 3
+      const phase3Data = synthesisResult || disruptData || null;
 
       if (needsStress || needsPitch) {
         setCurrentStep("stressTest");
+        console.log(`[Pipeline] Phase 3: stress=${needsStress}, pitch=${needsPitch}`);
 
         // Fire both in parallel — these are background enrichment
         const enrichmentPromises: Promise<unknown>[] = [];
 
         if (needsStress) {
           enrichmentPromises.push(
-            runStressTest(product, extractedContext, synthesisResult, decompResult)
+            runStressTest(product, extractedContext, phase3Data, decompResult)
+              .catch(err => { console.error("[Pipeline] Stress test error:", err); return null; })
           );
         } else {
           updateStatus("stressTest", "done");
@@ -379,7 +385,8 @@ export function usePipelineOrchestrator(
 
         if (needsPitch) {
           enrichmentPromises.push(
-            runPitch(product, extractedContext, synthesisResult, null)
+            runPitch(product, extractedContext, phase3Data, null)
+              .catch(err => { console.error("[Pipeline] Pitch error:", err); return null; })
           );
         } else {
           updateStatus("pitch", "done");
@@ -395,6 +402,7 @@ export function usePipelineOrchestrator(
         if (pitchSettled.status === "rejected") {
           console.error("[Pipeline] Pitch rejected:", pitchSettled.reason);
         }
+        console.log("[Pipeline] Phase 3 enrichment settled.");
       } else {
         console.log("[Pipeline] All steps already complete — skipping");
         updateStatus("stressTest", "done");
