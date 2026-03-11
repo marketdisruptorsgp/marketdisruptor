@@ -247,7 +247,41 @@ export function usePipelineOrchestrator(
     return synthesisResult;
   }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete]);
 
+  // ── Phase 2.5: Concept Synthesis (Product Mode only) ──
+
+  const runConceptSynthesis = useCallback(async (product: any, synthesisResult: unknown, decompResult: unknown): Promise<unknown> => {
+    setCurrentStep("concepts");
+    updateStatus("concepts", "running");
+
+    const sr = synthesisResult as Record<string, unknown> | null;
+
+    const { data: result, error } = await invokeWithTimeout("concept-synthesis", {
+      body: {
+        product: compressProductPayload(product),
+        structuralDecomposition: decompResult || undefined,
+        assumptions: sr?.hiddenAssumptions || [],
+        flippedLogic: sr?.flippedLogic || [],
+        conceptCount: 5,
+      },
+    }, 180_000);
+
+    if (error || !result?.success) {
+      const msg = result?.error || error?.message || "Concept synthesis failed";
+      console.warn("[Pipeline] Concept synthesis failed:", msg);
+      updateStatus("concepts", "error", msg);
+      return null;
+    }
+
+    const conceptResult = result.result;
+    setConceptsData(conceptResult);
+    await saveStepData("concepts", conceptResult, analysisId!);
+    updateStatus("concepts", "done");
+    onStepComplete?.("concepts");
+    return conceptResult;
+  }, [analysisId, saveStepData, setConceptsData, updateStatus, onStepComplete]);
+
   // ── Phase 3: Deep Validation (background enrichment) ──
+
 
   const runStressTest = useCallback(async (product: any, extractedContext: string, synthesisResult?: unknown, decompResult?: unknown): Promise<unknown> => {
     updateStatus("stressTest", "running");
