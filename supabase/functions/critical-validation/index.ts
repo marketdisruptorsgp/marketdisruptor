@@ -19,7 +19,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx, competitorIntel, structuralDecomposition } = await req.json();
+    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx, competitorIntel, structuralDecomposition, upstreamGoverned } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const mode = resolveMode(product.analysisType, product.category);
@@ -395,6 +395,16 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
     }
 
     // ── Evidence-governed confidence computation ──
+    // Merge viability_assumptions from upstream strategic-synthesis governed data
+    // so confidence computation has evidence to work with
+    if (upstreamGoverned?.first_principles?.viability_assumptions && !governed.first_principles) {
+      (governed as Record<string, unknown>).first_principles = upstreamGoverned.first_principles;
+    } else if (upstreamGoverned?.first_principles?.viability_assumptions && governed.first_principles) {
+      const fp = governed.first_principles as Record<string, unknown>;
+      if (!fp.viability_assumptions || (Array.isArray(fp.viability_assumptions) && fp.viability_assumptions.length === 0)) {
+        fp.viability_assumptions = upstreamGoverned.first_principles.viability_assumptions;
+      }
+    }
     const confidenceResult = computeGovernedConfidence(governed);
     console.log(`[Governed] critical-validation computed confidence: ${confidenceResult.computation_trace}`);
     if (governed.decision_synthesis) {
