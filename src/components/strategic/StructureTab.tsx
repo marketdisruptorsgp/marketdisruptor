@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, forwardRef } from "react";
 import { useCompetitiveResearch } from "@/hooks/useCompetitiveResearch";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -417,7 +417,7 @@ function AssumptionCard({ item, leverageColor, reasonColor, status, hasDeepInsig
   );
 }
 
-export function StructureTab({
+export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(function StructureTab({
   selectedProduct,
   analysis,
   governedData,
@@ -431,7 +431,7 @@ export function StructureTab({
   runTrigger,
   onLoadingChange,
   viewMode = "all",
-}: StructureTabProps) {
+}, ref) {
   const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || [];
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
@@ -446,7 +446,7 @@ export function StructureTab({
   });
 
   return (
-    <div className="space-y-3">
+    <div ref={ref} className="space-y-3">
       {/* ── First Principles Methodology Banner (Assumptions view) ── */}
       {showAssumptions && (
         <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
@@ -745,4 +745,4 @@ export function StructureTab({
 
     </div>
   );
-}
+});
