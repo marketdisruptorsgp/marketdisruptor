@@ -457,6 +457,10 @@ export default function CommandDeckPage() {
   const allOpportunities = autoAnalysis.deepenedOpportunities;
   const alternativeOpportunities = allOpportunities.slice(1);
 
+  // ── Centralized biExtraction access ──
+  const biExtraction = (analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
+  const governedDataTyped = analysis.governedData as Record<string, any> | null;
+
   return (
     <div className="flex-1 bg-background overflow-y-auto">
       <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
@@ -511,8 +515,8 @@ export default function CommandDeckPage() {
 
         {/* ═══ DEAL METRICS STRIP ═══ */}
         <DealMetricsStrip
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
+          biExtraction={biExtraction}
+          governedData={governedDataTyped}
         />
 
         {/* ═══ PIPELINE PROGRESS (auto-run) ═══ */}
@@ -573,32 +577,21 @@ export default function CommandDeckPage() {
           </div>
         )}
 
-        {/* ═══ DOCUMENT INTELLIGENCE HEALTH ═══ */}
-        <DocumentIntelligenceBanner
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
-          adaptiveContextLoaded={!!analysis.adaptiveContext}
-        />
-
-        {/* ═══ PIPELINE DATA HEALTH ═══ */}
-        <PipelineDataHealth
-          product={selectedProduct as Record<string, any> | null}
-          decompositionData={analysis.decompositionData}
-          disruptData={analysis.disruptData}
-          redesignData={analysis.redesignData}
-          stressTestData={analysis.stressTestData}
-          pitchDeckData={analysis.pitchDeckData}
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
-          businessAnalysisData={analysis.businessAnalysisData as Record<string, any> | null}
-        />
-
         {/* ═══ SCENARIO BANNER (only when active) ═══ */}
         <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
         <DeltaChanges deltas={deltaChanges} />
 
         {/* ══════════════════════════════════════════════════════════
-            SECTION 1 — DIAGNOSIS
+            SECTION 1 — THE AHA MOMENT
+            Contrarian Insight first — this is why the user is here
+           ══════════════════════════════════════════════════════════ */}
+        <ContrarianInsightCard
+          thesis={primaryThesis}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 2 — DIAGNOSIS
             What we found: the core constraint and why it matters
            ══════════════════════════════════════════════════════════ */}
         <SoWhatHeader
@@ -618,12 +611,6 @@ export default function CommandDeckPage() {
           completedSteps={completedSteps.size}
         />
 
-        {/* Contrarian Insight — The "aha moment" */}
-        <ContrarianInsightCard
-          thesis={primaryThesis}
-          modeAccent={modeAccent}
-        />
-
         {/* Why This Matters — attached to diagnosis */}
         {primaryThesis?.whyThisMatters && (
           <div
@@ -634,9 +621,9 @@ export default function CommandDeckPage() {
           </div>
         )}
 
-        {/* CIM Key Findings — extracted constraints with evidence */}
+        {/* CIM Key Findings — extracted constraints & opportunities with evidence */}
         <CIMKeyFindings
-          biExtraction={(analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null}
+          biExtraction={biExtraction}
           modeAccent={modeAccent}
         />
 
@@ -680,8 +667,8 @@ export default function CommandDeckPage() {
             FINANCIAL TRAJECTORY — Trend charts from multi-year P&L
            ══════════════════════════════════════════════════════════ */}
         <FinancialTrendCharts
-          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
+          biExtraction={biExtraction}
+          governedData={governedDataTyped}
         />
 
         {/* ══════════════════════════════════════════════════════════
@@ -693,24 +680,24 @@ export default function CommandDeckPage() {
             DEAL SCORECARD — Go/No-Go verdict with deal structure
            ══════════════════════════════════════════════════════════ */}
         <DealScorecard
-          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
+          biExtraction={biExtraction}
+          governedData={governedDataTyped}
         />
 
         {/* ══════════════════════════════════════════════════════════
             LOI / OFFER BUILDER — Draft letter of intent
            ══════════════════════════════════════════════════════════ */}
         <LOIBuilder
-          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
+          biExtraction={biExtraction}
+          governedData={governedDataTyped}
         />
 
         {/* ══════════════════════════════════════════════════════════
             90-DAY PLAYBOOK — Post-close action plan
            ══════════════════════════════════════════════════════════ */}
         <PostClosePlaybook
-          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
+          biExtraction={biExtraction}
+          governedData={governedDataTyped}
         />
 
         {/* ══════════════════════════════════════════════════════════
@@ -718,22 +705,41 @@ export default function CommandDeckPage() {
            ══════════════════════════════════════════════════════════ */}
         <CIMComparisonMode
           currentAnalysisId={analysisId || ""}
-          currentBiExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-          currentGovernedData={analysis.governedData as Record<string, any> | null}
+          currentBiExtraction={biExtraction}
+          currentGovernedData={governedDataTyped}
         />
 
         {/* ══════════════════════════════════════════════════════════
             DUE DILIGENCE — Hard-hitting questions for sellers
            ══════════════════════════════════════════════════════════ */}
         <DueDiligenceQuestions
-          biExtraction={(analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null}
-          governedData={analysis.governedData as Record<string, any> | null}
+          biExtraction={biExtraction}
+          governedData={governedDataTyped}
         />
 
         {/* ══════════════════════════════════════════════════════════
             DEEP DIVE — Collapsed advanced analysis tools
            ══════════════════════════════════════════════════════════ */}
-        <PowerToolsPanel toolCount={6}>
+        <PowerToolsPanel toolCount={8}>
+          {/* Document Intelligence Health — moved from main view */}
+          <DocumentIntelligenceBanner
+            biExtraction={biExtraction}
+            governedData={governedDataTyped}
+            adaptiveContextLoaded={!!analysis.adaptiveContext}
+          />
+
+          {/* Pipeline Data Health — moved from main view */}
+          <PipelineDataHealth
+            product={selectedProduct as Record<string, any> | null}
+            decompositionData={analysis.decompositionData}
+            disruptData={analysis.disruptData}
+            redesignData={analysis.redesignData}
+            stressTestData={analysis.stressTestData}
+            pitchDeckData={analysis.pitchDeckData}
+            biExtraction={biExtraction}
+            governedData={governedDataTyped}
+            businessAnalysisData={analysis.businessAnalysisData as Record<string, any> | null}
+          />
           {/* Strategic X-Ray */}
           <StrategicXRay
             narrative={narrative}

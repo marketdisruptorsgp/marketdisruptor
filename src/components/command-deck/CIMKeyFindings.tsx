@@ -1,15 +1,14 @@
 /**
- * CIM Key Findings — Surfaces specific extracted constraints and evidence
- * from uploaded documents. This is where the "aha moments" live.
+ * CIM Key Findings — Surfaces extracted constraints AND opportunities
+ * from uploaded documents with evidence quotes.
  *
- * Includes a post-extraction contradiction detector that reclassifies
- * items with positive framing (growth capacity, expansion runway) as
- * opportunities rather than constraints.
+ * Now consumes both constraints[] and opportunities[] from the extraction
+ * schema (the AI classifies them correctly at source).
  */
 
 import { memo, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileSearch, ChevronDown, ChevronUp, Quote, TrendingUp, AlertTriangle } from "lucide-react";
+import { FileSearch, ChevronDown, ChevronUp, Quote, TrendingUp, AlertTriangle, Sparkles } from "lucide-react";
 
 interface ExtractedConstraint {
   constraint: string;
@@ -20,98 +19,28 @@ interface ExtractedConstraint {
   evidence: string[];
 }
 
-interface ClassifiedFinding {
+interface ExtractedOpportunity {
+  opportunity: string;
+  type: string;
+  confidence: string;
+  enablers: string[];
+  potential_impact: string[];
+  evidence: string[];
+}
+
+interface UnifiedFinding {
   label: string;
   type: string;
   confidence: string;
-  causes: string[];
-  effects: string[];
+  details: string[];        // causes or enablers
+  impacts: string[];        // effects or potential_impact
   evidence: string[];
-  /** Reclassified from constraint → opportunity by contradiction detection */
-  classification: "constraint" | "opportunity" | "mixed";
-  contradictionNote?: string;
+  classification: "constraint" | "opportunity";
 }
 
 interface CIMKeyFindingsProps {
   biExtraction: Record<string, unknown> | null | undefined;
   modeAccent: string;
-}
-
-// ── Contradiction Detection ──
-// Positive-framing signals that indicate opportunity, not constraint
-const POSITIVE_SIGNALS = [
-  /additional\s+\$[\d,]+/i,                    // "additional $800,000"
-  /room\s+for\s+(growth|expansion)/i,           // "room for growth"
-  /can\s+support/i,                             // "can support"
-  /capacity\s+(allows?|for|to)/i,               // "capacity to..."
-  /growth\s+potential/i,                         // "growth potential"
-  /more\s+aggressive\s+project/i,               // "more aggressive project acquisition"
-  /utilizing\s+the\s+existing/i,                // "utilizing the existing footprint"
-  /without\s+(additional|new)\s+(investment|capital|hiring)/i,
-  /opportunity\s+to\s+(expand|grow|add)/i,
-  /untapped/i,
-  /upside/i,
-  /runway/i,
-];
-
-const NEGATIVE_SIGNALS = [
-  /missed\s+(revenue|opportunities?)/i,
-  /inability\s+to/i,
-  /limited\s+by/i,
-  /bottleneck/i,
-  /constrain(ed|ing|t)/i,
-  /capping\s+growth/i,
-  /strain/i,
-  /risk/i,
-];
-
-function detectContradiction(finding: ExtractedConstraint): ClassifiedFinding {
-  const allText = [
-    finding.constraint,
-    ...finding.evidence,
-    ...finding.causes,
-  ].join(" ");
-
-  const effectsText = finding.effects.join(" ");
-
-  const positiveScore = POSITIVE_SIGNALS.reduce((s, p) => s + (p.test(allText) ? 1 : 0), 0);
-  const negativeInEffects = NEGATIVE_SIGNALS.reduce((s, p) => s + (p.test(effectsText) ? 1 : 0), 0);
-  const positiveInEvidence = POSITIVE_SIGNALS.reduce((s, p) => s + (p.test(finding.evidence.join(" ")) ? 1 : 0), 0);
-
-  // If evidence is positive but effects are negative → contradiction
-  if (positiveInEvidence >= 2 && negativeInEffects >= 1) {
-    return {
-      ...finding,
-      label: finding.constraint,
-      classification: "opportunity",
-      contradictionNote: `The document frames this as expansion capacity, not a limitation. The evidence shows untapped upside rather than a structural bottleneck.`,
-    };
-  }
-
-  // Strong positive framing → opportunity
-  if (positiveScore >= 2 && negativeInEffects < 2) {
-    return {
-      ...finding,
-      label: finding.constraint,
-      classification: "opportunity",
-    };
-  }
-
-  // Mixed signals
-  if (positiveScore >= 1 && negativeInEffects >= 1) {
-    return {
-      ...finding,
-      label: finding.constraint,
-      classification: "mixed",
-      contradictionNote: `This has both constraint and opportunity dimensions — the underlying capacity exists but isn't being captured.`,
-    };
-  }
-
-  return {
-    ...finding,
-    label: finding.constraint,
-    classification: "constraint",
-  };
 }
 
 /** Pull specific dollar amounts, percentages, timeframes from text */
@@ -130,26 +59,14 @@ function extractSpecifics(text: string): string[] {
   return Array.from(specifics).slice(0, 5);
 }
 
-function classificationColor(classification: string): { bg: string; text: string; dot: string } {
-  switch (classification) {
-    case "opportunity":
-      return { bg: "hsl(152 60% 44% / 0.08)", text: "hsl(152 60% 44%)", dot: "hsl(152 60% 44%)" };
-    case "mixed":
-      return { bg: "hsl(38 92% 50% / 0.08)", text: "hsl(38 92% 50%)", dot: "hsl(38 92% 50%)" };
-    default: // constraint
-      return { bg: "hsl(0 72% 50% / 0.08)", text: "hsl(0 72% 50%)", dot: "hsl(0 72% 50%)" };
-  }
-}
-
-function typeLabel(type: string): string {
-  return type.charAt(0).toUpperCase() + type.slice(1);
-}
-
-function FindingCard({ finding, index }: { finding: ClassifiedFinding; index: number }) {
+function FindingCard({ finding, index }: { finding: UnifiedFinding; index: number }) {
   const [expanded, setExpanded] = useState(false);
-  const colors = classificationColor(finding.classification);
+  const isOpp = finding.classification === "opportunity";
+  const colors = isOpp
+    ? { bg: "hsl(152 60% 44% / 0.08)", text: "hsl(152 60% 44%)", dot: "hsl(152 60% 44%)" }
+    : { bg: "hsl(0 72% 50% / 0.08)", text: "hsl(0 72% 50%)", dot: "hsl(0 72% 50%)" };
   const specifics = finding.evidence.flatMap(e => extractSpecifics(e));
-  const ClassIcon = finding.classification === "opportunity" ? TrendingUp : AlertTriangle;
+  const ClassIcon = isOpp ? TrendingUp : AlertTriangle;
 
   return (
     <motion.div
@@ -177,7 +94,7 @@ function FindingCard({ finding, index }: { finding: ClassifiedFinding; index: nu
               style={{ background: colors.bg, color: colors.text }}
             >
               <ClassIcon size={9} />
-              {finding.classification === "opportunity" ? "Opportunity" : finding.classification === "mixed" ? "Mixed" : typeLabel(finding.type)}
+              {isOpp ? "Opportunity" : finding.type.charAt(0).toUpperCase() + finding.type.slice(1)}
             </span>
             {specifics.length > 0 && specifics.slice(0, 3).map((s, i) => (
               <span key={i} className="text-[10px] font-bold text-foreground/70 bg-muted px-1.5 py-0.5 rounded">
@@ -208,19 +125,6 @@ function FindingCard({ finding, index }: { finding: ClassifiedFinding; index: nu
               className="px-4 py-3 space-y-3"
               style={{ borderTop: "1px solid hsl(var(--border))" }}
             >
-              {/* Contradiction note */}
-              {finding.contradictionNote && (
-                <div
-                  className="flex items-start gap-2 px-3 py-2 rounded-lg text-xs"
-                  style={{ background: colors.bg, border: `1px solid ${colors.text}20` }}
-                >
-                  <ClassIcon size={11} className="flex-shrink-0 mt-0.5" style={{ color: colors.text }} />
-                  <p style={{ color: colors.text }} className="font-semibold leading-snug">
-                    {finding.contradictionNote}
-                  </p>
-                </div>
-              )}
-
               {/* Evidence quotes */}
               {finding.evidence.length > 0 && (
                 <div>
@@ -238,17 +142,34 @@ function FindingCard({ finding, index }: { finding: ClassifiedFinding; index: nu
                 </div>
               )}
 
-              {/* Business impact */}
-              {finding.effects.length > 0 && (
+              {/* Impact */}
+              {finding.impacts.length > 0 && (
                 <div>
                   <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
-                    {finding.classification === "opportunity" ? "Upside Potential" : "Business Impact"}
+                    {isOpp ? "Upside Potential" : "Business Impact"}
                   </p>
                   <ul className="space-y-0.5">
-                    {finding.effects.map((e, i) => (
+                    {finding.impacts.map((e, i) => (
                       <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
                         <span className="text-muted-foreground mt-1">→</span>
                         {e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Enablers / Causes */}
+              {finding.details.length > 0 && (
+                <div>
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
+                    {isOpp ? "What Makes This Possible" : "Root Causes"}
+                  </p>
+                  <ul className="space-y-0.5">
+                    {finding.details.map((d, i) => (
+                      <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                        <span className="text-muted-foreground mt-1">•</span>
+                        {d}
                       </li>
                     ))}
                   </ul>
@@ -266,27 +187,54 @@ export const CIMKeyFindings = memo(function CIMKeyFindings({
   biExtraction,
   modeAccent,
 }: CIMKeyFindingsProps) {
-  const rawConstraints = (biExtraction?.constraints ?? []) as ExtractedConstraint[];
+  const findings = useMemo(() => {
+    if (!biExtraction) return [];
+    const unified: UnifiedFinding[] = [];
 
-  // Run contradiction detection on all extracted constraints
-  const classifiedFindings = useMemo(() => {
-    if (!Array.isArray(rawConstraints) || rawConstraints.length === 0) return [];
-    return rawConstraints.map(c => detectContradiction(c));
-  }, [rawConstraints]);
+    // Constraints
+    const rawConstraints = (biExtraction.constraints ?? []) as ExtractedConstraint[];
+    if (Array.isArray(rawConstraints)) {
+      for (const c of rawConstraints) {
+        unified.push({
+          label: c.constraint,
+          type: c.type || "operational",
+          confidence: c.confidence || "medium",
+          details: c.causes || [],
+          impacts: c.effects || [],
+          evidence: c.evidence || [],
+          classification: "constraint",
+        });
+      }
+    }
 
-  // Sort: opportunities first, then mixed, then constraints
-  const sortedFindings = useMemo(() => {
-    const order = { opportunity: 0, mixed: 1, constraint: 2 };
-    return [...classifiedFindings].sort(
-      (a, b) => order[a.classification] - order[b.classification]
-    );
-  }, [classifiedFindings]);
+    // Opportunities (new schema)
+    const rawOpportunities = (biExtraction.opportunities ?? []) as ExtractedOpportunity[];
+    if (Array.isArray(rawOpportunities)) {
+      for (const o of rawOpportunities) {
+        unified.push({
+          label: o.opportunity,
+          type: o.type || "capacity",
+          confidence: o.confidence || "medium",
+          details: o.enablers || [],
+          impacts: o.potential_impact || [],
+          evidence: o.evidence || [],
+          classification: "opportunity",
+        });
+      }
+    }
 
-  if (!biExtraction || classifiedFindings.length === 0) return null;
+    // Sort: opportunities first, then constraints
+    return unified.sort((a, b) => {
+      if (a.classification === "opportunity" && b.classification !== "opportunity") return -1;
+      if (a.classification !== "opportunity" && b.classification === "opportunity") return 1;
+      return 0;
+    });
+  }, [biExtraction]);
 
-  const oppCount = classifiedFindings.filter(f => f.classification === "opportunity").length;
-  const constraintCount = classifiedFindings.filter(f => f.classification === "constraint").length;
-  const mixedCount = classifiedFindings.filter(f => f.classification === "mixed").length;
+  if (!biExtraction || findings.length === 0) return null;
+
+  const oppCount = findings.filter(f => f.classification === "opportunity").length;
+  const constraintCount = findings.filter(f => f.classification === "constraint").length;
 
   return (
     <div className="space-y-2">
@@ -301,14 +249,14 @@ export const CIMKeyFindings = memo(function CIMKeyFindings({
           Key Findings from Document
         </h2>
         <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60">
+          {oppCount > 0 && <span style={{ color: "hsl(152 60% 44%)" }}>{oppCount} opportunit{oppCount !== 1 ? "ies" : "y"}</span>}
+          {oppCount > 0 && constraintCount > 0 && <span>·</span>}
           {constraintCount > 0 && <span>{constraintCount} constraint{constraintCount !== 1 ? "s" : ""}</span>}
-          {oppCount > 0 && <><span>·</span><span style={{ color: "hsl(152 60% 44%)" }}>{oppCount} opportunit{oppCount !== 1 ? "ies" : "y"}</span></>}
-          {mixedCount > 0 && <><span>·</span><span style={{ color: "hsl(38 92% 50%)" }}>{mixedCount} mixed</span></>}
         </div>
       </div>
 
       <div className="space-y-1.5">
-        {sortedFindings.map((f, i) => (
+        {findings.map((f, i) => (
           <FindingCard key={f.label || i} finding={f} index={i} />
         ))}
       </div>
