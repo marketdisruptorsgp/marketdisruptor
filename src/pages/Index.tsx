@@ -87,6 +87,7 @@ import {
   ScrollText,
 } from "lucide-react";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
+import { DecompositionViewer } from "@/components/DecompositionViewer";
 
 const STEPS = [
   { icon: Search, label: "Discover & Collect" },
