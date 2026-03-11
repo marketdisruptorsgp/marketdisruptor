@@ -252,7 +252,6 @@ export default function CommandDeckPage() {
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis, activeChallenges, narrative]);
-  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis, activeChallenges, narrative]);
 
   const handleResetScenario = useCallback(() => {
     setActiveChallenges([]);
