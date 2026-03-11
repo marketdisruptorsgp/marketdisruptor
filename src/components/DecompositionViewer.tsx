@@ -15,7 +15,7 @@ import {
   Layers, CircleDollarSign, Cpu, ShieldAlert, Target,
   Users, Wrench, Clock, ArrowRight, Zap, Network,
   AlertTriangle, RefreshCw, Gauge, Lock, Repeat,
-  Crosshair, GitBranch,
+  Crosshair, GitBranch, Package, Factory,
 } from "lucide-react";
 import type {
   StructuralDecompositionData,
@@ -398,6 +398,80 @@ function ProductView({ data }: { data: ProductDecomposition }) {
           </div>
         </div>
       )}
+
+      {/* BOM / Engineering Data — surfaces manufacturing info for product mode */}
+      {(() => {
+        const bom = (data as any).billOfMaterials || (data as any).bom;
+        const mfg = (data as any).manufacturingMethods || (data as any).manufacturing;
+        const hasBom = bom?.length > 0;
+        const hasMfg = mfg?.length > 0;
+        if (!hasBom && !hasMfg) return null;
+        return (
+          <div className="space-y-4">
+            {hasBom && (
+              <div>
+                <SectionHeader icon={Package} label="Bill of Materials" count={bom.length} />
+                <div className="space-y-1.5">
+                  {bom.map((item: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 rounded-lg p-2.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-foreground truncate">{item.component || item.name}</p>
+                          {item.material && (
+                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded flex-shrink-0"
+                              style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
+                              {item.material}
+                            </span>
+                          )}
+                        </div>
+                        {item.alternatives?.length > 0 && (
+                          <p className="text-[10px] text-muted-foreground mt-0.5">Alternatives: {item.alternatives.join(", ")}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {item.unitCost && (
+                          <span className="text-xs font-bold tabular-nums text-foreground">{item.unitCost}</span>
+                        )}
+                        {item.reducible && (
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: "hsl(152 60% 44% / 0.1)", color: "hsl(152 60% 44%)" }}>
+                            Reducible
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {hasMfg && (
+              <div>
+                <SectionHeader icon={Factory} label="Manufacturing Methods" count={mfg.length} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {mfg.map((m: any, i: number) => (
+                    <div key={i} className="rounded-lg p-3" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-xs font-bold text-foreground">{m.method || m.name}</p>
+                      {m.process && <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{m.process}</p>}
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {m.tooling && (
+                          <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
+                            {m.tooling}
+                          </span>
+                        )}
+                        {m.volumeThreshold && (
+                          <span className="text-[10px] font-bold text-muted-foreground">Min vol: {m.volumeThreshold}</span>
+                        )}
+                        {m.costAtScale && (
+                          <span className="text-[10px] font-bold tabular-nums text-foreground">@scale: {m.costAtScale}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Physical Constraints */}
       {data.physicalConstraints?.length > 0 && (

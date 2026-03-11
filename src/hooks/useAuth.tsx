@@ -34,7 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const signingOut = useRef(false);
-  const profileFetchedFor = useRef<string | null>(null);
+  // Persist across HMR — module-level guard survives hot reload
+  const profileFetchedFor = useRef<string | null>(
+    (window as any).__md_profileFetchedFor ?? null
+  );
 
   const isReturningUser = localStorage.getItem(DEVICE_VERIFIED) === "true";
 
@@ -42,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Deduplicate: only fetch once per user per mount
     if (profileFetchedFor.current === userId) return;
     profileFetchedFor.current = userId;
+    (window as any).__md_profileFetchedFor = userId;
     const { data } = await supabase
       .from("profiles")
       .select("user_id, first_name")
@@ -50,8 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data) {
       setProfile(data as Profile);
-      // Update last seen for returning users
-      supabase.rpc("update_last_seen", { p_user_id: userId }).then(() => {});
+      // Update last seen — throttled to once per session
+      const lastSeenKey = `md_last_seen_${userId}`;
+      const lastFired = sessionStorage.getItem(lastSeenKey);
+      if (!lastFired) {
+        sessionStorage.setItem(lastSeenKey, Date.now().toString());
+        supabase.rpc("update_last_seen", { p_user_id: userId }).then(() => {});
+      }
     } else {
       const pendingName = localStorage.getItem("pending_first_name");
       if (pendingName) {

@@ -79,7 +79,12 @@ export function useAnonymousAuth(): AnonymousAuthState {
         // Update last-seen for verified users
         if (!session.user.is_anonymous) {
           localStorage.setItem(DEVICE_VERIFIED, "true");
-          supabase.rpc("update_last_seen", { p_user_id: session.user.id }).then(() => {});
+          // Throttled to once per session
+          const lastSeenKey = `md_last_seen_${session.user.id}`;
+          if (!sessionStorage.getItem(lastSeenKey)) {
+            sessionStorage.setItem(lastSeenKey, Date.now().toString());
+            supabase.rpc("update_last_seen", { p_user_id: session.user.id }).then(() => {});
+          }
         }
 
         setLoading(false);

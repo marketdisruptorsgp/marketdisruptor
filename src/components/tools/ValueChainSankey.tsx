@@ -2,9 +2,10 @@
  * ValueChainSankey — D3-powered Sankey diagram for governed value chain stages
  * Renders product-specific stages with friction-coded ribbons, cost shares, and actor details.
  */
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { sankey, sankeyLinkHorizontal, sankeyJustify } from "d3-sankey";
 import { motion, AnimatePresence } from "framer-motion";
+import { X, Trash2 } from "lucide-react";
 
 export interface ValueChainStage {
   id: string;
@@ -71,6 +72,22 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
   const [containerWidth, setContainerWidth] = useState(propWidth || 400);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<SNode | null>(null);
+  const [removedStageId, setRemovedStageId] = useState<string | null>(null);
+
+  const activeStages = useMemo(() => {
+    if (!removedStageId) return stages;
+    return stages.filter(s => s.id !== removedStageId);
+  }, [stages, removedStageId]);
+
+  const removedStage = useMemo(() => {
+    if (!removedStageId) return null;
+    return stages.find(s => s.id === removedStageId) || null;
+  }, [stages, removedStageId]);
+
+  const handleRemoveStage = useCallback((stageId: string) => {
+    setRemovedStageId(prev => prev === stageId ? null : stageId);
+    setSelectedNode(null);
+  }, []);
 
   useEffect(() => {
     if (propWidth) return;
@@ -86,9 +103,9 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
   }, [propWidth]);
 
   const sankeyData = useMemo(() => {
-    if (stages.length < 2) return null;
+    if (activeStages.length < 2) return null;
 
-    const nodes: SNode[] = stages.map((s) => ({
+    const nodes: SNode[] = activeStages.map((s) => ({
       id: s.id,
       label: s.label,
       friction: s.friction,
@@ -101,17 +118,17 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
     }));
 
     const links: SLink[] = [];
-    for (let i = 0; i < stages.length - 1; i++) {
-      const frictionWeight = stages[i + 1].friction === "high" ? 3 : stages[i + 1].friction === "medium" ? 2 : 1;
+    for (let i = 0; i < activeStages.length - 1; i++) {
+      const frictionWeight = activeStages[i + 1].friction === "high" ? 3 : activeStages[i + 1].friction === "medium" ? 2 : 1;
       links.push({
         source: i,
         target: i + 1,
         value: frictionWeight,
-        friction: stages[i + 1].friction,
+        friction: activeStages[i + 1].friction,
       });
     }
 
-    const nodeHeight = Math.max(160, stages.length * 32);
+    const nodeHeight = Math.max(160, activeStages.length * 32);
     const margin = { top: 12, right: 16, bottom: 12, left: 16 };
     const innerWidth = containerWidth - margin.left - margin.right;
 
@@ -128,7 +145,7 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
     });
 
     return { graph, margin, innerHeight: nodeHeight };
-  }, [stages, containerWidth, highestFrictionStage]);
+  }, [activeStages, containerWidth, highestFrictionStage]);
 
   if (!sankeyData) return null;
 
@@ -236,6 +253,44 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
         </g>
       </svg>
 
+      {/* Counterfactual: removed stage banner */}
+      <AnimatePresence>
+        {removedStage && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-2 rounded-lg p-2.5"
+            style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.2)" }}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-primary mb-0.5">
+                  Counterfactual: "{removedStage.label}" Removed
+                </p>
+                <p className="text-xs text-foreground leading-relaxed">
+                  {removedStage.friction === "high"
+                    ? `Removing this high-friction stage eliminates its ${removedStage.costShare || "significant"} cost contribution and the associated friction bottleneck.`
+                    : removedStage.friction === "medium"
+                    ? `This medium-friction stage contributes ${removedStage.costShare || "moderate costs"}. Removal simplifies the chain but may shift friction downstream.`
+                    : `This low-friction stage is relatively efficient. Removal may provide marginal gains but could introduce gaps.`
+                  }
+                  {removedStage.disintermediationPotential && removedStage.disintermediationPotential !== "none" && (
+                    ` Disintermediation potential: ${removedStage.disintermediationPotential}.`
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={() => setRemovedStageId(null)}
+                className="p-1 rounded-md hover:bg-muted transition-colors flex-shrink-0"
+              >
+                <X size={14} className="text-muted-foreground" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Value leakage callout */}
       {primaryValueLeakage && (
         <div className="mt-2 rounded-lg bg-destructive/10 border border-destructive/20 p-2.5">
@@ -284,9 +339,19 @@ export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLea
                     <span className="font-bold">Actors:</span> {selectedNode.actors.join(", ")}
                   </p>
                 )}
+                {/* Counterfactual remove button */}
+                {activeStages.length > 2 && (
+                  <button
+                    onClick={() => handleRemoveStage(selectedNode.id)}
+                    className="flex items-center gap-1.5 mt-1 text-[10px] font-bold text-destructive hover:text-destructive/80 transition-colors"
+                  >
+                    <Trash2 size={10} />
+                    What if we removed this stage?
+                  </button>
+                )}
               </div>
               <button onClick={() => setSelectedNode(null)} className="text-muted-foreground hover:text-foreground p-0.5">
-                ✕
+                <X size={12} />
               </button>
             </div>
           </motion.div>

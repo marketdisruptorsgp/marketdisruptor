@@ -20,8 +20,7 @@ export function MarketChangeAlert() {
   useEffect(() => {
     if (!user) return;
     checkForChanges();
-    // Update last_seen_at
-    (supabase.rpc as any)("update_last_seen", { p_user_id: user.id }).then(() => {}).catch(() => {});
+    // update_last_seen is handled centrally via useAuth — no duplicate call needed
   }, [user]);
 
   const checkForChanges = async () => {
