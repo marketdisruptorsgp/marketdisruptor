@@ -1444,6 +1444,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       outdatedSteps, markStepOutdated, clearStepOutdated,
       userScores, setUserScore,
       redesignData, setRedesignData,
+      conceptsData, setConceptsData,
       insightPreferences, setInsightPreference, getLikedInsights, getDismissedInsights,
       steeringText, setSteeringText, saveSteeringText,
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
