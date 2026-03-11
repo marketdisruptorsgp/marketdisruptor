@@ -70,6 +70,10 @@ interface AnalysisContextType {
   visitedDetailTabs: Set<string>;
   setVisitedDetailTabs: (s: Set<string>) => void;
 
+  // Structural Decomposition (first-principles primitives)
+  decompositionData: unknown;
+  setDecompositionData: (d: unknown) => void;
+
   // Disrupt
   disruptData: unknown;
   setDisruptData: (d: unknown) => void;
