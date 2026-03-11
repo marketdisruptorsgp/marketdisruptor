@@ -46,14 +46,15 @@ CORE PRINCIPLES:
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
 ${structuralDecomposition ? `
-STRUCTURAL DECOMPOSITION + SYSTEM DYNAMICS (use as grounding for your stress test):
-Ground your Red Team attacks and Green Team defenses in these actual structural primitives AND system dynamics. Reference specific:
+STRUCTURAL DECOMPOSITION + SYSTEM DYNAMICS + LEVERAGE ANALYSIS (use as grounding for your stress test):
+Ground your Red Team attacks and Green Team defenses in these actual structural primitives, system dynamics, AND leverage analysis. Reference specific:
+- LEVERAGE PRIMITIVES: Which system components have the highest disruption potential? Attack or defend based on their leverage scores and transformation types.
 - FAILURE MODES: What components fail and cascade? Use these as Red Team attack vectors.
 - BOTTLENECKS: Where throughput is limited — stress test scalability claims against these.
 - CONTROL POINTS: Who gatekeeps critical resources? Attack or defend based on switchability.
 - FEEDBACK LOOPS: Which reinforcing loops could accelerate success or doom the concept?
 - SUBSTITUTION PATHS: What could replace key primitives? These are both threats and opportunities.
-${JSON.stringify(structuralDecomposition, null, 1).slice(0, 3500)}
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 4000)}
 ` : ''}
 
 
@@ -238,6 +239,12 @@ ${analysisData.hiddenAssumptions?.map((a: { assumption: string }) => "• " + a.
 
 FLIPPED LOGIC:
 ${analysisData.flippedLogic?.map((f: { originalAssumption: string; boldAlternative: string }) => "• " + f.originalAssumption + " → " + f.boldAlternative).join("\n") || "None"}
+
+STRUCTURAL TRANSFORMATIONS (viability-gated):
+${analysisData.structuralTransformations?.filter((t: any) => !t.filtered)?.map((t: any) => `• [${t.transformationType.toUpperCase()}] ${t.targetPrimitiveLabel}: ${t.currentState} → ${t.proposedState} (viability: ${t.viabilityGate?.verdict || "unknown"})`).join("\n") || "None"}
+
+TRANSFORMATION CLUSTERS:
+${analysisData.transformationClusters?.map((c: any) => `• ${c.name}: ${c.description} (power: ${c.strategicPowerScore})`).join("\n") || "None"}
 
 CRITICAL INSTRUCTIONS:
 1. RED TEAM: Be SPECIFIC. Every attack must name a real competitor, cite a real market data point, or identify a specific technical constraint. NO generic dismissals.

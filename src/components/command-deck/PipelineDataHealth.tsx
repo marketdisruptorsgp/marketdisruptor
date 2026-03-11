@@ -109,6 +109,27 @@ function buildFields(props: PipelineDataHealthProps): DataField[] {
     detail: dynamics ? `${(dynamics.failureModes?.length || 0) + (dynamics.feedbackLoops?.length || 0) + (dynamics.bottlenecks?.length || 0) + (dynamics.controlPoints?.length || 0) + (dynamics.substitutionPaths?.length || 0)} items` : undefined,
   });
 
+  // Leverage Analysis sub-field (from decomposition)
+  const leverage = decomp?.leverageAnalysis;
+  fields.push({
+    label: "Leverage Analysis",
+    group: "pipeline",
+    status: fieldStatus(leverage?.leveragePrimitives),
+    detail: leverage?.leveragePrimitives?.length ? `${leverage.leveragePrimitives.length} primitives, ${leverage.dependencyGraph?.length || 0} edges` : undefined,
+  });
+
+  // Viability Gate sub-field (from disrupt data)
+  const disrupt = props.disruptData as any;
+  const transformations = disrupt?.structuralTransformations;
+  const viableCount = transformations?.filter((t: any) => !t.filtered)?.length || 0;
+  const totalCount = transformations?.length || 0;
+  fields.push({
+    label: "Viability Gate",
+    group: "pipeline",
+    status: totalCount > 0 ? (viableCount > 0 ? "populated" : "partial") : "empty",
+    detail: totalCount > 0 ? `${viableCount}/${totalCount} passed` : undefined,
+  });
+
   // Document / BI extraction
   fields.push({
     label: "Document Extraction (BI)",

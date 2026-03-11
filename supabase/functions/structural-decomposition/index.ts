@@ -1,11 +1,12 @@
 /**
- * STRUCTURAL DECOMPOSITION — True first-principles primitive extraction + system dynamics
+ * STRUCTURAL DECOMPOSITION — True first-principles primitive extraction + system dynamics + leverage analysis
  *
  * Decomposes a product, service, or business model into its irreducible
- * structural primitives AND system dynamics BEFORE any pattern recognition.
+ * structural primitives, system dynamics, AND leverage analysis BEFORE any pattern recognition.
  *
  * Structural Primitives: static components, costs, constraints
  * System Dynamics: failure modes, feedback loops, bottlenecks, control points, substitution paths
+ * Leverage Analysis: dependency graph + ranked leverage primitives
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -78,6 +79,30 @@ const SYSTEM_DYNAMICS_SCHEMA = `"systemDynamics": {
     ]
   }`;
 
+// ── LEVERAGE ANALYSIS SCHEMA (shared across all modes) ──
+
+const LEVERAGE_ANALYSIS_SCHEMA = `"leverageAnalysis": {
+    "dependencyGraph": [
+      {
+        "from": "primitive_id (source)",
+        "to": "primitive_id (target)",
+        "relationship": "depends_on|enables|constrains|feeds"
+      }
+    ],
+    "leveragePrimitives": [
+      {
+        "primitiveId": "id of the structural primitive this references",
+        "primitiveLabel": "Human-readable label of the primitive",
+        "bindingStrength": 8,
+        "cascadeReach": 7,
+        "challengeability": 6,
+        "leverageScore": 7.2,
+        "bestTransformation": "elimination|substitution|reordering|aggregation",
+        "reasoning": "Why this is a high-leverage target — what breaks or improves if you change it"
+      }
+    ]
+  }`;
+
 // ── MODE-SPECIFIC PROMPTS ──
 
 const PRODUCT_SCHEMA = `{
@@ -124,7 +149,8 @@ const PRODUCT_SCHEMA = `{
       "challengeable": false
     }
   ],
-  ${SYSTEM_DYNAMICS_SCHEMA}
+  ${SYSTEM_DYNAMICS_SCHEMA},
+  ${LEVERAGE_ANALYSIS_SCHEMA}
 }`;
 
 const SERVICE_SCHEMA = `{
@@ -183,7 +209,8 @@ const SERVICE_SCHEMA = `{
       "challengeable": true
     }
   ],
-  ${SYSTEM_DYNAMICS_SCHEMA}
+  ${SYSTEM_DYNAMICS_SCHEMA},
+  ${LEVERAGE_ANALYSIS_SCHEMA}
 }`;
 
 const BUSINESS_SCHEMA = `{
@@ -229,7 +256,8 @@ const BUSINESS_SCHEMA = `{
       "challengeable": true
     }
   ],
-  ${SYSTEM_DYNAMICS_SCHEMA}
+  ${SYSTEM_DYNAMICS_SCHEMA},
+  ${LEVERAGE_ANALYSIS_SCHEMA}
 }`;
 
 serve(async (req) => {
@@ -265,14 +293,15 @@ serve(async (req) => {
       if (intelParts.length > 0) contextBlock += `\n\nUpstream Intelligence:\n${intelParts.join("\n")}`;
     }
 
-    const systemPrompt = `You are a structural decomposition engine. Your job is to decompose a ${modeLabel} into TWO layers:
+    const systemPrompt = `You are a structural decomposition engine. Your job is to decompose a ${modeLabel} into THREE layers:
 1. STRUCTURAL PRIMITIVES — the irreducible static components of the system
 2. SYSTEM DYNAMICS — how those components interact, fail, and evolve over time
+3. LEVERAGE ANALYSIS — which primitives have the highest disruption potential and why
 
 CRITICAL RULES:
-- You are performing DECOMPOSITION, not analysis. Break the system into its fundamental parts AND map how they behave.
+- You are performing DECOMPOSITION, not analysis. Break the system into its fundamental parts, map how they behave, then RANK which parts matter most.
 - Every primitive must be SPECIFIC to this exact ${modeLabel.toLowerCase()}, not generic.
-- Do NOT suggest improvements, opportunities, or changes. Only describe what EXISTS.
+- Do NOT suggest improvements, opportunities, or changes. Only describe what EXISTS and which parts are highest-leverage.
 - Do NOT use placeholder text. Every field must contain real, specific information.
 - Components must be genuinely irreducible — if it can be broken down further, break it down.
 - Use real technology names, real material names, real cost categories.
@@ -308,6 +337,20 @@ SYSTEM DYNAMICS MANDATE (REQUIRED for all modes):
 - substitutionPaths: Which primitives could be replaced with alternatives? What's the feasibility and tradeoff?
 - Generate at least 2-3 items per dynamics category. These must reference SPECIFIC structural primitives from above.
 
+LEVERAGE ANALYSIS MANDATE (REQUIRED for all modes):
+- dependencyGraph: Map how structural primitives depend on each other. Use actual IDs from the primitives above. Show at least 8-12 edges.
+- leveragePrimitives: Rank the 5-8 highest-leverage primitives using these three factors:
+  * bindingStrength (1-10): How tightly this constraint locks the system
+  * cascadeReach (1-10): How many downstream components break if this changes
+  * challengeability (1-10): Whether technology/economics make change feasible NOW
+  * leverageScore = (bindingStrength × 0.4) + (cascadeReach × 0.4) + (challengeability × 0.2)
+- For each leverage primitive, identify the BEST transformation type:
+  * elimination — remove the component entirely
+  * substitution — replace with a different mechanism (mechanical→digital, manual→automated)
+  * reordering — change the sequence or timing
+  * aggregation — combine multiple components into one
+- Sort leveragePrimitives by leverageScore descending (highest first).
+
 Respond ONLY with a single valid JSON object matching this schema:
 ${schema}`;
 
@@ -321,10 +364,10 @@ ${schema}`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Decompose this ${modeLabel.toLowerCase()} into its structural primitives AND system dynamics:\n${contextBlock}` },
+          { role: "user", content: `Decompose this ${modeLabel.toLowerCase()} into its structural primitives, system dynamics, AND leverage analysis:\n${contextBlock}` },
         ],
         temperature: 0.3,
-        max_tokens: 6000,
+        max_tokens: 8000,
       }),
     });
 
@@ -365,9 +408,32 @@ ${schema}`;
       };
     }
 
-    console.log(`[structural-decomposition] ${mode} decomposition complete — ${JSON.stringify(decomposition).length} bytes, dynamics: ${
-      (decomposition.systemDynamics.failureModes?.length || 0) + (decomposition.systemDynamics.feedbackLoops?.length || 0) + (decomposition.systemDynamics.bottlenecks?.length || 0)
-    } items`);
+    // Ensure leverageAnalysis exists with defaults
+    if (!decomposition.leverageAnalysis) {
+      decomposition.leverageAnalysis = {
+        dependencyGraph: [],
+        leveragePrimitives: [],
+      };
+    }
+    if (!decomposition.leverageAnalysis.dependencyGraph) {
+      decomposition.leverageAnalysis.dependencyGraph = [];
+    }
+    if (!decomposition.leverageAnalysis.leveragePrimitives) {
+      decomposition.leverageAnalysis.leveragePrimitives = [];
+    }
+
+    // Sort leverage primitives by score descending
+    decomposition.leverageAnalysis.leveragePrimitives.sort(
+      (a: any, b: any) => (b.leverageScore || 0) - (a.leverageScore || 0)
+    );
+
+    const dynamicsCount = (decomposition.systemDynamics.failureModes?.length || 0) +
+      (decomposition.systemDynamics.feedbackLoops?.length || 0) +
+      (decomposition.systemDynamics.bottlenecks?.length || 0) +
+      (decomposition.systemDynamics.controlPoints?.length || 0) +
+      (decomposition.systemDynamics.substitutionPaths?.length || 0);
+
+    console.log(`[structural-decomposition] ${mode} decomposition complete — ${JSON.stringify(decomposition).length} bytes, dynamics: ${dynamicsCount} items, leverage: ${decomposition.leverageAnalysis.leveragePrimitives.length} primitives, deps: ${decomposition.leverageAnalysis.dependencyGraph.length} edges`);
 
     return new Response(
       JSON.stringify({ success: true, decomposition }),
