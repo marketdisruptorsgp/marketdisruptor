@@ -132,8 +132,15 @@ ADDITIONAL ETA-SPECIFIC RULES:
 6. DUE DILIGENCE GAPS: List 5-10 questions the CIM should answer but didn't.
 ` : ""}
 
-You convert unstructured documents and images into structured system intelligence
-...
+You convert unstructured documents and images into structured system intelligence.
+
+CRITICAL CLASSIFICATION RULES:
+- "constraints" = ONLY things that are CURRENTLY limiting, blocking, or creating risk. Structural bottlenecks, capacity ceilings being HIT, operational problems.
+- "opportunities" = Untapped capacity, growth runway, expansion potential, underutilized assets, room to take on more. If the document says "room for growth", "additional capacity", "can support more", or "expansion potential" — this is an OPPORTUNITY, not a constraint.
+- NEVER put growth potential or untapped capacity in constraints. A business having "$800K of unused production capacity" is an opportunity, not a constraint.
+- If something has BOTH constraint and opportunity dimensions (e.g., "current staff limits growth but facility can support 2x volume"), put the limitation in constraints AND the capacity in opportunities separately.
+
+Return ONLY the following JSON structure:
 ${EXTRACTION_SCHEMA}${etaSchemaBlock}
 }`;
     // Build multimodal content parts
