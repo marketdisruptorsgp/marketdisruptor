@@ -228,12 +228,10 @@ export function usePipelineOrchestrator(
     return redesignResult;
   }, [analysisId, analysis.adaptiveContext, analysis.governedData, saveStepData, setRedesignData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
 
-  const runStressTest = useCallback(async (product: any, extractedContext: string, disruptResult?: unknown, redesignResult?: unknown): Promise<unknown> => {
+  const runStressTest = useCallback(async (product: any, extractedContext: string, disruptResult?: unknown, redesignResult?: unknown, decompResult?: unknown): Promise<unknown> => {
     updateStatus("stressTest", "running");
 
     // ── CRITICAL FIX: Pass actual disrupt/redesign data as analysisData ──
-    // The critical-validation edge function reads analysisData.redesignedConcept,
-    // analysisData.hiddenAssumptions, etc. Without these, it generates GENERIC output.
     const analysisPayload: Record<string, unknown> = { ...product };
     if (disruptResult && typeof disruptResult === "object") {
       const dr = disruptResult as Record<string, unknown>;
@@ -247,7 +245,6 @@ export function usePipelineOrchestrator(
     }
     if (redesignResult && typeof redesignResult === "object") {
       const rr = redesignResult as Record<string, unknown>;
-      // If redesign produced a different concept, use that instead
       if (rr.redesignedConcept) analysisPayload.redesignedConcept = rr.redesignedConcept;
     }
 
@@ -257,6 +254,7 @@ export function usePipelineOrchestrator(
         analysisData: analysisPayload,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
+        structuralDecomposition: decompResult || analysis.decompositionData || undefined,
       },
     }, 180_000);
 
