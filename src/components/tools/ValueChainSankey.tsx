@@ -188,7 +188,7 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                   y={y0 + h / 2}
                   dy="0.35em"
                   textAnchor={i < graph.nodes.length - 1 ? "start" : "end"}
-                  className="text-[11px] font-bold fill-foreground"
+                  className="text-[12px] font-extrabold fill-foreground"
                   style={{ pointerEvents: "none" }}
                 >
                   {truncate(node.label, 28)}
