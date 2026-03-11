@@ -89,6 +89,9 @@ ${directionsBlock}`;
     const profileSummary = buildProfileSummary(structuralProfile);
     const patternsSummary = qualifiedPatterns?.length > 0 ? buildPatternsSummary(qualifiedPatterns) : "No qualified structural patterns (using strategic directions instead).";
 
+    // ── Build Document Intelligence Block ──
+    const docIntelBlock = documentIntelligence ? buildDocumentIntelligenceBlock(documentIntelligence) : "";
+
     const userPrompt = `STRUCTURAL PROFILE:
 ${profileSummary}
 
@@ -97,6 +100,7 @@ BUSINESS CONTEXT:
 Type: ${analysisType || "product"}
 ${businessContext || "No additional context."}
 
+${docIntelBlock}
 EVIDENCE SUMMARY (top signals):
 ${(evidenceSummary || []).slice(0, 25).map((e: any) => `- [${e.type}] ${e.label}${e.description ? ": " + e.description.slice(0, 150) : ""}`).join("\n")}
 
