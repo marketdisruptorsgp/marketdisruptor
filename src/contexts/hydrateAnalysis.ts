@@ -60,6 +60,7 @@ export function clearAllState(setters: HydrationSetters) {
   setters.setStressTestData(null);
   setters.setPitchDeckData(null);
   setters.setRedesignData(null);
+  setters.setConceptsData(null);
   setters.setGovernedData(null);
   setters.setBusinessAnalysisData(null);
   setters.setBusinessStressTestData(null);
