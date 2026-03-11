@@ -745,4 +745,4 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
 
     </div>
   );
-}
+});
