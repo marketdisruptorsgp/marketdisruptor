@@ -971,3 +971,122 @@ function findRelevantEvidence(qp: QualifiedPattern, evidence: Evidence[]): strin
     .slice(0, 8)
     .map(s => s.id);
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  DOCUMENT INTELLIGENCE PAYLOAD BUILDER
+//  Converts full biExtraction into a structured payload for AI
+// ═══════════════════════════════════════════════════════════════
+
+function buildDocumentIntelligencePayload(bi: Record<string, unknown>): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  // Business overview
+  const overview = bi.business_overview as Record<string, unknown> | undefined;
+  if (overview) {
+    payload.company = overview.company_name || null;
+    payload.industry = overview.industry || null;
+    payload.offering = overview.primary_offering || null;
+    payload.customers = overview.target_customers || [];
+    payload.valueProp = overview.value_proposition || null;
+  }
+
+  // Value creation system — inputs, activities, outputs, channels
+  const vc = bi.value_creation_system as Record<string, unknown> | undefined;
+  if (vc) {
+    payload.valueCreation = {
+      inputs: vc.inputs || [],
+      coreActivities: vc.core_activities || [],
+      outputs: vc.outputs || [],
+      channels: vc.delivery_channels || [],
+      evidence: (vc.evidence as string[] || []).slice(0, 5),
+    };
+  }
+
+  // Revenue engine — sources, pricing, costs, margins
+  const re = bi.revenue_engine as Record<string, unknown> | undefined;
+  if (re) {
+    payload.revenueEngine = {
+      sources: re.revenue_sources || [],
+      pricingModel: re.pricing_model || [],
+      costDrivers: re.cost_drivers || [],
+      marginLevers: re.margin_levers || [],
+      evidence: (re.evidence as string[] || []).slice(0, 5),
+    };
+  }
+
+  // Operating model — workflow stages with dependencies and risks
+  const om = bi.operating_model as Record<string, unknown> | undefined;
+  if (om) {
+    const stages = (om.workflow_stages as any[]) || [];
+    payload.operatingModel = {
+      workflowStages: stages.slice(0, 8).map((s: any) => ({
+        stage: s.stage,
+        purpose: s.purpose,
+        dependencies: s.dependencies || [],
+        risks: s.risks || [],
+      })),
+      keyResources: om.key_resources || [],
+      partners: om.partners || [],
+      evidence: (om.evidence as string[] || []).slice(0, 3),
+    };
+  }
+
+  // Constraints — structural bottlenecks
+  const constraints = bi.constraints as any[] | undefined;
+  if (constraints?.length) {
+    payload.constraints = constraints.slice(0, 6).map((c: any) => ({
+      constraint: c.constraint,
+      type: c.type,
+      causes: c.causes || [],
+      effects: c.effects || [],
+      evidence: (c.evidence || []).slice(0, 2),
+    }));
+  }
+
+  // Opportunities — untapped capacity, growth runway
+  const opportunities = bi.opportunities as any[] | undefined;
+  if (opportunities?.length) {
+    payload.opportunities = opportunities.slice(0, 6).map((o: any) => ({
+      opportunity: o.opportunity,
+      type: o.type,
+      enablers: o.enablers || [],
+      potentialImpact: o.potential_impact || [],
+      evidence: (o.evidence || []).slice(0, 2),
+    }));
+  }
+
+  // ETA assessment (if present)
+  const eta = bi.eta_assessment as Record<string, unknown> | undefined;
+  if (eta) {
+    const fs = eta.financial_snapshot as Record<string, unknown> | undefined;
+    payload.financials = {
+      sde: fs?.sde || null,
+      revenue: fs?.revenue || null,
+      grossMarginPct: fs?.gross_margin_pct || null,
+      addbacks: (fs?.claimed_addbacks as any[] || []).slice(0, 5),
+      missingFinancials: fs?.missing_financials || [],
+    };
+    payload.ownerDependency = {
+      score: eta.owner_dependency_score || null,
+      areas: (eta.owner_dependencies as any[] || []).slice(0, 4),
+    };
+    payload.customerConcentration = eta.customer_concentration || null;
+  }
+
+  // Causal relationships for system-level reasoning
+  const signals = bi.signals_for_visualization as Record<string, unknown> | undefined;
+  if (signals) {
+    payload.systemSignals = {
+      nodes: signals.primary_system_nodes || [],
+      relationships: (signals.causal_relationships as any[] || []).slice(0, 10),
+      leveragePoints: signals.candidate_leverage_points || [],
+    };
+  }
+
+  // Missing information the AI should be aware of
+  if (bi.missing_critical_information) {
+    payload.missingInfo = (bi.missing_critical_information as string[]).slice(0, 8);
+  }
+
+  return payload;
+}

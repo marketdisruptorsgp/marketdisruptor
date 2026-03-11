@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { structuralProfile, qualifiedPatterns, evidenceSummary, analysisType, businessContext, operatorLens, strategicDirections } = await req.json();
+    const { structuralProfile, qualifiedPatterns, evidenceSummary, analysisType, businessContext, operatorLens, strategicDirections, documentIntelligence } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
