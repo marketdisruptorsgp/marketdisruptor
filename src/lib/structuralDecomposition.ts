@@ -11,6 +11,9 @@
  *
  * SYSTEM DYNAMICS (shared across all modes):
  * → Failure Modes, Feedback Loops, Bottlenecks, Control Points, Substitution Paths
+ *
+ * LEVERAGE ANALYSIS (shared across all modes):
+ * → Dependency Graph, Leverage Primitives (ranked by disruption potential)
  */
 
 // ═══════════════════════════════════════════════════════════════
@@ -88,6 +91,77 @@ export interface SystemDynamics {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  LEVERAGE ANALYSIS — Which primitives have highest disruption potential
+// ═══════════════════════════════════════════════════════════════
+
+export interface DependencyEdge {
+  from: string; // primitive id
+  to: string;   // primitive id
+  relationship: "depends_on" | "enables" | "constrains" | "feeds";
+}
+
+export interface LeveragePrimitive {
+  primitiveId: string;
+  primitiveLabel: string;
+  bindingStrength: number;      // 1-10, how tightly it locks the system
+  cascadeReach: number;         // 1-10, how many downstream components break
+  challengeability: number;     // 1-10, how feasible to change now
+  leverageScore: number;        // computed: (binding*0.4 + cascade*0.4 + challenge*0.2)
+  bestTransformation: "elimination" | "substitution" | "reordering" | "aggregation";
+  reasoning: string;
+}
+
+export interface LeverageAnalysis {
+  dependencyGraph: DependencyEdge[];
+  leveragePrimitives: LeveragePrimitive[];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STRUCTURAL TRANSFORMATIONS — Systematic inversion types
+// ═══════════════════════════════════════════════════════════════
+
+export interface StructuralTransformation {
+  id: string;
+  targetPrimitiveId: string;
+  targetPrimitiveLabel: string;
+  transformationType: "elimination" | "substitution" | "reordering" | "aggregation";
+  currentState: string;
+  proposedState: string;
+  mechanism: string;
+  valueCreated: string;
+  valueLost: string;
+  viabilityGate: ViabilityGate;
+  filtered: boolean;  // true = failed viability, excluded from redesign
+}
+
+export interface ViabilityGate {
+  technical: ViabilityDimension;
+  economic: ViabilityDimension;
+  regulatory: ViabilityDimension;
+  behavioral: ViabilityDimension;
+  compositeScore: number; // 1-5 weighted average
+  verdict: "pass" | "conditional" | "fail";
+}
+
+export interface ViabilityDimension {
+  score: number; // 1-5
+  reasoning: string;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TRANSFORMATION CLUSTERING — Group compatible transformations
+// ═══════════════════════════════════════════════════════════════
+
+export interface TransformationCluster {
+  id: string;
+  name: string;
+  description: string;
+  transformationIds: string[];
+  compatibilityNote: string;
+  strategicPowerScore: number; // leverageScore × viabilityScore
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  PRODUCT DECOMPOSITION
 // ═══════════════════════════════════════════════════════════════
 
@@ -116,6 +190,7 @@ export interface ProductDecomposition {
   }[];
   physicalConstraints: ConstraintPrimitive[];
   systemDynamics: SystemDynamics;
+  leverageAnalysis?: LeverageAnalysis;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -163,6 +238,7 @@ export interface ServiceDecomposition {
   }[];
   timeConstraints: ConstraintPrimitive[];
   systemDynamics: SystemDynamics;
+  leverageAnalysis?: LeverageAnalysis;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -199,6 +275,7 @@ export interface BusinessModelDecomposition {
   };
   scalingConstraints: ConstraintPrimitive[];
   systemDynamics: SystemDynamics;
+  leverageAnalysis?: LeverageAnalysis;
 }
 
 // ═══════════════════════════════════════════════════════════════
