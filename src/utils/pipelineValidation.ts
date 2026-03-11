@@ -32,6 +32,10 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
     requires: ["intelData", "transformationEngine"],
     produces: ["concepts", "illustrations"],
   },
+  strategicSynthesis: {
+    requires: ["intelData"],
+    produces: ["assumptions", "flippedIdeas", "challengeMap", "transformations", "clusters", "viability", "concepts", "illustrations", "quickValidation"],
+  },
   redesign: {
     requires: ["intelData", "disrupt"],
     produces: ["concepts", "illustrations"],

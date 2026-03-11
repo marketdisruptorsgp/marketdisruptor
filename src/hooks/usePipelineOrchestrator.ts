@@ -1,22 +1,24 @@
 /**
- * PIPELINE ORCHESTRATOR — Auto-runs all pipeline steps after analysis creation
+ * PIPELINE ORCHESTRATOR — 90-Second Architecture
  *
- * Pipeline: Decompose → Transform → Concept → Stress Test + Pitch (parallel)
+ * 3-Phase Pipeline:
+ *   Phase 1: Structural Decomposition (Flash, ~20s)
+ *   Phase 2: Strategic Synthesis (Pro, ~45s) — replaces transform + concept
+ *   Phase 3: Deep Validation + Pitch (Flash, parallel, NON-BLOCKING)
  *
  * Key behaviors:
- *   - Decomposition is mandatory with retry (pipeline aborts if it fails)
- *   - Transformation engine produces assumptions, flips, transformations, viability, clustering
- *   - Concept architecture generates redesigned concept from viable clusters
- *   - Early termination if all transformations fail viability
- *   - Stress test & pitch run in parallel for speed
- *   - Payload compression reduces inter-stage token usage
- *   - Skips disrupt AI call if businessAnalysisData already exists
- *   - Triggers incremental recompute after each step
+ *   - Decomposition mandatory with retry
+ *   - Strategic synthesis produces ALL analysis + concept in one call
+ *   - Phase 3 fires after UI renders Phase 2 — results stream in
+ *   - Reuses existing step data (skips completed steps)
+ *   - Payload compression reduces token usage
+ *   - Pre-context assembly (zero AI cost)
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
+import { assemblePreContext } from "@/lib/preContextAssembly";
 import { toast } from "sonner";
 
 export type PipelineStepStatus = "pending" | "running" | "done" | "error" | "skipped";
@@ -32,15 +34,13 @@ export interface PipelineProgress {
 
 const STEP_DEFS = [
   { key: "decompose", label: "Structural Decomposition" },
-  { key: "disrupt", label: "Structural Analysis" },
-  { key: "redesign", label: "Redesign Concept" },
-  { key: "stressTest", label: "Strategy Development" },
+  { key: "synthesis", label: "Strategic Synthesis" },
+  { key: "stressTest", label: "Deep Validation" },
   { key: "pitch", label: "Pitch Synthesis" },
 ] as const;
 
 /**
  * Compress product payload to reduce inter-stage token usage.
- * Strips large arrays to essential subsets.
  */
 function compressProductPayload(product: any): any {
   if (!product) return product;
@@ -56,9 +56,7 @@ function compressProductPayload(product: any): any {
     id: product.id,
     revivalScore: product.revivalScore,
   };
-  if (product.reviews) {
-    compressed.reviews = product.reviews.slice(0, 5);
-  }
+  if (product.reviews) compressed.reviews = product.reviews.slice(0, 5);
   if (product.communityInsights) {
     compressed.communityInsights = {
       ...product.communityInsights,
@@ -98,8 +96,7 @@ export function usePipelineOrchestrator(
 
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
     decompose: "pending",
-    disrupt: "pending",
-    redesign: "pending",
+    synthesis: "pending",
     stressTest: "pending",
     pitch: "pending",
   });
@@ -116,7 +113,7 @@ export function usePipelineOrchestrator(
     }
   }, []);
 
-  // Build a synthetic product for business model analyses that lack a real selectedProduct
+  // Build a synthetic product for business model analyses
   const effectiveProduct = selectedProduct || (businessAnalysisData ? {
     id: analysisId || "business-model",
     name: businessModelInput?.type || "Business Model",
@@ -127,7 +124,7 @@ export function usePipelineOrchestrator(
     description: businessModelInput?.description || "",
   } as any : null);
 
-  // ── Individual step runners ──
+  // ── Phase 1: Structural Decomposition ──
 
   const runDecompose = useCallback(async (product: any, extractedContext: string): Promise<unknown> => {
     setCurrentStep("decompose");
@@ -168,115 +165,33 @@ export function usePipelineOrchestrator(
     return decompResult;
   }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete, onRecompute]);
 
-  const runDisrupt = useCallback(async (product: any, extractedContext: string, decompResult?: unknown): Promise<unknown> => {
+  // ── Phase 2: Strategic Synthesis (replaces transform + concept) ──
+
+  const runStrategicSynthesis = useCallback(async (product: any, extractedContext: string, decompResult: unknown): Promise<unknown> => {
+    // If businessAnalysisData exists, reuse it
     if (businessAnalysisData) {
-      console.log("[Pipeline] Reusing businessAnalysisData as disrupt step (skipping redundant AI call)");
-      const result = businessAnalysisData;
-      setDisruptData(result);
-      await saveStepData("disrupt", result, analysisId!);
-      updateStatus("disrupt", "done");
-      onStepComplete?.("disrupt");
+      console.log("[Pipeline] Reusing businessAnalysisData as synthesis step");
+      setDisruptData(businessAnalysisData);
+      await saveStepData("disrupt", businessAnalysisData, analysisId!);
+      updateStatus("synthesis", "done");
+      onStepComplete?.("synthesis");
       onRecompute?.();
-      return result;
+      return businessAnalysisData;
     }
 
-    setCurrentStep("disrupt");
-    updateStatus("disrupt", "running");
+    setCurrentStep("synthesis");
+    updateStatus("synthesis", "running");
 
-    // ── Compress upstream intel to reduce token usage ──
-    const upstreamIntel: Record<string, unknown> = {};
-    const pp = product as any;
-    if (pp.pricingIntel) upstreamIntel.pricingIntel = pp.pricingIntel;
-    if (pp.supplyChain) upstreamIntel.supplyChain = {
-      suppliers: pp.supplyChain.suppliers?.slice(0, 3),
-      manufacturers: pp.supplyChain.manufacturers?.slice(0, 3),
-    };
-    if (pp.communityInsights) upstreamIntel.communityInsights = {
-      communitySentiment: pp.communityInsights.communitySentiment,
-      topComplaints: pp.communityInsights.topComplaints?.slice(0, 5),
-      improvementRequests: pp.communityInsights.improvementRequests?.slice(0, 5),
-    };
-    if (pp.competitorAnalysis) upstreamIntel.competitorAnalysis = pp.competitorAnalysis;
-    if (pp.trendAnalysis) upstreamIntel.trendAnalysis = pp.trendAnalysis;
-    if (pp.patentData || pp.patentLandscape) upstreamIntel.patentLandscape = pp.patentLandscape || pp.patentData;
+    // Pre-context assembly (zero AI cost)
+    const preContext = assemblePreContext(product);
 
-    const { data: result, error } = await invokeWithTimeout("transformation-engine", {
+    const { data: result, error } = await invokeWithTimeout("strategic-synthesis", {
       body: {
         product: compressProductPayload(product),
-        upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
+        structuralDecomposition: decompResult || undefined,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
-        structuralDecomposition: decompResult || undefined,
-      },
-    }, 180_000);
-
-    if (error || !result?.success) {
-      const msg = result?.error || error?.message || "Structural analysis failed";
-      console.warn("[Pipeline] Disrupt failed:", msg);
-      updateStatus("disrupt", "error", msg);
-      return null;
-    }
-
-    const disruptResult = result.analysis;
-
-    // Extract governed data for downstream steps
-    if (disruptResult?.governed) {
-      setGovernedData(disruptResult.governed);
-    }
-
-    setDisruptData(disruptResult);
-    await saveStepData("disrupt", disruptResult, analysisId!);
-    updateStatus("disrupt", "done");
-    onStepComplete?.("disrupt");
-    onRecompute?.();
-    return disruptResult;
-  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setGovernedData, updateStatus, onStepComplete, onRecompute]);
-
-  const runRedesign = useCallback(async (product: any, extractedContext: string, disruptResult: unknown, decompResult?: unknown): Promise<unknown> => {
-    setCurrentStep("redesign");
-    updateStatus("redesign", "running");
-
-    // ── VIABILITY GATE ENFORCEMENT ──
-    let viableTransformations: any[] = [];
-    let viableClusters: any[] = [];
-    let hiddenAssumptions: any = null;
-    let flippedLogic: any = null;
-
-    if (disruptResult) {
-      const dd = disruptResult as Record<string, unknown>;
-      hiddenAssumptions = dd.hiddenAssumptions || null;
-      flippedLogic = dd.flippedLogic || null;
-
-      if (Array.isArray(dd.structuralTransformations)) {
-        const before = (dd.structuralTransformations as any[]).length;
-        viableTransformations = (dd.structuralTransformations as any[]).filter(
-          (t: any) => !t.filtered && (t.viabilityGate?.compositeScore ?? 5) >= 2.5
-        );
-        console.log(`[Pipeline] Viability gate: ${viableTransformations.length}/${before} transformations passed`);
-      }
-
-      if (Array.isArray(dd.transformationClusters)) {
-        const viableIds = new Set(viableTransformations.map((t: any) => t.id));
-        viableClusters = (dd.transformationClusters as any[]).filter((c: any) =>
-          c.transformationIds?.some((id: string) => viableIds.has(id))
-        );
-      }
-    }
-
-    // ── Call concept-architecture (focused concept generation) ──
-    const { data: result, error } = await invokeWithTimeout("concept-architecture", {
-      body: {
-        product: compressProductPayload(product),
-        viableTransformations,
-        allClusters: viableClusters,
-        hiddenAssumptions,
-        flippedLogic,
-        governedContext: analysis.governedData ? {
-          reasoning_synopsis: analysis.governedData.reasoning_synopsis,
-          constraint_map: analysis.governedData.constraint_map,
-          root_hypotheses: analysis.governedData.root_hypotheses,
-        } : undefined,
-        decomposition: decompResult || analysis.decompositionData || undefined,
+        preContext,
         // Curation context
         insightPreferences: (analysis as any).insightPreferences || undefined,
         userScores: (analysis as any).userScores || undefined,
@@ -285,39 +200,57 @@ export function usePipelineOrchestrator(
     }, 180_000);
 
     if (error || !result?.success) {
-      const msg = result?.error || error?.message || "Redesign failed";
-      console.warn("[Pipeline] Redesign failed:", msg);
-      updateStatus("redesign", "error", msg);
+      const msg = result?.error || error?.message || "Strategic synthesis failed";
+      console.warn("[Pipeline] Synthesis failed:", msg);
+      updateStatus("synthesis", "error", msg);
       return null;
     }
 
-    const redesignResult = result.analysis;
-    setRedesignData(redesignResult);
-    await saveStepData("redesign", redesignResult, analysisId!);
-    clearStepOutdated("redesign");
-    updateStatus("redesign", "done");
-    onStepComplete?.("redesign");
-    onRecompute?.();
-    return redesignResult;
-  }, [analysisId, analysis.adaptiveContext, analysis.governedData, analysis.decompositionData, saveStepData, setRedesignData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+    const synthesisResult = result.analysis;
 
-  const runStressTest = useCallback(async (product: any, extractedContext: string, disruptResult?: unknown, redesignResult?: unknown, decompResult?: unknown): Promise<unknown> => {
+    // Extract governed data
+    if (synthesisResult?.governed) {
+      setGovernedData(synthesisResult.governed);
+    }
+
+    // Set BOTH disrupt and redesign data from the unified result
+    // disruptData = full analysis (assumptions, flips, transformations, etc.)
+    // redesignData = { redesignedConcept, visualSpecs, actionPlans }
+    setDisruptData(synthesisResult);
+    await saveStepData("disrupt", synthesisResult, analysisId!);
+
+    const redesignPayload = {
+      redesignedConcept: synthesisResult.redesignedConcept,
+      visualSpecs: synthesisResult.visualSpecs,
+      actionPlans: synthesisResult.actionPlans,
+    };
+    setRedesignData(redesignPayload);
+    await saveStepData("redesign", redesignPayload, analysisId!);
+
+    clearStepOutdated("redesign");
+    updateStatus("synthesis", "done");
+    onStepComplete?.("synthesis");
+    onRecompute?.();
+    return synthesisResult;
+  }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
+
+  // ── Phase 3: Deep Validation (background enrichment) ──
+
+  const runStressTest = useCallback(async (product: any, extractedContext: string, synthesisResult?: unknown, decompResult?: unknown): Promise<unknown> => {
     updateStatus("stressTest", "running");
 
     const analysisPayload: Record<string, unknown> = { ...product };
-    if (disruptResult && typeof disruptResult === "object") {
-      const dr = disruptResult as Record<string, unknown>;
-      if (dr.redesignedConcept) analysisPayload.redesignedConcept = dr.redesignedConcept;
-      if (dr.hiddenAssumptions) analysisPayload.hiddenAssumptions = dr.hiddenAssumptions;
-      if (dr.flippedLogic) analysisPayload.flippedLogic = dr.flippedLogic;
-      if (dr.frictionDimensions) analysisPayload.frictionDimensions = dr.frictionDimensions;
-      if (dr.coreReality) analysisPayload.coreReality = dr.coreReality;
-      if (dr.smartTechAnalysis) analysisPayload.smartTechAnalysis = dr.smartTechAnalysis;
-      if (dr.currentStrengths) analysisPayload.currentStrengths = dr.currentStrengths;
-    }
-    if (redesignResult && typeof redesignResult === "object") {
-      const rr = redesignResult as Record<string, unknown>;
-      if (rr.redesignedConcept) analysisPayload.redesignedConcept = rr.redesignedConcept;
+    if (synthesisResult && typeof synthesisResult === "object") {
+      const sr = synthesisResult as Record<string, unknown>;
+      if (sr.redesignedConcept) analysisPayload.redesignedConcept = sr.redesignedConcept;
+      if (sr.hiddenAssumptions) analysisPayload.hiddenAssumptions = sr.hiddenAssumptions;
+      if (sr.flippedLogic) analysisPayload.flippedLogic = sr.flippedLogic;
+      if (sr.frictionDimensions) analysisPayload.frictionDimensions = sr.frictionDimensions;
+      if (sr.coreReality) analysisPayload.coreReality = sr.coreReality;
+      if (sr.smartTechAnalysis) analysisPayload.smartTechAnalysis = sr.smartTechAnalysis;
+      if (sr.currentStrengths) analysisPayload.currentStrengths = sr.currentStrengths;
+      if (sr.structuralTransformations) analysisPayload.structuralTransformations = sr.structuralTransformations;
+      if (sr.transformationClusters) analysisPayload.transformationClusters = sr.transformationClusters;
     }
 
     const { data: result, error } = await invokeWithTimeout("critical-validation", {
@@ -331,7 +264,7 @@ export function usePipelineOrchestrator(
     }, 180_000);
 
     if (error || !result?.success) {
-      const msg = result?.error || error?.message || "Stress test failed";
+      const msg = result?.error || error?.message || "Deep validation failed";
       console.warn("[Pipeline] Stress Test failed:", msg);
       updateStatus("stressTest", "error", msg);
       return null;
@@ -347,15 +280,17 @@ export function usePipelineOrchestrator(
     return stressResult;
   }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
 
-  const runPitch = useCallback(async (product: any, extractedContext: string, disruptResult: unknown, redesignResult: unknown, stressResult: unknown): Promise<void> => {
+  // ── Phase 3: Pitch (background enrichment) ──
+
+  const runPitch = useCallback(async (product: any, extractedContext: string, synthesisResult: unknown, stressResult: unknown): Promise<void> => {
     updateStatus("pitch", "running");
 
     const { data: result, error } = await invokeWithTimeout("generate-pitch-deck", {
       body: {
         product: compressProductPayload(product),
-        disruptData: disruptResult || undefined,
+        disruptData: synthesisResult || undefined,
         stressTestData: stressResult || undefined,
-        redesignData: redesignResult || undefined,
+        redesignData: synthesisResult || undefined,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
         patentData: (product as any).patentData || undefined,
@@ -378,7 +313,7 @@ export function usePipelineOrchestrator(
     onRecompute?.();
   }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete, onRecompute]);
 
-  // ── Full pipeline ──
+  // ── Full 3-Phase Pipeline ──
 
   const runPipeline = useCallback(async () => {
     if (!effectiveProduct || !analysisId) return;
@@ -390,8 +325,7 @@ export function usePipelineOrchestrator(
     const extractedContext = analysis.adaptiveContext?.extractedContext || "";
 
     try {
-      // Step 0: Structural Decomposition — MANDATORY with retry
-      // Reuse existing decomposition if available
+      // ═══ PHASE 1: Structural Decomposition (~20s) ═══
       let decompResult = decompositionData;
       if (!decompResult) {
         decompResult = await runDecompose(product, extractedContext);
@@ -399,7 +333,7 @@ export function usePipelineOrchestrator(
           console.log("[Pipeline] Decomposition failed, retrying once...");
           decompResult = await runDecompose(product, extractedContext);
           if (!decompResult) {
-            toast.error("Structural decomposition failed after retry. Pipeline aborted — please try again.");
+            toast.error("Structural decomposition failed after retry. Pipeline aborted.");
             return;
           }
         }
@@ -408,61 +342,52 @@ export function usePipelineOrchestrator(
         updateStatus("decompose", "done");
       }
 
-      // Step 1: Transformation Engine (assumptions, flips, transformations, viability, clustering)
-      // Reuse existing disrupt data if available
-      let disruptResult = disruptData;
-      if (!disruptResult) {
-        disruptResult = await runDisrupt(product, extractedContext, decompResult);
-        if (!disruptResult) {
-          toast.error("Transformation analysis failed. Pipeline stopped.");
+      // ═══ PHASE 2: Strategic Synthesis (~45s) ═══
+      // Check if we already have BOTH disrupt + redesign data
+      let synthesisResult = (disruptData && redesignData) ? disruptData : null;
+      if (!synthesisResult) {
+        synthesisResult = await runStrategicSynthesis(product, extractedContext, decompResult);
+        if (!synthesisResult) {
+          toast.error("Strategic synthesis failed. Pipeline stopped.");
           return;
         }
       } else {
-        console.log("[Pipeline] Reusing existing disrupt data");
-        updateStatus("disrupt", "done");
+        console.log("[Pipeline] Reusing existing synthesis data");
+        updateStatus("synthesis", "done");
       }
 
-      // ── EARLY TERMINATION: Check if all transformations were filtered ──
-      const transforms = (disruptResult as any).structuralTransformations;
-      const allFiltered = Array.isArray(transforms) && transforms.length > 0 &&
-        transforms.every((t: any) => t.filtered || (t.viabilityGate?.compositeScore ?? 5) < 2.5);
+      // ═══ UI renders now — Phase 2 complete ═══
 
-      let redesignResult: unknown = redesignData;
-      if (!redesignResult) {
-        if (allFiltered) {
-          console.log("[Pipeline] All transformations filtered by viability gate — skipping concept generation");
-          toast.info("Low disruption potential detected — skipping concept generation.");
-          updateStatus("redesign", "skipped");
-        } else {
-          // Step 2: Concept Architecture (redesigned concept from viable clusters)
-          redesignResult = await runRedesign(product, extractedContext, disruptResult, decompResult);
-        }
-      } else {
-        console.log("[Pipeline] Reusing existing redesign data");
-        updateStatus("redesign", "done");
-      }
-
-      // Steps 3 & 4: Stress Test + Pitch — RUN IN PARALLEL (skip if already exist)
+      // ═══ PHASE 3: Background Enrichment (non-blocking) ═══
       const needsStress = !stressTestData;
       const needsPitch = !pitchDeckData;
 
       if (needsStress || needsPitch) {
         setCurrentStep("stressTest");
-        const promises: Promise<unknown>[] = [];
+
+        // Fire both in parallel — these are background enrichment
+        const enrichmentPromises: Promise<unknown>[] = [];
+
         if (needsStress) {
-          promises.push(runStressTest(product, extractedContext, disruptResult, redesignResult, decompResult));
+          enrichmentPromises.push(
+            runStressTest(product, extractedContext, synthesisResult, decompResult)
+          );
         } else {
           updateStatus("stressTest", "done");
-          promises.push(Promise.resolve(stressTestData));
-        }
-        if (needsPitch) {
-          promises.push(runPitch(product, extractedContext, disruptResult, redesignResult, null));
-        } else {
-          updateStatus("pitch", "done");
-          promises.push(Promise.resolve(pitchDeckData));
+          enrichmentPromises.push(Promise.resolve(stressTestData));
         }
 
-        const [stressSettled, pitchSettled] = await Promise.allSettled(promises);
+        if (needsPitch) {
+          enrichmentPromises.push(
+            runPitch(product, extractedContext, synthesisResult, null)
+          );
+        } else {
+          updateStatus("pitch", "done");
+          enrichmentPromises.push(Promise.resolve(pitchDeckData));
+        }
+
+        // Run enrichment in parallel
+        const [stressSettled, pitchSettled] = await Promise.allSettled(enrichmentPromises);
 
         if (stressSettled.status === "rejected") {
           console.error("[Pipeline] Stress test rejected:", stressSettled.reason);
@@ -492,7 +417,7 @@ export function usePipelineOrchestrator(
         toast.success("Full pipeline complete — strategic intelligence updated.");
       }
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, pitchDeckData, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, pitchDeckData, runDecompose, runStrategicSynthesis, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
 
   // ── Retry a single failed step ──
   const retryStep = useCallback(async (stepKey: string) => {
@@ -505,27 +430,23 @@ export function usePipelineOrchestrator(
         case "decompose":
           await runDecompose(product, extractedContext);
           break;
-        case "disrupt":
-          await runDisrupt(product, extractedContext, decompositionData);
-          break;
-        case "redesign":
-          await runRedesign(product, extractedContext, disruptData, decompositionData);
+        case "synthesis":
+          await runStrategicSynthesis(product, extractedContext, decompositionData);
           break;
         case "stressTest":
-          await runStressTest(product, extractedContext, disruptData, redesignData, decompositionData);
+          await runStressTest(product, extractedContext, disruptData, decompositionData);
           break;
         case "pitch":
-          await runPitch(product, extractedContext, disruptData, redesignData, stressTestData);
+          await runPitch(product, extractedContext, disruptData, stressTestData);
           break;
       }
     } catch (err) {
       console.error(`[Pipeline] Retry ${stepKey} failed:`, err);
       toast.error(`Retry failed for ${stepKey}`);
     }
-  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, redesignData, stressTestData, runDecompose, runDisrupt, runRedesign, runStressTest, runPitch]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runStressTest, runPitch]);
 
-  // Auto-trigger when analysis is done with product/business data but missing critical step data
-  // Also triggers when decomposition is missing (backfill for existing analyses)
+  // Auto-trigger when analysis is done but missing critical step data
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
     const hasMissingCriticalStep = !disruptData || !decompositionData;

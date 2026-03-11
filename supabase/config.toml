@@ -72,3 +72,6 @@ verify_jwt = false
 [functions.concept-architecture]
 verify_jwt = false
 
+[functions.strategic-synthesis]
+verify_jwt = false
+
