@@ -30,6 +30,7 @@ export interface HydrationSetters {
   setStressTestData: (d: unknown) => void;
   setPitchDeckData: (d: unknown) => void;
   setRedesignData: (d: unknown) => void;
+  setConceptsData: (d: unknown) => void;
   setGovernedData: (d: Record<string, unknown> | null) => void;
   setBusinessAnalysisData: (d: BusinessModelAnalysisData | null) => void;
   setBusinessModelInput: (i: BusinessModelInput | null) => void;
