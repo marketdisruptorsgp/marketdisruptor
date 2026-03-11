@@ -324,12 +324,12 @@ export function usePipelineOrchestrator(
       // Step 1: Disrupt (threaded with decomposition)
       const disruptResult = await runDisrupt(product, extractedContext, decompResult);
 
-      // Step 2: Redesign
-      const redesignResult = await runRedesign(product, extractedContext, disruptResult);
+      // Step 2: Redesign (threaded with decomposition)
+      const redesignResult = await runRedesign(product, extractedContext, disruptResult, decompResult);
 
-      // Steps 3 & 4: Stress Test + Pitch
+      // Steps 3 & 4: Stress Test + Pitch (threaded with decomposition)
       setCurrentStep("stressTest");
-      const stressResult = await runStressTest(product, extractedContext, disruptResult, redesignResult);
+      const stressResult = await runStressTest(product, extractedContext, disruptResult, redesignResult, decompResult);
 
       setCurrentStep("pitch");
       await runPitch(product, extractedContext, disruptResult, redesignResult, stressResult);
