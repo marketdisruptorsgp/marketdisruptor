@@ -1,19 +1,26 @@
 /**
- * ValueChainSankey — D3-powered Sankey diagram for value chain flow
- * Shows value flowing through chain stages with friction-coded link colors.
+ * ValueChainSankey — D3-powered Sankey diagram for governed value chain stages
+ * Renders product-specific stages with friction-coded ribbons, cost shares, and actor details.
  */
 import { useMemo, useState, useRef, useEffect } from "react";
 import { sankey, sankeyLinkHorizontal, sankeyJustify } from "d3-sankey";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface ChainStep {
+export interface ValueChainStage {
+  id: string;
   label: string;
+  description: string;
   friction: "high" | "medium" | "low";
-  description?: string;
+  frictionDetail?: string;
+  costShare?: string;
+  actors?: string[];
+  disintermediationPotential?: string;
 }
 
 interface Props {
-  chain: ChainStep[];
+  stages: ValueChainStage[];
+  highestFrictionStage?: string;
+  primaryValueLeakage?: string;
   width?: number;
 }
 
@@ -21,7 +28,12 @@ interface SNode {
   id: string;
   label: string;
   friction: "high" | "medium" | "low";
-  description?: string;
+  description: string;
+  frictionDetail?: string;
+  costShare?: string;
+  actors?: string[];
+  disintermediationPotential?: string;
+  isHighestFriction?: boolean;
 }
 
 interface SLink {
@@ -54,7 +66,7 @@ function truncate(text: string, max: number): string {
   return text.slice(0, max - 1) + "…";
 }
 
-export function ValueChainSankey({ chain, width: propWidth }: Props) {
+export function ValueChainSankey({ stages, highestFrictionStage, primaryValueLeakage, width: propWidth }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(propWidth || 400);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
@@ -74,47 +86,49 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
   }, [propWidth]);
 
   const sankeyData = useMemo(() => {
-    if (chain.length < 2) return null;
+    if (stages.length < 2) return null;
 
-    const nodes: SNode[] = chain.map((s, i) => ({
-      id: `node_${i}`,
+    const nodes: SNode[] = stages.map((s) => ({
+      id: s.id,
       label: s.label,
       friction: s.friction,
       description: s.description,
+      frictionDetail: s.frictionDetail,
+      costShare: s.costShare,
+      actors: s.actors,
+      disintermediationPotential: s.disintermediationPotential,
+      isHighestFriction: s.id === highestFrictionStage,
     }));
 
-    // Sequential links: each step flows to the next
-    // Value encodes friction weight (high=3, medium=2, low=1) so high-friction links are thicker
     const links: SLink[] = [];
-    for (let i = 0; i < chain.length - 1; i++) {
-      const frictionWeight = chain[i + 1].friction === "high" ? 3 : chain[i + 1].friction === "medium" ? 2 : 1;
+    for (let i = 0; i < stages.length - 1; i++) {
+      const frictionWeight = stages[i + 1].friction === "high" ? 3 : stages[i + 1].friction === "medium" ? 2 : 1;
       links.push({
         source: i,
         target: i + 1,
         value: frictionWeight,
-        friction: chain[i + 1].friction,
+        friction: stages[i + 1].friction,
       });
     }
 
-    const nodeHeight = Math.max(160, chain.length * 30);
+    const nodeHeight = Math.max(160, stages.length * 32);
     const margin = { top: 12, right: 16, bottom: 12, left: 16 };
     const innerWidth = containerWidth - margin.left - margin.right;
-    const innerHeight = nodeHeight;
 
     const sankeyGen = sankey<SNode, SLink>()
       .nodeId((d: SNode) => d.id)
       .nodeWidth(18)
       .nodePadding(14)
       .nodeAlign(sankeyJustify)
-      .extent([[0, 0], [innerWidth, innerHeight]]);
+      .extent([[0, 0], [innerWidth, nodeHeight]]);
 
     const graph = sankeyGen({
       nodes: nodes.map(n => ({ ...n })),
       links: links.map(l => ({ ...l })),
     });
 
-    return { graph, margin, innerWidth, innerHeight: nodeHeight };
-  }, [chain, containerWidth]);
+    return { graph, margin, innerHeight: nodeHeight };
+  }, [stages, containerWidth, highestFrictionStage]);
 
   if (!sankeyData) return null;
 
@@ -131,13 +145,11 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
         className="block"
       >
         <g transform={`translate(${margin.left}, ${margin.top})`}>
-          {/* Links */}
           {graph.links.map((link: any, i: number) => {
             const friction = (link as any).friction as "high" | "medium" | "low";
             const isConnected = hoveredNode
               ? (link.source?.id === hoveredNode || link.target?.id === hoveredNode)
               : true;
-
             return (
               <path
                 key={i}
@@ -151,7 +163,6 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
             );
           })}
 
-          {/* Nodes */}
           {graph.nodes.map((node: any, i: number) => {
             const x0 = node.x0 ?? 0;
             const y0 = node.y0 ?? 0;
@@ -161,6 +172,7 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
             const h = y1 - y0;
             const friction = node.friction as "high" | "medium" | "low";
             const isDimmed = hoveredNode && hoveredNode !== node.id;
+            const isHighest = node.isHighestFriction;
 
             return (
               <g
@@ -174,6 +186,20 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                 onMouseLeave={() => setHoveredNode(null)}
                 onClick={() => setSelectedNode(node)}
               >
+                {/* Highlight ring for highest friction */}
+                {isHighest && (
+                  <rect
+                    x={x0 - 3}
+                    y={y0 - 3}
+                    width={w + 6}
+                    height={h + 6}
+                    rx={6}
+                    fill="none"
+                    stroke={FRICTION_COLORS.high}
+                    strokeWidth={2}
+                    strokeDasharray="4 2"
+                  />
+                )}
                 <rect
                   x={x0}
                   y={y0}
@@ -182,10 +208,9 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                   rx={4}
                   fill={FRICTION_COLORS[friction]}
                 />
-                {/* Label to the right of node (or left for last node) */}
                 <text
                   x={i < graph.nodes.length - 1 ? x1 + 6 : x0 - 6}
-                  y={y0 + h / 2}
+                  y={y0 + h / 2 - 6}
                   dy="0.35em"
                   textAnchor={i < graph.nodes.length - 1 ? "start" : "end"}
                   className="text-[12px] font-extrabold fill-foreground"
@@ -193,23 +218,31 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
                 >
                   {truncate(node.label, 28)}
                 </text>
-                {/* Friction badge */}
+                {/* Cost share + friction */}
                 <text
                   x={i < graph.nodes.length - 1 ? x1 + 6 : x0 - 6}
-                  y={y0 + h / 2 + 14}
+                  y={y0 + h / 2 + 8}
                   dy="0.35em"
                   textAnchor={i < graph.nodes.length - 1 ? "start" : "end"}
-                  className="text-[10px] font-extrabold uppercase"
+                  className="text-[10px] font-bold"
                   fill={FRICTION_COLORS[friction]}
                   fillOpacity={1}
                 >
-                  {friction}
+                  {node.costShare ? `${node.costShare} · ` : ""}{friction} friction
                 </text>
               </g>
             );
           })}
         </g>
       </svg>
+
+      {/* Value leakage callout */}
+      {primaryValueLeakage && (
+        <div className="mt-2 rounded-lg bg-destructive/10 border border-destructive/20 p-2.5">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-destructive mb-0.5">Primary Value Leakage</p>
+          <p className="text-xs text-foreground leading-relaxed">{primaryValueLeakage}</p>
+        </div>
+      )}
 
       {/* Selected node detail */}
       <AnimatePresence>
@@ -225,17 +258,32 @@ export function ValueChainSankey({ chain, width: propWidth }: Props) {
             }}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 space-y-1.5">
                 <p className="text-xs font-bold text-foreground">{selectedNode.label}</p>
-                {selectedNode.description && (
-                  <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{selectedNode.description}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{selectedNode.description}</p>
+                {selectedNode.frictionDetail && (
+                  <p className="text-[11px] text-foreground leading-relaxed">
+                    <span className="font-bold" style={{ color: FRICTION_COLORS[selectedNode.friction] }}>Friction: </span>
+                    {selectedNode.frictionDetail}
+                  </p>
                 )}
-                <span
-                  className="text-[9px] font-extrabold uppercase mt-1.5 inline-block px-2 py-0.5 rounded-full"
-                  style={{ background: FRICTION_BG[selectedNode.friction], color: FRICTION_COLORS[selectedNode.friction] }}
-                >
-                  {selectedNode.friction} friction
-                </span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {selectedNode.costShare && (
+                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-muted text-foreground">
+                      Cost: {selectedNode.costShare}
+                    </span>
+                  )}
+                  {selectedNode.disintermediationPotential && selectedNode.disintermediationPotential !== "none" && (
+                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                      Disintermediation: {selectedNode.disintermediationPotential}
+                    </span>
+                  )}
+                </div>
+                {selectedNode.actors && selectedNode.actors.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground">
+                    <span className="font-bold">Actors:</span> {selectedNode.actors.join(", ")}
+                  </p>
+                )}
               </div>
               <button onClick={() => setSelectedNode(null)} className="text-muted-foreground hover:text-foreground p-0.5">
                 ✕
