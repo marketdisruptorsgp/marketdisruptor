@@ -398,12 +398,39 @@ ${schema}`;
     let decomposition;
     try {
       decomposition = JSON.parse(rawContent);
-    } catch (parseErr) {
-      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        decomposition = JSON.parse(jsonMatch[0]);
+    } catch (_parseErr1) {
+      // Try extracting JSON object
+      const firstBrace = rawContent.indexOf("{");
+      const lastBrace = rawContent.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        const jsonCandidate = rawContent.slice(firstBrace, lastBrace + 1);
+        try {
+          decomposition = JSON.parse(jsonCandidate);
+        } catch (_parseErr2) {
+          // Try fixing common truncation: unbalanced braces
+          let candidate = jsonCandidate;
+          let openBraces = 0;
+          let openBrackets = 0;
+          for (const ch of candidate) {
+            if (ch === '{') openBraces++;
+            if (ch === '}') openBraces--;
+            if (ch === '[') openBrackets++;
+            if (ch === ']') openBrackets--;
+          }
+          while (openBrackets > 0) { candidate += "]"; openBrackets--; }
+          while (openBraces > 0) { candidate += "}"; openBraces--; }
+          // Remove trailing commas before closing braces/brackets
+          candidate = candidate.replace(/,\s*([}\]])/g, "$1");
+          try {
+            decomposition = JSON.parse(candidate);
+            console.log("[structural-decomposition] Repaired truncated JSON successfully");
+          } catch (_parseErr3) {
+            console.error("[structural-decomposition] All parse attempts failed. Raw (first 500):", rawContent.slice(0, 500));
+            throw new Error("Failed to parse decomposition response — AI returned malformed JSON");
+          }
+        }
       } else {
-        console.error("[structural-decomposition] Failed to parse:", rawContent.slice(0, 500));
+        console.error("[structural-decomposition] No JSON object found in response");
         throw new Error("Failed to parse decomposition response");
       }
     }
