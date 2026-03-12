@@ -548,9 +548,13 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       const strengths: string[] = [];
       const resolves: string[] = [];
 
-      // Gate: labor-heavy artisan work rarely benefits from network effects
+      // Gate: artisan end-service — network effects require scalable digital interactions
       if (profile.laborIntensity === "artisan" && profile.valueChainPosition === "end_service") {
         return { qualifies: false, reason: "Artisan end-service — network effects require scalable digital interactions.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: traditional labor-heavy service businesses cannot build network effects
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — network effects require digital scale. Focus on customer relationships and referral systems.", strengthSignals: [], resolvesConstraints: [] };
       }
 
       if (profile.supplyFragmentation === "fragmented" || profile.supplyFragmentation === "atomized") strengths.push("Fragmented supply creates aggregation surface for network effects");
