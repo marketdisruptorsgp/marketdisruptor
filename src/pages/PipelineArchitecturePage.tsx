@@ -282,7 +282,7 @@ const STAGES: StageConfig[] = [
       "pitchDeckData — synthesized pitch narrative (5-slide deck)",
     ],
     processingWeight: "critical",
-    edgeFunction: "structural-decomposition, strategic-synthesis, concept-synthesis, critical-validation, generate-pitch-deck, business-model-analysis, analyze-problem",
+    edgeFunction: "structural-decomposition, strategic-synthesis, transformation-engine, concept-architecture, critical-validation, generate-pitch-deck, business-model-analysis, analyze-problem, compute-analytics-insights, generate-opportunity-vectors, analyze-business-structure, research-competitive-positioning, industry-benchmarks",
     description: "The core pipeline. 5 edge functions produce the analysis data sequentially. Each uses AI for generation but orchestration, error handling, context cascading, governed reasoning, and data persistence are custom logic.",
   },
   {

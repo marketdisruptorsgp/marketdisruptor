@@ -4,92 +4,96 @@ import { useRef } from "react";
 const STEPS = [
   {
     step: 1,
-    label: "REPORT",
+    label: "FOUNDATION",
+    subtitle: "structural-decomposition",
     color: "hsl(217 91% 60%)",
     bg: "hsl(217 91% 60% / 0.12)",
     border: "hsl(217 91% 60% / 0.4)",
     items: [
-      "Product Scraping (name, specs, era)",
-      "Pricing Intel (market price, resale, trend)",
-      "Supply Chain (suppliers, mfrs, distributors)",
-      "Community Insights (sentiment, complaints, requests)",
-      "Patent Landscape (total, expired, key players, gaps)",
-      "User Workflow (steps, friction, cognitive load)",
-      "Competitor Analysis (gaps, positioning)",
-      "Trend Analysis (cultural/tech shifts)",
-      "Reviews (positive/negative sentiment)",
+      "Product/Service/Business input parsing",
+      "Web scraping (specs, pricing, era)",
+      "Photo analysis (image → product)",
+      "Patent landscape search",
+      "Market news & trend signals",
+      "Geographic market sizing",
+      "Competitor scouting",
+      "Community sentiment extraction",
+      "Supply chain mapping",
     ],
-    outputLabel: "product object",
+    outputLabel: "decompositionData + Evidence[]",
+  },
+  {
+    step: "1.5",
+    label: "CONFIDENCE GATING",
+    subtitle: "confidenceGating.ts",
+    color: "hsl(38 92% 50%)",
+    bg: "hsl(38 92% 50% / 0.12)",
+    border: "hsl(38 92% 50% / 0.4)",
+    items: [
+      "7 data domains assessed (pricing, supply chain, competitive, patent/IP, BOM, trends, customer, regulatory)",
+      "Provenance tagging: SCRAPED | PARAMETRIC | AI_INFERRED | USER_INPUT",
+      "Low-confidence gates (score < 0.4 → research question)",
+      "Research Checklist generation (prioritized, copyable)",
+      "Known vs. inferred ratio computation",
+    ],
+    outputLabel: "ConfidenceAssessment + ResearchQuestion[]",
+    receives: ["decompositionData", "upstreamIntel"],
+    crossCutting: true,
   },
   {
     step: 2,
-    label: "INTEL REPORT",
+    label: "SYNTHESIS",
+    subtitle: "strategic-synthesis + transformation-engine",
     color: "hsl(173 80% 40%)",
     bg: "hsl(173 80% 40% / 0.12)",
     border: "hsl(173 80% 40% / 0.4)",
     items: [
-      "Signal Matrix (8 adaptive quadrants)",
-      "Observed Signals (strengths, complaints, friction)",
-      "Friction Dimensions (primary + 6 sub-dimensions)",
-      "Patent Treemap (by category/assignee)",
-      "Regulatory Landscape (agencies, rulings)",
-      "Market News (scraped headlines)",
-      "Trend Signals (Google Trends velocity)",
+      "Hidden assumptions extraction (5+ with leverage scores)",
+      "Flipped logic generation (bold alternatives)",
+      "Strategic analysis (true problem, actual usage, hacks)",
+      "Friction analysis (gaps, opportunities)",
+      "Smart tech analysis (missed opportunities)",
+      "Transformation concepts (structural redesigns)",
+      "Current strengths assessment (keep vs adapt)",
     ],
-    outputLabel: "intel digest",
-    receives: ["product object"],
-  },
-  {
-    step: 3,
-    label: "DECONSTRUCT",
-    color: "hsl(271 81% 56%)",
-    bg: "hsl(271 81% 56% / 0.12)",
-    border: "hsl(271 81% 56% / 0.4)",
-    items: [
-      "Hidden Assumptions (5+ min, leverage scores)",
-      "Flipped Logic (4+ min, bold alternatives)",
-      "Core Reality (true problem, actual usage, hacks)",
-      "Friction Analysis (gaps, opportunities)",
-      "Smart Tech Analysis (missed opportunities)",
-      "Current Strengths (what works, keep vs adapt)",
-      "User Workflow (current journey + friction map)",
-    ],
-    outputLabel: "disruptContext",
-    receives: ["product object", "upstreamIntel"],
+    outputLabel: "synthesisData + transformations",
+    receives: ["decompositionData", "Evidence[]", "ConfidenceAssessment"],
     receivesDetail: [
+      "decompositionData.structuralPrimitives",
+      "decompositionData.leverageAnalysis",
       "upstreamIntel.pricingIntel",
       "upstreamIntel.supplyChain",
       "upstreamIntel.communityInsights",
-      "upstreamIntel.userWorkflow",
       "upstreamIntel.patentLandscape",
+      "_dataConfidence (provenance metadata)",
     ],
   },
   {
-    step: 4,
-    label: "REDESIGN",
-    color: "hsl(38 92% 50%)",
-    bg: "hsl(38 92% 50% / 0.12)",
-    border: "hsl(38 92% 50% / 0.4)",
+    step: 3,
+    label: "CONCEPTS",
+    subtitle: "concept-architecture + concept-synthesis",
+    color: "hsl(271 81% 56%)",
+    bg: "hsl(271 81% 56% / 0.12)",
+    border: "hsl(271 81% 56% / 0.4)",
     subsections: [
       {
-        name: "Flip the Logic",
+        name: "Concept Architecture",
         items: [
-          "Assumption → Bold Alternative cards",
-          "Leverage scores (dot-bar)",
-          "Impact scenarios",
-          "Include in Pitch toggle",
+          "Design dimension identification",
+          "Morphological design space exploration",
+          "Concept variant generation (10–30 candidates)",
+          "Feasibility, novelty, market readiness tiers",
         ],
       },
       {
-        name: "Flipped Ideas (generate-flip-ideas)",
+        name: "Concept Synthesis (Product Mode)",
         items: [
-          "Product concept cards (name, description)",
+          "Product concept cards (name, description, mechanism)",
           "AI visual mockups (auto-generated)",
-          "Scores: feasibility, desirability, profitability, novelty",
           "Unit economics (BOM → retail → margin)",
           "3-phase action plan + revenue projection",
           "Risk/capital badges",
-          "Constraint linkage to upstream assumption",
+          "Constraint linkage to upstream assumptions",
         ],
       },
       {
@@ -98,35 +102,31 @@ const STEPS = [
           "Concept name + tagline",
           "Core insight + radical differences",
           "Physical description + materials",
-          "Smart features",
-          "Friction eliminated",
+          "Smart features + friction eliminated",
           "Manufacturing path + price point",
         ],
       },
     ],
     receives: [
-      "product object",
-      "upstreamIntel (full bundle)",
-      "disruptContext.hiddenAssumptions",
-      "disruptContext.flippedLogic",
+      "synthesisData",
+      "transformations",
+      "Evidence[] (full bundle)",
+      "ConfidenceAssessment",
     ],
     receivesDetail: [
-      "upstreamIntel.pricingIntel",
-      "upstreamIntel.supplyChain",
-      "upstreamIntel.communityInsights",
-      "upstreamIntel.userWorkflow",
-      "upstreamIntel.patentLandscape",
-      "disruptContext.hiddenAssumptions[]",
-      "disruptContext.flippedLogic[]",
+      "synthesisData.hiddenAssumptions[]",
+      "synthesisData.flippedLogic[]",
+      "transformations.redesignConcepts[]",
+      "upstreamIntel (full bundle)",
       "insightPreferences (user curation)",
       "steeringText (user guidance)",
-      "activeBranch (hypothesis isolation)",
       "governedContext (reasoning synopsis)",
     ],
   },
   {
-    step: 5,
-    label: "STRESS TEST + PITCH",
+    step: 4,
+    label: "VALIDATION + PITCH",
+    subtitle: "critical-validation + generate-pitch-deck",
     color: "hsl(0 70% 50%)",
     bg: "hsl(0 70% 50% / 0.12)",
     border: "hsl(0 70% 50% / 0.4)",
@@ -136,9 +136,34 @@ const STEPS = [
       "Deal economics panel",
       "Pitch deck (5-slide generator)",
       "Decision synthesis",
+      "Confidence-gated output (research gaps flagged)",
     ],
-    receives: ["All upstream data", "redesignData", "flippedIdeas"],
+    receives: ["All upstream data", "conceptsData", "transformations", "ConfidenceAssessment"],
   },
+];
+
+const EDGE_FUNCTIONS = [
+  "structural-decomposition",
+  "strategic-synthesis",
+  "transformation-engine",
+  "concept-architecture",
+  "critical-validation",
+  "generate-pitch-deck",
+  "business-model-analysis",
+  "generate-product-visual",
+  "compute-analytics-insights",
+  "generate-opportunity-vectors",
+  "analyze-business-structure",
+  "research-competitive-positioning",
+  "industry-benchmarks",
+  "scrape-products",
+  "analyze-products",
+  "photo-analysis",
+  "scrape-market-news",
+  "geo-market-data",
+  "help-assistant",
+  "api-proxy",
+  "fire-webhook",
 ];
 
 export function PipelineDiagram() {
@@ -179,17 +204,17 @@ export function PipelineDiagram() {
         {/* Title */}
         <div className="text-center space-y-1 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
           <h1 className="text-2xl font-black tracking-tight" style={{ color: "#fff" }}>
-            Market Disruptor OS — Full Intelligence Pipeline
+            Market Disruptor OS — 4-Phase Discovery Pipeline
           </h1>
           <p className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>
-            Data flow architecture · What feeds each step · Updated March 2026
+            Data flow architecture · Confidence-gated intelligence · Updated March 2026
           </p>
         </div>
 
         {/* Pipeline steps */}
         <div className="space-y-4">
           {STEPS.map((s, idx) => (
-            <div key={s.step} className="relative">
+            <div key={String(s.step)} className="relative">
               {/* Incoming data arrows */}
               {s.receives && (
                 <div className="mb-2 ml-12 flex flex-wrap gap-1.5">
@@ -206,7 +231,7 @@ export function PipelineDiagram() {
               )}
 
               <div
-                className="rounded-xl p-5 relative overflow-hidden"
+                className={`rounded-xl p-5 relative overflow-hidden ${(s as any).crossCutting ? "ring-1 ring-amber-500/30" : ""}`}
                 style={{ background: s.bg, border: `1.5px solid ${s.border}` }}
               >
                 {/* Step number + label */}
@@ -217,12 +242,24 @@ export function PipelineDiagram() {
                   >
                     {s.step}
                   </div>
-                  <h3 className="text-base font-black tracking-wide" style={{ color: s.color }}>
-                    {s.label}
-                  </h3>
+                  <div>
+                    <h3 className="text-base font-black tracking-wide" style={{ color: s.color }}>
+                      {s.label}
+                    </h3>
+                    {(s as any).subtitle && (
+                      <p className="text-[10px] font-mono" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {(s as any).subtitle}
+                      </p>
+                    )}
+                  </div>
                   {s.outputLabel && (
                     <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}>
                       outputs → {s.outputLabel}
+                    </span>
+                  )}
+                  {(s as any).crossCutting && (
+                    <span className="ml-2 text-[9px] font-bold px-2 py-0.5 rounded" style={{ background: "hsl(38 92% 50% / 0.15)", color: "hsl(38 92% 50%)" }}>
+                      CROSS-CUTTING
                     </span>
                   )}
                 </div>
@@ -238,16 +275,16 @@ export function PipelineDiagram() {
                   </div>
                 )}
 
-                {/* Subsections (for Redesign) */}
-                {s.subsections && (
+                {/* Subsections */}
+                {(s as any).subsections && (
                   <div className="ml-11 space-y-3">
-                    {s.subsections.map((sub) => (
+                    {(s as any).subsections.map((sub: any) => (
                       <div key={sub.name}>
                         <p className="text-xs font-bold mb-1" style={{ color: "rgba(255,255,255,0.8)" }}>
                           {sub.name}
                         </p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-0.5">
-                          {sub.items.map((item) => (
+                          {sub.items.map((item: string) => (
                             <p key={item} className="text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
                               • {item}
                             </p>
@@ -285,10 +322,24 @@ export function PipelineDiagram() {
           ))}
         </div>
 
+        {/* Edge Functions Registry */}
+        <div className="pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+            Edge Functions Registry ({EDGE_FUNCTIONS.length} deployed)
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {EDGE_FUNCTIONS.map((fn) => (
+              <code key={fn} className="text-[9px] px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>
+                {fn}
+              </code>
+            ))}
+          </div>
+        </div>
+
         {/* Footer */}
         <div className="text-center pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
           <p className="text-[10px] font-semibold" style={{ color: "rgba(255,255,255,0.25)" }}>
-            SGP Capital · Market Disruptor OS · Pipeline Architecture v3.2
+            SGP Capital · Market Disruptor OS · Pipeline Architecture v4.0 · Confidence-Gated
           </p>
         </div>
       </div>
