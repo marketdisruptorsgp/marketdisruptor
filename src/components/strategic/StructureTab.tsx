@@ -568,9 +568,29 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
                     provenanceRegistry={systemIntelligence.provenanceRegistry}
                     convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
                   />
-                </StructureSection>
 
-                {/* Causal Constraint Flow Map */}
+                  {/* Data Confidence + Research Gaps */}
+                  {(() => {
+                    const decomp = analysis.decompositionData;
+                    const upstreamIntel = selectedProduct as any;
+                    const confidence = assessDataConfidence(
+                      { supplyChain: upstreamIntel?.supplyChain, pricingIntel: upstreamIntel?.pricingIntel, competitorAnalysis: upstreamIntel?.competitorAnalysis, patentLandscape: upstreamIntel?.patentLandscape, patentData: upstreamIntel?.patentData, trendAnalysis: upstreamIntel?.trendAnalysis, communityInsights: upstreamIntel?.communityInsights },
+                      decomp,
+                      { name: selectedProduct?.name, category: selectedProduct?.category, description: selectedProduct?.description },
+                    );
+                    return (
+                      <div className="mt-3 space-y-3">
+                        <ConfidenceSummaryBar
+                          overallScore={confidence.overallScore}
+                          knownCount={confidence.knownVsInferred.knownCount}
+                          inferredCount={confidence.knownVsInferred.inferredCount}
+                        />
+                        {confidence.researchQuestions.length > 0 && (
+                          <ResearchChecklist assessment={confidence} />
+                        )}
+                      </div>
+                    );
+                  })()}
                 <StructureSection
                   title="Causal Constraint Flow"
                   icon={GitBranch}
