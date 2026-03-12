@@ -298,7 +298,7 @@ function buildStrategicNarrative(
   flatEvidence: Evidence[],
 ): StrategicNarrative {
   if (!primary || !profile) {
-    return emptyNarrative("Strategic thesis will emerge as more pipeline steps complete. The reasoning engine is building its evidence base.");
+    return emptyNarrative("Gathering intelligence and building the strategic picture. Results will appear as data comes in.");
   }
 
   const constraint = trimAt(primary.causalChain.constraint, 200);
