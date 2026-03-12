@@ -24,7 +24,7 @@ interface FlippedIdeaCardProps {
   steeringContext?: string;
 }
 
-export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch, onRegenerateSingle, onCompetitorsScouted }: FlippedIdeaCardProps) => {
+export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch, onRegenerateSingle, onCompetitorsScouted, onReject, steeringContext }: FlippedIdeaCardProps) => {
   const [mockupImage, setMockupImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const autoGenTriggered = useRef(false);
