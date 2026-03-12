@@ -16,9 +16,10 @@ interface CompetitorScoutPanelProps {
   category?: string;
   autoScout?: boolean;
   onCompetitorsScouted?: (competitors: Competitor[]) => void;
+  steeringContext?: string;
 }
 
-export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, autoScout = false, onCompetitorsScouted }: CompetitorScoutPanelProps) => {
+export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, autoScout = false, onCompetitorsScouted, steeringContext }: CompetitorScoutPanelProps) => {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasScouted, setHasScouted] = useState(false);
