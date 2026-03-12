@@ -320,9 +320,11 @@ function buildStrategicNarrative(
   const trappedValue = `${primary.economicMechanism.valueCreation}. Current cost picture: ${primary.economicMechanism.costStructureShift}`;
   const unlockPotential = `${primary.economicMechanism.revenueImplication}${primary.economicMechanism.defensibility ? `. Why it's hard to copy: ${primary.economicMechanism.defensibility}` : ""}`;
 
-  // Kill Question — from feasibility
+  // Kill Question — concise, max ~15 words, written to length (not truncated)
   const topRisk = primary.feasibility.executionRisks[0] || "structural barriers";
-  const killQuestion = `Is "${primary.strategicBet.contrarianBelief.toLowerCase()}" actually true, or is the industry assumption correct?`;
+  const killQuestion = primary.strategicBet.contrarianBelief.split(/\s+/).length <= 8
+    ? `Is "${primary.strategicBet.contrarianBelief.toLowerCase()}" actually true?`
+    : `What if the industry is right and this contrarian bet is wrong?`;
   const validationExperiment = `${primary.firstMove.action}. You'll know it's working when: ${primary.firstMove.successCriteria}.`;
   const validationTimeframe = primary.firstMove.timeframe;
 

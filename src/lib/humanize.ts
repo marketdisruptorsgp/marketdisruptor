@@ -94,7 +94,16 @@ export function enforceWordLimit(text: string | null | undefined, maxWords: numb
   if (!cleaned) return null;
   const words = cleaned.split(/\s+/);
   if (words.length <= maxWords) return cleaned;
-  return words.slice(0, maxWords).join(" ");
+  // Try to cut at a sentence boundary within the limit
+  const truncated = words.slice(0, maxWords).join(" ");
+  const lastPeriod = truncated.lastIndexOf(".");
+  const lastQuestion = truncated.lastIndexOf("?");
+  const lastBoundary = Math.max(lastPeriod, lastQuestion);
+  if (lastBoundary > truncated.length * 0.4) {
+    return truncated.slice(0, lastBoundary + 1);
+  }
+  // No good boundary — cut and add ellipsis for questions, period for statements
+  return truncated;
 }
 
 export function humanizeLabel(text: string | null | undefined): string {

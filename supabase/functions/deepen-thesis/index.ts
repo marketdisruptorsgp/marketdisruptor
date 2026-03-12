@@ -489,9 +489,9 @@ function buildToolSchema() {
                 strategicBet: {
                   type: "object",
                   properties: {
-                    industryAssumption: { type: "string", description: "What most people in this market believe" },
-                    contrarianBelief: { type: "string", description: "The contrarian bet this thesis makes" },
-                    implication: { type: "string", description: "What follows if the contrarian belief is correct" },
+                    industryAssumption: { type: "string", description: "The default belief in this market that most operators accept without questioning. Max 15 words. Example: 'Custom quotes are necessary for every commercial millwork project.'" },
+                    contrarianBelief: { type: "string", description: "The OPPOSITE claim — what you believe is actually true, that contradicts the industry assumption. Must directly negate or invert the assumption, not rephrase it. Max 15 words. Example: 'Most projects follow predictable patterns that can be priced from templates.'" },
+                    implication: { type: "string", description: "What follows if the contrarian belief is correct — the business consequence. Max 20 words." },
                   },
                   required: ["industryAssumption", "contrarianBelief", "implication"],
                   additionalProperties: false,
@@ -644,7 +644,7 @@ RULES:
 2. "causalChain": trace a specific constraint to outcome through a specific mechanism
 3. "economicMechanism": concrete value creation — revenue changes, cost shifts, defensibility
 4. "firstMove": something a business owner can literally do next week
-5. "strategicBet": genuine contrarian belief most industry people would disagree with
+5. "strategicBet": the industryAssumption and contrarianBelief MUST be genuine OPPOSITES — if assumption says "X is necessary", the contrarian must say "X is NOT necessary" or "Y works better". They should never be paraphrases of the same idea. Max 15 words each.
 6. Reference specifics from the structural profile and evidence
 7. Each opportunity must be STRUCTURALLY DISTINCT
 8. REALISM FILTER: if the business is labor-heavy, owner-dependent, project/transaction based, or ETA-focused, DO NOT propose SaaS, marketplaces, platform plays, API products, or "sell software to peers" ideas.
