@@ -120,6 +120,8 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
 }: StrategicActionBriefProps) {
   const [role, setRole] = useState<UserRole>(modeToDefaultRole(activeMode));
   const [reasoningOpen, setReasoningOpen] = useState(false);
+  const [explorationTab, setExplorationTab] = useState<"reasoning" | "opportunity" | "constraints" | null>(null);
+  const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(null);
 
   // Derive top constraints
   const topConstraints = useMemo(() => {
