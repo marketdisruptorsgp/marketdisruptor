@@ -112,6 +112,34 @@ export function extractRecommendedFocus(
   return parts.join(" ") || "";
 }
 
+/* ── Structural Assumptions ── */
+
+export interface StructuralAssumption {
+  assumption: string;
+  question: string;
+  alternative: string;
+}
+
+export function extractStructuralAssumptions(
+  deepenedOpps: DeepenedOpportunity[],
+): StructuralAssumption[] {
+  if (!deepenedOpps || deepenedOpps.length === 0) return [];
+  const assumptions: StructuralAssumption[] = [];
+
+  for (const opp of deepenedOpps.slice(0, 2)) {
+    const bet = opp.strategicBet;
+    if (bet?.industryAssumption && bet?.contrarianBelief) {
+      assumptions.push({
+        assumption: humanizeLabel(bet.industryAssumption),
+        question: `Is this actually true, or is there a better way?`,
+        alternative: humanizeLabel(bet.contrarianBelief),
+      });
+    }
+  }
+
+  return assumptions.slice(0, 2);
+}
+
 /* ── Legacy export for backward compat ── */
 
 export interface SwotData {
