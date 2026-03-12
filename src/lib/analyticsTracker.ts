@@ -379,8 +379,11 @@ function initDiagnostics() {
         });
       }
 
-      // Log slow requests (>5s)
-      if (duration > 5000 && !url.includes("ingest-analytics")) {
+      // Log slow requests — use higher threshold for AI edge functions (inherently slow)
+      const isAIFunction = url.includes("/functions/v1/");
+      const slowThreshold = isAIFunction ? 30000 : 5000; // 30s for AI, 5s for rest
+      const criticalThreshold = isAIFunction ? 90000 : 15000; // 90s for AI, 15s for rest
+      if (duration > slowThreshold && !url.includes("ingest-analytics")) {
         push({
           event_type: "slow_request",
           page_path: currentPath,
@@ -388,7 +391,7 @@ function initDiagnostics() {
             url: url.slice(0, 300),
             duration_ms: duration,
             status: res.status,
-            severity: duration > 15000 ? "critical" : "medium",
+            severity: duration > criticalThreshold ? "critical" : "medium",
           },
         });
       }
