@@ -634,6 +634,18 @@ export default function CommandDeckPage() {
             SECTION 2 — OPPORTUNITIES
             3 distinct strategic directions
            ══════════════════════════════════════════════════════════ */}
+        <OpportunityDirectionsGrid
+          opportunities={allOpportunities.slice(0, 3)}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 3 — RECOMMENDED MOVE
+           ══════════════════════════════════════════════════════════ */}
+        <RecommendedMoveCard
+          playbook={topPlaybook}
+          modeAccent={modeAccent}
+        />
 
         {/* What's Next — kill question + first move */}
         <WhatsNextPanel
@@ -683,44 +695,6 @@ export default function CommandDeckPage() {
         <FinancialTrendCharts
           biExtraction={biExtraction}
           governedData={governedDataTyped}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            INDUSTRY BENCHMARK — Archetype-based comparison
-           ══════════════════════════════════════════════════════════ */}
-        <IndustryBenchmarkPanel benchmark={benchmark} />
-
-        {/* ══════════════════════════════════════════════════════════
-            REVIVAL SCORE — Overall disruption/revival potential gauge
-           ══════════════════════════════════════════════════════════ */}
-        <RevivalScoreCard
-          score={selectedProduct?.revivalScore ?? (analysis as any)?.avg_revival_score ?? null}
-          modeAccent={modeAccent}
-          narrative={narrative}
-          metrics={{
-            opportunityScore: metrics.opportunityScore,
-            leverageScore: metrics.leverageScore,
-            frictionIndex: metrics.frictionIndex,
-            riskScore: metrics.riskScore,
-          }}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            COMPETITIVE MOAT — Radar chart for defensibility
-           ══════════════════════════════════════════════════════════ */}
-        <CompetitiveMoatRadar
-          governedData={governedDataTyped}
-          narrative={narrative}
-          modeAccent={modeAccent}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            LEVERAGE → DIRECTIONS — What unlocks what
-           ══════════════════════════════════════════════════════════ */}
-        <LeverageToDirectionsLink
-          opportunities={allOpportunities}
-          decompositionData={analysis.decompositionData}
-          modeAccent={modeAccent}
         />
 
         {/* ══════════════════════════════════════════════════════════
