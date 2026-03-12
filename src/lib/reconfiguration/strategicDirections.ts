@@ -223,6 +223,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Monetize information asymmetry by collecting, structuring, or analyzing data others don't have.",
     aiPromptHint: "What data does this business naturally generate or have access to? Who would pay for structured access to that data? What decisions does it inform? What's the data moat?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 2;
       if (p.valueChainPosition === "infrastructure" || p.valueChainPosition === "platform") score += 3;
