@@ -32,7 +32,7 @@ serve(async (req) => {
     const {
       product, lens, upstreamIntel, structuralDecomposition, activeBranch,
       adaptiveContext: rawAdaptiveCtx, extractedContext: rawExtractedCtx,
-      preContext,
+      preContext, strategyContext,
       // Curation context from user
       insightPreferences, userScores, steeringText,
     } = await req.json();
