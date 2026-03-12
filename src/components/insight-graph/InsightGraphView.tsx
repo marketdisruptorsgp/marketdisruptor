@@ -165,11 +165,20 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       </div>
 
       {activeTab === "landscape" ? (
-        <OpportunityLandscape graph={graph} onSelectNode={setSelectedNodeId} />
+        <div className="flex-1 min-h-0">
+          <OpportunityMatrix graph={graph} onSelectNode={setSelectedNodeId} />
+        </div>
       ) : activeTab === "constraints" ? (
-        <ConstraintMap graph={graph} onSelectNode={setSelectedNodeId} />
+        <div className="flex-1 min-h-0 flex flex-col gap-2">
+          <PrimaryBlockerCallout graph={graph} />
+          <div className="flex-1 min-h-0">
+            <ConstraintMap graph={graph} onSelectNode={setSelectedNodeId} />
+          </div>
+        </div>
       ) : activeTab === "pathways" ? (
-        <StrategicPathways graph={graph} onSelectNode={setSelectedNodeId} />
+        <div className="flex-1 min-h-0">
+          <StrategicPathways graph={graph} onSelectNode={setSelectedNodeId} />
+        </div>
       ) : (
         <>
           {/* Active path indicator */}
