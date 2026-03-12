@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const lastFired = sessionStorage.getItem(lastSeenKey);
       if (!lastFired) {
         sessionStorage.setItem(lastSeenKey, Date.now().toString());
-        supabase.rpc("update_last_seen", { p_user_id: userId }).catch(() => { /* non-critical — silent fail */ });
+        supabase.rpc("update_last_seen", { p_user_id: userId }).then(({ error }) => { if (error) console.debug("update_last_seen non-critical:", error.message); });
       }
     } else {
       const pendingName = localStorage.getItem("pending_first_name");
