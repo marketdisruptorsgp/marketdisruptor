@@ -1,130 +1,105 @@
-# This is a solid implementation plan — the architecture understanding is correct and the 6-file scope is realistic. A few things worth flagging before your dev runs with it:
+# Product Reset Plan: From Pipeline Tool → Strategic Insight Product
 
-**The banned-word scrubber approach is the wrong layer**
+## The Problem
+The Command Deck is currently an 812-line engineering dashboard exposing pipeline internals. A user running an analysis sees: confidence meters, reasoning stage overlays, evidence thresholds, node counts, pipeline progress bars, convergence zones, friction dashboards, provenance registries, and developer diagnostics. The *actual strategic value* — the constraint diagnosis, opportunities, and recommended moves — is buried under layers of system chrome.
 
-Scrubbing words post-generation in `humanize.ts` is a patch, not a fix. "Leverage" gets replaced with "use" — but the sentence it was in was probably still structured like jargon. You end up with clean words in bad sentences. The scrubber should be a safety net, not the primary fix. The primary fix is rewriting the prompts that generate the text in `strategicEngine.ts` and `opportunityDeepening.ts` so the words never appear in the first place. Do both, but don't rely on the scrubber as the main solution.
+## The North Star
+**User inputs a business → gets strategic insight they didn't see before.**
 
-`buildStrategicNarrative()` **needs more than line edits**
+The experience should feel like receiving a strategy consultant's one-page brief, not watching an AI pipeline execute.
 
-The plan calls out line 315 specifically, but the problem is structural — the whole function builds narrative by concatenating template strings with analysis variables dropped in. That pattern produces generic sentences by design. The real fix is replacing the template concatenation with a constrained AI call that takes the structured data and returns prose within the output spec. That's a bigger change than the plan implies — worth flagging to your dev so they don't underscope it.
+## Current UI Audit (CommandDeckPage.tsx — 812 lines)
 
-**The extractors in** `swotExtractor.ts` **need a fallback strategy**
+### What stays (core value):
+1. **SoWhatHeader** — "Do nothing → X. Act now → Y." (Good, decision-forcing)
+2. **OneThesisCard** — Constraint → Belief → Move → Economics → First Move (Strong, this IS the product)
+3. **WhatsNextPanel** — Kill question + first move (Actionable)
 
-`extractSingleInsight()`, `extractCriticalQuestion()` etc. will sometimes get data that genuinely can't be distilled into the character limits — especially for complex businesses. The plan doesn't specify what happens when the source narrative doesn't contain enough signal to fill a field cleanly. Add a rule: if a field can't be filled with specific, business-relevant content within the limit, return `null` and the UI renders nothing rather than generic filler. Rendering nothing is better than rendering "pipeline."
+### What gets demoted or removed:
 
-**The Command Deck removals need a destination, not just a deletion**
+| Component | Current Role | Action |
+|---|---|---|
+| `ReasoningStagesOverlay` | Shows "Detecting patterns…" animation | **REMOVE** — internal diagnostic |
+| `RecomputeOverlay` | Loading spinner for recompute | **SIMPLIFY** — just a subtle loading state |
+| `PipelineProgress` bar | Shows 5-step pipeline completion | **REMOVE** from main view |
+| `ModeBadge` | Shows "Product/Service/Business" | **KEEP** but simplify |
+| `StrategicXRay` | Interactive reasoning chain w/ challenge mode | **MOVE** to "Deep Dive" tab |
+| `IndustrySystemMapView` | Industry map visualization | **MOVE** to "Deep Dive" tab |
+| `PowerToolsPanel` (6 tools) | Problem Statement, Current State, Scenario Sim, Scenario Lab, Outcome Sim, Lens Intelligence | **MOVE** to "Deep Dive" tab |
+| `ScenarioBanner` + `DeltaChanges` | Scenario mode UI | **MOVE** to "Deep Dive" tab |
+| `StrategicCommandDeck` component | Friction dashboard, convergence zones, opportunity landscape, constraint/leverage/opportunity 3-col grid | **REPLACE** with clean opportunity cards |
+| `ConfidenceMeter` / confidence tags | Numeric confidence display | **REMOVE** |
+| Pipeline step count ("3/5 steps") | Developer progress | **REMOVE** |
+| Signal counts, evidence counts | Developer metrics | **REMOVE** |
 
-The plan says remove `WhyThisMattersSection`, `IndustryBenchmarkPanel`, `CompetitiveMoatRadar` etc. and "keep in PowerTools deep dive." But if PowerTools already exists and these components aren't currently wired into it, someone needs to wire them. "Keep in PowerTools" shouldn't mean "delete from Command Deck and figure out PowerTools later" — that's how features disappear. Make sure the ticket explicitly says where each removed component lands, not just where it leaves.
+## New Command Deck Layout (3 sections)
 
-**One missing piece: the Overview "3 insights" → "1 insight" change**
+### Section 1: Diagnosis
+**What we found** — One bold sentence explaining the structural constraint.
+- Source: `narrative.primaryConstraint` + `narrative.strategicVerdict`
+- Plain English, no jargon
+- No confidence scores, no "preliminary signal" labels
 
-The plan correctly says replace the 3-card insight grid with a single insight. But `extractSingleInsight()` needs a selection algorithm — how does it choose which of the 3 is "most surprising/counterintuitive"? The plan doesn't specify this. Options: have the AI rank them and return only the top one, use a confidence score if one exists, or default to whichever maps to the primary assumed-false belief. Your dev needs a decision here or they'll just take `insights[0]`.
+### Section 2: Opportunities (3–5 cards)
+**What you could do** — Multiple strategic directions derived from the constraint.
+- Each card: Title + 1-sentence explanation + "why this works"
+- Source: `autoAnalysis.deepenedOpportunities` (need to ensure we generate 3-5, not just 1-2)
+- Plain, action-oriented language
+- No impact scores, no node types
 
-**Suggested addition to the ticket:**
+### Section 3: Recommended Move
+**What we'd do first** — The highest-leverage play with clear next step.
+- Source: Top `deepenedOpportunity` with `firstMove`
+- "Here's the move. Here's why. Here's how to start."
+- Timeline estimate in human terms
 
-Add a QA criterion at the bottom:
+### Section 4 (optional): "Show me why" link
+- Links to Deep Dive tab containing: Reasoning Map, X-Ray, Industry Map, Scenario tools
+- This is the explanation layer, NOT the product
 
-```
-Definition of done:
-- Load Overview with the woodworking business data
-- Read the entire page aloud. It should take under 60 seconds.
-- Every sentence must be specific enough that removing the 
-  business name would make it feel wrong.
-- Zero instances of the 16 banned words in any rendered text.
-- No field renders if its value is null, empty, or a single word.
-- "pipeline" never appears as a standalone field value.
+## Opportunity Generation Fix
+Current problem: System often produces only 1 opportunity.
+Required: Generate 3–5 meaningful opportunity directions per constraint.
 
-```
+### Approach:
+- Enhance `src/lib/reconfiguration.ts` to generate multiple opportunity vectors from a single constraint
+- Use different strategic lenses: automation, platform, marketplace, data, consolidation
+- Each opportunity = a different strategic path, not a variation of the same idea
 
-Otherwise the dev ships it, it looks different, and the same content problems reappear in a new layout. Implement Strict Output Rules for Overview + Command Deck
+## Language Cleanup
+All user-facing text must be rewritten:
+- "Convergence zones" → removed
+- "Evidence threshold" → removed  
+- "Node count" → removed
+- "Pipeline step" → removed
+- "Reasoning chain" → "Our analysis shows…"
+- "Leverage point" → "Key advantage"
+- "Friction index" → removed
 
-## Problem
+## Navigation Changes
+Current 4-page structure:
+1. Command Deck (main)
+2. Intelligence Report
+3. Reasoning Map
+4. Pitch
 
-The Overview and Command Deck pages currently show verbose, jargon-heavy text with banned words (leverage, synergy, paradigm, etc.), bullet points within fields, generic statements, and repeated ideas across sections. The output spec demands a tight, founder-readable format with hard character limits and specific field structures.
+New structure:
+1. **Strategic Brief** (the 3-section layout above) — this IS the product
+2. **Deep Dive** (reasoning map, X-Ray, industry map, scenario tools)
+3. **Intelligence Report** (raw evidence)
+4. **Pitch** (investor-ready output)
 
-## Architecture Understanding
+## Implementation Order
+1. **Phase 1**: Strip Command Deck to 3 sections (diagnosis, opportunities, recommended move)
+2. **Phase 2**: Create "Deep Dive" tab and move demoted components there
+3. **Phase 3**: Fix opportunity generation to produce 3–5 per analysis
+4. **Phase 4**: Language cleanup across all user-facing components
+5. **Phase 5**: Test with real analyses to ensure consistent, useful output
 
-**Data flow:** `strategicEngine.ts` → `buildStrategicNarrative()` → `StrategicNarrative` → consumed by `OverviewPage.tsx` (via `swotExtractor.ts`) and `CommandDeckPage.tsx` (via components like `ContrarianInsightCard`, `StrategicDiagnosisBanner`, `SoWhatHeader`).
-
-The raw text comes from:
-
-1. `buildStrategicNarrative()` in `strategicEngine.ts` — constructs `whyThisMatters`, `verdictRationale`, `trappedValue`, etc. using template strings with jargon baked in (e.g., "structural reconfiguration that changes where and how value accrues")
-2. `DeepenedOpportunity` objects from `reconfiguration/opportunityDeepening.ts` — AI-generated thesis text
-3. `humanizeLabel()` in `humanize.ts` — strips ID prefixes but does NOT filter banned words
-
-## Plan
-
-### 1. Add a banned-word scrubber to `humanize.ts`
-
-Add a `scrubBannedWords(text)` function that replaces or removes the 16 banned words from all user-facing text. Also add a `enforceCharLimit(text, max)` helper. Wire `scrubBannedWords` into `humanizeLabel()` so every rendered string is automatically cleaned.
-
-Banned words: leverage, synergy, optimize, operationalize, streamline, ecosystem, robust, utilize, unlock, headcount, preliminary, proportional, actionable, stakeholder, paradigm, holistic.
-
-Replacement map (examples):
-
-- "leverage" → "use" or "advantage"
-- "optimize" → "improve"
-- "streamline" → "simplify"
-- "utilize" → "use"
-- "unlock" → "reveal" or "open up"
-- "actionable" → "practical"
-- "robust" → "strong"
-- "stakeholder" → "people involved"
-- Others → remove entirely
-
-### 2. Fix `buildStrategicNarrative()` in `strategicEngine.ts`
-
-Line 315 currently hardcodes: `"This isn't a surface optimization: it's a structural reconfiguration that changes where and how value accrues."` — rewrite to plain English within character limits.
-
-Similarly fix `verdictRationale` (line 311) and `executiveSummary` (line 362) templates to avoid jargon.
-
-### 3. Restructure `OverviewPage.tsx` to match the new output spec
-
-Replace the current 5-section layout with the spec's JSON-aligned structure:
-
-- **Single insight** (not 3) — the most surprising finding with `insight_headline` (8 words max) + `insight_body` (2 sentences)
-- **Assumption banner** — `everyone_assumes` (20 words) / `evidence_suggests` (20 words) / `so_what` (15 words)
-- **Business Reality (SWOT)** — 4 fields: `working`, `blocking`, `opening`, `risk` — each exactly 2 sentences
-- **Critical question** — single question, max 20 words
-- **Opportunities** — exactly 3, verb-first title (8 words), 2-sentence description, 1-2 badges
-- Remove "Key Insights" 3-card grid, "Recommended Focus" section, and "Structural Assumptions" section (these get folded into the new structure)
-
-### 4. Add new extractors to `swotExtractor.ts`
-
-Add functions:
-
-- `extractSingleInsight(narrative, deepenedOpps)` → `{ headline, body }`
-- `extractAssumptionBanner(narrative, deepenedOpps, entityName)` → `{ everyone_assumes, evidence_suggests, so_what }`
-- `extractCriticalQuestion(narrative, deepenedOpps)` → string
-- `extractSwotProse(narrative)` → `{ working, blocking, opening, risk }` (2 sentences each)
-- `extractOpportunitiesWithBadges(topOpps, deepenedOpps)` → array of `{ title, description, badges }`
-
-Each enforces character limits and banned-word scrubbing.
-
-### 5. Update Command Deck to match spec
-
-The Command Deck spec says: show assumption_banner, swot (restated from different angle), critical_question (execution-focused), and 3 opportunities (more specific than Overview). Remove diagnosis paragraphs, "why this matters" explanations, benchmark scores, competitive moat, strategy simulator output, document intelligence, key findings lists.
-
-Changes to `CommandDeckPage.tsx`:
-
-- Remove `WhyThisMattersSection`, `SecondOrderEffectsSection`, `CIMKeyFindings`, `IndustryBenchmarkPanel`, `RevivalScoreCard`, `CompetitiveMoatRadar`, `LeverageToDirectionsLink` from the main view (keep in PowerTools deep dive)
-- Replace `StrategicDiagnosisBanner` + `SoWhatHeader` with a compact assumption banner + critical question
-- Keep `ContrarianInsightCard` but enforce the 20-word limits on each field
-- Keep `OpportunityDirectionsGrid` but enforce exactly 3 items with verb-first titles and badges
-
-### 6. Update `ContrarianInsightCard.tsx`
-
-Enforce the 20-word / 15-word limits from the spec. Replace "Everyone Assumes" / "The Evidence Suggests" labels with the spec's structure. Add the `so_what` line.
-
-## What stays the same
-
-- Deep Dive / PowerTools panel keeps all advanced tools
-- Data pipeline and strategic engine internals unchanged
-- Deal-specific sections (biExtraction) unchanged
-- Scenario Lab unchanged
-
-## Estimated scope
-
-- 6 files modified: `humanize.ts`, `strategicEngine.ts`, `swotExtractor.ts`, `OverviewPage.tsx`, `CommandDeckPage.tsx`, `ContrarianInsightCard.tsx`
-- No new dependencies
-- No database changes
+## Success Criteria
+- User runs analysis → reads diagnosis in 3 seconds
+- Sees 3–5 actionable opportunity directions
+- Understands the recommended move and how to start
+- Can optionally explore "why" via Deep Dive
+- Zero developer terminology visible in default view
+- No numeric scores, thresholds, or pipeline indicators

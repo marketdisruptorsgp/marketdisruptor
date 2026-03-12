@@ -298,7 +298,7 @@ function buildStrategicNarrative(
   flatEvidence: Evidence[],
 ): StrategicNarrative {
   if (!primary || !profile) {
-    return emptyNarrative("Strategic thesis will emerge as more pipeline steps complete. The reasoning engine is building its evidence base.");
+    return emptyNarrative("Gathering intelligence and building the strategic picture. Results will appear as data comes in.");
   }
 
   const constraint = trimAt(primary.causalChain.constraint, 200);
@@ -308,15 +308,17 @@ function buildStrategicNarrative(
 
   // Strategic Verdict — the headline
   const strategicVerdict = move;
-  const verdictRationale = `The current structure is constrained by ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
+  const verdictRationale = `This business is held back by ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
   const verdictConfidence = Math.min(0.4 + primary.signalDensity * 0.15, 0.9);
 
-  // Why This Matters — from the strategic bet
-  const whyThisMatters = `Everyone in this market assumes "${primary.strategicBet.industryAssumption}" — but the evidence suggests otherwise. ${primary.strategicBet.contrarianBelief}. ${primary.strategicBet.implication}. This isn't a surface optimization: it's a structural reconfiguration that changes where and how value accrues.`;
+  // Why This Matters — from the strategic bet (plain English, no jargon)
+  const whyThisMatters = primary.strategicBet.industryAssumption && primary.strategicBet.contrarianBelief
+    ? `Most people in this market believe "${primary.strategicBet.industryAssumption}" — but the evidence points another way. ${primary.strategicBet.contrarianBelief}. ${primary.strategicBet.implication || ""}`
+    : primary.strategicBet.contrarianBelief || primary.causalChain.reasoning || null;
 
   // Trapped Value — from economic mechanism
-  const trappedValue = `${primary.economicMechanism.valueCreation}. Current cost structure: ${primary.economicMechanism.costStructureShift}`;
-  const unlockPotential = `${primary.economicMechanism.revenueImplication}${primary.economicMechanism.defensibility ? `. Defensibility: ${primary.economicMechanism.defensibility}` : ""}`;
+  const trappedValue = `${primary.economicMechanism.valueCreation}. Current cost picture: ${primary.economicMechanism.costStructureShift}`;
+  const unlockPotential = `${primary.economicMechanism.revenueImplication}${primary.economicMechanism.defensibility ? `. Why it's hard to copy: ${primary.economicMechanism.defensibility}` : ""}`;
 
   // Kill Question — from feasibility
   const topRisk = primary.feasibility.executionRisks[0] || "structural barriers";
@@ -359,7 +361,7 @@ function buildStrategicNarrative(
 
   // Executive Summary — one paragraph
   const etaPrefix = profile.etaActive ? `[Acquisition Lens] ` : "";
-  const executiveSummary = `${etaPrefix}This analysis identified a structural opportunity: ${move.toLowerCase()}. The current model is constrained by ${constraint.toLowerCase()} because ${driver.toLowerCase()}. Applying ${primary.patternName.toLowerCase()} should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
+  const executiveSummary = `${etaPrefix}The biggest opportunity here: ${move.toLowerCase()}. Right now, ${constraint.toLowerCase()} because ${driver.toLowerCase()}. The fix — ${primary.patternName.toLowerCase()} — should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
 
   return {
     primaryConstraint: constraint,

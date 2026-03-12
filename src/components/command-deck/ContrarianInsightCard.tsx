@@ -1,28 +1,49 @@
 /**
  * ContrarianInsightCard — The "aha moment" surface.
  *
- * Prominently displays the primary thesis's contrarian belief
- * vs. industry assumption, creating the key insight that
- * distinguishes this analysis from generic consulting output.
+ * Displays the assumption banner with strict word limits:
+ *   - everyone_assumes: max 20 words
+ *   - evidence_suggests: max 20 words
+ *   - so_what: max 15 words, starts with entity name
+ *
+ * Returns null if data can't fill the fields specifically enough.
  */
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Zap, ArrowRight } from "lucide-react";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
-import { trimAt } from "@/lib/humanize";
+import { enforceWordLimit, scrubBannedWords } from "@/lib/humanize";
 
 interface ContrarianInsightCardProps {
   thesis: DeepenedOpportunity | null;
   modeAccent: string;
+  entityName?: string;
 }
 
 export const ContrarianInsightCard = memo(function ContrarianInsightCard({
   thesis,
   modeAccent,
+  entityName,
 }: ContrarianInsightCardProps) {
   const bet = thesis?.strategicBet;
-  if (!bet?.contrarianBelief || !bet?.industryAssumption) return null;
+
+  const everyoneAssumes = useMemo(
+    () => bet?.industryAssumption ? enforceWordLimit(bet.industryAssumption, 20) : null,
+    [bet?.industryAssumption],
+  );
+  const evidenceSuggests = useMemo(
+    () => bet?.contrarianBelief ? enforceWordLimit(bet.contrarianBelief, 20) : null,
+    [bet?.contrarianBelief],
+  );
+  const soWhat = useMemo(() => {
+    const name = entityName || "This business";
+    const implication = bet?.implication || thesis?.economicMechanism?.valueCreation || "";
+    if (!implication) return enforceWordLimit(`${name} can move on this before competitors do`, 15);
+    return enforceWordLimit(`${name} ${scrubBannedWords(implication).toLowerCase()}`, 15);
+  }, [entityName, bet?.implication, thesis?.economicMechanism?.valueCreation]);
+
+  if (!everyoneAssumes || !evidenceSuggests) return null;
 
   return (
     <motion.div
@@ -35,7 +56,7 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
         border: `1.5px solid ${modeAccent}30`,
       }}
     >
-      <div className="px-5 py-4 space-y-4">
+      <div className="px-5 py-4 space-y-3">
         {/* Header */}
         <div className="flex items-center gap-2">
           <Zap size={13} style={{ color: modeAccent }} />
@@ -55,7 +76,7 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
               Everyone Assumes
             </p>
             <p className="text-sm text-foreground/80 leading-snug">
-              "{trimAt(bet.industryAssumption, 200)}"
+              "{everyoneAssumes}"
             </p>
           </div>
 
@@ -73,19 +94,16 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
               The Evidence Suggests
             </p>
             <p className="text-sm text-foreground font-semibold leading-snug">
-              "{trimAt(bet.contrarianBelief, 200)}"
+              "{evidenceSuggests}"
             </p>
           </div>
         </div>
 
-        {/* Implication */}
-        {bet.implication && (
-          <div className="pt-1">
-            <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
-              What This Means
-            </p>
-            <p className="text-sm text-foreground/80 leading-snug">
-              {trimAt(bet.implication, 250)}
+        {/* So What */}
+        {soWhat && (
+          <div className="pt-1 border-t border-border/50">
+            <p className="text-sm text-foreground leading-snug">
+              <span className="font-bold">{soWhat}</span>
             </p>
           </div>
         )}
