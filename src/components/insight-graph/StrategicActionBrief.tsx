@@ -367,12 +367,69 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
         </motion.section>
       )}
 
+      {/* Explore the Data — tabbed graph views */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="flex flex-col gap-3"
+      >
+        <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Explore the Data</h2>
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+          {([
+            { id: "reasoning" as const, label: "Reasoning Map", icon: Network },
+            { id: "opportunity" as const, label: "Opportunity Matrix", icon: Grid2x2 },
+            { id: "constraints" as const, label: "Constraint Map", icon: Map },
+          ]).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setExplorationTab(prev => prev === tab.id ? null : tab.id)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all min-h-[36px] flex-shrink-0"
+              style={{
+                background: explorationTab === tab.id ? "hsl(var(--primary) / 0.1)" : "hsl(var(--muted))",
+                color: explorationTab === tab.id ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                border: explorationTab === tab.id ? "1px solid hsl(var(--primary) / 0.3)" : "1px solid hsl(var(--border))",
+              }}
+            >
+              <tab.icon size={13} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Graph panels */}
+        {explorationTab === "reasoning" && (
+          <div className="rounded-xl border border-border bg-card overflow-hidden" style={{ height: "500px" }}>
+            <CytoscapeReasoningMap
+              graph={graph}
+              onSelectNode={setSelectedGraphNodeId}
+              selectedNodeId={selectedGraphNodeId}
+            />
+          </div>
+        )}
+
+        {explorationTab === "opportunity" && (
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <OpportunityMatrix graph={graph} onSelectNode={setSelectedGraphNodeId} />
+          </div>
+        )}
+
+        {explorationTab === "constraints" && (
+          <div className="flex flex-col gap-2">
+            <PrimaryBlockerCallout graph={graph} />
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <ConstraintMap graph={graph} onSelectNode={setSelectedGraphNodeId} />
+            </div>
+          </div>
+        )}
+      </motion.section>
+
       {/* Collapsible — How we reasoned */}
       {reasoningChains.length > 0 && (
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.55 }}
         >
           <Collapsible open={reasoningOpen} onOpenChange={setReasoningOpen}>
             <CollapsibleTrigger className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full py-2">
