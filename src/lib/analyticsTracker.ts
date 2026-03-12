@@ -364,8 +364,10 @@ function initDiagnostics() {
       const res = await originalFetch.apply(this, args);
       const duration = Date.now() - start;
 
-      // Log failed API calls (4xx/5xx) but skip analytics ingestion to avoid loops
-      if (!res.ok && !url.includes("ingest-analytics")) {
+      // Log failed API calls (4xx/5xx) but skip analytics ingestion and auth token refresh (transient)
+      if (!res.ok && !url.includes("ingest-analytics") && !url.includes("/auth/v1/token")) {
+        // Downgrade network-level transient failures (502/503/504) to medium
+        const isTransient = res.status === 502 || res.status === 503 || res.status === 504;
         push({
           event_type: "api_failure",
           page_path: currentPath,
@@ -374,7 +376,7 @@ function initDiagnostics() {
             status: res.status,
             statusText: res.statusText,
             duration_ms: duration,
-            severity: res.status >= 500 ? "critical" : "medium",
+            severity: isTransient ? "medium" : (res.status >= 500 ? "critical" : "medium"),
           },
         });
       }
