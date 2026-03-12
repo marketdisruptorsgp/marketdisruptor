@@ -11,6 +11,7 @@ import type { StructuralProfile } from "@/lib/reconfiguration/structuralProfile"
 import type { ConstraintCandidate } from "@/lib/constraintDetectionEngine";
 import { STRUCTURAL_PATTERNS } from "@/lib/reconfiguration/patternLibrary";
 import type { StrategyCandidate, StrategyFeatures } from "./types";
+import { matchAnalogies, analogiesToCandidates } from "./analogyMatcher";
 
 let _counter = 0;
 function nextId(): string {
