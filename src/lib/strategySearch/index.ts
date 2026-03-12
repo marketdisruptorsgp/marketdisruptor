@@ -10,6 +10,7 @@ export { runStrategySearch } from "./engine";
 export { generateInitialPopulation, mutateCandidate, generateFreshCandidate } from "./generator";
 export { evaluateStrategies, strategyDistance, selectDiverseSurvivors, selectDiverseOutput } from "./evaluator";
 export { matchAnalogies, analogiesToCandidates } from "./analogyMatcher";
+export { profileFromDecomposition } from "./profileAdapter";
 export { CROSS_DOMAIN_ANALOGIES } from "./analogyLibrary";
 
 export type {
