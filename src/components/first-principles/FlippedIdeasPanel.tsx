@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Lightbulb, Sparkles } from "lucide-react";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
 import {
   StepCanvas, InsightCard, ExpandableDetail,
 } from "@/components/analysis/AnalysisComponents";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 import type { FlippedIdea } from "@/data/mockProducts";
 
 interface FlippedIdeasPanelProps {
@@ -16,8 +17,31 @@ interface FlippedIdeasPanelProps {
 }
 
 export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted }: FlippedIdeasPanelProps) {
+  const analysisCtx = useAnalysis();
   const [userContext, setUserContext] = useState("");
-  const [rejectedIdeas, setRejectedIdeas] = useState<string[]>([]);
+
+  // Hydrate rejected ideas from persisted analysis_data
+  const ad = analysisCtx.analysisData as Record<string, unknown> | null;
+  const persisted = ad?.rejectedIdeas;
+  const initialRejected = Array.isArray(persisted) ? (persisted as string[]) : [];
+  const [rejectedIdeas, setRejectedIdeas] = useState<string[]>(initialRejected);
+
+  // Re-sync when analysis_data changes (e.g. loading a saved analysis)
+  const lastHydratedRef = useRef<string>("");
+  useEffect(() => {
+    const key = JSON.stringify(initialRejected);
+    if (key !== lastHydratedRef.current) {
+      lastHydratedRef.current = key;
+      setRejectedIdeas(initialRejected);
+    }
+  }, [initialRejected]);
+
+  // Persist to DB whenever rejectedIdeas changes
+  const isFirstMount = useRef(true);
+  useEffect(() => {
+    if (isFirstMount.current) { isFirstMount.current = false; return; }
+    analysisCtx.saveStepData?.("rejectedIdeas", rejectedIdeas);
+  }, [rejectedIdeas]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleReject = useCallback((ideaName: string) => {
     setRejectedIdeas((prev) => prev.includes(ideaName) ? prev : [...prev, ideaName]);

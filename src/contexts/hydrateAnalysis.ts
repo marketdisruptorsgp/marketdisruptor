@@ -217,6 +217,7 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
       ? new Set(ad.outdatedSteps as string[])
       : new Set()
   );
+  // rejectedIdeas is hydrated directly by FlippedIdeasPanel from analysisData — no setter needed
 
   // Business model routing
   if (analysisRow.analysis_type === "business_model") {
