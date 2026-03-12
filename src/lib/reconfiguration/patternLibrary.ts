@@ -58,6 +58,22 @@ export interface StructuralPattern {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  REALISM HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Returns true if the business is a traditional, labor-intensive service
+ * (e.g., woodworking shop, plumber, landscaper, trades contractor).
+ * These businesses should NOT receive SaaS/platform/network-effect
+ * recommendations — they need operational, margin, and process plays.
+ */
+function isTraditionalService(profile: StructuralProfile): boolean {
+  const laborHeavy = profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan";
+  const endService = profile.valueChainPosition === "end_service";
+  return laborHeavy && endService;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  PATTERN DEFINITIONS
 // ═══════════════════════════════════════════════════════════════
 
