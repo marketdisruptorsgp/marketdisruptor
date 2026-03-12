@@ -203,10 +203,22 @@ export function generateInitialPopulation(
     }
   }
 
+  // ── Cross-domain analogy injection (10-15% of population) ──
+  const analogyBudget = Math.max(4, Math.ceil(populationSize * 0.12));
+  const matchedAnalogies = matchAnalogies(profile, analogyBudget, 0.3);
+  const analogyCandidates = analogiesToCandidates(matchedAnalogies, profile);
+  candidates.push(...analogyCandidates);
+
   // If we have more candidates than needed, sample randomly
   if (candidates.length > populationSize) {
-    const shuffled = [...candidates].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, populationSize);
+    // Ensure at least 2 analogy candidates survive sampling
+    const analogies = candidates.filter(c => c.sourceAnalogy);
+    const nonAnalogies = candidates.filter(c => !c.sourceAnalogy);
+    const shuffledNon = [...nonAnalogies].sort(() => Math.random() - 0.5);
+    const guaranteedAnalogies = analogies.slice(0, Math.min(analogies.length, Math.ceil(analogyBudget * 0.5)));
+    const remaining = populationSize - guaranteedAnalogies.length;
+    const rest = [...shuffledNon, ...analogies.slice(guaranteedAnalogies.length)].sort(() => Math.random() - 0.5);
+    return [...guaranteedAnalogies, ...rest.slice(0, remaining)];
   }
 
   // If we have fewer, generate fresh variants
