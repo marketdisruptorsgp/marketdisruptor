@@ -44,11 +44,12 @@ const SECTIONS = [
 │    useBIExtraction  → document upload + BI extraction       │
 │                                                             │
 │  Engines:                                                   │
-│    convergenceEngine → multi-signal synthesis               │
-│    frictionEngine    → UX friction scoring                  │
-│    innovationEngine  → opportunity detection                │
-│    lensOrchestrator  → lens-weighted analysis               │
-│    strategicOS       → strategy generation                  │
+│    convergenceEngine  → multi-signal synthesis              │
+│    frictionEngine     → UX friction scoring                 │
+│    innovationEngine   → opportunity detection               │
+│    lensOrchestrator   → lens-weighted analysis              │
+│    strategicOS        → strategy generation                 │
+│    confidenceGating   → data provenance + research gates    │
 └──────────────────────────┬──────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────┐
@@ -56,32 +57,43 @@ const SECTIONS = [
 │                                                             │
 │  Edge Functions → Lovable AI Gateway (ai.gateway.lovable)   │
 │                                                             │
-│  Primary Analysis:                                          │
-│    analyze-products     → product analysis (Gemini 2.5 Pro) │
-│    business-model-analysis → business analysis              │
-│    first-principles-analysis → first principles             │
+│  Phase 1 — Foundation:                                      │
+│    structural-decomposition → product/service/biz parsing   │
+│    scrape-products        → web scraping (specs, pricing)   │
+│    analyze-products       → photo analysis (image→product)  │
+│    photo-analysis         → image recognition pipeline      │
+│    scrape-market-news     → market news & trend signals     │
+│    geo-market-data        → geographic market sizing        │
+│    research-competitive-positioning → competitor scouting   │
 │                                                             │
-│  Intelligence:                                              │
-│    generate-market-intel  → market intelligence             │
-│    scout-competitors      → competitor scanning             │
-│    patent-analysis        → patent intelligence             │
-│    scrape-market-news     → news aggregation                │
-│    scrape-trend-intel     → trend signals                   │
+│  Phase 1.5 — Confidence Gating (cross-cutting):             │
+│    confidenceGating.ts    → 7-domain confidence assessment  │
+│    Provenance tags: SCRAPED | PARAMETRIC | AI_INFERRED      │
+│    Low-confidence gates → research questions (score < 0.4)  │
 │                                                             │
-│  Deep Analysis:                                             │
-│    critical-validation    → stress testing                  │
-│    generate-flip-ideas    → disruption ideas                │
-│    generate-pitch-deck    → pitch synthesis                 │
-│    hypothesis-interrogation → assumption testing            │
-│    reasoning-interrogation  → reasoning challenges          │
-│    bundle-deep-dive       → bundle analysis                 │
+│  Phase 2 — Synthesis:                                       │
+│    strategic-synthesis    → hidden assumptions, flipped     │
+│                             logic, friction analysis         │
+│    transformation-engine  → structural redesign concepts    │
+│                                                             │
+│  Phase 3 — Concepts:                                        │
+│    concept-architecture   → morphological design space      │
+│    concept-synthesis      → product cards, unit economics   │
+│    generate-product-visual → AI visual mockups              │
+│    generate-opportunity-vectors → opportunity detection     │
+│                                                             │
+│  Phase 4 — Validation + Pitch:                              │
+│    critical-validation    → red/green team validation       │
+│    generate-pitch-deck    → 5-slide pitch synthesis         │
+│    business-model-analysis → business model analysis        │
+│    analyze-business-structure → structural biz analysis     │
+│    industry-benchmarks    → industry benchmark data         │
 │                                                             │
 │  Utility:                                                   │
-│    extract-business-intelligence → document BI extraction   │
 │    help-assistant         → in-app help                     │
-│    workspace-query        → natural language workspace      │
-│    share-analysis         → sharing                         │
-│    generate-product-visual → visual generation              │
+│    api-proxy              → external API routing            │
+│    fire-webhook           → webhook dispatch                │
+│    compute-analytics-insights → platform analytics          │
 └──────────────────────────┬──────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────┐
@@ -267,62 +279,90 @@ App
     icon: Cpu,
     content: `
 ┌──────────────────────────────────────────────────────────────┐
-│                    ANALYSIS PIPELINE                         │
+│          4-PHASE DISCOVERY PIPELINE (v5)                     │
+│          + Confidence Gating (cross-cutting)                 │
 └──────────────────────────────────────────────────────────────┘
 
 User Input (AnalysisForm)
     │
     ├── Product Mode ──────────── scrape-products
-    │                                  │
-    ├── Service Mode ──────────── scrape-url-autofill (optional)
-    │                                  │
+    ├── Service Mode ──────────── scrape-url-autofill
     ├── Business Model Mode ─── extract-business-intelligence
-    │                                  │
     └── First Principles ────── direct input
                                        │
-                                       ▼
-                              ┌─────────────────┐
-                              │ analyze-products │  ← Primary AI analysis
-                              │      OR          │     (Gemini 2.5 Pro)
-                              │ business-model   │     60-120s execution
-                              │      OR          │
-                              │ first-principles │
-                              └────────┬────────┘
-                                       │
-                                       ▼
-                              Context State Population
-                              (products, governedData, adaptiveContext)
-                                       │
-                                       ▼
-                              Navigate to /analysis/:id/report
-                                       │
-                    ┌──────────────────┼──────────────────┐
-                    │                  │                  │
-                    ▼                  ▼                  ▼
-              Intel Report       Assumptions        Competitors
-              (auto-loaded)    (auto-generated)    (scout-competitors)
-                    │                  │                  │
-                    └──────────────────┼──────────────────┘
-                                       │
-                    ┌──────────────────┼──────────────────┐
-                    │                  │                  │
-                    ▼                  ▼                  ▼
-               Disrupt            Redesign          Stress Test
-         (generate-flip-ideas)  (client-side)   (critical-validation)
-                    │                  │                  │
-                    └──────────────────┼──────────────────┘
-                                       │
-                                       ▼
-                                 Pitch Deck
-                           (generate-pitch-deck)
-                                       │
-                                       ▼
-                              saveStepData()
-                              (merge into analysis_data JSON)
-                                       │
-                                       ▼
-                              Workspace Display
-                              (saved_analyses table)`,
+              ╔════════════════════════════════════════════════╗
+              ║  PHASE 1: FOUNDATION                          ║
+              ║  structural-decomposition (Gemini 2.5 Pro)    ║
+              ║  60-120s · Web scraping + photo analysis +    ║
+              ║  patent search + market sizing + competitor   ║
+              ║  scouting + community sentiment + supply      ║
+              ║  chain mapping                                ║
+              ║                                               ║
+              ║  Output: decompositionData + Evidence[]       ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 1.5: CONFIDENCE GATING (cross-cutting) ║
+              ║  confidenceGating.ts (client-side)            ║
+              ║                                               ║
+              ║  7 domains assessed:                          ║
+              ║    pricing · supply chain · competitive ·     ║
+              ║    patent/IP · BOM · trends · customer ·      ║
+              ║    regulatory                                 ║
+              ║                                               ║
+              ║  Provenance: SCRAPED | PARAMETRIC |           ║
+              ║              AI_INFERRED | USER_INPUT         ║
+              ║  score < 0.4 → research question (not fact)   ║
+              ║                                               ║
+              ║  Output: ConfidenceAssessment +               ║
+              ║          ResearchQuestion[]                    ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 2: SYNTHESIS                           ║
+              ║  strategic-synthesis + transformation-engine   ║
+              ║                                               ║
+              ║  Hidden assumptions · flipped logic ·         ║
+              ║  friction analysis · smart tech analysis ·    ║
+              ║  transformation concepts                      ║
+              ║                                               ║
+              ║  Receives: decompositionData, Evidence[],     ║
+              ║            ConfidenceAssessment                ║
+              ║  Output: synthesisData + transformations      ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 3: CONCEPTS                            ║
+              ║  concept-architecture + concept-synthesis      ║
+              ║                                               ║
+              ║  Morphological design space · 10-30 concept   ║
+              ║  variants · product cards · AI visual mockups ║
+              ║  · unit economics · action plans              ║
+              ║                                               ║
+              ║  Receives: synthesisData, transformations,    ║
+              ║            Evidence[], ConfidenceAssessment    ║
+              ║  Output: conceptsData + visual mockups        ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 4: VALIDATION + PITCH                  ║
+              ║  critical-validation + generate-pitch-deck    ║
+              ║                                               ║
+              ║  Red/green team validation · business model   ║
+              ║  analysis · deal economics · 5-slide pitch    ║
+              ║  · confidence-gated output (gaps flagged)     ║
+              ║                                               ║
+              ║  Receives: All upstream + ConfidenceAssessment║
+              ║  Output: validated concepts + pitch deck      ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+                                  ▼
+                          saveStepData()
+                          (merge_analysis_step Postgres fn)
+                                  │
+                                  ▼
+                          Workspace Display
+                          (saved_analyses table)`,
   },
   {
     id: "database",
@@ -379,9 +419,18 @@ saved_analyses
  │   │     Writers: scout-competitors edge function            │
  │   │     Readers: CompetitorScoutPanel, strategy             │
  │   │                                                        │
- │   └── strategy        → Strategic synthesis                │
- │         Writers: StrategicSummaryPanel                      │
- │         Readers: PitchPage, ExportPanel                    │
+│   ├── strategy        → Strategic synthesis                │
+│   │     Writers: StrategicSummaryPanel                      │
+│   │     Readers: PitchPage, ExportPanel                    │
+│   │                                                        │
+│   ├── _dataConfidence → Confidence gating metadata         │
+│   │     Writers: assessDataConfidence() at pipeline end     │
+│   │     Readers: ProvenanceBadge, ResearchChecklist,       │
+│   │              DataConfidenceSummary                      │
+│   │                                                        │
+│   └── researchChecklist → Research questions for gaps      │
+│         Writers: confidenceGating.ts                        │
+│         Readers: ResearchChecklist (Command Deck)          │
  │                                                            │
  ├── created_at          (timestamptz)                         │
  └── updated_at          (timestamptz)                         │
@@ -589,27 +638,29 @@ Related Tables:
     content: `
 ┌─────────────────── EDGE FUNCTION PROFILES ──────────────────┐
 │                                                             │
-│  Function                    │ Avg Time │ Risk    │ Status  │
-│  ────────────────────────────┼──────────┼─────────┼──────── │
-│  analyze-products            │ 30-90s   │ HIGH    │ ⚠       │
-│  business-model-analysis     │ 30-60s   │ HIGH    │ ⚠       │
-│  first-principles-analysis   │ 20-45s   │ MEDIUM  │ ⚠       │
-│  extract-business-intel      │ 15-60s   │ MEDIUM  │ ✓ Fixed │
-│  generate-flip-ideas         │ 10-25s   │ LOW     │ ✓       │
-│  generate-pitch-deck         │ 15-30s   │ MEDIUM  │ ⚠       │
-│  critical-validation         │ 10-20s   │ LOW     │ ✓       │
-│  scout-competitors           │ 10-20s   │ LOW     │ ✓       │
-│  generate-market-intel       │ 10-20s   │ LOW     │ ✓       │
-│  hypothesis-interrogation    │ 5-15s    │ LOW     │ ✓       │
-│  reasoning-interrogation     │ 5-15s    │ LOW     │ ✓       │
-│  bundle-deep-dive            │ 10-20s   │ LOW     │ ✓       │
-│  help-assistant              │ 3-10s    │ LOW     │ ✓       │
-│  workspace-query             │ 5-15s    │ LOW     │ ✓       │
-│  share-analysis              │ 1-3s     │ LOW     │ ✓       │
-│  scrape-products             │ 5-15s    │ MEDIUM  │ ⚠       │
-│  scrape-url-autofill         │ 3-10s    │ LOW     │ ✓       │
-│  scrape-market-news          │ 5-15s    │ LOW     │ ✓       │
-│  patent-analysis             │ 10-20s   │ LOW     │ ✓       │
+│  Function                       │ Avg Time │ Risk   │ Status  │
+│  ───────────────────────────────┼──────────┼────────┼──────── │
+│  structural-decomposition       │ 60-120s  │ HIGH   │ ⚠       │
+│  strategic-synthesis            │ 30-60s   │ HIGH   │ ⚠       │
+│  transformation-engine          │ 20-40s   │ MEDIUM │ ⚠       │
+│  concept-architecture           │ 20-40s   │ MEDIUM │ ⚠       │
+│  critical-validation            │ 10-20s   │ LOW    │ ✓       │
+│  generate-pitch-deck            │ 15-30s   │ MEDIUM │ ⚠       │
+│  business-model-analysis        │ 30-60s   │ HIGH   │ ⚠       │
+│  analyze-business-structure     │ 15-30s   │ MEDIUM │ ⚠       │
+│  generate-product-visual        │ 10-20s   │ LOW    │ ✓       │
+│  generate-opportunity-vectors   │ 10-20s   │ LOW    │ ✓       │
+│  research-competitive-position  │ 10-20s   │ LOW    │ ✓       │
+│  industry-benchmarks            │ 10-20s   │ LOW    │ ✓       │
+│  compute-analytics-insights     │ 5-15s    │ LOW    │ ✓       │
+│  scrape-products                │ 5-15s    │ MEDIUM │ ⚠       │
+│  analyze-products               │ 30-90s   │ HIGH   │ ⚠       │
+│  photo-analysis                 │ 10-20s   │ LOW    │ ✓       │
+│  scrape-market-news             │ 5-15s    │ LOW    │ ✓       │
+│  geo-market-data                │ 5-15s    │ LOW    │ ✓       │
+│  help-assistant                 │ 3-10s    │ LOW    │ ✓       │
+│  api-proxy                      │ 1-5s     │ LOW    │ ✓       │
+│  fire-webhook                   │ 1-3s     │ LOW    │ ✓       │
 │                                                             │
 │  ⚠ = Timeout risk, needs AbortController + defensive read   │
 │  ✓ = Within safe execution limits                           │
