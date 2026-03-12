@@ -49,7 +49,7 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
   }, [analysis.redesignData]);
 
   // Disrupt-step visuals (flipped idea mockups)
-  const disruptVisuals = analysis.pitchDeckImages || [];
+  const disruptVisuals = Array.isArray(analysis.pitchDeckImages) ? analysis.pitchDeckImages : [];
 
   const VISUAL_PROMPTS = [
     {
