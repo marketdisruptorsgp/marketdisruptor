@@ -208,7 +208,7 @@ export default function CommandDeckPage() {
 
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
+      <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-2 sm:py-3 space-y-2.5">
 
         {/* ═══ HEADER ═══ */}
         <div className="flex items-center justify-between gap-3">
