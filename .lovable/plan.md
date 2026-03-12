@@ -1,105 +1,79 @@
-# Product Reset Plan: From Pipeline Tool → Strategic Insight Product
 
-## The Problem
-The Command Deck is currently an 812-line engineering dashboard exposing pipeline internals. A user running an analysis sees: confidence meters, reasoning stage overlays, evidence thresholds, node counts, pipeline progress bars, convergence zones, friction dashboards, provenance registries, and developer diagnostics. The *actual strategic value* — the constraint diagnosis, opportunities, and recommended moves — is buried under layers of system chrome.
 
-## The North Star
-**User inputs a business → gets strategic insight they didn't see before.**
+# Overview Page — Analysis Landing Tab
 
-The experience should feel like receiving a strategy consultant's one-page brief, not watching an AI pipeline execute.
+## What We're Building
 
-## Current UI Audit (CommandDeckPage.tsx — 812 lines)
+A new **Overview** page that becomes the default landing page when users open an analysis (replacing Command Deck as the first thing they see). It sits above Command Deck in the Discovery sidebar section.
 
-### What stays (core value):
-1. **SoWhatHeader** — "Do nothing → X. Act now → Y." (Good, decision-forcing)
-2. **OneThesisCard** — Constraint → Belief → Move → Economics → First Move (Strong, this IS the product)
-3. **WhatsNextPanel** — Kill question + first move (Actionable)
+## Layout (Two-Column)
 
-### What gets demoted or removed:
+```text
+┌─────────────────────────────┬─────────────────────────────┐
+│  LEFT COLUMN                │  RIGHT COLUMN               │
+│                             │                             │
+│  ┌───────────────────────┐  │  ┌───────────────────────┐  │
+│  │ PROBLEM STATEMENT     │  │  │ ANALYSIS OVERVIEW     │  │
+│  │ (user's original      │  │  │ 2-3 sentence summary  │  │
+│  │  input text)          │  │  │ from executiveSummary  │  │
+│  └───────────────────────┘  │  │ or narrativeSummary   │  │
+│                             │  └───────────────────────┘  │
+│  ┌───────────────────────┐  │                             │
+│  │ KEY CHALLENGES        │  │  ┌───────────────────────┐  │
+│  │                       │  │  │ SWOT                  │  │
+│  │ • Challenge 1 (high)  │  │  │ S: bullet, bullet     │  │
+│  │   context line        │  │  │ W: bullet, bullet     │  │
+│  │                       │  │  │ O: bullet, bullet     │  │
+│  │ • Challenge 2 (high)  │  │  │ T: bullet, bullet     │  │
+│  │   context line        │  │  │ (no filler, concise)  │  │
+│  │                       │  │  └───────────────────────┘  │
+│  │ • Challenge 3 (med)   │  │                             │
+│  │   context line        │  │  ┌───────────────────────┐  │
+│  └───────────────────────┘  │  │ TOP OPPORTUNITIES     │  │
+│                             │  │ 1. Opp label + 1 line │  │
+│                             │  │ 2. Opp label + 1 line │  │
+│                             │  │ 3. Opp label + 1 line │  │
+│                             │  │ 4. Opp label + 1 line │  │
+│                             │  │ 5. Opp label + 1 line │  │
+│                             │  └───────────────────────┘  │
+└─────────────────────────────┴─────────────────────────────┘
+```
 
-| Component | Current Role | Action |
-|---|---|---|
-| `ReasoningStagesOverlay` | Shows "Detecting patterns…" animation | **REMOVE** — internal diagnostic |
-| `RecomputeOverlay` | Loading spinner for recompute | **SIMPLIFY** — just a subtle loading state |
-| `PipelineProgress` bar | Shows 5-step pipeline completion | **REMOVE** from main view |
-| `ModeBadge` | Shows "Product/Service/Business" | **KEEP** but simplify |
-| `StrategicXRay` | Interactive reasoning chain w/ challenge mode | **MOVE** to "Deep Dive" tab |
-| `IndustrySystemMapView` | Industry map visualization | **MOVE** to "Deep Dive" tab |
-| `PowerToolsPanel` (6 tools) | Problem Statement, Current State, Scenario Sim, Scenario Lab, Outcome Sim, Lens Intelligence | **MOVE** to "Deep Dive" tab |
-| `ScenarioBanner` + `DeltaChanges` | Scenario mode UI | **MOVE** to "Deep Dive" tab |
-| `StrategicCommandDeck` component | Friction dashboard, convergence zones, opportunity landscape, constraint/leverage/opportunity 3-col grid | **REPLACE** with clean opportunity cards |
-| `ConfidenceMeter` / confidence tags | Numeric confidence display | **REMOVE** |
-| Pipeline step count ("3/5 steps") | Developer progress | **REMOVE** |
-| Signal counts, evidence counts | Developer metrics | **REMOVE** |
+## Data Sources (All Already Available)
 
-## New Command Deck Layout (3 sections)
+| Section | Source |
+|---|---|
+| Problem Statement | `analysis.adaptiveContext?.problemStatement` |
+| Key Challenges | `analysis.adaptiveContext?.selectedChallenges` (array with question, context, priority) |
+| Analysis Overview | `narrative.executiveSummary` or `narrative.narrativeSummary` from `useAutoAnalysis()` |
+| SWOT | Derived from `narrative` fields + `allEvidence` + `intelligence` — distilled into bullet points |
+| Top Opportunities | `aggregateOpportunities()` from `commandDeckMetrics` (already used by Command Deck) |
 
-### Section 1: Diagnosis
-**What we found** — One bold sentence explaining the structural constraint.
-- Source: `narrative.primaryConstraint` + `narrative.strategicVerdict`
-- Plain English, no jargon
-- No confidence scores, no "preliminary signal" labels
+## Implementation Steps
 
-### Section 2: Opportunities (3–5 cards)
-**What you could do** — Multiple strategic directions derived from the constraint.
-- Each card: Title + 1-sentence explanation + "why this works"
-- Source: `autoAnalysis.deepenedOpportunities` (need to ensure we generate 3-5, not just 1-2)
-- Plain, action-oriented language
-- No impact scores, no node types
+### 1. Create `src/pages/OverviewPage.tsx`
+- Two-column responsive layout (stacks on mobile)
+- Left: Problem Statement card + Challenges card
+- Right: Analysis Overview card + SWOT card + Top Opportunities card
+- Uses `useAnalysis()` for adaptiveContext, `useAutoAnalysis()` for narrative/opportunities
+- Clean card-based design matching existing aesthetic
+- Shows a "pipeline running" state if analysis isn't complete yet
+- CTA button at bottom: "Go to Command Deck →"
 
-### Section 3: Recommended Move
-**What we'd do first** — The highest-leverage play with clear next step.
-- Source: Top `deepenedOpportunity` with `firstMove`
-- "Here's the move. Here's why. Here's how to start."
-- Timeline estimate in human terms
+### 2. Create `src/lib/swotExtractor.ts`
+- Small utility that takes `narrative`, `evidence`, `intelligence` and extracts SWOT bullets
+- Strengths from positive evidence signals + competitive advantages
+- Weaknesses from constraints + friction points
+- Opportunities from deepened opportunities (top labels)
+- Threats from risk signals + competitive pressure
+- Each bullet: max 8 words, no filler
 
-### Section 4 (optional): "Show me why" link
-- Links to Deep Dive tab containing: Reasoning Map, X-Ray, Industry Map, Scenario tools
-- This is the explanation layer, NOT the product
+### 3. Update `src/App.tsx`
+- Add lazy import for `OverviewPage`
+- Add route: `/analysis/:id/overview`
+- Change `CommandDeckRedirect` to redirect to `/analysis/:id/overview` instead of `/analysis/:id/command-deck`
 
-## Opportunity Generation Fix
-Current problem: System often produces only 1 opportunity.
-Required: Generate 3–5 meaningful opportunity directions per constraint.
+### 4. Update `src/components/layout/CommandNavigation.tsx`
+- Add "Overview" as first item in `DISCOVERY_ITEMS` (above Command Deck)
+- Icon: `ClipboardList` or `Eye` from lucide
 
-### Approach:
-- Enhance `src/lib/reconfiguration.ts` to generate multiple opportunity vectors from a single constraint
-- Use different strategic lenses: automation, platform, marketplace, data, consolidation
-- Each opportunity = a different strategic path, not a variation of the same idea
-
-## Language Cleanup
-All user-facing text must be rewritten:
-- "Convergence zones" → removed
-- "Evidence threshold" → removed  
-- "Node count" → removed
-- "Pipeline step" → removed
-- "Reasoning chain" → "Our analysis shows…"
-- "Leverage point" → "Key advantage"
-- "Friction index" → removed
-
-## Navigation Changes
-Current 4-page structure:
-1. Command Deck (main)
-2. Intelligence Report
-3. Reasoning Map
-4. Pitch
-
-New structure:
-1. **Strategic Brief** (the 3-section layout above) — this IS the product
-2. **Deep Dive** (reasoning map, X-Ray, industry map, scenario tools)
-3. **Intelligence Report** (raw evidence)
-4. **Pitch** (investor-ready output)
-
-## Implementation Order
-1. **Phase 1**: Strip Command Deck to 3 sections (diagnosis, opportunities, recommended move)
-2. **Phase 2**: Create "Deep Dive" tab and move demoted components there
-3. **Phase 3**: Fix opportunity generation to produce 3–5 per analysis
-4. **Phase 4**: Language cleanup across all user-facing components
-5. **Phase 5**: Test with real analyses to ensure consistent, useful output
-
-## Success Criteria
-- User runs analysis → reads diagnosis in 3 seconds
-- Sees 3–5 actionable opportunity directions
-- Understands the recommended move and how to start
-- Can optionally explore "why" via Deep Dive
-- Zero developer terminology visible in default view
-- No numeric scores, thresholds, or pipeline indicators
