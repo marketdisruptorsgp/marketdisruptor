@@ -243,6 +243,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Extract common operational needs across competitors into shared services they all use.",
     aiPromptHint: "What operational burden do ALL competitors in this space share? What if one company built that as shared infrastructure and charged for access? What's the specific service — scheduling, logistics, compliance, procurement?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "atomized" || p.supplyFragmentation === "fragmented") score += 3;
       if (p.valueChainPosition === "infrastructure") score += 3;
