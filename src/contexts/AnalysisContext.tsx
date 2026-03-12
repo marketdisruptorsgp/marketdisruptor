@@ -116,7 +116,7 @@ interface AnalysisContextType {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
   }) => Promise<void>;
-  handleRegenerateIdeas: (product: Product, userContext?: string) => Promise<void>;
+  handleRegenerateIdeas: (product: Product, userContext?: string, rejectedIdeas?: string[]) => Promise<void>;
   handleManualSave: () => Promise<void>;
   handleLoadSaved: (analysis: any) => void;
   saveAnalysis: (products: Product[], params: { category: string; era: string; batchSize: number }) => Promise<void>;
