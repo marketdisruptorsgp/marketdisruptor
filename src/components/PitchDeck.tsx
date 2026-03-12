@@ -835,7 +835,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
   // ── Build slides ────────────────────────────────────────────
   // Filter out broken/empty image URLs (base64 that was stripped)
-  const validCoverImages = analysisCtx.pitchDeckImages.filter(img => img.url && img.url.length > 10 && !img.url.startsWith("data:image/") === false || img.url.startsWith("http"));
+  const validCoverImages = (Array.isArray(analysisCtx.pitchDeckImages) ? analysisCtx.pitchDeckImages : []).filter(img => img?.url && img.url.length > 10 && (!img.url.startsWith("data:image/") || img.url.startsWith("http")));
 
   const rawCover = (
     <PitchCoverSlide
