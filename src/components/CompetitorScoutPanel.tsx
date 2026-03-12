@@ -160,6 +160,9 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
                 </span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{comp.description}</p>
+              {comp.structural_overlap && (
+                <p className="text-[10px] font-medium text-primary/80 italic">⚙ {comp.structural_overlap}</p>
+              )}
               <a
                 href={comp.url}
                 target="_blank"
