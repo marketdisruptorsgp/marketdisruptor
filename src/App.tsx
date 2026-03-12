@@ -62,6 +62,15 @@ class RouteErrorBoundary extends Component<{ children: ReactNode }, { hasError: 
     this.state = { hasError: false, error: null };
   }
   static getDerivedStateFromError(error: Error) {
+    // Auto-recover from chunk loading failures by reloading the page once
+    if (error?.message?.includes("Importing a module") || error?.message?.includes("ChunkLoadError") || error?.message?.includes("Failed to fetch dynamically imported module")) {
+      const key = "chunk_reload_" + window.location.pathname;
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        window.location.reload();
+        return { hasError: false, error: null };
+      }
+    }
     return { hasError: true, error };
   }
   componentDidCatch(error: Error, info: ErrorInfo) {

@@ -364,8 +364,10 @@ function initDiagnostics() {
       const res = await originalFetch.apply(this, args);
       const duration = Date.now() - start;
 
-      // Log failed API calls (4xx/5xx) but skip analytics ingestion to avoid loops
-      if (!res.ok && !url.includes("ingest-analytics")) {
+      // Log failed API calls (4xx/5xx) but skip analytics ingestion and auth token refresh (transient)
+      if (!res.ok && !url.includes("ingest-analytics") && !url.includes("/auth/v1/token")) {
+        // Downgrade network-level transient failures (502/503/504) to medium
+        const isTransient = res.status === 502 || res.status === 503 || res.status === 504;
         push({
           event_type: "api_failure",
           page_path: currentPath,
@@ -374,13 +376,16 @@ function initDiagnostics() {
             status: res.status,
             statusText: res.statusText,
             duration_ms: duration,
-            severity: res.status >= 500 ? "critical" : "medium",
+            severity: isTransient ? "medium" : (res.status >= 500 ? "critical" : "medium"),
           },
         });
       }
 
-      // Log slow requests (>5s)
-      if (duration > 5000 && !url.includes("ingest-analytics")) {
+      // Log slow requests — use higher threshold for AI edge functions (inherently slow)
+      const isAIFunction = url.includes("/functions/v1/");
+      const slowThreshold = isAIFunction ? 30000 : 5000; // 30s for AI, 5s for rest
+      const criticalThreshold = isAIFunction ? 90000 : 15000; // 90s for AI, 15s for rest
+      if (duration > slowThreshold && !url.includes("ingest-analytics")) {
         push({
           event_type: "slow_request",
           page_path: currentPath,
@@ -388,7 +393,7 @@ function initDiagnostics() {
             url: url.slice(0, 300),
             duration_ms: duration,
             status: res.status,
-            severity: duration > 15000 ? "critical" : "medium",
+            severity: duration > criticalThreshold ? "critical" : "medium",
           },
         });
       }

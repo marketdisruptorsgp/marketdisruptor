@@ -161,19 +161,19 @@ export const OneThesisCard = memo(function OneThesisCard({
           <div className="flex items-center gap-1.5">
             <CheckCircle2 size={12} className="text-muted-foreground" />
             <span className="font-bold text-muted-foreground">
-              Feasibility: <span className="capitalize">{thesis.feasibility.level.replace("_", " ")}</span>
+              Feasibility: <span className="capitalize">{thesis.feasibility?.level?.replace("_", " ") ?? "—"}</span>
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <Clock size={12} className="text-muted-foreground" />
             <span className="font-bold text-muted-foreground">
-              {thesis.firstMove.timeframe}
+              {thesis.firstMove?.timeframe ?? "—"}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <Crosshair size={12} className="text-muted-foreground" />
             <span className="font-bold text-muted-foreground">
-              Go/No-Go: {thesis.firstMove.successCriteria}
+              Go/No-Go: {thesis.firstMove?.successCriteria ?? "—"}
             </span>
           </div>
         </div>
