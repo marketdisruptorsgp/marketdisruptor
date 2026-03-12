@@ -185,9 +185,13 @@ export default function InsightGraphPage() {
         </div>
       </div>
 
-      {/* Graph fills remaining viewport */}
+      {/* Strategic Action Brief fills remaining viewport */}
       <div className="flex-1 min-h-0">
-        <InsightGraphView graph={graph} analysisId={analysisId || ""} />
+        <StrategicActionBrief
+          graph={graph}
+          activeMode={(analysis as any).activeMode}
+          entityName={selectedProduct?.name || "This business"}
+        />
       </div>
 
       {/* Full-height graph view */}
