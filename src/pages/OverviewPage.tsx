@@ -1,10 +1,10 @@
 /**
  * Overview Page — Operator Briefing
  *
- * Five sections:
- *   1. Your Situation — restate the problem
- *   2. Key Insights — 3 cards: what + why it matters
- *   3. Business Reality — strengths / weaknesses / risks
+ * Six sections:
+ *   1. Key Insights — 3 cards: what + why it matters
+ *   2. Business Reality — strengths / weaknesses / risks
+ *   3. Structural Assumptions — industry beliefs worth questioning
  *   4. Top Opportunities — actionable opportunities
  *   5. Recommended Focus — single strategic takeaway
  */
@@ -23,14 +23,16 @@ import {
   extractBusinessReality,
   extractKeyInsights,
   extractRecommendedFocus,
+  extractStructuralAssumptions,
   type BusinessReality,
   type KeyInsight,
+  type StructuralAssumption,
 } from "@/lib/swotExtractor";
 import { humanizeLabel } from "@/lib/humanize";
 import { motion } from "framer-motion";
 import {
   ArrowRight, TrendingUp, AlertTriangle, ShieldAlert,
-  Lightbulb, Eye, Target, Compass,
+  Lightbulb, Target, Compass, HelpCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,8 +83,11 @@ export default function OverviewPage() {
   const businessReality = useMemo(() => extractBusinessReality(narrative), [narrative]);
   const keyInsights = useMemo(() => extractKeyInsights(narrative), [narrative]);
   const recommendedFocus = useMemo(() => extractRecommendedFocus(narrative), [narrative]);
+  const structuralAssumptions = useMemo(
+    () => extractStructuralAssumptions(deepenedOpportunities || []),
+    [deepenedOpportunities],
+  );
 
-  const problemStatement = adaptiveContext?.problemStatement || selectedProduct?.description || "";
   const entityName = adaptiveContext?.entity?.name || selectedProduct?.name || "Analysis";
   const hasData = !!narrative || topOpps.length > 0;
   const loading = isComputing && !hasData;
@@ -113,7 +118,7 @@ export default function OverviewPage() {
           ) : keyInsights.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {keyInsights.map((ki, i) => (
-                <InsightCard key={i} insight={ki} index={i} />
+                <InsightCard key={i} insight={ki} />
               ))}
             </div>
           ) : (
@@ -126,7 +131,7 @@ export default function OverviewPage() {
         </div>
       </motion.div>
 
-      {/* ═══ 3. BUSINESS REALITY ═══ */}
+      {/* ═══ 2. BUSINESS REALITY ═══ */}
       <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-1">
@@ -166,6 +171,31 @@ export default function OverviewPage() {
           )}
         </div>
       </motion.div>
+
+      {/* ═══ 3. STRUCTURAL ASSUMPTIONS ═══ */}
+      {(loading || structuralAssumptions.length > 0) && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.18 }}>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <HelpCircle size={15} className="text-primary" />
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+                Structural Assumptions
+              </h2>
+            </div>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2].map(i => <Skeleton key={i} className="h-32 w-full" />)}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {structuralAssumptions.map((sa, i) => (
+                  <AssumptionCard key={i} assumption={sa} />
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* ═══ 4. TOP OPPORTUNITIES ═══ */}
       <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
@@ -238,7 +268,7 @@ export default function OverviewPage() {
 }
 
 /* ── Insight Card ── */
-function InsightCard({ insight, index }: { insight: KeyInsight; index: number }) {
+function InsightCard({ insight }: { insight: KeyInsight }) {
   return (
     <Card className="border-border/60 h-full">
       <CardContent className="pt-5 space-y-3">
@@ -288,6 +318,40 @@ function RealityColumn({
         <p className="text-[11px] text-muted-foreground italic">Pending analysis</p>
       )}
     </div>
+  );
+}
+
+/* ── Assumption Card ── */
+function AssumptionCard({ assumption }: { assumption: StructuralAssumption }) {
+  return (
+    <Card className="border-border/60">
+      <CardContent className="pt-5 space-y-3">
+        <div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+            Industry assumes
+          </span>
+          <p className="text-sm font-semibold text-foreground leading-snug mt-1">
+            "{assumption.assumption}"
+          </p>
+        </div>
+        <div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+            Worth questioning
+          </span>
+          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+            {assumption.question}
+          </p>
+        </div>
+        <div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-500">
+            Possible alternative
+          </span>
+          <p className="text-xs text-foreground/80 leading-relaxed mt-1">
+            {assumption.alternative}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
