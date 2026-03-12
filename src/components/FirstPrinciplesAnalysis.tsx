@@ -363,6 +363,11 @@ export const FirstPrinciplesAnalysis = ({
               generatingIdeas={generatingIdeas}
               userScores={userScores}
               onScoreChange={onScoreChange}
+              initialRejectedIdeas={(() => {
+                const ad = analysisCtx.disruptData as Record<string, unknown> | null;
+                // rejectedIdeas is stored at top level of analysis_data via saveStepData
+                return undefined; // will be passed from analysis_data below
+              })()}
               onCompetitorsScouted={(comps) => {
                 const prev = analysisCtx.scoutedCompetitors || [];
                 const merged = [...prev, ...(comps as any[])];
