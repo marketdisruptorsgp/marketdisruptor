@@ -25,8 +25,6 @@ import { ModeBadge } from "@/components/ModeBadge";
 import { StrategicDiagnosisBanner } from "@/components/command-deck/StrategicDiagnosisBanner";
 import { OpportunityDirectionsGrid } from "@/components/command-deck/OpportunityDirectionsGrid";
 import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
-import { WhyThisMattersSection } from "@/components/command-deck/WhyThisMattersSection";
-import { SecondOrderEffectsSection } from "@/components/command-deck/SecondOrderEffectsSection";
 import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
 import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
 import { PowerToolsPanel } from "@/components/command-deck/PowerToolsPanel";
