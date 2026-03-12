@@ -413,11 +413,36 @@ export function usePipelineOrchestrator(
         updateStatus("decompose", "done");
       }
 
+      // ═══ PHASE 1.5: Strategy Search (deterministic, ~50ms) ═══
+      let strategyContext: any = undefined;
+      try {
+        const structuralProfile = profileFromDecomposition(decompResult);
+        if (structuralProfile && structuralProfile.bindingConstraints.length > 0) {
+          const searchResult = runStrategySearch(structuralProfile, { outputCount: 8 });
+          const analogyStrategies = searchResult.strategies.filter(s => s.sourceAnalogy);
+          const topStrategies = searchResult.strategies.slice(0, 6);
+          strategyContext = {
+            topStrategies: topStrategies.map(s => ({
+              patternName: s.patternName,
+              mechanism: s.mechanism,
+              constraintName: s.constraintName,
+              score: s.evaluation.composite,
+              sourceAnalogy: s.sourceAnalogy || null,
+            })),
+            analogyCount: analogyStrategies.length,
+            totalEvaluated: searchResult.totalEvaluated,
+          };
+          console.log(`[Pipeline] Strategy search: ${searchResult.totalEvaluated} evaluated, ${analogyStrategies.length} cross-domain, ${topStrategies.length} output`);
+        }
+      } catch (e) {
+        console.warn("[Pipeline] Strategy search failed (non-blocking):", e);
+      }
+
       // ═══ PHASE 2: Strategic Synthesis (~45s) ═══
       // Check if we already have BOTH disrupt + redesign data
       let synthesisResult = (disruptData && redesignData) ? disruptData : null;
       if (!synthesisResult) {
-        synthesisResult = await runStrategicSynthesis(product, extractedContext, decompResult);
+        synthesisResult = await runStrategicSynthesis(product, extractedContext, decompResult, strategyContext);
         if (!synthesisResult) {
           console.warn("[Pipeline] Synthesis failed — continuing to Phase 3 with partial data");
           toast.warning("Strategic synthesis had issues. Running validation with available data.");
