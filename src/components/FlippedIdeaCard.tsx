@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock, Minus, Plus, Presentation, Check } from "lucide-react";
+import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock, Minus, Plus, Presentation, Check, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
@@ -20,6 +20,8 @@ interface FlippedIdeaCardProps {
   onRemoveFromPitch?: (url: string) => void;
   onRegenerateSingle?: () => void;
   onCompetitorsScouted?: (competitors: unknown[]) => void;
+  onReject?: () => void;
+  steeringContext?: string;
 }
 
 export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch, onRegenerateSingle, onCompetitorsScouted }: FlippedIdeaCardProps) => {
