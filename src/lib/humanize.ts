@@ -10,7 +10,92 @@
  *   - Jargon prefixes: "Binding Constraint:", "Counterfactual:"
  *   - Suffix noise: "(+3 related)"
  *   - snake_case → spaces (sentence case, NOT title case)
+ *   - Banned words replaced with plain equivalents
  */
+
+/** Words that must never appear in user-facing output */
+const BANNED_WORD_MAP: Record<string, string> = {
+  leverage: "use",
+  leveraging: "using",
+  leveraged: "used",
+  synergy: "combined advantage",
+  synergies: "combined advantages",
+  optimize: "improve",
+  optimizing: "improving",
+  optimized: "improved",
+  optimization: "improvement",
+  operationalize: "put into practice",
+  operationalizing: "putting into practice",
+  operationalized: "put into practice",
+  streamline: "simplify",
+  streamlining: "simplifying",
+  streamlined: "simplified",
+  ecosystem: "market",
+  robust: "strong",
+  utilize: "use",
+  utilizing: "using",
+  utilized: "used",
+  utilization: "use",
+  unlock: "reveal",
+  unlocking: "revealing",
+  unlocked: "revealed",
+  headcount: "team size",
+  preliminary: "early",
+  proportional: "relative",
+  actionable: "practical",
+  stakeholder: "decision-maker",
+  stakeholders: "decision-makers",
+  paradigm: "model",
+  paradigms: "models",
+  holistic: "complete",
+  holistically: "completely",
+};
+
+const BANNED_REGEX = new RegExp(
+  `\\b(${Object.keys(BANNED_WORD_MAP).join("|")})\\b`,
+  "gi",
+);
+
+/**
+ * Replace banned words with plain-English equivalents.
+ * This is a safety net — the primary fix is in the prompts/templates.
+ */
+export function scrubBannedWords(text: string): string {
+  if (!text) return "";
+  return text.replace(BANNED_REGEX, (matched) => {
+    const replacement = BANNED_WORD_MAP[matched.toLowerCase()];
+    if (!replacement) return matched;
+    // Preserve capitalization of first letter
+    if (matched[0] === matched[0].toUpperCase()) {
+      return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+    }
+    return replacement;
+  });
+}
+
+/**
+ * Enforce a hard character limit, cutting at sentence/clause/word boundary.
+ * Returns null if text is empty or single-word filler.
+ */
+export function enforceCharLimit(text: string | null | undefined, max: number): string | null {
+  if (!text) return null;
+  const cleaned = scrubBannedWords(text).trim();
+  if (!cleaned || cleaned.split(/\s+/).length <= 1) return null;
+  if (cleaned.length <= max) return cleaned;
+  return trimAt(cleaned, max) || null;
+}
+
+/**
+ * Enforce a hard word limit. Returns null if result is empty.
+ */
+export function enforceWordLimit(text: string | null | undefined, maxWords: number): string | null {
+  if (!text) return null;
+  const cleaned = scrubBannedWords(text).trim();
+  if (!cleaned) return null;
+  const words = cleaned.split(/\s+/);
+  if (words.length <= maxWords) return cleaned;
+  return words.slice(0, maxWords).join(" ");
+}
 
 export function humanizeLabel(text: string | null | undefined): string {
   if (!text) return "";
@@ -80,6 +165,9 @@ export function humanizeLabel(text: string | null | undefined): string {
   if (result.length > 0) {
     result = result.charAt(0).toUpperCase() + result.slice(1);
   }
+
+  // Scrub banned words as a safety net
+  result = scrubBannedWords(result);
 
   return result;
 }

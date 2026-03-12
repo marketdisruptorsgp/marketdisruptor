@@ -361,7 +361,7 @@ function buildStrategicNarrative(
 
   // Executive Summary — one paragraph
   const etaPrefix = profile.etaActive ? `[Acquisition Lens] ` : "";
-  const executiveSummary = `${etaPrefix}This analysis identified a structural opportunity: ${move.toLowerCase()}. The current model is constrained by ${constraint.toLowerCase()} because ${driver.toLowerCase()}. Applying ${primary.patternName.toLowerCase()} should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
+  const executiveSummary = `${etaPrefix}The biggest opportunity here: ${move.toLowerCase()}. Right now, ${constraint.toLowerCase()} because ${driver.toLowerCase()}. The fix — ${primary.patternName.toLowerCase()} — should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
 
   return {
     primaryConstraint: constraint,
