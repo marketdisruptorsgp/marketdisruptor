@@ -45,6 +45,7 @@ const PipelineObservabilityPage = lazy(() => import("./pages/PipelineObservabili
 const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage"));
 const CommandDeckPage = lazy(() => import("./pages/CommandDeckPage"));
 const OverviewPage = lazy(() => import("./pages/OverviewPage"));
+const ProblemStatementPage = lazy(() => import("./pages/ProblemStatementPage"));
 const BenchmarkRunner = lazy(() => import("./pages/BenchmarkRunner"));
 const PipelineTestRunner = lazy(() => import("./pages/PipelineTestRunner"));
 const PipelineArchitecturePage = lazy(() => import("./pages/PipelineArchitecturePage"));
