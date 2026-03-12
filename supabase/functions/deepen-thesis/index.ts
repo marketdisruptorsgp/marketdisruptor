@@ -489,9 +489,9 @@ function buildToolSchema() {
                 strategicBet: {
                   type: "object",
                   properties: {
-                    industryAssumption: { type: "string", description: "What most people in this market believe" },
-                    contrarianBelief: { type: "string", description: "The contrarian bet this thesis makes" },
-                    implication: { type: "string", description: "What follows if the contrarian belief is correct" },
+                    industryAssumption: { type: "string", description: "The default belief in this market that most operators accept without questioning. Max 15 words. Example: 'Custom quotes are necessary for every commercial millwork project.'" },
+                    contrarianBelief: { type: "string", description: "The OPPOSITE claim — what you believe is actually true, that contradicts the industry assumption. Must directly negate or invert the assumption, not rephrase it. Max 15 words. Example: 'Most projects follow predictable patterns that can be priced from templates.'" },
+                    implication: { type: "string", description: "What follows if the contrarian belief is correct — the business consequence. Max 20 words." },
                   },
                   required: ["industryAssumption", "contrarianBelief", "implication"],
                   additionalProperties: false,
