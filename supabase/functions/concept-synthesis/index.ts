@@ -4,6 +4,10 @@
  * Generates 4-6 causally-traced, engineering-grounded invention concepts.
  * Uses model cascade (Flash → Pro) for reliability.
  * Includes robust JSON repair for truncated AI output.
+ * 
+ * Phase 5: Slimmed prompt (removed persona_fit, performer_network,
+ *          system_architecture, breakthrough_metric to prevent truncation)
+ * Phase 6: Post-processing guardrails (causal trace validation, dedup)
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -64,16 +68,6 @@ TECHNICAL MECHANISM LIBRARY — Use these when generating concepts.
 `.trim();
 
 // ═══════════════════════════════════════════════════════════════
-//  PERSONA LENSES
-// ═══════════════════════════════════════════════════════════════
-
-const PERSONA_LENSES = [
-  { id: "garage_inventor", label: "Garage Inventor", constraints: "Budget <$5K, consumer tools, rapid iteration" },
-  { id: "product_company", label: "Product Company", constraints: "Injection molding, $50K-500K tooling, retail-ready" },
-  { id: "deep_tech_startup", label: "Deep Tech Startup", constraints: "VC-backed R&D, needs 10x improvement, defensible IP" },
-];
-
-// ═══════════════════════════════════════════════════════════════
 //  ROBUST JSON REPAIR
 // ═══════════════════════════════════════════════════════════════
 
@@ -88,15 +82,11 @@ function repairTruncatedJson(raw: string): Record<string, unknown> | null {
   try { return JSON.parse(cleaned); } catch {}
 
   // Remove trailing incomplete string/value and close brackets
-  // Strategy: find the last complete key-value pair and close from there
   let repaired = cleaned;
 
-  // Remove any trailing incomplete string (unterminated quote)
   const lastQuote = repaired.lastIndexOf('"');
   const afterLastQuote = repaired.slice(lastQuote + 1).trim();
   if (afterLastQuote === '' || afterLastQuote.match(/^[^"{}[\],]*$/)) {
-    // We're in the middle of a string or value — truncate to last complete item
-    // Find the last complete comma or closing bracket
     let cutPoint = repaired.length;
     for (let i = repaired.length - 1; i >= 0; i--) {
       const ch = repaired[i];
@@ -108,10 +98,8 @@ function repairTruncatedJson(raw: string): Record<string, unknown> | null {
     repaired = repaired.slice(0, cutPoint);
   }
 
-  // Remove trailing commas
   repaired = repaired.replace(/,\s*$/, '');
 
-  // Count and balance brackets
   let opens = 0, closes = 0, openArr = 0, closeArr = 0;
   let inString = false, escaped = false;
   for (const ch of repaired) {
@@ -125,16 +113,13 @@ function repairTruncatedJson(raw: string): Record<string, unknown> | null {
     if (ch === ']') closeArr++;
   }
 
-  // Close any open strings if we're still in one
   if (inString) repaired += '"';
-
-  // Close arrays then objects
   repaired += ']'.repeat(Math.max(0, openArr - closeArr));
   repaired += '}'.repeat(Math.max(0, opens - closes));
 
   try { return JSON.parse(repaired); } catch {}
 
-  // Last resort: try to extract just the concepts array
+  // Last resort: extract just the concepts array
   const conceptsMatch = repaired.match(/"concepts"\s*:\s*\[/);
   if (conceptsMatch) {
     const start = conceptsMatch.index! + conceptsMatch[0].length;
@@ -153,7 +138,6 @@ function repairTruncatedJson(raw: string): Record<string, unknown> | null {
       end = i;
     }
     const arrayStr = repaired.slice(start, end);
-    // Find last complete object in array
     const lastCloseBrace = arrayStr.lastIndexOf('}');
     if (lastCloseBrace > 0) {
       const partialArray = arrayStr.slice(0, lastCloseBrace + 1);
@@ -168,6 +152,64 @@ function repairTruncatedJson(raw: string): Record<string, unknown> | null {
 
   return null;
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  PHASE 6 — POST-PROCESSING GUARDRAILS
+// ═══════════════════════════════════════════════════════════════
+
+/** Flag concepts with incomplete causal trace (origin fields) */
+function validateCausalTraces(concepts: any[]): void {
+  for (const c of concepts) {
+    const o = c.origin;
+    const missing = !o
+      || !o.structural_driver?.trim()
+      || !o.assumption_flipped?.trim()
+      || !o.enabling_mechanism?.trim();
+    if (missing) {
+      c._causal_incomplete = true;
+      console.warn(`[ConceptSynthesis] Causal trace incomplete for "${c.name}"`);
+    }
+  }
+}
+
+/** Word-level Jaccard similarity between two strings */
+function jaccardSimilarity(a: string, b: string): number {
+  const wordsA = new Set((a || "").toLowerCase().split(/\s+/).filter(Boolean));
+  const wordsB = new Set((b || "").toLowerCase().split(/\s+/).filter(Boolean));
+  if (wordsA.size === 0 && wordsB.size === 0) return 1;
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let intersection = 0;
+  for (const w of wordsA) if (wordsB.has(w)) intersection++;
+  const union = new Set([...wordsA, ...wordsB]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
+/** Remove near-duplicate concepts (Jaccard > 0.7 on description) */
+function deduplicateConcepts(concepts: any[]): any[] {
+  const kept: any[] = [];
+  for (const c of concepts) {
+    const isDupe = kept.some(existing => {
+      const sim = jaccardSimilarity(existing.description || "", c.description || "");
+      if (sim > 0.7) {
+        console.warn(`[ConceptSynthesis] Dedup: "${c.name}" too similar to "${existing.name}" (${(sim * 100).toFixed(0)}%)`);
+        return true;
+      }
+      return false;
+    });
+    if (!isDupe) kept.push(c);
+  }
+  if (kept.length < concepts.length) {
+    console.log(`[ConceptSynthesis] Dedup removed ${concepts.length - kept.length} near-duplicate(s)`);
+  }
+  if (kept.length < 2) {
+    console.warn(`[ConceptSynthesis] Only ${kept.length} concept(s) after dedup — returning all`);
+  }
+  return kept;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MAIN HANDLER
+// ═══════════════════════════════════════════════════════════════
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -217,10 +259,8 @@ ${(flippedLogic || []).slice(0, 5).map((f: any, i: number) =>
 USER LENS: Objective: ${userLens.primary_objective || "N/A"} | Resources: ${userLens.available_resources || "N/A"} | Risk: ${userLens.risk_tolerance || "N/A"}
 ` : "";
 
-    const personaInstructions = PERSONA_LENSES.map(p =>
-      `"${p.id}": "${p.label}" (${p.constraints})`
-    ).join("; ");
-
+    // Phase 5: Slimmed system prompt — removed persona_fit, performer_network,
+    // system_architecture, breakthrough_metric to cut output tokens ~50%
     const systemPrompt = `You are an Invention Synthesis Engine generating physically buildable product concepts.
 
 CONCEPT = STRUCTURAL WEAKNESS + ASSUMPTION FLIP + TECHNICAL MECHANISM
@@ -231,17 +271,11 @@ RULES:
 - Include rough BOM with realistic costs at 10K+ units
 - Each concept genuinely different
 - Focus on mechanical/electrical/material innovation
-
-For each concept include:
-- breakthrough_metric: classification (step_change/incremental), magnitude, current_benchmark, target_performance, confidence
-- performer_network: 2-3 entries with category, role, example_organizations, why
-- system_architecture: 4-5 nodes (input→process→output) with edges and description
-- before_after: the_old_way (make status quo sound absurd, 2 sentences) and the_new_way (make it feel inevitable, 2 sentences)
-- persona_fit: fit_score (1-10) + rationale + key_adaptation for each of: ${personaInstructions}
+- Keep descriptions concise (2-3 sentences max)
 
 ${MECHANISM_LIBRARY}
 
-RESPOND WITH VALID JSON ONLY — no markdown, no explanation. Keep descriptions concise.`;
+RESPOND WITH VALID JSON ONLY — no markdown, no explanation.`;
 
     const userPrompt = `Generate ${requestedCount} invention concepts for:
 
@@ -253,12 +287,12 @@ ${assumptionContext}
 
 JSON schema:
 {
-  "concepts": [{ "name", "tagline", "origin": { "structural_driver", "assumption_flipped", "enabling_mechanism" }, "before_after": { "the_old_way", "the_new_way" }, "description", "mechanism_description", "materials": [], "estimated_bom": [{ "component", "material", "process", "unitCost", "notes" }], "manufacturing_path", "certification_considerations": [], "precedent_products": [{ "product", "company", "relevance" }], "prototype_approach", "dfm_notes", "persona_fit": { "garage_inventor": { "fit_score", "rationale", "key_adaptation" }, "product_company": {...}, "deep_tech_startup": {...} }, "breakthrough_metric": { "classification", "magnitude", "current_benchmark", "target_performance", "confidence" }, "performer_network": [{ "category", "role", "example_organizations": [], "why" }], "system_architecture": { "nodes": [{ "id", "label", "type" }], "edges": [{ "from", "to", "label" }], "description" } }],
+  "concepts": [{ "name", "tagline", "origin": { "structural_driver", "assumption_flipped", "enabling_mechanism" }, "before_after": { "the_old_way", "the_new_way" }, "description", "mechanism_description", "materials": [], "estimated_bom": [{ "component", "material", "process", "unitCost", "notes" }], "manufacturing_path", "certification_considerations": [], "precedent_products": [{ "product", "company", "relevance" }], "prototype_approach", "dfm_notes" }],
   "innovation_paths": [{ "theme", "description", "structural_pressures": [], "concept_indices": [] }],
   "contrarian_narrative": { "industry_blind_spot", "why_blind", "evidence", "unlock_statement" }
 }
 
-Return ONLY valid JSON. Keep each concept's text concise to avoid truncation.`;
+Return ONLY valid JSON. Keep each concept concise to avoid truncation.`;
 
     // ═══ MODEL CASCADE: try Flash first (faster), fallback to Pro ═══
     const models = ["google/gemini-2.5-flash", "google/gemini-2.5-pro"];
@@ -281,7 +315,7 @@ Return ONLY valid JSON. Keep each concept's text concise to avoid truncation.`;
               { role: "user", content: userPrompt },
             ],
             temperature: 0.5,
-            max_tokens: 16000,
+            max_tokens: 8000,
           }),
         });
 
@@ -289,7 +323,7 @@ Return ONLY valid JSON. Keep each concept's text concise to avoid truncation.`;
           const txt = await response.text();
           lastError = `${model} error ${response.status}: ${txt.slice(0, 200)}`;
           console.warn(`[ConceptSynthesis] ${lastError}`);
-          if (response.status === 429) continue; // try next model
+          if (response.status === 429) continue;
           if (response.status === 402) continue;
           throw new Error(lastError);
         }
@@ -305,12 +339,11 @@ Return ONLY valid JSON. Keep each concept's text concise to avoid truncation.`;
 
         console.log(`[ConceptSynthesis] ${model} returned ${rawText.length} chars`);
 
-        // Robust JSON parsing with repair
         result = repairTruncatedJson(rawText);
         
         if (result && Array.isArray(result.concepts) && result.concepts.length > 0) {
           console.log(`[ConceptSynthesis] Successfully parsed ${result.concepts.length} concepts from ${model}`);
-          break; // Success!
+          break;
         } else {
           lastError = `${model} JSON repair produced no valid concepts`;
           console.warn(`[ConceptSynthesis] ${lastError}`);
@@ -328,9 +361,11 @@ Return ONLY valid JSON. Keep each concept's text concise to avoid truncation.`;
       throw new Error(`All models failed. Last error: ${lastError}`);
     }
 
-    const concepts = result.concepts as any[];
+    let concepts = result.concepts as any[];
 
-    // Validate and fill defaults for each concept
+    // ═══ PHASE 6: Post-processing guardrails ═══
+
+    // Fill minimal defaults for required fields
     for (const c of concepts) {
       if (!c.origin) {
         c.origin = { structural_driver: "Identified structural weakness", assumption_flipped: "Industry assumption challenged", enabling_mechanism: "Technical mechanism applied" };
@@ -338,29 +373,18 @@ Return ONLY valid JSON. Keep each concept's text concise to avoid truncation.`;
       if (!c.before_after) {
         c.before_after = { the_old_way: "The current approach accepts known limitations.", the_new_way: "This concept eliminates those constraints through a mechanism change." };
       }
-      if (!c.persona_fit) {
-        c.persona_fit = {
-          garage_inventor: { fit_score: 5, rationale: "Moderate fit", key_adaptation: "Simplify manufacturing" },
-          product_company: { fit_score: 7, rationale: "Good fit", key_adaptation: "Integrate with existing lines" },
-          deep_tech_startup: { fit_score: 6, rationale: "IP potential", key_adaptation: "Focus on defensible innovation" },
-        };
-      }
       if (!c.estimated_bom) c.estimated_bom = [];
       if (!c.materials) c.materials = [];
       if (!c.certification_considerations) c.certification_considerations = [];
       if (!c.precedent_products) c.precedent_products = [];
-      if (!c.breakthrough_metric) {
-        c.breakthrough_metric = { classification: "incremental", magnitude: "Moderate improvement", current_benchmark: "Industry standard", target_performance: "Improved performance", confidence: "medium" };
-      }
-      if (!c.performer_network) c.performer_network = [];
-      if (!c.system_architecture) {
-        c.system_architecture = {
-          nodes: [{ id: "n1", label: "Input", type: "input" }, { id: "n2", label: "Process", type: "process" }, { id: "n3", label: "Output", type: "output" }],
-          edges: [{ from: "n1", to: "n2", label: "feeds" }, { from: "n2", to: "n3", label: "produces" }],
-          description: "Basic system flow",
-        };
-      }
     }
+
+    // Validate causal traces (flags but doesn't remove)
+    validateCausalTraces(concepts);
+
+    // Deduplicate near-identical concepts
+    concepts = deduplicateConcepts(concepts);
+    result.concepts = concepts;
 
     if (!result.innovation_paths || !Array.isArray(result.innovation_paths)) {
       result.innovation_paths = [{ theme: "Primary Innovation Direction", description: "Concepts addressing core structural weaknesses", structural_pressures: [], concept_indices: concepts.map((_: unknown, i: number) => i) }];
