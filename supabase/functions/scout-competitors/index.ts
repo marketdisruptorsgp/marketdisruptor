@@ -12,7 +12,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { ideaName, ideaDescription, category } = await req.json();
+    const { ideaName, ideaDescription, category, steeringContext } = await req.json();
     if (!ideaName) throw new Error("ideaName is required");
 
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
