@@ -610,27 +610,29 @@ Related Tables:
     content: `
 ┌─────────────────── EDGE FUNCTION PROFILES ──────────────────┐
 │                                                             │
-│  Function                    │ Avg Time │ Risk    │ Status  │
-│  ────────────────────────────┼──────────┼─────────┼──────── │
-│  analyze-products            │ 30-90s   │ HIGH    │ ⚠       │
-│  business-model-analysis     │ 30-60s   │ HIGH    │ ⚠       │
-│  first-principles-analysis   │ 20-45s   │ MEDIUM  │ ⚠       │
-│  extract-business-intel      │ 15-60s   │ MEDIUM  │ ✓ Fixed │
-│  generate-flip-ideas         │ 10-25s   │ LOW     │ ✓       │
-│  generate-pitch-deck         │ 15-30s   │ MEDIUM  │ ⚠       │
-│  critical-validation         │ 10-20s   │ LOW     │ ✓       │
-│  scout-competitors           │ 10-20s   │ LOW     │ ✓       │
-│  generate-market-intel       │ 10-20s   │ LOW     │ ✓       │
-│  hypothesis-interrogation    │ 5-15s    │ LOW     │ ✓       │
-│  reasoning-interrogation     │ 5-15s    │ LOW     │ ✓       │
-│  bundle-deep-dive            │ 10-20s   │ LOW     │ ✓       │
-│  help-assistant              │ 3-10s    │ LOW     │ ✓       │
-│  workspace-query             │ 5-15s    │ LOW     │ ✓       │
-│  share-analysis              │ 1-3s     │ LOW     │ ✓       │
-│  scrape-products             │ 5-15s    │ MEDIUM  │ ⚠       │
-│  scrape-url-autofill         │ 3-10s    │ LOW     │ ✓       │
-│  scrape-market-news          │ 5-15s    │ LOW     │ ✓       │
-│  patent-analysis             │ 10-20s   │ LOW     │ ✓       │
+│  Function                       │ Avg Time │ Risk   │ Status  │
+│  ───────────────────────────────┼──────────┼────────┼──────── │
+│  structural-decomposition       │ 60-120s  │ HIGH   │ ⚠       │
+│  strategic-synthesis            │ 30-60s   │ HIGH   │ ⚠       │
+│  transformation-engine          │ 20-40s   │ MEDIUM │ ⚠       │
+│  concept-architecture           │ 20-40s   │ MEDIUM │ ⚠       │
+│  critical-validation            │ 10-20s   │ LOW    │ ✓       │
+│  generate-pitch-deck            │ 15-30s   │ MEDIUM │ ⚠       │
+│  business-model-analysis        │ 30-60s   │ HIGH   │ ⚠       │
+│  analyze-business-structure     │ 15-30s   │ MEDIUM │ ⚠       │
+│  generate-product-visual        │ 10-20s   │ LOW    │ ✓       │
+│  generate-opportunity-vectors   │ 10-20s   │ LOW    │ ✓       │
+│  research-competitive-position  │ 10-20s   │ LOW    │ ✓       │
+│  industry-benchmarks            │ 10-20s   │ LOW    │ ✓       │
+│  compute-analytics-insights     │ 5-15s    │ LOW    │ ✓       │
+│  scrape-products                │ 5-15s    │ MEDIUM │ ⚠       │
+│  analyze-products               │ 30-90s   │ HIGH   │ ⚠       │
+│  photo-analysis                 │ 10-20s   │ LOW    │ ✓       │
+│  scrape-market-news             │ 5-15s    │ LOW    │ ✓       │
+│  geo-market-data                │ 5-15s    │ LOW    │ ✓       │
+│  help-assistant                 │ 3-10s    │ LOW    │ ✓       │
+│  api-proxy                      │ 1-5s     │ LOW    │ ✓       │
+│  fire-webhook                   │ 1-3s     │ LOW    │ ✓       │
 │                                                             │
 │  ⚠ = Timeout risk, needs AbortController + defensive read   │
 │  ✓ = Within safe execution limits                           │
