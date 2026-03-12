@@ -434,19 +434,28 @@ export function selectRelevantDirections(
     ? PRODUCT_DIRECTIONS
     : STRATEGIC_DIRECTIONS;
 
-  const scored = directions.map(d => ({
+  const traditionalService = analysisType !== "product" && isTraditionalServiceBusiness(profile);
+
+  let scored = directions.map(d => ({
     direction: d,
     relevanceScore: d.relevance(profile),
   }));
 
+  if (traditionalService) {
+    scored = scored.filter(s => !DIGITAL_SCALE_DIRECTION_IDS.has(s.direction.id));
+  }
+
   // Sort by relevance descending
   scored.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
-  // Take top N, but ensure at least 3 with score > 0
-  const minCount = Math.min(3, scored.filter(s => s.relevanceScore > 0).length);
-  const targetCount = Math.max(minCount, Math.min(count, scored.filter(s => s.relevanceScore >= 2).length));
+  // Only keep meaningfully relevant directions.
+  // IMPORTANT: do NOT force 3+ directions, as that introduces unrealistic ideas.
+  const eligible = scored.filter(s => s.relevanceScore >= 2);
+  if (eligible.length > 0) {
+    return eligible.slice(0, Math.min(count, eligible.length));
+  }
 
-  return scored.slice(0, Math.max(3, targetCount));
+  return scored.filter(s => s.relevanceScore > 0).slice(0, Math.min(count, 2));
 }
 
 /**
