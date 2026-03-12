@@ -879,7 +879,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [canAnalyze, startLoadingTimer, stopLoadingTimer, pushLog, user?.id, checkSubscription, saveAnalysis, navigate, analysisId, adaptiveContext]);
 
-  const handleRegenerateIdeas = useCallback(async (product: Product, userContext?: string) => {
+  const handleRegenerateIdeas = useCallback(async (product: Product, userContext?: string, rejectedIdeas?: string[]) => {
     if (!analysisParams) return;
     setGeneratingIdeasFor(product.id);
 
