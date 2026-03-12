@@ -76,6 +76,11 @@ function scoreNovelty(
   if (candidate.features.patternFamily === "network") novelty += 0.15;
   if (candidate.features.patternFamily === "pricing") novelty += 0.1;
 
+  // Cross-domain analogy bonus — ideas from unrelated industries are inherently more novel
+  if (candidate.sourceAnalogy) {
+    novelty += 0.15;
+  }
+
   return Math.min(1, novelty);
 }
 
@@ -93,6 +98,13 @@ function scoreFeasibility(
   if (candidate.features.timeHorizon === "long") feasibility -= 0.15;
   if (profile.regulatorySensitivity === "heavy" && candidate.features.patternFamily !== "timing") feasibility -= 0.1;
   if (profile.laborIntensity === "artisan" && candidate.features.revenueShift === "marketplace") feasibility -= 0.15;
+
+  // Cross-domain adaptation penalty — transplanting from another industry requires more work
+  if (candidate.sourceAnalogy) {
+    const sim = candidate.sourceAnalogy.similarityScore;
+    // Higher similarity = lower penalty (0.3 sim → -0.1, 0.8 sim → -0.03)
+    feasibility -= 0.12 * (1 - sim);
+  }
 
   // Bonuses
   if (candidate.features.timeHorizon === "immediate") feasibility += 0.15;

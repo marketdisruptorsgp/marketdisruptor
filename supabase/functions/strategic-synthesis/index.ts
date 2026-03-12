@@ -100,6 +100,11 @@ When generating hiddenAssumptions and flippedLogic, you MUST:
 2. Reference specific failure modes, feedback loops, and control points from system dynamics
 3. Ensure each flipped logic entry maps to a specific leverage primitive when possible
 
+CROSS-DOMAIN ANALOGY MANDATE:
+For at least 2 of your hiddenAssumptions or flippedLogic entries, explicitly reference a structural move from an UNRELATED industry that resolved a structurally identical constraint. Format as:
+"Cross-domain precedent: [Company] in [industry] resolved this same structural constraint by [mechanism]. This suggests [implication for target business]."
+Look for structural parallels — same constraint shape (e.g. fragmented supply, intermediated distribution, labor-heavy delivery) solved in a completely different domain.
+
 STRUCTURAL TRANSFORMATIONS MANDATE:
 Generate a "structuralTransformations" array with 8-12 transformations.
 Each MUST: target a specific leverage primitive, use one of: elimination, substitution, reordering, aggregation.

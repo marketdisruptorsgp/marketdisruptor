@@ -28,6 +28,13 @@ export interface StrategyCandidate {
   operatorFit: "any" | "eta" | "growth" | "turnaround";
   /** Composite features for diversity measurement */
   features: StrategyFeatures;
+  /** Cross-domain analogy provenance (if this candidate originated from the analogy library) */
+  sourceAnalogy?: {
+    company: string;
+    industry: string;
+    primitive: string;
+    similarityScore: number;
+  };
 }
 
 export interface StrategyFeatures {
