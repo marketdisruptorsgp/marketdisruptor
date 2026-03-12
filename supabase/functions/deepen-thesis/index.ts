@@ -235,9 +235,9 @@ function buildDirectionsBlock(directions: any[]): string {
     lines.push("");
   }
 
-  lines.push("IMPORTANT: Generate one thesis per direction. Each must be structurally distinct — NOT variations of the same idea.");
-  lines.push("If a direction truly doesn't apply to this business, still generate the best version you can — the user needs multiple options.");
-  lines.push("Set the 'directionId' field to match the direction ID above.");
+  lines.push("IMPORTANT: Generate one thesis per direction when it is genuinely relevant. Each must be structurally distinct — NOT variations of the same idea.");
+  lines.push("If a direction does not fit this business, SKIP it and explain why in one sentence.");
+  lines.push("Set the 'directionId' field to match the direction ID above when you do generate a thesis.");
 
   return lines.join("\n");
 }
