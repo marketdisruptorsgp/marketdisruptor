@@ -113,22 +113,32 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       return;
     }
     const doCheck = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("check-subscription");
-        if (error) throw error;
-        lastCheckRef.current = Date.now();
-        setTier(data.tier || "explorer");
-        setSubscribed(data.subscribed || false);
-        setSubscriptionEnd(data.subscription_end || null);
-        setUsage(data.usage || { total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 });
-      } catch (err) {
-        console.error("Failed to check subscription:", err);
-      } finally {
-        setLoading(false);
-        checkInFlightRef.current = null;
+      const MAX_RETRIES = 2;
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const { data, error } = await supabase.functions.invoke("check-subscription");
+          if (error) throw error;
+          lastCheckRef.current = Date.now();
+          setTier(data.tier || "explorer");
+          setSubscribed(data.subscribed || false);
+          setSubscriptionEnd(data.subscription_end || null);
+          setUsage(data.usage || { total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 });
+          return; // Success — exit retry loop
+        } catch (err) {
+          if (attempt < MAX_RETRIES) {
+            await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+            continue;
+          }
+          console.error("Failed to check subscription after retries:", err);
+        }
       }
+      setLoading(false);
+      checkInFlightRef.current = null;
     };
-    checkInFlightRef.current = doCheck();
+    checkInFlightRef.current = doCheck().finally(() => {
+      setLoading(false);
+      checkInFlightRef.current = null;
+    });
     await checkInFlightRef.current;
   }, [user]);
 
