@@ -33,7 +33,7 @@ import {
 import { motion } from "framer-motion";
 import {
   ArrowRight, Zap, TrendingUp, AlertTriangle,
-  ShieldAlert, Target, HelpCircle,
+  ShieldAlert, Target, HelpCircle, Lock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

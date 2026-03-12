@@ -509,6 +509,37 @@ ${schema}`;
       (a: any, b: any) => (b.leverageScore || 0) - (a.leverageScore || 0)
     );
 
+    // ── EARLY BINDING CONSTRAINT HYPOTHESIS ──
+    // Extract the #1 structural blocker from leverage + bottlenecks + friction — zero AI cost
+    const topLeverage = decomposition.leverageAnalysis.leveragePrimitives[0];
+    const topBottleneck = decomposition.systemDynamics?.bottlenecks?.[0];
+    const highFrictionStage = decomposition.valueChain?.highestFrictionStage;
+    const highFrictionDetail = decomposition.valueChain?.stages?.find(
+      (s: any) => s.id === highFrictionStage || s.label === highFrictionStage
+    );
+
+    decomposition._bindingConstraintHypothesis = {
+      constraint: topLeverage?.primitiveLabel || topBottleneck?.resource || "Unknown structural blocker",
+      reasoning: topLeverage?.reasoning || topBottleneck?.impact || "Highest-leverage primitive in the system",
+      leverageScore: topLeverage?.leverageScore || 0,
+      bindingStrength: topLeverage?.bindingStrength || 0,
+      cascadeReach: topLeverage?.cascadeReach || 0,
+      bestTransformation: topLeverage?.bestTransformation || "elimination",
+      bottleneck: topBottleneck ? {
+        resource: topBottleneck.resource,
+        impact: topBottleneck.impact,
+        severity: topBottleneck.severity,
+      } : null,
+      highestFriction: highFrictionDetail ? {
+        stage: highFrictionDetail.label,
+        detail: highFrictionDetail.frictionDetail,
+        costShare: highFrictionDetail.costShare,
+      } : null,
+      confidence: "hypothesis", // Will be validated/refined by synthesis
+    };
+
+    console.log(`[structural-decomposition] Early binding constraint: "${decomposition._bindingConstraintHypothesis.constraint}" (leverage: ${decomposition._bindingConstraintHypothesis.leverageScore})`);
+
     const dynamicsCount = (decomposition.systemDynamics.failureModes?.length || 0) +
       (decomposition.systemDynamics.feedbackLoops?.length || 0) +
       (decomposition.systemDynamics.bottlenecks?.length || 0) +
