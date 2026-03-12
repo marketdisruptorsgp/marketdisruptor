@@ -11,7 +11,7 @@ import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { buildInsightGraph } from "@/lib/insightGraph";
 import { extractAllEvidence } from "@/lib/evidenceEngine";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
-import { InsightGraphView } from "@/components/insight-graph/InsightGraphView";
+import { StrategicActionBrief } from "@/components/insight-graph/StrategicActionBrief";
 import { RefreshCw, FileDown, LayoutDashboard, Home, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
