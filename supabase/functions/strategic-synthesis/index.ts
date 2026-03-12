@@ -101,9 +101,20 @@ When generating hiddenAssumptions and flippedLogic, you MUST:
 3. Ensure each flipped logic entry maps to a specific leverage primitive when possible
 
 CROSS-DOMAIN ANALOGY MANDATE:
-For at least 2 of your hiddenAssumptions or flippedLogic entries, explicitly reference a structural move from an UNRELATED industry that resolved a structurally identical constraint. Format as:
+${strategyContext?.topStrategies?.length > 0 ? `The strategy search engine has identified these high-leverage strategic configurations. USE THEM as foundations for your hiddenAssumptions and flippedLogic:
+${strategyContext.topStrategies.map((s: any, i: number) => {
+  const analogyNote = s.sourceAnalogy 
+    ? ` [Cross-domain: ${s.sourceAnalogy.company} in ${s.sourceAnalogy.industry} — "${s.sourceAnalogy.primitive}"]`
+    : '';
+  return `${i + 1}. Pattern: ${s.patternName} | Mechanism: ${s.mechanism} | Addresses: ${s.constraintName} (score: ${s.score?.toFixed(2)})${analogyNote}`;
+}).join("\n")}
+
+For strategies tagged [Cross-domain], explicitly reference the company and industry in your hiddenAssumptions or flippedLogic text. Format as:
 "Cross-domain precedent: [Company] in [industry] resolved this same structural constraint by [mechanism]. This suggests [implication for target business]."
-Look for structural parallels — same constraint shape (e.g. fragmented supply, intermediated distribution, labor-heavy delivery) solved in a completely different domain.
+Ensure at least 2 entries reference cross-domain precedents from unrelated industries.`
+: `For at least 2 of your hiddenAssumptions or flippedLogic entries, explicitly reference a structural move from an UNRELATED industry that resolved a structurally identical constraint. Format as:
+"Cross-domain precedent: [Company] in [industry] resolved this same structural constraint by [mechanism]. This suggests [implication for target business]."
+Look for structural parallels — same constraint shape (e.g. fragmented supply, intermediated distribution, labor-heavy delivery) solved in a completely different domain.`}
 
 STRUCTURAL TRANSFORMATIONS MANDATE:
 Generate a "structuralTransformations" array with 8-12 transformations.
