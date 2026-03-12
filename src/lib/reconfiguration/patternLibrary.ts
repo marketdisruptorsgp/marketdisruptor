@@ -58,6 +58,22 @@ export interface StructuralPattern {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  REALISM HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Returns true if the business is a traditional, labor-intensive service
+ * (e.g., woodworking shop, plumber, landscaper, trades contractor).
+ * These businesses should NOT receive SaaS/platform/network-effect
+ * recommendations — they need operational, margin, and process plays.
+ */
+function isTraditionalService(profile: StructuralProfile): boolean {
+  const laborHeavy = profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan";
+  const endService = profile.valueChainPosition === "end_service";
+  return laborHeavy && endService;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  PATTERN DEFINITIONS
 // ═══════════════════════════════════════════════════════════════
 
@@ -383,6 +399,10 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.valueChainPosition === "infrastructure" && profile.marginStructure === "high_margin" && profile.laborIntensity === "automated") {
         return { qualifies: false, reason: "Already operating as high-margin automated infrastructure — abstraction is complete.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: traditional service businesses should not become SaaS/infrastructure companies
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — infrastructure abstraction is unrealistic. Focus on operational improvements.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") {
         strengths.push("Labor-heavy delivery suggests abstractable expertise");
@@ -528,9 +548,13 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       const strengths: string[] = [];
       const resolves: string[] = [];
 
-      // Gate: labor-heavy artisan work rarely benefits from network effects
+      // Gate: artisan end-service — network effects require scalable digital interactions
       if (profile.laborIntensity === "artisan" && profile.valueChainPosition === "end_service") {
         return { qualifies: false, reason: "Artisan end-service — network effects require scalable digital interactions.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: traditional labor-heavy service businesses cannot build network effects
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — network effects require digital scale. Focus on customer relationships and referral systems.", strengthSignals: [], resolvesConstraints: [] };
       }
 
       if (profile.supplyFragmentation === "fragmented" || profile.supplyFragmentation === "atomized") strengths.push("Fragmented supply creates aggregation surface for network effects");
@@ -671,6 +695,10 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.laborIntensity === "artisan") {
         return { qualifies: false, reason: "Artisan delivery cannot scale to support free tier economics.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: traditional service business — freemium requires digital/scalable products
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — freemium requires a scalable digital product. Focus on pricing strategy.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (cNames.has("capital_barrier")) { resolves.push("capital_barrier"); strengths.push("High upfront cost barrier eliminated by free entry point"); }
       if (cNames.has("commoditized_pricing")) { resolves.push("commoditized_pricing"); strengths.push("Commoditized pricing — give away the commodity, monetize the complement"); }
@@ -757,8 +785,11 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.marginStructure === "negative_margin" && profile.revenueModel !== "recurring") {
         return { qualifies: false, reason: "Already negative margins without recurring revenue — loss-leader would deepen losses.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: traditional service — loss-leader requires scalable product economics
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — loss-leader requires scalable product with recurring consumables. Focus on pricing strategy.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
-      if (cNames.has("capital_barrier")) { resolves.push("capital_barrier"); strengths.push("Capital barrier eliminated by subsidizing the initial purchase"); }
       if (cNames.has("commoditized_pricing")) { resolves.push("commoditized_pricing"); strengths.push("Commodity pricing on the product — margin shifts to ecosystem monetization"); }
       if (profile.switchingCosts === "high" || profile.switchingCosts === "moderate") strengths.push("Switching costs lock customers into the ecosystem after initial purchase");
       if (profile.revenueModel === "transactional") strengths.push("Transactional model can convert to recurring via consumable ecosystem");
@@ -801,6 +832,10 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       // Gate: artisan service with single customer rarely generates reusable data
       if (profile.laborIntensity === "artisan" && profile.customerConcentration === "single_customer") {
         return { qualifies: false, reason: "Artisan service for single customer — insufficient data volume for moat.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: traditional service businesses don't generate the data volume needed for a moat
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — data moat requires digital-scale interactions. Focus on building expertise and reputation.", strengthSignals: [], resolvesConstraints: [] };
       }
 
       if (profile.customerConcentration === "diversified") strengths.push("Diversified customer base generates broad, valuable data");
