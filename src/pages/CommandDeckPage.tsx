@@ -550,7 +550,7 @@ export default function CommandDeckPage() {
               </span>
             </div>
             <div className="flex gap-2">
-              {pipelineProgress.steps.filter(s => !("lazy" in STEP_DEFS.find(d => d.key === s.key)! && STEP_DEFS.find(d => d.key === s.key)!.lazy)).map(s => (
+              {pipelineProgress.steps.filter(s => s.key !== "stressTest" && s.key !== "pitch").map(s => (
                 <div key={s.key} className="flex-1">
                   <div
                     className="h-1.5 rounded-full transition-all duration-500"
