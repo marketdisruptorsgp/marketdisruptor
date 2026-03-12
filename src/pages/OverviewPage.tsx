@@ -74,6 +74,13 @@ export default function OverviewPage() {
   const problemStatement = adaptiveContext?.problemStatement || selectedProduct?.description || "";
   const challenges = adaptiveContext?.selectedChallenges || [];
   const entityName = adaptiveContext?.entity?.name || selectedProduct?.name || "Analysis";
+  const rawSummary = narrative?.executiveSummary || narrative?.narrativeSummary || "";
+  // Distill to ~3 sentences / ~150 words
+  const summaryText = useMemo(() => distillSummary(rawSummary), [rawSummary]);
+  const hasData = !!narrative || topOpps.length > 0;
+  const loading = isComputing && !hasData;
+  const challenges = adaptiveContext?.selectedChallenges || [];
+  const entityName = adaptiveContext?.entity?.name || selectedProduct?.name || "Analysis";
   const summaryText = narrative?.executiveSummary || narrative?.narrativeSummary || "";
   const hasData = !!narrative || topOpps.length > 0;
   const loading = isComputing && !hasData;
