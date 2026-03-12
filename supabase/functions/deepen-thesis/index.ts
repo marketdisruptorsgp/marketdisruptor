@@ -61,7 +61,7 @@ ${businessContext || "No additional context."}
 
 ${docIntelBlock}
 EVIDENCE SUMMARY (top signals):
-${(evidenceSummary || []).slice(0, 25).map((e: any) => `- [${e.type}] ${e.label}${e.description ? ": " + e.description.slice(0, 150) : ""}`).join("\n")}
+${(evidenceSummary || []).slice(0, 15).map((e: any) => `- [${e.type}] ${e.label}${e.description ? ": " + e.description.slice(0, 100) : ""}`).join("\n")}
 
 Generate ${thesisCount} deepened strategic opportunities. Each must be specific to THIS business and structurally distinct from the others. Return ONLY the JSON via the tool call.`;
 
