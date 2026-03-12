@@ -187,7 +187,7 @@ export function usePipelineOrchestrator(
 
   // ── Phase 2: Strategic Synthesis (replaces transform + concept) ──
 
-  const runStrategicSynthesis = useCallback(async (product: any, extractedContext: string, decompResult: unknown): Promise<unknown> => {
+  const runStrategicSynthesis = useCallback(async (product: any, extractedContext: string, decompResult: unknown, strategyContext?: any): Promise<unknown> => {
     // If businessAnalysisData exists, reuse it
     if (businessAnalysisData) {
       console.log("[Pipeline] Reusing businessAnalysisData as synthesis step");
@@ -222,6 +222,7 @@ export function usePipelineOrchestrator(
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
         preContext,
+        strategyContext: strategyContext || undefined,
         // Curation context
         insightPreferences: (analysis as any).insightPreferences || undefined,
         userScores: (analysis as any).userScores || undefined,
