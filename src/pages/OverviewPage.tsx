@@ -97,28 +97,7 @@ export default function OverviewPage() {
         <p className="text-sm text-muted-foreground mt-1">Operator Briefing</p>
       </motion.div>
 
-      {/* ═══ 1. YOUR SITUATION ═══ */}
-      <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.05 }}>
-        <Card className="border-border/60">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <Eye size={15} className="text-primary" />
-              <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-                Your Situation
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {problemStatement ? (
-              <p className="text-sm leading-relaxed text-foreground/90">{problemStatement}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">No problem statement provided.</p>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* ═══ 2. KEY INSIGHTS ═══ */}
+      {/* ═══ 1. KEY INSIGHTS ═══ */}
       <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-1">
