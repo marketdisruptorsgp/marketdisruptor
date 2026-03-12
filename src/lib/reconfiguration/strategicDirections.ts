@@ -148,6 +148,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Turn an internal capability into a product that others pay to use.",
     aiPromptHint: "Identify the specific internal capability, process, or tool that could be extracted and sold as a standalone product. Who would pay for it? What's the pricing model?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.assetUtilization === "underutilized" || p.assetUtilization === "idle") score += 4;
       if (p.valueChainPosition === "infrastructure" || p.valueChainPosition === "platform") score += 2;
