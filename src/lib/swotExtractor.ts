@@ -268,7 +268,7 @@ function inferBadges(opp: DeepenedOpportunity): OpportunityBadge[] {
   const rev = (opp.economicMechanism?.revenueImplication || "").toLowerCase();
   const cost = (opp.economicMechanism?.costStructureShift || "").toLowerCase();
   const defense = (opp.economicMechanism?.defensibility || "").toLowerCase();
-  const feasibility = opp.feasibility?.feasibilityLevel;
+  const feasibility = opp.feasibility?.level;
   const timeframe = (opp.firstMove?.timeframe || "").toLowerCase();
 
   if (rev.includes("recurring") || rev.includes("subscription") || rev.includes("repeat")) badges.push("Recurring");
