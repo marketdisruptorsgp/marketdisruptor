@@ -315,7 +315,7 @@ export default function CommandDeckPage() {
         {/* ═══ SECTION 2 — BUSINESS REALITY (SWOT) ═══ */}
         {Object.values(swotProse).some(Boolean) && (
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {swotProse.working && (
                 <RealityCard
                   icon={TrendingUp}
