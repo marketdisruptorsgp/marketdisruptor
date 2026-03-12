@@ -233,10 +233,12 @@ function OpportunityLandscapeScatter({ opportunities, graph, onSelectOpp, onSele
 
           {/* Dots */}
           {plotted.map((opp, i) => {
-            const x = pad + ((opp.feasibility - 1) / 9) * (W - pad * 2);
-            const y = (H - pad) - ((opp.leverage - 1) / 9) * (H - pad * 2);
-            const r = 4 + (opp.impact / 10) * 6;
-            const isHigh = opp.leverage >= 6 && opp.feasibility >= 6;
+            const feasVal = opp.feasibility ?? 5;
+            const levVal = opp.leverage ?? 5;
+            const x = pad + ((feasVal - 1) / 9) * (W - pad * 2);
+            const y = (H - pad) - ((levVal - 1) / 9) * (H - pad * 2);
+            const r = 4 + ((opp.impact ?? 5) / 10) * 6;
+            const isHigh = levVal >= 6 && feasVal >= 6;
             const color = isHigh ? "hsl(152 60% 44%)" : "hsl(229 89% 63%)";
 
             return (

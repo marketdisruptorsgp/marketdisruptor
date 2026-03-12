@@ -494,7 +494,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     /* ═══ 5. PRODUCT ═══ */
     product: (() => {
       const concept = (redesignData as any)?.redesignedConcept;
-      const selectedImages = analysisCtx.pitchDeckImages;
+      const selectedImages = Array.isArray(analysisCtx.pitchDeckImages) ? analysisCtx.pitchDeckImages : [];
       return (
         <div style={gap28}>
           {/* User-selected pitch deck images */}
