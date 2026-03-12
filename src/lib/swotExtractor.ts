@@ -196,8 +196,8 @@ export function extractSwotProse(
 
 /** Build exactly 2 sentences from two source strings. Returns null if insufficient data. */
 function buildTwoSentences(first: string | null | undefined, second: string | null | undefined): string | null {
-  const s1 = enforceCharLimit(first, 150);
-  const s2 = enforceCharLimit(second, 150);
+  const s1 = enforceCharLimit(first, 100);
+  const s2 = enforceCharLimit(second, 100);
   if (!s1) return null;
   if (!s2) return s1.endsWith(".") ? s1 : `${s1}.`;
   const a = s1.endsWith(".") ? s1 : `${s1}.`;

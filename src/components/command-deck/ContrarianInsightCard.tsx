@@ -99,13 +99,10 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
           </div>
         </div>
 
-        {/* So What */}
         {soWhat && (
-          <div className="pt-1 border-t border-border/50">
-            <p className="text-sm text-foreground leading-snug">
-              <span className="font-bold">{soWhat}</span>
-            </p>
-          </div>
+          <p className="text-xs text-foreground/70 leading-snug pt-1 border-t border-border/50">
+            <span className="font-semibold">{soWhat}</span>
+          </p>
         )}
       </div>
     </motion.div>
