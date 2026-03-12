@@ -208,12 +208,12 @@ export default function CommandDeckPage() {
 
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-3 sm:py-5 space-y-5">
+      <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-1.5 sm:py-2 space-y-2">
 
         {/* ═══ HEADER ═══ */}
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-black text-foreground truncate">
+            <h1 className="text-base sm:text-lg font-black text-foreground truncate">
               {analysisDisplayName}
             </h1>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -294,14 +294,9 @@ export default function CommandDeckPage() {
 
         {/* ═══ DEEPENING INDICATOR ═══ */}
         {isDeepening && hasRun && !pipelineProgress.isRunning && (
-          <div
-            className="rounded-xl px-4 py-3 flex items-center gap-2"
-            style={{ background: `${modeAccent}08`, border: `1px solid ${modeAccent}20` }}
-          >
-            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: modeAccent }} />
-            <span className="text-xs font-bold" style={{ color: modeAccent }}>
-              Refining insights…
-            </span>
+          <div className="flex items-center gap-1.5 px-1">
+            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: modeAccent }} />
+            <span className="text-[10px] font-bold" style={{ color: modeAccent }}>Refining insights…</span>
           </div>
         )}
 
@@ -315,7 +310,7 @@ export default function CommandDeckPage() {
         {/* ═══ SECTION 2 — BUSINESS REALITY (SWOT) ═══ */}
         {Object.values(swotProse).some(Boolean) && (
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {swotProse.working && (
                 <RealityCard
                   icon={TrendingUp}
@@ -355,14 +350,9 @@ export default function CommandDeckPage() {
         {/* ═══ SECTION 3 — CRITICAL QUESTION ═══ */}
         {criticalQuestion && (
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
-            <div className="rounded-xl px-5 py-4 bg-muted/50 border border-border">
-              <div className="flex items-center gap-2 mb-2">
-                <HelpCircle size={14} className="text-primary flex-shrink-0" />
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                  The Question to Answer First
-                </span>
-              </div>
-              <p className="text-base font-bold text-foreground leading-snug">
+            <div className="rounded-lg px-3 py-2 bg-muted/50 border border-border flex items-start gap-2">
+              <HelpCircle size={13} className="text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">
                 {criticalQuestion}
               </p>
             </div>
@@ -372,53 +362,47 @@ export default function CommandDeckPage() {
         {/* ═══ SECTION 4 — TOP 3 OPPORTUNITIES ═══ */}
         {opportunities.length > 0 && (
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
-            <div className="space-y-3">
+            <div className="space-y-1">
               <div className="flex items-center gap-2 px-1">
-                <Zap size={15} className="text-primary" />
-                <h2 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+                <Zap size={12} className="text-primary" />
+                <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
                   Top Moves
                 </h2>
               </div>
-              <div className="space-y-3">
-                {opportunities.map((opp, i) => (
-                  <Card key={i} className="border-border/60">
-                    <CardContent className="pt-5 pb-4">
-                      <div className="flex gap-3 items-start">
-                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
-                          {i + 1}
-                        </span>
-                        <div className="min-w-0 space-y-2">
-                          <p className="text-sm font-bold text-foreground leading-snug">{opp.title}</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{opp.description}</p>
-                          <div className="flex gap-1.5 flex-wrap">
-                            {opp.badges.map((badge) => (
-                              <span
-                                key={badge}
-                                className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary"
-                              >
-                                {badge}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+              {opportunities.map((opp, i) => (
+                <div key={i} className="rounded-lg border border-border/60 bg-card px-3 py-2">
+                  <div className="flex gap-2 items-start">
+                    <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold mt-0.5">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-xs font-bold text-foreground leading-snug">{opp.title}</p>
+                        {opp.badges.map((badge) => (
+                          <span key={badge} className="text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary/10 text-primary">
+                            {badge}
+                          </span>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      <p className="text-[11px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{opp.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}
 
         {/* ═══ SEE FULL ANALYSIS ═══ */}
-        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pt-2 pb-4">
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pb-1">
           <Button
-            size="lg"
+            size="sm"
+            variant="outline"
             onClick={() => navigate(`${baseUrl}/report`)}
-            className="gap-2"
+            className="gap-1.5 text-xs"
           >
             See Full Analysis
-            <ArrowRight size={16} />
+            <ArrowRight size={14} />
           </Button>
         </motion.div>
 
@@ -441,17 +425,17 @@ function RealityCard({
         borderColor: `hsl(var(${colorVar}) / 0.15)`,
       }}
     >
-      <CardContent className="pt-4 pb-4">
-        <div className="flex items-center gap-1.5 mb-2">
-          <Icon size={13} style={{ color: `hsl(var(${colorVar}))` }} />
+      <CardContent className="pt-2.5 pb-2.5 px-3">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <Icon size={12} style={{ color: `hsl(var(${colorVar}))` }} />
           <span
-            className="text-[10px] font-extrabold uppercase tracking-wider"
+            className="text-[9px] font-extrabold uppercase tracking-wider"
             style={{ color: `hsl(var(${colorVar}))` }}
           >
             {label}
           </span>
         </div>
-        <p className="text-sm text-foreground/80 leading-relaxed">{text}</p>
+        <p className="text-[11px] text-foreground/80 leading-snug line-clamp-2">{text}</p>
       </CardContent>
     </Card>
   );

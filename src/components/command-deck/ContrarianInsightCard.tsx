@@ -56,7 +56,7 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
         border: `1.5px solid ${modeAccent}30`,
       }}
     >
-      <div className="px-5 py-4 space-y-3">
+      <div className="px-4 py-3 space-y-2">
         {/* Header */}
         <div className="flex items-center gap-2">
           <Zap size={13} style={{ color: modeAccent }} />
@@ -69,13 +69,13 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Industry assumes */}
           <div
-            className="flex-1 rounded-lg px-4 py-3"
+            className="flex-1 rounded-lg px-3 py-2"
             style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.12)" }}
           >
-            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--destructive))" }}>
+            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>
               Everyone Assumes
             </p>
-            <p className="text-sm text-foreground/80 leading-snug">
+            <p className="text-xs text-foreground/80 leading-snug">
               "{everyoneAssumes}"
             </p>
           </div>
@@ -87,25 +87,22 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
 
           {/* Contrarian belief */}
           <div
-            className="flex-1 rounded-lg px-4 py-3"
+            className="flex-1 rounded-lg px-3 py-2"
             style={{ background: `${modeAccent}08`, border: `1px solid ${modeAccent}18` }}
           >
-            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: modeAccent }}>
+            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1" style={{ color: modeAccent }}>
               The Evidence Suggests
             </p>
-            <p className="text-sm text-foreground font-semibold leading-snug">
+            <p className="text-xs text-foreground font-semibold leading-snug">
               "{evidenceSuggests}"
             </p>
           </div>
         </div>
 
-        {/* So What */}
         {soWhat && (
-          <div className="pt-1 border-t border-border/50">
-            <p className="text-sm text-foreground leading-snug">
-              <span className="font-bold">{soWhat}</span>
-            </p>
-          </div>
+          <p className="text-xs text-foreground/70 leading-snug pt-1 border-t border-border/50">
+            <span className="font-semibold">{soWhat}</span>
+          </p>
         )}
       </div>
     </motion.div>
