@@ -595,6 +595,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setPitchDeckImages, setPitchDeckExclusions, setScoutedCompetitors,
     setAdaptiveContext: setAdaptiveContextState, setGeoData, setRegulatoryData,
     setActiveLensState,
+    setRejectedIdeasPersisted,
   }), []);
 
   const handleAnalyze = useCallback(async (params: {
