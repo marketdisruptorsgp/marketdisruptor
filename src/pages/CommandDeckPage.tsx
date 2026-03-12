@@ -350,14 +350,9 @@ export default function CommandDeckPage() {
         {/* ═══ SECTION 3 — CRITICAL QUESTION ═══ */}
         {criticalQuestion && (
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
-            <div className="rounded-xl px-4 py-3 bg-muted/50 border border-border">
-              <div className="flex items-center gap-2 mb-1">
-                <HelpCircle size={13} className="text-primary flex-shrink-0" />
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                  The Question to Answer First
-                </span>
-              </div>
-              <p className="text-sm font-bold text-foreground leading-snug">
+            <div className="rounded-lg px-3 py-2 bg-muted/50 border border-border flex items-start gap-2">
+              <HelpCircle size={13} className="text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">
                 {criticalQuestion}
               </p>
             </div>
