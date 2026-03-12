@@ -3,13 +3,17 @@
  * Replaces the graph/node visualization with a decision-ready brief.
  */
 
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ShieldAlert, TrendingUp, ChevronDown, ArrowRight } from "lucide-react";
+import { ShieldAlert, TrendingUp, ChevronDown, ArrowRight, GitBranch, Grid2x2, Map, Network } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
 import { OPPORTUNITY_NODE_TYPES, getInsightChain } from "@/lib/insightGraph";
+import { CytoscapeReasoningMap } from "./CytoscapeReasoningMap";
+import { OpportunityMatrix } from "./OpportunityMatrix";
+import { ConstraintMap } from "./ConstraintMap";
+import { PrimaryBlockerCallout } from "./PrimaryBlockerCallout";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES & CONFIG
