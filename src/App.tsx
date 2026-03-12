@@ -182,8 +182,9 @@ function AppRoutes() {
         <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
         <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
         <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-        {/* Default analysis landing → Command Deck */}
+        {/* Default analysis landing → Overview */}
         <Route path="/analysis/:id" element={<LazyRoute><CommandDeckRedirect /></LazyRoute>} />
+        <Route path="/analysis/:id/overview" element={<LazyRoute><OverviewPage /></LazyRoute>} />
         <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
         <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
         <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
