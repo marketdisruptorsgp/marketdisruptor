@@ -313,6 +313,23 @@ export default function DisruptPage() {
       </div>
       </SplitStepLayout>
 
+      {/* Strategic Opportunities + Recommended Move — moved from Command Deck */}
+      {hasDisruptData && (
+        <div className="space-y-6">
+          <OpportunityDirectionsGrid
+            opportunities={(autoAnalysis as any).deepenedOpportunities?.slice(0, 3) || []}
+            modeAccent={theme.primary}
+          />
+          {(() => {
+            const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
+              analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product";
+            const pbs = generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, autoAnalysis.narrative, modeEvidence);
+            const topPb = pbs.length > 0 ? pbs[0] : null;
+            return <RecommendedMoveCard playbook={topPb} modeAccent={theme.primary} />;
+          })()}
+        </div>
+      )}
+
       {/* Pipeline Progress Bar */}
       <PipelineProgressBar
         completedSteps={autoAnalysis.completedSteps}

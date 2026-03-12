@@ -316,6 +316,37 @@ export default function StressTestPage() {
         )}
       </SplitStepLayout>
 
+      {/* Benchmark + Moat + Simulator + Lens Intelligence — moved from Command Deck */}
+      <div className="space-y-6 mt-6">
+        {(() => {
+          const biExt = (analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null;
+          const flatEv = autoAnalysis.flatEvidence || [];
+          const narr = autoAnalysis.narrative || null;
+          const modeEv: import("@/lib/evidenceEngine").EvidenceMode =
+            analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product";
+          const pbs = generatePlaybooks(flatEv, autoAnalysis.insights, narr, modeEv);
+          const topPb = pbs.length > 0 ? pbs[0] : null;
+          const bm = computeBenchmarks(flatEv, narr, topPb, biExt);
+          return <IndustryBenchmarkPanel benchmark={bm} />;
+        })()}
+        <CompetitiveMoatRadar
+          governedData={governedData as Record<string, any> | null}
+          narrative={autoAnalysis.narrative}
+          modeAccent={theme.primary}
+        />
+        <StrategicScenarioSimulator
+          evidence={autoAnalysis.flatEvidence || []}
+          narrative={autoAnalysis.narrative}
+        />
+        <LensIntelligencePanel
+          analysisMode={analysis.activeMode || "product"}
+          signalKeywords={[]}
+          analysisId={analysisId || ""}
+          recommendedToolIds={[]}
+          onScenarioSaved={() => {}}
+        />
+      </div>
+
       <PipelineProgressBar
         completedSteps={autoAnalysis.completedSteps}
         outdatedSteps={analysis.outdatedSteps}

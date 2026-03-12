@@ -194,6 +194,61 @@ export default function InsightGraphPage() {
       <div className="flex-1 min-h-0">
         <InsightGraphView graph={graph} analysisId={analysisId || ""} />
       </div>
+
+      {/* Document Intelligence + System Map + Current State — moved from Command Deck */}
+      <div className="p-4 space-y-6 overflow-y-auto max-h-[50vh] border-t border-border">
+        {(() => {
+          const biExt = (analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
+          const govData = analysis.governedData as Record<string, any> | null;
+          return (
+            <>
+              <CIMKeyFindings biExtraction={biExt} modeAccent={modeAccent} />
+              <DocumentIntelligenceBanner
+                biExtraction={biExt}
+                governedData={govData}
+                adaptiveContextLoaded={!!analysis.adaptiveContext}
+              />
+            </>
+          );
+        })()}
+        {(() => {
+          const biz = analysis.businessAnalysisData as Record<string, any> || {};
+          const governed = biz?.governed || analysis.governedData || {};
+          const sp = autoAnalysis.structuralProfile;
+          const product = selectedProduct as any || {};
+          const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
+          const modeKey = (analysis as any).activeMode === "service" ? "service"
+            : (analysis as any).activeMode === "business" ? "business" : "product";
+          return (
+            <IndustrySystemMapView
+              businessName={analysisDisplayName}
+              businessDescription={businessModelInput?.description || product?.description}
+              structuralProfile={sp}
+              opportunities={autoAnalysis.deepenedOpportunities}
+              narrative={autoAnalysis.narrative}
+              firstPrinciples={governed?.first_principles}
+              constraintMap={governed?.constraint_map}
+              supplyChain={product?.supplyChain}
+              mode={modeKey as any}
+              modeAccent={modeAccent}
+            />
+          );
+        })()}
+        {(() => {
+          const flatEv = autoAnalysis.flatEvidence || [];
+          const patterns = detectStructuralPattern(flatEv, autoAnalysis.insights, autoAnalysis.narrative);
+          return (
+            <CurrentStateIntelligence
+              product={selectedProduct as any}
+              businessData={analysis.businessAnalysisData as Record<string, any> | null}
+              narrative={autoAnalysis.narrative}
+              governedData={analysis.governedData as Record<string, any> | null}
+              flatEvidence={flatEv}
+              detectedPatterns={patterns}
+            />
+          );
+        })()}
+      </div>
     </div>
   );
 }
