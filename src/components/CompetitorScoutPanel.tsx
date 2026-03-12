@@ -32,7 +32,7 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
     setIsLoading(true);
     try {
       const { data, error } = await invokeWithTimeout("scout-competitors", {
-        body: { ideaName, ideaDescription, category, steeringContext },
+        body: { ideaName, ideaDescription, category, steeringContext, assumptionFlipped, structuralPrimitives },
       }, 30_000);
 
       if (error) throw error;
