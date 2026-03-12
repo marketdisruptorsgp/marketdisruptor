@@ -391,9 +391,18 @@ saved_analyses
  │   │     Writers: scout-competitors edge function            │
  │   │     Readers: CompetitorScoutPanel, strategy             │
  │   │                                                        │
- │   └── strategy        → Strategic synthesis                │
- │         Writers: StrategicSummaryPanel                      │
- │         Readers: PitchPage, ExportPanel                    │
+│   ├── strategy        → Strategic synthesis                │
+│   │     Writers: StrategicSummaryPanel                      │
+│   │     Readers: PitchPage, ExportPanel                    │
+│   │                                                        │
+│   ├── _dataConfidence → Confidence gating metadata         │
+│   │     Writers: assessDataConfidence() at pipeline end     │
+│   │     Readers: ProvenanceBadge, ResearchChecklist,       │
+│   │              DataConfidenceSummary                      │
+│   │                                                        │
+│   └── researchChecklist → Research questions for gaps      │
+│         Writers: confidenceGating.ts                        │
+│         Readers: ResearchChecklist (Command Deck)          │
  │                                                            │
  ├── created_at          (timestamptz)                         │
  └── updated_at          (timestamptz)                         │
