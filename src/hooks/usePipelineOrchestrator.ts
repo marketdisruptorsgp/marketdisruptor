@@ -341,7 +341,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("stressTest");
     updateStatus("stressTest", "done");
     onStepComplete?.("stressTest");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: update intelligence with stress test data
+    onRecompute?.();
     return stressResult;
   }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete]);
 
