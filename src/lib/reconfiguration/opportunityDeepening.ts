@@ -369,11 +369,11 @@ export async function deepenOpportunitiesAsync(
     console.log(`[AI Deepening] Received ${data.theses.length} AI-generated theses`);
 
     // Map AI output to DeepenedOpportunity format
-    return data.theses.map((thesis: any, idx: number) => {
+    const mappedOpportunities = data.theses.map((thesis: any, idx: number) => {
       // Find matching qualified pattern (by patternId or directionId)
       const matchedQP = qualifiedPatterns.find(qp => qp.pattern.id === thesis.patternId)
         ?? qualifiedPatterns[Math.min(idx, qualifiedPatterns.length - 1)];
-      
+
       // For direction-based theses without a matching pattern, create a synthetic wrapper
       const patternId = thesis.directionId || thesis.patternId || `direction-${idx}`;
       const patternName = thesis.directionId
@@ -429,6 +429,17 @@ export async function deepenOpportunitiesAsync(
         signalDensity: matchedQP?.signalDensity || 0,
       } as DeepenedOpportunity;
     }).filter(Boolean) as DeepenedOpportunity[];
+
+    const filtered = filterRealisticOpportunities(mappedOpportunities, profile);
+    if (filtered.length === 0) {
+      console.warn("[AI Deepening] All AI theses failed realism filter; using deterministic fallback");
+      return filterRealisticOpportunities(
+        deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence),
+        profile,
+      ).slice(0, 5);
+    }
+
+    return filtered.slice(0, 5);
   } catch (err) {
     console.warn("[AI Deepening] Error, falling back to deterministic:", err);
     return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence);
