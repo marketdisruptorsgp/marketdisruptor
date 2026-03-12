@@ -44,6 +44,7 @@ const PipelinePage = lazy(() => import("./pages/PipelinePage"));
 const PipelineObservabilityPage = lazy(() => import("./pages/PipelineObservabilityPage"));
 const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage"));
 const CommandDeckPage = lazy(() => import("./pages/CommandDeckPage"));
+const OverviewPage = lazy(() => import("./pages/OverviewPage"));
 const BenchmarkRunner = lazy(() => import("./pages/BenchmarkRunner"));
 const PipelineTestRunner = lazy(() => import("./pages/PipelineTestRunner"));
 const PipelineArchitecturePage = lazy(() => import("./pages/PipelineArchitecturePage"));
@@ -118,11 +119,11 @@ function LazyRoute({ children }: { children: ReactNode }) {
   );
 }
 
-/** Redirect /analysis/:id → /analysis/:id/command-deck */
+/** Redirect /analysis/:id → /analysis/:id/overview */
 function CommandDeckRedirect() {
   const { id } = useParams<{ id: string }>();
   if (!id) return <Navigate to="/workspace" replace />;
-  return <Navigate to={`/analysis/${id}/command-deck`} replace />;
+  return <Navigate to={`/analysis/${id}/overview`} replace />;
 }
 
 function AppRoutes() {
@@ -181,8 +182,9 @@ function AppRoutes() {
         <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
         <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
         <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-        {/* Default analysis landing → Command Deck */}
+        {/* Default analysis landing → Overview */}
         <Route path="/analysis/:id" element={<LazyRoute><CommandDeckRedirect /></LazyRoute>} />
+        <Route path="/analysis/:id/overview" element={<LazyRoute><OverviewPage /></LazyRoute>} />
         <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
         <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
         <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
