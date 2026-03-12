@@ -399,6 +399,10 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.valueChainPosition === "infrastructure" && profile.marginStructure === "high_margin" && profile.laborIntensity === "automated") {
         return { qualifies: false, reason: "Already operating as high-margin automated infrastructure — abstraction is complete.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: traditional service businesses should not become SaaS/infrastructure companies
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — infrastructure abstraction is unrealistic. Focus on operational improvements.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") {
         strengths.push("Labor-heavy delivery suggests abstractable expertise");
