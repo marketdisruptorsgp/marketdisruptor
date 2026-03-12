@@ -69,8 +69,13 @@ export interface StructuralPattern {
  */
 function isTraditionalService(profile: StructuralProfile): boolean {
   const laborHeavy = profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan";
-  const endService = profile.valueChainPosition === "end_service";
-  return laborHeavy && endService;
+  const nonDigitalRevenue =
+    profile.revenueModel === "project_based" ||
+    profile.revenueModel === "transactional" ||
+    profile.revenueModel === "mixed";
+  const servicePosition = profile.valueChainPosition === "end_service" || profile.valueChainPosition === "application";
+  const ownerDependent = profile.ownerDependency === "owner_reliant" || profile.ownerDependency === "owner_critical";
+  return laborHeavy && nonDigitalRevenue && (servicePosition || ownerDependent || profile.etaActive);
 }
 
 // ═══════════════════════════════════════════════════════════════
