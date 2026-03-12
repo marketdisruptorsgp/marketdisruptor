@@ -308,15 +308,17 @@ function buildStrategicNarrative(
 
   // Strategic Verdict — the headline
   const strategicVerdict = move;
-  const verdictRationale = `The current structure is constrained by ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
+  const verdictRationale = `This business is held back by ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
   const verdictConfidence = Math.min(0.4 + primary.signalDensity * 0.15, 0.9);
 
-  // Why This Matters — from the strategic bet
-  const whyThisMatters = `Everyone in this market assumes "${primary.strategicBet.industryAssumption}" — but the evidence suggests otherwise. ${primary.strategicBet.contrarianBelief}. ${primary.strategicBet.implication}. This isn't a surface optimization: it's a structural reconfiguration that changes where and how value accrues.`;
+  // Why This Matters — from the strategic bet (plain English, no jargon)
+  const whyThisMatters = primary.strategicBet.industryAssumption && primary.strategicBet.contrarianBelief
+    ? `Most people in this market believe "${primary.strategicBet.industryAssumption}" — but the evidence points another way. ${primary.strategicBet.contrarianBelief}. ${primary.strategicBet.implication || ""}`
+    : primary.strategicBet.contrarianBelief || primary.causalChain.reasoning || null;
 
   // Trapped Value — from economic mechanism
-  const trappedValue = `${primary.economicMechanism.valueCreation}. Current cost structure: ${primary.economicMechanism.costStructureShift}`;
-  const unlockPotential = `${primary.economicMechanism.revenueImplication}${primary.economicMechanism.defensibility ? `. Defensibility: ${primary.economicMechanism.defensibility}` : ""}`;
+  const trappedValue = `${primary.economicMechanism.valueCreation}. Current cost picture: ${primary.economicMechanism.costStructureShift}`;
+  const unlockPotential = `${primary.economicMechanism.revenueImplication}${primary.economicMechanism.defensibility ? `. Why it's hard to copy: ${primary.economicMechanism.defensibility}` : ""}`;
 
   // Kill Question — from feasibility
   const topRisk = primary.feasibility.executionRisks[0] || "structural barriers";
