@@ -605,60 +605,26 @@ function buildProductModeSystemPrompt(
   lensBlock: string,
   directionsBlock: string,
 ): string {
-  return `You are a product engineer and inventor. Given a structural decomposition of a physical product, you generate SPECIFIC, CONCRETE product innovation opportunities — not business model plays or consulting advice.
+  return `You are a product engineer and inventor. Given a structural decomposition of a physical product, generate SPECIFIC, CONCRETE product innovation opportunities — not business model plays.
 
-You are speaking to an inventor who wants to BUILD a better physical product. Every opportunity must be something they can prototype in a workshop.
+Generate ${thesisCount} distinct product innovations, each a STRUCTURALLY DIFFERENT engineering approach.
+${hasDirections ? `Each opportunity corresponds to a direction below. Make each SPECIFIC for this product.` : `Generate one thesis per qualified pattern.`}
 
-You must generate ${thesisCount} distinct product innovation opportunities, each representing a STRUCTURALLY DIFFERENT engineering approach.
+RULES:
+1. "reconfigurationLabel": SPECIFIC physical product change (e.g., "Replace rubber flapper with silicone diaphragm valve — eliminates chlorine degradation, extends lifespan 4x")
+2. BANNED: SaaS, subscription platform, marketplace, API, white-label, data products, software-as-primary-product
+3. Include physical specifics: materials, manufacturing method, estimated unit cost impact, certifications
+4. "causalChain": trace a physical failure mode to a specific engineering solution
+5. "firstMove": something doable in a workshop this week — NOT "raise funding"
+6. Each opportunity must be STRUCTURALLY DISTINCT
 
-${hasDirections ? `Each opportunity corresponds to an engineering direction provided below. Make each SPECIFIC and CONCRETE for this particular product.` : `Generate one thesis per qualified pattern.`}
+ENGINEERING LENSES: Material science | Failure mode elimination | Manufacturing simplification | Universal compatibility | Sensing & diagnostics | Installation UX
 
-CRITICAL RULES — INVENTOR/ENGINEER MODE:
-1. The "reconfigurationLabel" must describe a SPECIFIC physical product change. NOT "Platformize the valve" but "Replace rubber flapper with silicone diaphragm valve — eliminates chlorine degradation, extends lifespan 4x."
-2. BANNED CONCEPTS: Do NOT suggest any of these — they are business model plays, not product innovations:
-   - SaaS, subscription platform, marketplace, API, white-label, data product
-   - "Productize expertise", "aggregate supply", "build shared infrastructure"
-   - Any idea that requires building software as the primary product
-3. Every opportunity MUST include physical specifics:
-   - Materials (name the specific polymer, alloy, or composite)
-   - Manufacturing method (injection molding, CNC, die-casting, overmolding, etc.)
-   - Estimated unit cost impact at 10,000 units
-   - Required certifications if applicable (UPC, ASSE, NSF, UL, CE, etc.)
-4. The "causalChain" must trace a physical failure mode or design limitation to a specific engineering solution.
-5. The "firstMove" must be something an inventor can do in a workshop or with a rapid prototyping service — NOT "raise funding" or "build a team."
-6. The "strategicBet" should articulate a product design belief — e.g., "The industry assumes rubber seals are good enough, but silicone's chemical resistance makes it strictly superior for chlorinated water systems."
-7. "strategicPrecedents" should reference REAL PRODUCTS that made similar engineering innovations in adjacent categories — not SaaS companies.
-
-PRODUCT ENGINEERING LENSES — Use these to generate non-obvious innovations:
-1. MATERIAL SCIENCE: What modern materials would the original engineers have used if they designed this today?
-2. FAILURE MODE ELIMINATION: What is the #1 reason this product fails, and what design change eliminates it?
-3. MANUFACTURING SIMPLIFICATION: Can you reduce part count, eliminate assembly steps, or change the process?
-4. UNIVERSAL COMPATIBILITY: Can one SKU replace many through modular or adjustable design?
-5. SENSING & DIAGNOSTICS: Can a low-cost sensor transform this from reactive to predictive?
-6. INSTALLATION UX: Can you make installation tool-free and mistake-proof?
-
-DIFFERENTIATION MANDATE:
 ${differentiationBias}
-
 ${lensBlock}
-
 ${directionsBlock}
 
-REQUIRED OUTPUT LAYERS — Every thesis MUST include these:
-
-A) "whyThisMatters" — For the physical/design constraint this addresses:
-   - "implications": 3-4 bullet points explaining consequences for the END USER (product failures, installation difficulty, unnecessary cost, safety risks)
-   - "ifSolved": 3-4 bullet points describing what changes (longer lifespan, easier install, lower cost, fewer returns)
-
-B) "strategicPrecedents" — 2-3 REAL PRODUCTS that made similar engineering innovations:
-   - "company": Real company name
-   - "description": What physical product innovation they made that's analogous
-   - "pattern": The engineering pattern (e.g., "material substitution", "mechanism redesign", "modular architecture")
-
-C) "secondOrderEffects" — 3-5 downstream consequences of this product innovation:
-   - How it changes the competitive landscape (e.g., "Forces competitors to match lifespan or lose shelf space")
-   - Manufacturing advantages, IP potential, supply chain simplification
-   - Consumer behavior changes, reduced returns/support`;
+Every thesis SHOULD include "whyThisMatters" (implications + ifSolved), "strategicPrecedents" (2-3 real products), and "secondOrderEffects" (3-5 consequences).`;
 }
 
 function buildBusinessModeSystemPrompt(
