@@ -249,6 +249,132 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
       return Math.min(10, score);
     },
   },
+
+  // ═══════════════════════════════════════════════════════════════
+  //  NEW DIRECTIONS — Demand-Side, Timing, Business Model Flips
+  // ═══════════════════════════════════════════════════════════════
+
+  {
+    id: "reframe_demand",
+    label: "Reframe demand",
+    description: "Redefine the buyer's job-to-be-done to create a new demand category or shift who the buyer is entirely.",
+    aiPromptHint: "What is the current buyer's assumed job-to-be-done? Who else has an adjacent or unrecognized need? How would reframing the value proposition open a larger or uncontested market? What specific messaging and positioning would signal the new category?",
+    relevance: (p) => {
+      let score = 0;
+      if (p.customerConcentration === "concentrated") score += 3;
+      if (p.switchingCosts === "low" || p.switchingCosts === "none") score += 2;
+      if (p.marginStructure === "thin_margin") score += 2;
+      const hasDemandConstraint = p.bindingConstraints.some(c =>
+        /demand|awareness|adoption|category|perception|brand|trust/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasDemandConstraint) score += 4;
+      return Math.min(10, score);
+    },
+  },
+  {
+    id: "outcome_pricing",
+    label: "Shift to outcome pricing",
+    description: "Move from input-based pricing (per hour, per unit) to outcome-based pricing (per result, per success).",
+    aiPromptHint: "What measurable outcome does this business create for customers? How would pricing on that outcome change the economics? What tracking/measurement is needed? What's the risk transfer and how is it managed?",
+    relevance: (p) => {
+      let score = 0;
+      if (p.revenueModel === "project_based") score += 4;
+      if (p.revenueModel === "transactional") score += 2;
+      if (p.laborIntensity === "labor_heavy" || p.laborIntensity === "artisan") score += 3;
+      if (p.marginStructure === "thin_margin") score += 2;
+      const hasPricingConstraint = p.bindingConstraints.some(c =>
+        /price|margin|commodit|revenue|hourly|billing/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasPricingConstraint) score += 3;
+      return Math.min(10, score);
+    },
+  },
+  {
+    id: "network_effect",
+    label: "Build network effects",
+    description: "Create defensibility through usage — each new user makes the product more valuable for all existing users.",
+    aiPromptHint: "What type of network effect could exist here — data, social, marketplace, or protocol? What's the usage loop that creates compounding value? How do you reach critical mass? What's the cold-start strategy?",
+    relevance: (p) => {
+      let score = 0;
+      if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 3;
+      if (p.switchingCosts === "low" || p.switchingCosts === "none") score += 2;
+      if (p.valueChainPosition === "platform" || p.valueChainPosition === "infrastructure") score += 3;
+      if (p.distributionControl === "no_control" || p.distributionControl === "shared") score += 2;
+      const hasNetworkConstraint = p.bindingConstraints.some(c =>
+        /network|scale|growth|adoption|data|information/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasNetworkConstraint) score += 3;
+      return Math.min(10, score);
+    },
+  },
+  {
+    id: "vertical_integrate",
+    label: "Vertically integrate",
+    description: "Own adjacent layers in the value chain — move upstream to control supply or downstream to control distribution.",
+    aiPromptHint: "Which adjacent layer captures disproportionate margin? What would it cost to integrate (build vs. acquire)? What quality/speed improvements come from owning the handoff? What's the competitive response risk?",
+    relevance: (p) => {
+      let score = 0;
+      if (p.distributionControl === "intermediated") score += 4;
+      if (p.distributionControl === "shared") score += 2;
+      if (p.marginStructure === "thin_margin") score += 3;
+      const hasChainConstraint = p.bindingConstraints.some(c =>
+        /channel|intermediar|margin|vendor|supply|distribut/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasChainConstraint) score += 3;
+      return Math.min(10, score);
+    },
+  },
+  {
+    id: "regulatory_arbitrage",
+    label: "Exploit regulatory gaps",
+    description: "Enter markets through regulatory asymmetries, upcoming changes, or compliance-as-a-service opportunities.",
+    aiPromptHint: "What specific regulations constrain this market? Are there jurisdictional differences that create arbitrage? Is regulation about to change, and if so, who wins? Could compliance itself be productized as a service?",
+    relevance: (p) => {
+      let score = 0;
+      if (p.regulatorySensitivity === "heavy") score += 5;
+      if (p.regulatorySensitivity === "moderate") score += 3;
+      if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 2;
+      const hasRegConstraint = p.bindingConstraints.some(c =>
+        /regulat|compliance|licens|permit|legal|certif/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasRegConstraint) score += 4;
+      return Math.min(10, score);
+    },
+  },
+  {
+    id: "freemium_flip",
+    label: "Freemium / model flip",
+    description: "Give away what the industry charges for and monetize a different layer — invert the revenue model.",
+    aiPromptHint: "What is currently the paid product? What complementary layer could generate more revenue if the primary product were free? What's the conversion mechanism from free to paid? How large does the free user base need to be?",
+    relevance: (p) => {
+      let score = 0;
+      if (p.switchingCosts === "low" || p.switchingCosts === "none") score += 3;
+      if (p.distributionControl !== "owned") score += 2;
+      if (p.revenueModel === "transactional") score += 2;
+      const hasBarrierConstraint = p.bindingConstraints.some(c =>
+        /barrier|capital|cost|awareness|trust|adoption/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasBarrierConstraint) score += 4;
+      return Math.min(10, score);
+    },
+  },
+  {
+    id: "timing_play",
+    label: "Timing / temporal arbitrage",
+    description: "Pre-position for emerging market shifts, technology transitions, or regulatory changes that incumbents are too slow to exploit.",
+    aiPromptHint: "What structural shift is approaching (technology, regulation, demographics, behavior)? Why are incumbents slow to respond? What position would be most valuable when the shift completes? What's the timeline and how do you survive until the window opens?",
+    relevance: (p) => {
+      let score = 0;
+      if (p.regulatorySensitivity === "moderate" || p.regulatorySensitivity === "heavy") score += 3;
+      if (p.switchingCosts === "high") score += 2;
+      if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 2;
+      const hasTimingConstraint = p.bindingConstraints.some(c =>
+        /legacy|analog|outdated|transition|shift|change|adoption/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasTimingConstraint) score += 4;
+      return Math.min(10, score);
+    },
+  },
 ];
 
 // ═══════════════════════════════════════════════════════════════
