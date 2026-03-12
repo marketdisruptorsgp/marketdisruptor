@@ -20,8 +20,9 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
     if (!FIRECRAWL_API_KEY) throw new Error("FIRECRAWL_API_KEY not configured");
 
-    // Single targeted search
-    const query = `${ideaName} ${category || ""} competitor similar business startup`;
+    // Single targeted search — incorporate user steering for precision
+    const steeringKeywords = steeringContext ? ` ${steeringContext.split(/\s+/).slice(0, 5).join(" ")}` : "";
+    const query = `${ideaName} ${category || ""}${steeringKeywords} competitor similar business startup`;
 
     const searchRes = await fetch("https://api.firecrawl.dev/v1/search", {
       method: "POST",

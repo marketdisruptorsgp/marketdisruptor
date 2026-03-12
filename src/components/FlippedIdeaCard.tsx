@@ -310,6 +310,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
         category={productName}
         autoScout
         onCompetitorsScouted={onCompetitorsScouted}
+        steeringContext={steeringContext}
       />
 
       {/* Action Plan */}

@@ -185,6 +185,10 @@ ${(disruptContext.flippedLogic || []).map((f: any, i: number) => `${i + 1}. "${f
 
 CRITICAL: Each flipped idea MUST trace back to at least one hidden assumption or flipped logic item above. Do NOT generate ideas disconnected from these upstream findings.` : ""}
 
+${rejectedIdeas && rejectedIdeas.length > 0 ? `REJECTED IDEAS — the user has already seen and dismissed these. Do NOT regenerate similar concepts:
+${rejectedIdeas.map((r: string, i: number) => `${i + 1}. "${r}"`).join("\n")}
+Generate STRUCTURALLY DIFFERENT ideas that explore different assumptions, business models, or audience segments than the rejected ones.` : ""}
+
 GROUNDING RULES — make ideas SPECIFIC, not generic:
 1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
 2. Show demand signals where possible: community complaints, cultural shifts, adjacent market growth, behavioral trends, search/social data
