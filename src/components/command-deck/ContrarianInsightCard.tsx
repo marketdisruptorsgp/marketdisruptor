@@ -69,13 +69,13 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Industry assumes */}
           <div
-            className="flex-1 rounded-lg px-4 py-3"
+            className="flex-1 rounded-lg px-3 py-2"
             style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.12)" }}
           >
-            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--destructive))" }}>
+            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>
               Everyone Assumes
             </p>
-            <p className="text-sm text-foreground/80 leading-snug">
+            <p className="text-xs text-foreground/80 leading-snug">
               "{everyoneAssumes}"
             </p>
           </div>
