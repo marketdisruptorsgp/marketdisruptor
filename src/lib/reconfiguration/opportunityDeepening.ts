@@ -471,6 +471,7 @@ function deepenOpportunitiesDeterministic(
     if (usedPatternIds.has(direction.id)) continue;
     if (direction.id === "aggregate" && usedPatternIds.has("aggregation")) continue;
     if (direction.id === "shared_infrastructure" && usedPatternIds.has("infrastructure_abstraction")) continue;
+    if (isTraditionalBusinessProfile(profile) && UNREALISTIC_DIRECTION_IDS.has(direction.id)) continue;
 
     const constraint = profile.bindingConstraints[0]?.explanation || "structural constraint";
     const driver = profile.bindingConstraints[0]?.constraintName.replace(/_/g, " ") || "underlying friction";
