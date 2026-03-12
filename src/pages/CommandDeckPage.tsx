@@ -607,6 +607,7 @@ export default function CommandDeckPage() {
         <ContrarianInsightCard
           thesis={primaryThesis}
           modeAccent={modeAccent}
+          entityName={analysisDisplayName}
         />
 
         {/* ══════════════════════════════════════════════════════════
