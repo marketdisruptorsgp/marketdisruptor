@@ -213,7 +213,7 @@ export default function CommandDeckPage() {
         {/* ═══ HEADER ═══ */}
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-black text-foreground truncate">
+            <h1 className="text-base sm:text-lg font-black text-foreground truncate">
               {analysisDisplayName}
             </h1>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
