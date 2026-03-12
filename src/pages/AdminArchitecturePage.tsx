@@ -279,62 +279,90 @@ App
     icon: Cpu,
     content: `
 ┌──────────────────────────────────────────────────────────────┐
-│                    ANALYSIS PIPELINE                         │
+│          4-PHASE DISCOVERY PIPELINE (v5)                     │
+│          + Confidence Gating (cross-cutting)                 │
 └──────────────────────────────────────────────────────────────┘
 
 User Input (AnalysisForm)
     │
     ├── Product Mode ──────────── scrape-products
-    │                                  │
-    ├── Service Mode ──────────── scrape-url-autofill (optional)
-    │                                  │
+    ├── Service Mode ──────────── scrape-url-autofill
     ├── Business Model Mode ─── extract-business-intelligence
-    │                                  │
     └── First Principles ────── direct input
                                        │
-                                       ▼
-                              ┌─────────────────┐
-                              │ analyze-products │  ← Primary AI analysis
-                              │      OR          │     (Gemini 2.5 Pro)
-                              │ business-model   │     60-120s execution
-                              │      OR          │
-                              │ first-principles │
-                              └────────┬────────┘
-                                       │
-                                       ▼
-                              Context State Population
-                              (products, governedData, adaptiveContext)
-                                       │
-                                       ▼
-                              Navigate to /analysis/:id/report
-                                       │
-                    ┌──────────────────┼──────────────────┐
-                    │                  │                  │
-                    ▼                  ▼                  ▼
-              Intel Report       Assumptions        Competitors
-              (auto-loaded)    (auto-generated)    (scout-competitors)
-                    │                  │                  │
-                    └──────────────────┼──────────────────┘
-                                       │
-                    ┌──────────────────┼──────────────────┐
-                    │                  │                  │
-                    ▼                  ▼                  ▼
-               Disrupt            Redesign          Stress Test
-         (generate-flip-ideas)  (client-side)   (critical-validation)
-                    │                  │                  │
-                    └──────────────────┼──────────────────┘
-                                       │
-                                       ▼
-                                 Pitch Deck
-                           (generate-pitch-deck)
-                                       │
-                                       ▼
-                              saveStepData()
-                              (merge into analysis_data JSON)
-                                       │
-                                       ▼
-                              Workspace Display
-                              (saved_analyses table)`,
+              ╔════════════════════════════════════════════════╗
+              ║  PHASE 1: FOUNDATION                          ║
+              ║  structural-decomposition (Gemini 2.5 Pro)    ║
+              ║  60-120s · Web scraping + photo analysis +    ║
+              ║  patent search + market sizing + competitor   ║
+              ║  scouting + community sentiment + supply      ║
+              ║  chain mapping                                ║
+              ║                                               ║
+              ║  Output: decompositionData + Evidence[]       ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 1.5: CONFIDENCE GATING (cross-cutting) ║
+              ║  confidenceGating.ts (client-side)            ║
+              ║                                               ║
+              ║  7 domains assessed:                          ║
+              ║    pricing · supply chain · competitive ·     ║
+              ║    patent/IP · BOM · trends · customer ·      ║
+              ║    regulatory                                 ║
+              ║                                               ║
+              ║  Provenance: SCRAPED | PARAMETRIC |           ║
+              ║              AI_INFERRED | USER_INPUT         ║
+              ║  score < 0.4 → research question (not fact)   ║
+              ║                                               ║
+              ║  Output: ConfidenceAssessment +               ║
+              ║          ResearchQuestion[]                    ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 2: SYNTHESIS                           ║
+              ║  strategic-synthesis + transformation-engine   ║
+              ║                                               ║
+              ║  Hidden assumptions · flipped logic ·         ║
+              ║  friction analysis · smart tech analysis ·    ║
+              ║  transformation concepts                      ║
+              ║                                               ║
+              ║  Receives: decompositionData, Evidence[],     ║
+              ║            ConfidenceAssessment                ║
+              ║  Output: synthesisData + transformations      ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 3: CONCEPTS                            ║
+              ║  concept-architecture + concept-synthesis      ║
+              ║                                               ║
+              ║  Morphological design space · 10-30 concept   ║
+              ║  variants · product cards · AI visual mockups ║
+              ║  · unit economics · action plans              ║
+              ║                                               ║
+              ║  Receives: synthesisData, transformations,    ║
+              ║            Evidence[], ConfidenceAssessment    ║
+              ║  Output: conceptsData + visual mockups        ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+              ╔═══════════════════╧════════════════════════════╗
+              ║  PHASE 4: VALIDATION + PITCH                  ║
+              ║  critical-validation + generate-pitch-deck    ║
+              ║                                               ║
+              ║  Red/green team validation · business model   ║
+              ║  analysis · deal economics · 5-slide pitch    ║
+              ║  · confidence-gated output (gaps flagged)     ║
+              ║                                               ║
+              ║  Receives: All upstream + ConfidenceAssessment║
+              ║  Output: validated concepts + pitch deck      ║
+              ╚═══════════════════╤════════════════════════════╝
+                                  │
+                                  ▼
+                          saveStepData()
+                          (merge_analysis_step Postgres fn)
+                                  │
+                                  ▼
+                          Workspace Display
+                          (saved_analyses table)`,
   },
   {
     id: "database",
