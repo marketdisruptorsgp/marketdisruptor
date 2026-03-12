@@ -446,56 +446,19 @@ export function usePipelineOrchestrator(
       }
 
       // ═══ UI renders now — Phase 2/2.5 complete ═══
-      console.log("[Pipeline] Synthesis phases complete. Entering Phase 3 enrichment.");
+      console.log("[Pipeline] Core phases complete. Stress Test & Pitch are available on-demand.");
 
-      // ═══ PHASE 3: Background Enrichment (non-blocking) ═══
-      const needsStress = !stressTestData;
-      const needsPitch = !pitchDeckData;
-      // Use whatever synthesis data we have (even partial) for Phase 3
-      const phase3Data = synthesisResult || disruptData || null;
-
-      if (needsStress || needsPitch) {
-        setCurrentStep("stressTest");
-        console.log(`[Pipeline] Phase 3: stress=${needsStress}, pitch=${needsPitch}`);
-
-        // Fire both in parallel — these are background enrichment
-        const enrichmentPromises: Promise<unknown>[] = [];
-
-        if (needsStress) {
-          enrichmentPromises.push(
-            runStressTest(product, extractedContext, phase3Data, decompResult)
-              .catch(err => { console.error("[Pipeline] Stress test error:", err); return null; })
-          );
-        } else {
-          updateStatus("stressTest", "done");
-          enrichmentPromises.push(Promise.resolve(stressTestData));
-        }
-
-        if (needsPitch) {
-          enrichmentPromises.push(
-            runPitch(product, extractedContext, phase3Data, null)
-              .catch(err => { console.error("[Pipeline] Pitch error:", err); return null; })
-          );
-        } else {
-          updateStatus("pitch", "done");
-          enrichmentPromises.push(Promise.resolve(pitchDeckData));
-        }
-
-        // Run enrichment in parallel
-        const [stressSettled, pitchSettled] = await Promise.allSettled(enrichmentPromises);
-
-        if (stressSettled.status === "rejected") {
-          console.error("[Pipeline] Stress test rejected:", stressSettled.reason);
-        }
-        if (pitchSettled.status === "rejected") {
-          console.error("[Pipeline] Pitch rejected:", pitchSettled.reason);
-        }
-        console.log("[Pipeline] Phase 3 enrichment settled.");
-      } else {
-        console.log("[Pipeline] All steps already complete — skipping");
+      // ═══ PHASE 3: LAZY — Stress Test + Pitch are on-demand ═══
+      // Mark them as available to run (not auto-triggered)
+      if (stressTestData) {
         updateStatus("stressTest", "done");
+      }
+      // else stays "pending" — user can trigger via retryStep("stressTest")
+
+      if (pitchDeckData) {
         updateStatus("pitch", "done");
       }
+      // else stays "pending" — user can trigger via retryStep("pitch")
 
     } catch (err) {
       console.error("[Pipeline] Unexpected pipeline error:", err);
@@ -503,14 +466,14 @@ export function usePipelineOrchestrator(
       setCurrentStep(null);
       setIsRunning(false);
       runningRef.current = false;
-      onRecompute?.();
 
       const statuses = { ...stepStatuses };
-      const errorCount = Object.values(statuses).filter(s => s === "error").length;
-      if (errorCount > 0) {
-        toast.warning(`Pipeline complete with ${errorCount} step${errorCount > 1 ? "s" : ""} needing attention.`);
+      const coreSteps = ["decompose", "synthesis", "concepts"];
+      const coreErrors = coreSteps.filter(k => statuses[k] === "error").length;
+      if (coreErrors > 0) {
+        toast.warning(`Pipeline complete with ${coreErrors} step${coreErrors > 1 ? "s" : ""} needing attention.`);
       } else {
-        toast.success("Full pipeline complete — strategic intelligence updated.");
+        toast.success("Analysis ready — explore your strategic intelligence.");
       }
     }
   }, [effectiveProduct, analysisId, analysis.adaptiveContext, analysis.activeMode, decompositionData, disruptData, redesignData, conceptsData, stressTestData, pitchDeckData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
