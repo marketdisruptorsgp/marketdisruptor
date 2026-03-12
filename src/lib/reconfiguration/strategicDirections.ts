@@ -378,6 +378,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Give away what the industry charges for and monetize a different layer — invert the revenue model.",
     aiPromptHint: "What is currently the paid product? What complementary layer could generate more revenue if the primary product were free? What's the conversion mechanism from free to paid? How large does the free user base need to be?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.switchingCosts === "low" || p.switchingCosts === "none") score += 3;
       if (p.distributionControl !== "owned") score += 2;
