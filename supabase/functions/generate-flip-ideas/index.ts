@@ -17,7 +17,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch, adaptiveContext: rawAdaptiveCtx, upstreamIntel, disruptContext } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch, adaptiveContext: rawAdaptiveCtx, upstreamIntel, disruptContext, rejectedIdeas } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const ideaCount = count || 2;
