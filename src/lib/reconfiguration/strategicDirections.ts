@@ -324,6 +324,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Create defensibility through usage — each new user makes the product more valuable for all existing users.",
     aiPromptHint: "What type of network effect could exist here — data, social, marketplace, or protocol? What's the usage loop that creates compounding value? How do you reach critical mass? What's the cold-start strategy?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 3;
       if (p.switchingCosts === "low" || p.switchingCosts === "none") score += 2;
