@@ -538,7 +538,7 @@ function deepenOpportunitiesDeterministic(
     });
   }
 
-  return patternOpps;
+  return filterRealisticOpportunities(patternOpps, profile);
 }
 
 /** Extract rough business context from evidence labels for AI prompt enrichment */
