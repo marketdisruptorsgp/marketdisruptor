@@ -44,11 +44,12 @@ const SECTIONS = [
 │    useBIExtraction  → document upload + BI extraction       │
 │                                                             │
 │  Engines:                                                   │
-│    convergenceEngine → multi-signal synthesis               │
-│    frictionEngine    → UX friction scoring                  │
-│    innovationEngine  → opportunity detection                │
-│    lensOrchestrator  → lens-weighted analysis               │
-│    strategicOS       → strategy generation                  │
+│    convergenceEngine  → multi-signal synthesis              │
+│    frictionEngine     → UX friction scoring                 │
+│    innovationEngine   → opportunity detection               │
+│    lensOrchestrator   → lens-weighted analysis              │
+│    strategicOS        → strategy generation                 │
+│    confidenceGating   → data provenance + research gates    │
 └──────────────────────────┬──────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────┐
