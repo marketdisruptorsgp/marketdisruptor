@@ -93,6 +93,17 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="typo-card-title">{idea.name}</h4>
+            {onReject && (
+              <button
+                onClick={onReject}
+                className="ml-auto flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all hover:bg-destructive/10"
+                style={{ color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+                title="Dismiss this idea — it won't appear in future regenerations"
+              >
+                <X size={10} />
+                Dismiss
+              </button>
+            )}
             <span
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded typo-status-label"
               style={{
