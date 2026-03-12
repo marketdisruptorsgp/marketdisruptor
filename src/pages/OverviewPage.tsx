@@ -33,7 +33,7 @@ import {
 import { motion } from "framer-motion";
 import {
   ArrowRight, Zap, TrendingUp, AlertTriangle,
-  ShieldAlert, Target, HelpCircle,
+  ShieldAlert, Target, HelpCircle, Lock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,23 @@ export default function OverviewPage() {
   const autoAnalysis = useAutoAnalysis();
   const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing } = autoAnalysis;
 
-  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId } = analysis;
+  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData } = analysis;
+
+  // Extract early binding constraint hypothesis from Phase 1 decomposition
+  const earlyConstraint = useMemo(() => {
+    if (!decompositionData) return null;
+    const d = decompositionData as Record<string, unknown>;
+    const hypothesis = d._bindingConstraintHypothesis as Record<string, unknown> | undefined;
+    if (!hypothesis?.constraint || hypothesis.constraint === "Unknown structural blocker") return null;
+    return {
+      constraint: String(hypothesis.constraint),
+      reasoning: String(hypothesis.reasoning || ""),
+      leverageScore: Number(hypothesis.leverageScore || 0),
+      bestTransformation: String(hypothesis.bestTransformation || "elimination"),
+      bottleneck: hypothesis.bottleneck as { resource: string; impact: string; severity: string } | null,
+      highestFriction: hypothesis.highestFriction as { stage: string; detail: string; costShare: string } | null,
+    };
+  }, [decompositionData]);
 
   const urlAnalysisId = useMemo(() => {
     const m = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
@@ -103,10 +119,17 @@ export default function OverviewPage() {
         <p className="text-sm text-muted-foreground mt-1">Strategic Briefing</p>
       </motion.div>
 
+      {/* ═══ 0. EARLY BINDING CONSTRAINT (from Phase 1 — shows in ~20s) ═══ */}
+      {earlyConstraint && !singleInsight && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.08 }}>
+          <EarlyConstraintCard constraint={earlyConstraint} isRefining={isComputing} />
+        </motion.div>
+      )}
+
       {/* ═══ 1. SINGLE INSIGHT ═══ */}
       {(loading || singleInsight) && (
         <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
-          {loading ? (
+          {loading && !earlyConstraint ? (
             <Skeleton className="h-28 w-full" />
           ) : singleInsight ? (
             <InsightHero insight={singleInsight} />
@@ -341,5 +364,68 @@ function OpportunityCard({ opp, index }: { opp: OpportunityWithBadges; index: nu
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/* ── Early Binding Constraint Card (Phase 1 — ~20s) ── */
+function EarlyConstraintCard({
+  constraint,
+  isRefining,
+}: {
+  constraint: {
+    constraint: string;
+    reasoning: string;
+    leverageScore: number;
+    bestTransformation: string;
+    bottleneck: { resource: string; impact: string; severity: string } | null;
+    highestFriction: { stage: string; detail: string; costShare: string } | null;
+  };
+  isRefining: boolean;
+}) {
+  return (
+    <div className="rounded-xl px-5 py-5 bg-amber-500/5 border-2 border-amber-500/20 relative overflow-hidden">
+      {isRefining && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber-500/20 overflow-hidden">
+          <div className="h-full w-1/3 bg-amber-500/60 animate-pulse" 
+               style={{ animation: "shimmer 2s ease-in-out infinite" }} />
+        </div>
+      )}
+      <div className="flex items-center gap-2 mb-2">
+        <Lock size={13} className="text-amber-500" />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-500">
+          #1 Structural Blocker
+        </span>
+        {isRefining && (
+          <span className="text-[9px] font-medium text-amber-500/60 ml-auto">
+            Refining with deep analysis…
+          </span>
+        )}
+      </div>
+      <h2 className="text-lg font-black text-foreground leading-snug">
+        {constraint.constraint}
+      </h2>
+      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+        {constraint.reasoning}
+      </p>
+      <div className="flex flex-wrap gap-2 mt-3">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+          Leverage: {constraint.leverageScore.toFixed(1)}/10
+        </span>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">
+          Best move: {constraint.bestTransformation}
+        </span>
+        {constraint.highestFriction && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+            High friction: {constraint.highestFriction.stage}
+          </span>
+        )}
+      </div>
+      {constraint.bottleneck && (
+        <p className="text-xs text-muted-foreground mt-2 pl-3 border-l-2 border-amber-500/20">
+          <span className="font-semibold text-foreground/80">Bottleneck:</span>{" "}
+          {constraint.bottleneck.resource} — {constraint.bottleneck.impact}
+        </p>
+      )}
+    </div>
   );
 }
