@@ -120,11 +120,11 @@ function LazyRoute({ children }: { children: ReactNode }) {
   );
 }
 
-/** Redirect /analysis/:id → /analysis/:id/overview */
+/** Redirect /analysis/:id → /analysis/:id/problem */
 function CommandDeckRedirect() {
   const { id } = useParams<{ id: string }>();
   if (!id) return <Navigate to="/workspace" replace />;
-  return <Navigate to={`/analysis/${id}/overview`} replace />;
+  return <Navigate to={`/analysis/${id}/problem`} replace />;
 }
 
 function AppRoutes() {
