@@ -116,7 +116,7 @@ interface AnalysisContextType {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
   }) => Promise<void>;
-  handleRegenerateIdeas: (product: Product, userContext?: string) => Promise<void>;
+  handleRegenerateIdeas: (product: Product, userContext?: string, rejectedIdeas?: string[]) => Promise<void>;
   handleManualSave: () => Promise<void>;
   handleLoadSaved: (analysis: any) => void;
   saveAnalysis: (products: Product[], params: { category: string; era: string; batchSize: number }) => Promise<void>;
@@ -879,7 +879,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [canAnalyze, startLoadingTimer, stopLoadingTimer, pushLog, user?.id, checkSubscription, saveAnalysis, navigate, analysisId, adaptiveContext]);
 
-  const handleRegenerateIdeas = useCallback(async (product: Product, userContext?: string) => {
+  const handleRegenerateIdeas = useCallback(async (product: Product, userContext?: string, rejectedIdeas?: string[]) => {
     if (!analysisParams) return;
     setGeneratingIdeasFor(product.id);
 
@@ -943,6 +943,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           adaptiveContext: adaptiveContext || undefined,
           upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
           disruptContext: disruptCtx || undefined,
+          rejectedIdeas: rejectedIdeas || undefined,
         },
       });
 

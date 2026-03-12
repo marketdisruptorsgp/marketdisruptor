@@ -167,7 +167,7 @@ export default function RedesignPage() {
             product={selectedProduct}
             onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
             flippedIdeas={selectedProduct.flippedIdeas}
-            onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
+            onRegenerateIdeas={(ctx, rejected) => analysis.handleRegenerateIdeas(selectedProduct, ctx, rejected)}
             generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
             renderMode="redesign"
             autoTrigger={shouldAutoTrigger}

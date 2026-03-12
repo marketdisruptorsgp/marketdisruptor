@@ -742,7 +742,7 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
           product={selectedProduct}
           onSaved={() => analysis.setSavedRefreshTrigger((n: number) => n + 1)}
           flippedIdeas={selectedProduct.flippedIdeas}
-          onRegenerateIdeas={(ctx: string | undefined) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
+          onRegenerateIdeas={(ctx: string | undefined, rejected?: string[]) => analysis.handleRegenerateIdeas(selectedProduct, ctx, rejected)}
           generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
           externalData={analysis.disruptData}
           runTrigger={runTrigger}

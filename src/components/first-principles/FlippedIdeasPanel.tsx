@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Lightbulb, Sparkles } from "lucide-react";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
 import {
@@ -8,7 +8,7 @@ import type { FlippedIdea } from "@/data/mockProducts";
 
 interface FlippedIdeasPanelProps {
   flippedIdeas?: FlippedIdea[];
-  onRegenerateIdeas?: (userContext?: string) => void;
+  onRegenerateIdeas?: (userContext?: string, rejectedIdeas?: string[]) => void;
   generatingIdeas?: boolean;
   userScores?: Record<string, Record<string, number>>;
   onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void;
@@ -17,6 +17,19 @@ interface FlippedIdeasPanelProps {
 
 export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted }: FlippedIdeasPanelProps) {
   const [userContext, setUserContext] = useState("");
+  const [rejectedIdeas, setRejectedIdeas] = useState<string[]>([]);
+
+  const handleReject = useCallback((ideaName: string) => {
+    setRejectedIdeas((prev) => prev.includes(ideaName) ? prev : [...prev, ideaName]);
+  }, []);
+
+  const handleRegenerate = useCallback((ctx?: string) => {
+    onRegenerateIdeas?.(ctx, rejectedIdeas.length > 0 ? rejectedIdeas : undefined);
+  }, [onRegenerateIdeas, rejectedIdeas]);
+
+  // Filter out rejected ideas from display
+  const visibleIdeas = flippedIdeas?.filter((idea) => !rejectedIdeas.includes(idea.name)) || [];
+  const hasRejections = rejectedIdeas.length > 0;
 
   return (
     <StepCanvas>
@@ -35,42 +48,75 @@ export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingI
         <>
           <InsightCard
             icon={Sparkles}
-            headline={`${flippedIdeas.length} bold reinvention ideas generated`}
-            subtext="Based on assumptions and flipped logic from Disrupt."
+            headline={`${visibleIdeas.length} bold reinvention ideas generated`}
+            subtext={hasRejections
+              ? `${rejectedIdeas.length} dismissed — regenerate to explore new directions`
+              : "Based on assumptions and flipped logic from Disrupt."
+            }
             accentColor="hsl(var(--primary))"
           />
+
+          {/* Rejected ideas summary */}
+          {hasRejections && (
+            <div
+              className="flex items-center gap-2 flex-wrap px-3 py-2 rounded-lg"
+              style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
+            >
+              <span className="text-xs font-medium text-muted-foreground">Dismissed:</span>
+              {rejectedIdeas.map((name) => (
+                <span
+                  key={name}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
+                  style={{ background: "hsl(var(--destructive) / 0.1)", color: "hsl(var(--destructive))" }}
+                >
+                  {name}
+                  <button
+                    onClick={() => setRejectedIdeas((prev) => prev.filter((n) => n !== name))}
+                    className="hover:opacity-70 font-bold"
+                    title="Restore this idea"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
 
           <div className="flex items-center justify-end">
             {onRegenerateIdeas && (
               <button
-                onClick={() => onRegenerateIdeas(userContext || undefined)}
+                onClick={() => handleRegenerate(userContext || undefined)}
                 disabled={generatingIdeas}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: generatingIdeas ? 0.6 : 1 }}
               >
                 {generatingIdeas ? <span className="animate-spin">↻</span> : <Sparkles size={11} />}
-                {generatingIdeas ? "Generating…" : "Regenerate Ideas"}
+                {generatingIdeas ? "Generating…" : hasRejections ? `Regenerate (avoiding ${rejectedIdeas.length} dismissed)` : "Regenerate Ideas"}
               </button>
             )}
           </div>
 
           <div className="space-y-5">
-            {flippedIdeas.map((idea, i) => (
+            {visibleIdeas.map((idea, i) => (
               <FlippedIdeaCard
                 key={idea.name || i}
                 idea={idea}
                 rank={i + 1}
                 userScores={userScores?.[idea.name || `idea-${i}`]}
                 onScoreChange={onScoreChange ? (key, val) => onScoreChange(idea.name || `idea-${i}`, key, val) : undefined}
-                onRegenerateSingle={onRegenerateIdeas ? () => onRegenerateIdeas(`REGENERATE_SINGLE:${i}:${userContext || ""}`) : undefined}
+                onRegenerateSingle={onRegenerateIdeas ? () => handleRegenerate(`REGENERATE_SINGLE:${i}:${userContext || ""}`) : undefined}
                 onCompetitorsScouted={onCompetitorsScouted}
+                onReject={() => handleReject(idea.name)}
+                steeringContext={userContext || undefined}
               />
             ))}
           </div>
         </>
       ) : (
         <div className="text-center py-8 text-sm text-muted-foreground">
-          No flipped ideas yet. Run the Disrupt analysis first.
+          {hasRejections
+            ? "All ideas dismissed. Hit regenerate to explore new directions."
+            : "No flipped ideas yet. Run the Disrupt analysis first."}
         </div>
       )}
     </StepCanvas>

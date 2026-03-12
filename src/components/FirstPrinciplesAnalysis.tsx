@@ -24,7 +24,7 @@ export { INTEL_SECTION_DESCRIPTIONS, REDESIGN_SECTION_DESCRIPTIONS } from "./fir
 interface FirstPrinciplesAnalysisProps {
   product: Product;
   flippedIdeas?: FlippedIdea[];
-  onRegenerateIdeas?: (userContext?: string) => void;
+  onRegenerateIdeas?: (userContext?: string, rejectedIdeas?: string[]) => void;
   generatingIdeas?: boolean;
   onPatentSave?: (patentData: unknown) => void;
   externalData?: unknown;

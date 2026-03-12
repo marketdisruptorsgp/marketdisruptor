@@ -530,7 +530,7 @@ export default function Index() {
     }
   };
 
-  const handleRegenerateIdeas = async (product: Product, userContext?: string) => {
+  const handleRegenerateIdeas = async (product: Product, userContext?: string, rejectedIdeas?: string[]) => {
     if (!analysisParams) return;
     setGeneratingIdeasFor(product.id);
 
@@ -541,6 +541,7 @@ export default function Index() {
         body: {
           product,
           additionalContext: fullContext,
+          rejectedIdeas: rejectedIdeas || undefined,
         },
       });
 
@@ -1527,7 +1528,7 @@ export default function Index() {
                       product={selectedProduct}
                       onSaved={() => setSavedRefreshTrigger((n) => n + 1)}
                       flippedIdeas={selectedProduct.flippedIdeas}
-                      onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)}
+                      onRegenerateIdeas={(ctx, rejected) => handleRegenerateIdeas(selectedProduct, ctx, rejected)}
                       generatingIdeas={generatingIdeasFor === selectedProduct.id}
                       externalData={disruptData}
                       onDataLoaded={setDisruptData}
@@ -1577,7 +1578,7 @@ export default function Index() {
                       product={selectedProduct}
                       onSaved={() => setSavedRefreshTrigger((n) => n + 1)}
                       flippedIdeas={selectedProduct.flippedIdeas}
-                      onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)}
+                      onRegenerateIdeas={(ctx, rejected) => handleRegenerateIdeas(selectedProduct, ctx, rejected)}
                       generatingIdeas={generatingIdeasFor === selectedProduct.id}
                       renderMode="redesign"
                       externalData={disruptData}
