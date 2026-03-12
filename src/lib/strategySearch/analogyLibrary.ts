@@ -492,4 +492,268 @@ export const CROSS_DOMAIN_ANALOGIES: CrossDomainAnalogy[] = [
     mechanism: "Subsidize the hardware to build an installed base, then monetize through recurring content/service subscriptions that have near-zero marginal cost",
     constraintShape: { revenueModel: "transactional", switchingCosts: "low", marginStructure: "moderate_margin" },
   },
+
+  // ═══════════════════════════════════════════
+  // REAL ESTATE (expanded)
+  // ═══════════════════════════════════════════
+  {
+    id: "redfin-salaried-agents",
+    company: "Redfin",
+    sourceIndustry: "real estate",
+    structuralPrimitive: "salary_replaces_commission",
+    moveDescription: "Replaced commission-based agents with salaried employees, aligning incentives with buyer satisfaction",
+    patternId: "supply_chain_relocation",
+    mechanism: "Replace commission-based intermediaries with salaried employees — remove the misaligned incentive and pass commission savings to customers",
+    constraintShape: { distributionControl: "intermediated", marginStructure: "high_margin", laborIntensity: "labor_heavy" },
+  },
+  {
+    id: "zillow-information-asymmetry",
+    company: "Zillow",
+    sourceIndustry: "real estate",
+    structuralPrimitive: "destroy_information_asymmetry",
+    moveDescription: "Made property valuations and listings publicly accessible, breaking agent information monopoly",
+    patternId: "aggregation",
+    mechanism: "Aggregate and freely distribute information that intermediaries used as their competitive moat — monetize attention rather than the information itself",
+    constraintShape: { distributionControl: "intermediated", switchingCosts: "moderate", customerConcentration: "diversified" },
+  },
+  {
+    id: "arrived-fractionalize-asset",
+    company: "Arrived Homes",
+    sourceIndustry: "real estate",
+    structuralPrimitive: "fractionalize_expensive_asset",
+    moveDescription: "Fractionalized rental property ownership into $100 shares accessible to retail investors",
+    patternId: "demand_reframing",
+    mechanism: "Divide an expensive, illiquid asset into fractional shares — dramatically lower the minimum investment and expand the buyer pool by orders of magnitude",
+    constraintShape: { switchingCosts: "high", customerConcentration: "concentrated", assetUtilization: "underutilized" },
+  },
+  {
+    id: "pacaso-shared-ownership",
+    company: "Pacaso",
+    sourceIndustry: "real estate",
+    structuralPrimitive: "shared_ownership_model",
+    moveDescription: "Created co-ownership structure for luxury second homes, splitting cost among multiple buyers",
+    patternId: "aggregation",
+    mechanism: "Structure shared ownership of underutilized luxury assets — aggregate multiple buyers to fund acquisition while maximizing utilization",
+    constraintShape: { assetUtilization: "idle", switchingCosts: "high", marginStructure: "high_margin" },
+  },
+
+  // ═══════════════════════════════════════════
+  // LEGAL SERVICES
+  // ═══════════════════════════════════════════
+  {
+    id: "legalzoom-template-legal",
+    company: "LegalZoom",
+    sourceIndustry: "legal",
+    structuralPrimitive: "templatize_expert_work",
+    moveDescription: "Templatized routine legal documents, eliminating attorney involvement for standard filings",
+    patternId: "infrastructure_abstraction",
+    mechanism: "Convert expert-crafted bespoke work into parameterized templates — serve the mass market at 1/10th the cost by automating the 80% that's routine",
+    constraintShape: { laborIntensity: "artisan", marginStructure: "high_margin", distributionControl: "owned", switchingCosts: "moderate" },
+  },
+  {
+    id: "atrium-hybrid-tech-lawyers",
+    company: "Atrium",
+    sourceIndustry: "legal",
+    structuralPrimitive: "augment_expert_with_software",
+    moveDescription: "Augmented lawyers with software automation, increasing throughput per attorney",
+    patternId: "infrastructure_abstraction",
+    mechanism: "Don't replace the expert — augment them with software that automates administrative tasks, multiplying their effective throughput 3-5x",
+    constraintShape: { laborIntensity: "labor_heavy", marginStructure: "high_margin", supplyFragmentation: "fragmented" },
+  },
+  {
+    id: "clio-vertical-saas-legal",
+    company: "Clio",
+    sourceIndustry: "legal",
+    structuralPrimitive: "vertical_practice_management",
+    moveDescription: "Built the operating system for small law firms — billing, case management, and client intake in one platform",
+    patternId: "rebundling",
+    mechanism: "Rebundle fragmented point solutions into an industry-specific operating system — become the system of record that's painful to leave",
+    constraintShape: { supplyFragmentation: "atomized", laborIntensity: "labor_heavy", switchingCosts: "low", revenueModel: "project_based" },
+  },
+  {
+    id: "contingency-fee-model",
+    company: "Burford Capital",
+    sourceIndustry: "litigation finance",
+    structuralPrimitive: "third_party_risk_absorption",
+    moveDescription: "Funded litigation costs in exchange for a share of settlements, removing financial risk from plaintiffs",
+    patternId: "demand_reframing",
+    mechanism: "Absorb the customer's financial risk by funding the upfront cost in exchange for a share of the outcome — unlock demand from those who can't afford to pay upfront",
+    constraintShape: { switchingCosts: "high", customerConcentration: "concentrated", marginStructure: "high_margin" },
+  },
+
+  // ═══════════════════════════════════════════
+  // FOOD & AGRICULTURE (expanded)
+  // ═══════════════════════════════════════════
+  {
+    id: "sweetgreen-supply-chain-ownership",
+    company: "Sweetgreen",
+    sourceIndustry: "food service",
+    structuralPrimitive: "own_supply_chain_for_quality",
+    moveDescription: "Built direct relationships with local farms, controlling supply quality and provenance",
+    patternId: "vertical_integration",
+    mechanism: "Vertically integrate upstream to control input quality and provenance — use supply chain ownership as a brand differentiator and margin protector",
+    constraintShape: { supplyFragmentation: "fragmented", distributionControl: "shared", marginStructure: "thin_margin" },
+  },
+  {
+    id: "indigo-ag-biological-inputs",
+    company: "Indigo Agriculture",
+    sourceIndustry: "agriculture",
+    structuralPrimitive: "biological_replaces_chemical",
+    moveDescription: "Replaced chemical crop inputs with microbial alternatives, creating a data-driven crop marketplace",
+    patternId: "supply_chain_relocation",
+    mechanism: "Substitute an incumbent input with a structurally superior alternative — then build a data moat around performance outcomes to lock in adoption",
+    constraintShape: { supplyFragmentation: "consolidated", marginStructure: "thin_margin", distributionControl: "intermediated" },
+  },
+  {
+    id: "apeel-extend-shelf-life",
+    company: "Apeel Sciences",
+    sourceIndustry: "food supply chain",
+    structuralPrimitive: "eliminate_waste_at_source",
+    moveDescription: "Extended produce shelf life 2-3x with plant-derived coating, eliminating supply chain waste",
+    patternId: "supply_chain_relocation",
+    mechanism: "Attack the largest cost driver in the value chain (spoilage/waste) with a technology intervention at the source — capture value from waste reduction",
+    constraintShape: { marginStructure: "thin_margin", assetUtilization: "underutilized", distributionControl: "intermediated" },
+  },
+  {
+    id: "cropx-precision-agriculture",
+    company: "CropX",
+    sourceIndustry: "agriculture",
+    structuralPrimitive: "sensor_driven_optimization",
+    moveDescription: "Used soil sensors and AI to optimize irrigation and inputs, reducing waste by 30%",
+    patternId: "data_moat",
+    mechanism: "Deploy sensors to measure what was previously unmeasured — use the resulting data to optimize resource allocation and build a proprietary performance dataset",
+    constraintShape: { assetUtilization: "underutilized", laborIntensity: "mixed", supplyFragmentation: "atomized" },
+  },
+
+  // ═══════════════════════════════════════════
+  // WASTE & CIRCULAR ECONOMY
+  // ═══════════════════════════════════════════
+  {
+    id: "rubicon-waste-marketplace",
+    company: "Rubicon",
+    sourceIndustry: "waste management",
+    structuralPrimitive: "marketplace_disrupts_oligopoly",
+    moveDescription: "Built a marketplace connecting businesses to independent haulers, breaking the waste oligopoly",
+    patternId: "aggregation",
+    mechanism: "Aggregate fragmented independent providers into a marketplace that competes with consolidated incumbents — use technology to coordinate what scale previously provided",
+    constraintShape: { supplyFragmentation: "consolidated", switchingCosts: "moderate", distributionControl: "intermediated" },
+  },
+
+  // ═══════════════════════════════════════════
+  // CHILDCARE & ELDER CARE
+  // ═══════════════════════════════════════════
+  {
+    id: "brightwheel-digitize-childcare",
+    company: "Brightwheel",
+    sourceIndustry: "childcare",
+    structuralPrimitive: "digitize_paper_operations",
+    moveDescription: "Digitized childcare center operations — attendance, billing, and parent communication in one app",
+    patternId: "infrastructure_abstraction",
+    mechanism: "Digitize an industry still running on paper and phone calls — become the operational backbone then expand into payments and compliance",
+    constraintShape: { laborIntensity: "labor_heavy", supplyFragmentation: "atomized", distributionControl: "owned", revenueModel: "recurring" },
+  },
+  {
+    id: "honor-managed-marketplace-care",
+    company: "Honor",
+    sourceIndustry: "elder care",
+    structuralPrimitive: "managed_marketplace",
+    moveDescription: "Built a managed marketplace for home care that handles scheduling, payroll, and quality control",
+    patternId: "aggregation",
+    mechanism: "Go beyond simple matching — operate a managed marketplace that handles operations, quality, and payments for fragmented service providers",
+    constraintShape: { supplyFragmentation: "atomized", laborIntensity: "labor_heavy", switchingCosts: "none", marginStructure: "thin_margin" },
+  },
+
+  // ═══════════════════════════════════════════
+  // SKILLED TRADES & FIELD SERVICES
+  // ═══════════════════════════════════════════
+  {
+    id: "angi-demand-aggregation",
+    company: "Angi",
+    sourceIndustry: "home services",
+    structuralPrimitive: "aggregate_demand_for_fragmented_supply",
+    moveDescription: "Aggregated homeowner demand and matched it with local service providers, creating price transparency",
+    patternId: "aggregation",
+    mechanism: "Aggregate dispersed customer demand into a single platform that fragmented suppliers compete on — create price transparency in an opaque market",
+    constraintShape: { supplyFragmentation: "atomized", distributionControl: "no_control", switchingCosts: "none", customerConcentration: "diversified" },
+  },
+  {
+    id: "thumbtack-instant-matching",
+    company: "Thumbtack",
+    sourceIndustry: "local services",
+    structuralPrimitive: "instant_quote_replaces_estimation",
+    moveDescription: "Replaced slow multi-day quote processes with instant matching and upfront pricing",
+    patternId: "demand_reframing",
+    mechanism: "Eliminate the painful quote/estimation process by providing instant pricing — reduce the friction that causes customers to defer or abandon the purchase",
+    constraintShape: { laborIntensity: "labor_heavy", switchingCosts: "none", distributionControl: "no_control", revenueModel: "project_based" },
+  },
+
+  // ═══════════════════════════════════════════
+  // EVENTS & HOSPITALITY
+  // ═══════════════════════════════════════════
+  {
+    id: "eventbrite-self-service-ticketing",
+    company: "Eventbrite",
+    sourceIndustry: "events",
+    structuralPrimitive: "self_service_replaces_sales_team",
+    moveDescription: "Replaced enterprise ticketing sales teams with self-service event creation and ticketing",
+    patternId: "infrastructure_abstraction",
+    mechanism: "Replace a sales-assisted process with self-service tooling — dramatically lower the minimum viable event size and capture the long tail",
+    constraintShape: { supplyFragmentation: "atomized", distributionControl: "intermediated", laborIntensity: "mixed" },
+  },
+
+  // ═══════════════════════════════════════════
+  // SUPPLY CHAIN & PROCUREMENT
+  // ═══════════════════════════════════════════
+  {
+    id: "faire-wholesale-marketplace",
+    company: "Faire",
+    sourceIndustry: "wholesale",
+    structuralPrimitive: "risk_free_trial_wholesale",
+    moveDescription: "Offered free returns on wholesale orders, eliminating buyer risk for independent retailers",
+    patternId: "demand_reframing",
+    mechanism: "Remove the purchase risk that prevents buyers from trying new suppliers — absorb return costs to unlock product discovery and expand supplier reach",
+    constraintShape: { supplyFragmentation: "fragmented", switchingCosts: "moderate", distributionControl: "intermediated", marginStructure: "moderate_margin" },
+  },
+
+  // ═══════════════════════════════════════════
+  // GOVERNMENT & CIVIC TECH
+  // ═══════════════════════════════════════════
+  {
+    id: "govtech-permit-automation",
+    company: "OpenGov",
+    sourceIndustry: "government",
+    structuralPrimitive: "automate_bureaucratic_workflow",
+    moveDescription: "Automated municipal permitting and budgeting workflows that previously took weeks of manual processing",
+    patternId: "infrastructure_abstraction",
+    mechanism: "Digitize and automate government workflows where manual processing creates massive delays — charge subscription to agencies that have captive budgets",
+    constraintShape: { laborIntensity: "labor_heavy", switchingCosts: "high", distributionControl: "owned", marginStructure: "moderate_margin" },
+  },
+
+  // ═══════════════════════════════════════════
+  // BEAUTY & PERSONAL CARE
+  // ═══════════════════════════════════════════
+  {
+    id: "glossier-community-to-product",
+    company: "Glossier",
+    sourceIndustry: "beauty",
+    structuralPrimitive: "community_driven_product_development",
+    moveDescription: "Built a community-first brand where customer feedback directly shaped product development",
+    patternId: "network_effect",
+    mechanism: "Build community and audience before building product — use direct customer relationships to co-create products with built-in demand and zero launch risk",
+    constraintShape: { distributionControl: "intermediated", switchingCosts: "none", customerConcentration: "diversified", marginStructure: "high_margin" },
+  },
+
+  // ═══════════════════════════════════════════
+  // PET INDUSTRY
+  // ═══════════════════════════════════════════
+  {
+    id: "chewy-subscription-consumables",
+    company: "Chewy",
+    sourceIndustry: "pet supplies",
+    structuralPrimitive: "autoship_recurring_consumables",
+    moveDescription: "Converted one-time pet supply purchases into predictable autoship subscriptions",
+    patternId: "freemium_flip",
+    mechanism: "Convert repeat-purchase consumables into automatic subscriptions with a discount incentive — trade per-order margin for predictable recurring revenue and retention",
+    constraintShape: { switchingCosts: "low", customerConcentration: "diversified", revenueModel: "transactional", marginStructure: "thin_margin" },
+  },
 ];
