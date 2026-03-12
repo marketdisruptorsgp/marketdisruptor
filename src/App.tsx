@@ -45,6 +45,7 @@ const PipelineObservabilityPage = lazy(() => import("./pages/PipelineObservabili
 const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage"));
 const CommandDeckPage = lazy(() => import("./pages/CommandDeckPage"));
 const OverviewPage = lazy(() => import("./pages/OverviewPage"));
+const ProblemStatementPage = lazy(() => import("./pages/ProblemStatementPage"));
 const BenchmarkRunner = lazy(() => import("./pages/BenchmarkRunner"));
 const PipelineTestRunner = lazy(() => import("./pages/PipelineTestRunner"));
 const PipelineArchitecturePage = lazy(() => import("./pages/PipelineArchitecturePage"));
@@ -119,11 +120,11 @@ function LazyRoute({ children }: { children: ReactNode }) {
   );
 }
 
-/** Redirect /analysis/:id → /analysis/:id/overview */
+/** Redirect /analysis/:id → /analysis/:id/problem */
 function CommandDeckRedirect() {
   const { id } = useParams<{ id: string }>();
   if (!id) return <Navigate to="/workspace" replace />;
-  return <Navigate to={`/analysis/${id}/overview`} replace />;
+  return <Navigate to={`/analysis/${id}/problem`} replace />;
 }
 
 function AppRoutes() {
@@ -182,8 +183,9 @@ function AppRoutes() {
         <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
         <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
         <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-        {/* Default analysis landing → Overview */}
+        {/* Default analysis landing → Problem Statement */}
         <Route path="/analysis/:id" element={<LazyRoute><CommandDeckRedirect /></LazyRoute>} />
+        <Route path="/analysis/:id/problem" element={<LazyRoute><ProblemStatementPage /></LazyRoute>} />
         <Route path="/analysis/:id/overview" element={<LazyRoute><OverviewPage /></LazyRoute>} />
         <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
         <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
