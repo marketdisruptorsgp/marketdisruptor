@@ -14,7 +14,7 @@ export const DataConfidenceBanner = memo(function DataConfidenceBanner({ graph }
   const { total, verified, inferred } = useMemo(() => {
     const total = graph.nodes.length;
     const verified = graph.nodes.filter(
-      n => n.confidence === "high" || n.sourceEngine === "document" || n.mode === "scraped"
+      n => n.confidence === "high" || n.sourceEngine === "document"
     ).length;
     return { total, verified, inferred: total - verified };
   }, [graph]);
