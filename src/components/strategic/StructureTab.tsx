@@ -591,6 +591,9 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
                       </div>
                     );
                   })()}
+                </StructureSection>
+
+                {/* Causal Constraint Flow Map */}
                 <StructureSection
                   title="Causal Constraint Flow"
                   icon={GitBranch}
