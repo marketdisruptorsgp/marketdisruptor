@@ -3,6 +3,9 @@ import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { SplitStepLayout } from "@/components/analysis/SplitStepLayout";
+import { OpportunityDirectionsGrid } from "@/components/command-deck/OpportunityDirectionsGrid";
+import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
+import { generatePlaybooks } from "@/lib/playbookEngine";
 import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
