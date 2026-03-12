@@ -176,7 +176,8 @@ export function usePipelineOrchestrator(
     await saveStepData("decomposition", decompResult, analysisId!);
     updateStatus("decompose", "done");
     onStepComplete?.("decompose");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: show decomposition results immediately
+    onRecompute?.();
     return decompResult;
   }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete]);
 
