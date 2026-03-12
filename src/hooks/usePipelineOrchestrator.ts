@@ -256,7 +256,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("redesign");
     updateStatus("synthesis", "done");
     onStepComplete?.("synthesis");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: show synthesis results immediately
+    onRecompute?.();
     return synthesisResult;
   }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete]);
 
