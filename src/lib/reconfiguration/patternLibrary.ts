@@ -830,6 +830,10 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.laborIntensity === "artisan" && profile.customerConcentration === "single_customer") {
         return { qualifies: false, reason: "Artisan service for single customer — insufficient data volume for moat.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: traditional service businesses don't generate the data volume needed for a moat
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — data moat requires digital-scale interactions. Focus on building expertise and reputation.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.customerConcentration === "diversified") strengths.push("Diversified customer base generates broad, valuable data");
       if (profile.valueChainPosition === "platform" || profile.valueChainPosition === "infrastructure") strengths.push("Platform/infrastructure position sees data from all participants");
