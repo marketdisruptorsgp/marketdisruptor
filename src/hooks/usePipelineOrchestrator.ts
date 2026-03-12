@@ -1,15 +1,17 @@
 /**
- * PIPELINE ORCHESTRATOR — 90-Second Architecture
+ * PIPELINE ORCHESTRATOR — Progressive Rendering Architecture
  *
- * 3-Phase Pipeline:
- *   Phase 1: Structural Decomposition (Flash, ~20s)
- *   Phase 2: Strategic Synthesis (Pro, ~45s) — replaces transform + concept
- *   Phase 3: Deep Validation + Pitch (Flash, parallel, NON-BLOCKING)
+ * 3-Phase Pipeline with Progressive UI Updates:
+ *   Phase 1: Structural Decomposition (Flash, ~20s) → renders immediately
+ *   Phase 2: Strategic Synthesis (Pro, ~45s) → renders immediately
+ *   Phase 2.5: Concept Synthesis (~20s) → renders immediately
+ *   Phase 3: Stress Test + Pitch (LAZY — on-demand only)
  *
  * Key behaviors:
- *   - Decomposition mandatory with retry
- *   - Strategic synthesis produces ALL analysis + concept in one call
- *   - Phase 3 fires after UI renders Phase 2 — results stream in
+ *   - Each phase triggers onRecompute() for progressive rendering
+ *   - Decomposition results appear within ~20s
+ *   - Synthesis cards appear within ~60s
+ *   - Stress Test + Pitch are user-triggered (not auto-run)
  *   - Reuses existing step data (skips completed steps)
  *   - Payload compression reduces token usage
  *   - Pre-context assembly (zero AI cost)
