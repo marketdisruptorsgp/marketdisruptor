@@ -21,6 +21,8 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { assemblePreContext } from "@/lib/preContextAssembly";
+import { runStrategySearch } from "@/lib/strategySearch";
+import { profileFromDecomposition } from "@/lib/strategySearch/profileAdapter";
 import { toast } from "sonner";
 
 export type PipelineStepStatus = "pending" | "running" | "done" | "error" | "skipped";
