@@ -76,6 +76,7 @@ export function clearAllState(setters: HydrationSetters) {
   setters.setAdaptiveContext(null);
   setters.setGeoData(null);
   setters.setRegulatoryData(null);
+  setters.setRejectedIdeasPersisted([]);
 
   // Clear intelligence cache to prevent stale data
   import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
