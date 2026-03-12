@@ -71,7 +71,7 @@ export default function OverviewPage() {
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
   const swot: SwotData = useMemo(() => extractSwot(narrative, topOpps, deepenedOpportunities), [narrative, topOpps, deepenedOpportunities]);
 
-  const problemStatement = adaptiveContext?.problemStatement || selectedProduct?.notes || selectedProduct?.description || "";
+  const problemStatement = adaptiveContext?.problemStatement || selectedProduct?.description || "";
   const challenges = adaptiveContext?.selectedChallenges || [];
   const entityName = adaptiveContext?.entity?.name || selectedProduct?.name || "Analysis";
   const summaryText = narrative?.executiveSummary || narrative?.narrativeSummary || "";

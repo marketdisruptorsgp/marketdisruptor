@@ -42,7 +42,7 @@ export function extractSwot(
     }
   }
   for (const d of deepenedOpps.slice(0, 2)) {
-    const label = d.title || d.label || "";
+    const label = d.label || "";
     if (label && !oppLabels.has(label)) {
       opportunities.push(truncate(label));
       oppLabels.add(label);
