@@ -428,6 +428,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [regulatoryData, setRegulatoryData] = useState<unknown>(null);
   // ── Scouted Competitors (from Disrupt → Stress Test) ──
   const [scoutedCompetitors, setScoutedCompetitors] = useState<unknown[]>([]);
+  // ── Persisted rejected ideas ──
+  const [rejectedIdeasPersisted, setRejectedIdeasPersisted] = useState<string[]>([]);
   // ── Concept Variants for Stress Test (from Insight Graph) ──
   const [conceptVariantsForStressTest, setConceptVariantsForStressTest] = useState<ConceptVariantSummary[]>([]);
 
