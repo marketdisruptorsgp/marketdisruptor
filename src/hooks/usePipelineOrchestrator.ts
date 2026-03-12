@@ -376,7 +376,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("pitch");
     updateStatus("pitch", "done");
     onStepComplete?.("pitch");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: update with pitch data
+    onRecompute?.();
   }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Full 3-Phase Pipeline ──
