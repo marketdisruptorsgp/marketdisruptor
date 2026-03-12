@@ -263,6 +263,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Create a two-sided marketplace connecting supply and demand, capturing a transaction fee.",
     aiPromptHint: "Who are the specific supply-side and demand-side participants? Why don't they connect efficiently today? What's the matching mechanism? How do you solve the chicken-and-egg problem to bootstrap liquidity?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "atomized") score += 4;
       if (p.supplyFragmentation === "fragmented") score += 2;
