@@ -943,6 +943,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           adaptiveContext: adaptiveContext || undefined,
           upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
           disruptContext: disruptCtx || undefined,
+          rejectedIdeas: rejectedIdeas || undefined,
         },
       });
 
