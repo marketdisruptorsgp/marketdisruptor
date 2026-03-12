@@ -193,6 +193,9 @@ interface AnalysisContextType {
   scoutedCompetitors: unknown[];
   setScoutedCompetitors: (d: unknown[]) => void;
 
+  // Persisted rejected idea names (survives reloads)
+  rejectedIdeasPersisted: string[];
+
   // Concept variants selected for stress testing (from Insight Graph → Stress Test)
   conceptVariantsForStressTest: ConceptVariantSummary[];
   setConceptVariantsForStressTest: (d: ConceptVariantSummary[]) => void;
