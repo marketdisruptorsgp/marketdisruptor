@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from "react";
+import { StrategicDiagnosisBanner } from "@/components/command-deck/StrategicDiagnosisBanner";
+import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
+import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
 import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
