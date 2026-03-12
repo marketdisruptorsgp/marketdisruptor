@@ -47,7 +47,23 @@ export default function OverviewPage() {
   const autoAnalysis = useAutoAnalysis();
   const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing } = autoAnalysis;
 
-  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId } = analysis;
+  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData } = analysis;
+
+  // Extract early binding constraint hypothesis from Phase 1 decomposition
+  const earlyConstraint = useMemo(() => {
+    if (!decompositionData) return null;
+    const d = decompositionData as Record<string, unknown>;
+    const hypothesis = d._bindingConstraintHypothesis as Record<string, unknown> | undefined;
+    if (!hypothesis?.constraint || hypothesis.constraint === "Unknown structural blocker") return null;
+    return {
+      constraint: String(hypothesis.constraint),
+      reasoning: String(hypothesis.reasoning || ""),
+      leverageScore: Number(hypothesis.leverageScore || 0),
+      bestTransformation: String(hypothesis.bestTransformation || "elimination"),
+      bottleneck: hypothesis.bottleneck as { resource: string; impact: string; severity: string } | null,
+      highestFriction: hypothesis.highestFriction as { stage: string; detail: string; costShare: string } | null,
+    };
+  }, [decompositionData]);
 
   const urlAnalysisId = useMemo(() => {
     const m = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
