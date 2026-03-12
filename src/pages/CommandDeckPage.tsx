@@ -141,6 +141,18 @@ export default function CommandDeckPage() {
     return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
   }, [businessModelInput, selectedProduct, modeKey]);
 
+  // ── Extracted data (must be before guards — hooks can't be after early returns) ──
+  const primaryThesis = autoAnalysis.deepenedOpportunities[0] ?? null;
+  const allOpportunities = autoAnalysis.deepenedOpportunities;
+  const biExtraction = (analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
+  const governedDataTyped = analysis.governedData as Record<string, any> | null;
+  const entityName = analysis.adaptiveContext?.entity?.name || selectedProduct?.name || "This business";
+
+  const deepOpps = autoAnalysis.deepenedOpportunities || [];
+  const swotProse = useMemo(() => extractSwotProse(narrative, deepOpps), [narrative, deepOpps]);
+  const criticalQuestion = useMemo(() => extractCriticalQuestion(narrative, deepOpps), [narrative, deepOpps]);
+  const opportunities = useMemo(() => extractOpportunitiesWithBadges(topOpps, deepOpps), [topOpps, deepOpps]);
+
   // ── Guards ──
   const isHydrating = analysis.isHydrating;
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
@@ -193,18 +205,6 @@ export default function CommandDeckPage() {
       </div>
     );
   }
-
-  // ── Extracted data ──
-  const primaryThesis = autoAnalysis.deepenedOpportunities[0] ?? null;
-  const allOpportunities = autoAnalysis.deepenedOpportunities;
-  const biExtraction = (analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
-  const governedDataTyped = analysis.governedData as Record<string, any> | null;
-  const entityName = analysis.adaptiveContext?.entity?.name || selectedProduct?.name || "This business";
-
-  const deepOpps = autoAnalysis.deepenedOpportunities || [];
-  const swotProse = useMemo(() => extractSwotProse(narrative, deepOpps), [narrative, deepOpps]);
-  const criticalQuestion = useMemo(() => extractCriticalQuestion(narrative, deepOpps), [narrative, deepOpps]);
-  const opportunities = useMemo(() => extractOpportunitiesWithBadges(topOpps, deepOpps), [topOpps, deepOpps]);
 
   return (
     <div className="flex-1 bg-background overflow-y-auto">
