@@ -302,3 +302,18 @@ function SwotQuadrant({
     </div>
   );
 }
+
+/** Distill a long summary to ~3 sentences / ~150 words */
+function distillSummary(text: string): string {
+  if (!text) return "";
+  // Split into sentences
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length <= 3) return text;
+  // Take first 3 sentences, then trim to ~150 words
+  let result = sentences.slice(0, 3).join(" ");
+  const words = result.split(/\s+/);
+  if (words.length > 160) {
+    result = words.slice(0, 150).join(" ") + ".";
+  }
+  return result;
+}
