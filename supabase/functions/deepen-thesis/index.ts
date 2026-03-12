@@ -67,18 +67,18 @@ Generate ${thesisCount} deepened strategic opportunities. Each must be specific 
 
     const tools = [buildToolSchema()];
 
-    // Model cascade: try cheaper models first, fall back to Pro only if needed
-    const MODEL_CASCADE = [
-      "google/gemini-2.5-flash",
-      "google/gemini-2.5-pro",
+    // Model cascade: Flash with short timeout, then Pro with longer timeout
+    const MODEL_CASCADE: { model: string; timeoutMs: number }[] = [
+      { model: "google/gemini-2.5-flash", timeoutMs: 60_000 },
+      { model: "google/gemini-2.5-pro", timeoutMs: 120_000 },
     ];
 
     let response: Response | null = null;
     let lastError = "";
 
-    for (const model of MODEL_CASCADE) {
+    for (const { model, timeoutMs } of MODEL_CASCADE) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 150_000);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       try {
         response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
