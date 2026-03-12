@@ -545,18 +545,22 @@ export default function CommandDeckPage() {
               <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">
                 Building Your Analysis
               </span>
+              <span className="text-[10px] text-muted-foreground ml-auto">
+                {pipelineProgress.currentStep === "decompose" ? "~20s" : pipelineProgress.currentStep === "synthesis" ? "~40s" : "~15s"}
+              </span>
             </div>
             <div className="flex gap-2">
-              {pipelineProgress.steps.map(s => (
+              {pipelineProgress.steps.filter(s => !("lazy" in STEP_DEFS.find(d => d.key === s.key)! && STEP_DEFS.find(d => d.key === s.key)!.lazy)).map(s => (
                 <div key={s.key} className="flex-1">
                   <div
                     className="h-1.5 rounded-full transition-all duration-500"
                     style={{
-                      background: s.status === "done" ? "hsl(var(--success))"
+                      background: s.status === "done" ? "hsl(var(--success, 142 76% 36%))"
                         : s.status === "running" ? "hsl(var(--primary))"
                         : "hsl(var(--muted))",
                     }}
                   />
+                  <p className="text-[9px] text-muted-foreground mt-1 text-center">{s.label}</p>
                 </div>
               ))}
             </div>
