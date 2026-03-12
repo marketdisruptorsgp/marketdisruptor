@@ -48,6 +48,7 @@ export interface HydrationSetters {
   setGeoData: (d: unknown) => void;
   setRegulatoryData: (d: unknown) => void;
   setActiveLensState: (l: any | null) => void;
+  setRejectedIdeasPersisted: (r: string[]) => void;
 }
 
 /**
