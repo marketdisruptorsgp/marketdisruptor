@@ -411,7 +411,7 @@ export default function CommandDeckPage() {
         )}
 
         {/* ═══ SEE FULL ANALYSIS ═══ */}
-        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pt-2 pb-4">
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pt-1 pb-2">
           <Button
             size="lg"
             onClick={() => navigate(`${baseUrl}/report`)}
