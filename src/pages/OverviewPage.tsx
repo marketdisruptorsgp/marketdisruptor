@@ -119,10 +119,17 @@ export default function OverviewPage() {
         <p className="text-sm text-muted-foreground mt-1">Strategic Briefing</p>
       </motion.div>
 
+      {/* ═══ 0. EARLY BINDING CONSTRAINT (from Phase 1 — shows in ~20s) ═══ */}
+      {earlyConstraint && !singleInsight && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.08 }}>
+          <EarlyConstraintCard constraint={earlyConstraint} isRefining={isComputing} />
+        </motion.div>
+      )}
+
       {/* ═══ 1. SINGLE INSIGHT ═══ */}
       {(loading || singleInsight) && (
         <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
-          {loading ? (
+          {loading && !earlyConstraint ? (
             <Skeleton className="h-28 w-full" />
           ) : singleInsight ? (
             <InsightHero insight={singleInsight} />
