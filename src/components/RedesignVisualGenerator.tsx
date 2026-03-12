@@ -131,7 +131,7 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
       analysis.saveStepData("redesign", updated);
 
       // Auto-select first visual for pitch deck if none selected
-      if (analysis.pitchDeckImages.length === 0 && results[0]) {
+      if ((Array.isArray(analysis.pitchDeckImages) ? analysis.pitchDeckImages : []).length === 0 && results[0]) {
         analysis.setPitchDeckImage(results[0].url, `${concept.conceptName} — ${results[0].label}`);
       }
 
