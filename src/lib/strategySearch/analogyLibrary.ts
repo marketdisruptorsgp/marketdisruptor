@@ -1,7 +1,7 @@
 /**
  * CROSS-DOMAIN ANALOGY LIBRARY
  *
- * ~40 curated structural transformations from real companies across 8+ industries.
+ * ~65 curated structural transformations from real companies across 15+ industries.
  * Each entry captures the STRUCTURAL PRIMITIVE — the abstract mechanism that can
  * be transplanted to an unrelated industry.
  *
