@@ -36,8 +36,8 @@ const STEP_DEFS = [
   { key: "decompose", label: "Understanding Structure" },
   { key: "synthesis", label: "Finding Opportunities" },
   { key: "concepts", label: "Generating Concepts" },
-  { key: "stressTest", label: "Stress Testing" },
-  { key: "pitch", label: "Building Pitch" },
+  { key: "stressTest", label: "Stress Testing", lazy: true },
+  { key: "pitch", label: "Building Pitch", lazy: true },
 ] as const;
 
 /**
