@@ -8,6 +8,7 @@ export interface Competitor {
   url: string;
   description: string;
   competition_score: number;
+  structural_overlap?: string;
 }
 
 interface CompetitorScoutPanelProps {
