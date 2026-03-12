@@ -3,6 +3,9 @@ import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { SplitStepLayout } from "@/components/analysis/SplitStepLayout";
+import { OpportunityDirectionsGrid } from "@/components/command-deck/OpportunityDirectionsGrid";
+import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
+import { generatePlaybooks } from "@/lib/playbookEngine";
 import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -309,6 +312,23 @@ export default function DisruptPage() {
         )}
       </div>
       </SplitStepLayout>
+
+      {/* Strategic Opportunities + Recommended Move — moved from Command Deck */}
+      {hasDisruptData && (
+        <div className="space-y-6">
+          <OpportunityDirectionsGrid
+            opportunities={(autoAnalysis as any).deepenedOpportunities?.slice(0, 3) || []}
+            modeAccent={theme.primary}
+          />
+          {(() => {
+            const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
+              analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product";
+            const pbs = generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, autoAnalysis.narrative, modeEvidence);
+            const topPb = pbs.length > 0 ? pbs[0] : null;
+            return <RecommendedMoveCard playbook={topPb} modeAccent={theme.primary} />;
+          })()}
+        </div>
+      )}
 
       {/* Pipeline Progress Bar */}
       <PipelineProgressBar

@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from "react";
+import { StrategicDiagnosisBanner } from "@/components/command-deck/StrategicDiagnosisBanner";
+import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
+import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
 import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
@@ -272,19 +275,46 @@ export default function ReportPage() {
 
       {/* ── Strategic Command Deck — dashboard tab ── */}
       {activeSection === "dashboard" && (
-        <StrategicDashboard
-          analysisId={analysisId || ""}
-          analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
-          accentColor={modeAccent}
-          graph={graph}
-          commandDeck={intelligence?.commandDeck ?? null}
-          completedSteps={completedSteps}
-          outdatedSteps={analysis.outdatedSteps}
-          onRunStep={(stepKey) => {
-            const baseUrl = `/analysis/${analysisId}`;
-            navigate(`${baseUrl}/${stepKey}`);
-          }}
-        />
+        <>
+          <StrategicDashboard
+            analysisId={analysisId || ""}
+            analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
+            accentColor={modeAccent}
+            graph={graph}
+            commandDeck={intelligence?.commandDeck ?? null}
+            completedSteps={completedSteps}
+            outdatedSteps={analysis.outdatedSteps}
+            onRunStep={(stepKey) => {
+              const baseUrl = `/analysis/${analysisId}`;
+              navigate(`${baseUrl}/${stepKey}`);
+            }}
+          />
+
+          {/* Diagnosis components moved from Command Deck */}
+          <div className="space-y-6 mt-6">
+            <SoWhatHeader
+              narrative={autoAnalysis.narrative}
+              thesis={autoAnalysis.deepenedOpportunities?.[0] ?? null}
+              modeAccent={modeAccent}
+            />
+            <StrategicDiagnosisBanner
+              constraintLabel={autoAnalysis.narrative?.primaryConstraint ?? null}
+              rationale={autoAnalysis.narrative?.narrativeSummary ?? null}
+              verdict={autoAnalysis.narrative?.strategicVerdict ?? null}
+              opportunityLabel={autoAnalysis.narrative?.breakthroughOpportunity ?? null}
+              verdictRationale={autoAnalysis.narrative?.verdictRationale ?? null}
+              whyThisMatters={autoAnalysis.narrative?.whyThisMatters ?? null}
+              confidence={autoAnalysis.narrative?.verdictConfidence ?? 0}
+              completedSteps={completedSteps.size}
+            />
+            <WhatsNextPanel
+              narrative={autoAnalysis.narrative}
+              thesis={autoAnalysis.deepenedOpportunities?.[0] ?? null}
+              modeAccent={modeAccent}
+              onChallenge={() => {}}
+            />
+          </div>
+        </>
       )}
 
       {/* ── Intelligence Report Context Banner — overview only ── */}

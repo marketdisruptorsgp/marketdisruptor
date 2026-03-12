@@ -15,6 +15,13 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { Swords, XCircle, BarChart3, Crosshair, LayoutDashboard, Boxes, X } from "lucide-react";
+import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
+import { CompetitiveMoatRadar } from "@/components/command-deck/CompetitiveMoatRadar";
+import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
+import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
+import { computeBenchmarks } from "@/lib/benchmarkEngine";
+import { generatePlaybooks } from "@/lib/playbookEngine";
+import { extractAllEvidence } from "@/lib/evidenceEngine";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { type LensType } from "@/lib/multiLensEngine";
 import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
@@ -308,6 +315,37 @@ export default function StressTestPage() {
           </div>
         )}
       </SplitStepLayout>
+
+      {/* Benchmark + Moat + Simulator + Lens Intelligence — moved from Command Deck */}
+      <div className="space-y-6 mt-6">
+        {(() => {
+          const biExt = (analysis as any)?.biExtraction ?? (analysis as any)?.adaptiveContext?.biExtraction ?? null;
+          const flatEv = autoAnalysis.flatEvidence || [];
+          const narr = autoAnalysis.narrative || null;
+          const modeEv: import("@/lib/evidenceEngine").EvidenceMode =
+            analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product";
+          const pbs = generatePlaybooks(flatEv, autoAnalysis.insights, narr, modeEv);
+          const topPb = pbs.length > 0 ? pbs[0] : null;
+          const bm = computeBenchmarks(flatEv, narr, topPb, biExt);
+          return <IndustryBenchmarkPanel benchmark={bm} />;
+        })()}
+        <CompetitiveMoatRadar
+          governedData={governedData as Record<string, any> | null}
+          narrative={autoAnalysis.narrative}
+          modeAccent={theme.primary}
+        />
+        <StrategicScenarioSimulator
+          evidence={autoAnalysis.flatEvidence || []}
+          narrative={autoAnalysis.narrative}
+        />
+        <LensIntelligencePanel
+          analysisMode={analysis.activeMode || "product"}
+          signalKeywords={[]}
+          analysisId={analysisId || ""}
+          recommendedToolIds={[]}
+          onScenarioSaved={() => {}}
+        />
+      </div>
 
       <PipelineProgressBar
         completedSteps={autoAnalysis.completedSteps}
