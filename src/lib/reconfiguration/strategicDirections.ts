@@ -16,6 +16,27 @@
 
 import type { StructuralProfile } from "./structuralProfile";
 
+const DIGITAL_SCALE_DIRECTION_IDS = new Set([
+  "platformize",
+  "shared_infrastructure",
+  "marketplace",
+  "network_effect",
+  "data_advantage",
+  "freemium_flip",
+]);
+
+function isTraditionalServiceBusiness(profile: StructuralProfile): boolean {
+  const laborHeavy = profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan";
+  const nonDigitalRevenue =
+    profile.revenueModel === "project_based" ||
+    profile.revenueModel === "transactional" ||
+    profile.revenueModel === "mixed";
+  const servicePosition = profile.valueChainPosition === "end_service" || profile.valueChainPosition === "application";
+  const ownerDependent = profile.ownerDependency === "owner_reliant" || profile.ownerDependency === "owner_critical";
+
+  return laborHeavy && nonDigitalRevenue && (servicePosition || ownerDependent || profile.etaActive);
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  STRATEGIC DIRECTION ARCHETYPE
 // ═══════════════════════════════════════════════════════════════
