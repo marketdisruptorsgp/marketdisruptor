@@ -131,6 +131,72 @@ export interface DeepenedOpportunity {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  REALISM FILTER HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+const UNREALISTIC_DIRECTION_IDS = new Set([
+  "platformize",
+  "shared_infrastructure",
+  "marketplace",
+  "network_effect",
+  "data_advantage",
+  "freemium_flip",
+]);
+
+const UNREALISTIC_PATTERN_IDS = new Set([
+  "infrastructure_abstraction",
+  "network_effect",
+  "data_moat",
+  "freemium_flip",
+  "loss_leader_ecosystem",
+]);
+
+function isTraditionalBusinessProfile(profile: StructuralProfile): boolean {
+  const laborHeavy = profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan";
+  const nonDigitalRevenue =
+    profile.revenueModel === "project_based" ||
+    profile.revenueModel === "transactional" ||
+    profile.revenueModel === "mixed";
+  const servicePosition = profile.valueChainPosition === "end_service" || profile.valueChainPosition === "application";
+  const ownerDependent = profile.ownerDependency === "owner_reliant" || profile.ownerDependency === "owner_critical";
+
+  return laborHeavy && nonDigitalRevenue && (servicePosition || ownerDependent || profile.etaActive);
+}
+
+function isUnrealisticText(text: string): boolean {
+  return /(\bsaas\b|software[-\s]?as[-\s]?a[-\s]?service|\bmarketplace\b|\bplatform\b|network effects?|api[-\s]?first|developer tool|sell to other shops|shared infrastructure)/i.test(text);
+}
+
+function filterRealisticOpportunities(
+  opportunities: DeepenedOpportunity[],
+  profile: StructuralProfile,
+): DeepenedOpportunity[] {
+  if (!isTraditionalBusinessProfile(profile)) return opportunities;
+
+  return opportunities.filter((opp) => {
+    if (UNREALISTIC_PATTERN_IDS.has(opp.patternId) || UNREALISTIC_DIRECTION_IDS.has(opp.patternId)) {
+      return false;
+    }
+
+    const combinedText = [
+      opp.patternName,
+      opp.label,
+      opp.reconfigurationLabel,
+      opp.summary,
+      opp.strategicBet?.industryAssumption,
+      opp.strategicBet?.contrarianBelief,
+      opp.strategicBet?.implication,
+      opp.firstMove?.action,
+      opp.firstMove?.learningObjective,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    return !isUnrealisticText(combinedText);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  DEEPENING ENGINE
 // ═══════════════════════════════════════════════════════════════
 
