@@ -363,6 +363,7 @@ export const FirstPrinciplesAnalysis = ({
               generatingIdeas={generatingIdeas}
               userScores={userScores}
               onScoreChange={onScoreChange}
+              initialRejectedIdeas={analysisCtx.rejectedIdeasPersisted}
               onCompetitorsScouted={(comps) => {
                 const prev = analysisCtx.scoutedCompetitors || [];
                 const merged = [...prev, ...(comps as any[])];

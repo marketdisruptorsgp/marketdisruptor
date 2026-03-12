@@ -193,6 +193,9 @@ interface AnalysisContextType {
   scoutedCompetitors: unknown[];
   setScoutedCompetitors: (d: unknown[]) => void;
 
+  // Persisted rejected idea names (survives reloads)
+  rejectedIdeasPersisted: string[];
+
   // Concept variants selected for stress testing (from Insight Graph → Stress Test)
   conceptVariantsForStressTest: ConceptVariantSummary[];
   setConceptVariantsForStressTest: (d: ConceptVariantSummary[]) => void;
@@ -425,6 +428,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [regulatoryData, setRegulatoryData] = useState<unknown>(null);
   // ── Scouted Competitors (from Disrupt → Stress Test) ──
   const [scoutedCompetitors, setScoutedCompetitors] = useState<unknown[]>([]);
+  // ── Persisted rejected ideas ──
+  const [rejectedIdeasPersisted, setRejectedIdeasPersisted] = useState<string[]>([]);
   // ── Concept Variants for Stress Test (from Insight Graph) ──
   const [conceptVariantsForStressTest, setConceptVariantsForStressTest] = useState<ConceptVariantSummary[]>([]);
 
@@ -590,6 +595,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setPitchDeckImages, setPitchDeckExclusions, setScoutedCompetitors,
     setAdaptiveContext: setAdaptiveContextState, setGeoData, setRegulatoryData,
     setActiveLensState,
+    setRejectedIdeasPersisted,
   }), []);
 
   const handleAnalyze = useCallback(async (params: {
@@ -1460,6 +1466,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       scoutedCompetitors, setScoutedCompetitors,
+      rejectedIdeasPersisted,
       conceptVariantsForStressTest, setConceptVariantsForStressTest,
       modeRouting, setModeRouting,
       adaptiveContext, setAdaptiveContext,

@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Lightbulb, Sparkles } from "lucide-react";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
 import {
   StepCanvas, InsightCard, ExpandableDetail,
 } from "@/components/analysis/AnalysisComponents";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 import type { FlippedIdea } from "@/data/mockProducts";
 
 interface FlippedIdeasPanelProps {
@@ -13,11 +14,30 @@ interface FlippedIdeasPanelProps {
   userScores?: Record<string, Record<string, number>>;
   onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void;
   onCompetitorsScouted?: (comps: unknown[]) => void;
+  initialRejectedIdeas?: string[];
 }
 
-export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted }: FlippedIdeasPanelProps) {
+export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted, initialRejectedIdeas }: FlippedIdeasPanelProps) {
+  const { saveStepData } = useAnalysis();
   const [userContext, setUserContext] = useState("");
-  const [rejectedIdeas, setRejectedIdeas] = useState<string[]>([]);
+  const [rejectedIdeas, setRejectedIdeas] = useState<string[]>(initialRejectedIdeas || []);
+
+  // Re-sync when hydrated data changes (e.g. loading a saved analysis)
+  const lastHydratedRef = useRef<string>("");
+  useEffect(() => {
+    const key = JSON.stringify(initialRejectedIdeas || []);
+    if (key !== lastHydratedRef.current) {
+      lastHydratedRef.current = key;
+      setRejectedIdeas(initialRejectedIdeas || []);
+    }
+  }, [initialRejectedIdeas]);
+
+  // Persist to DB whenever rejectedIdeas changes
+  const isFirstMount = useRef(true);
+  useEffect(() => {
+    if (isFirstMount.current) { isFirstMount.current = false; return; }
+    saveStepData?.("rejectedIdeas", rejectedIdeas);
+  }, [rejectedIdeas]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleReject = useCallback((ideaName: string) => {
     setRejectedIdeas((prev) => prev.includes(ideaName) ? prev : [...prev, ideaName]);

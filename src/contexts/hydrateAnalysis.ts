@@ -48,6 +48,7 @@ export interface HydrationSetters {
   setGeoData: (d: unknown) => void;
   setRegulatoryData: (d: unknown) => void;
   setActiveLensState: (l: any | null) => void;
+  setRejectedIdeasPersisted: (r: string[]) => void;
 }
 
 /**
@@ -75,6 +76,7 @@ export function clearAllState(setters: HydrationSetters) {
   setters.setAdaptiveContext(null);
   setters.setGeoData(null);
   setters.setRegulatoryData(null);
+  setters.setRejectedIdeasPersisted([]);
 
   // Clear intelligence cache to prevent stale data
   import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
@@ -216,6 +218,12 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
     ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)
       ? new Set(ad.outdatedSteps as string[])
       : new Set()
+  );
+  // Hydrate persisted rejected ideas
+  setters.setRejectedIdeasPersisted(
+    ad?.rejectedIdeas && Array.isArray(ad.rejectedIdeas)
+      ? (ad.rejectedIdeas as string[])
+      : []
   );
 
   // Business model routing
