@@ -685,8 +685,42 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
-            FINANCIAL TRAJECTORY — Trend charts from multi-year P&L
+            ENRICHMENT — Lazy-loaded stress test & pitch deck
            ══════════════════════════════════════════════════════════ */}
+        {(!analysis.stressTestData || !analysis.pitchDeckData) && !pipelineProgress.isRunning && (
+          <div
+            className="rounded-xl px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3"
+            style={{ background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))" }}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-foreground">Enrich your analysis</p>
+              <p className="text-[11px] text-muted-foreground">Run stress test and pitch deck for deeper validation.</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              {!analysis.stressTestData && (
+                <button
+                  onClick={() => pipelineProgress.retryStep("stressTest")}
+                  disabled={pipelineProgress.steps.find(s => s.key === "stressTest")?.status === "running"}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all hover:scale-[1.02] disabled:opacity-50"
+                  style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}
+                >
+                  {pipelineProgress.steps.find(s => s.key === "stressTest")?.status === "running" ? "Running…" : "Stress Test"}
+                </button>
+              )}
+              {!analysis.pitchDeckData && (
+                <button
+                  onClick={() => pipelineProgress.retryStep("pitch")}
+                  disabled={pipelineProgress.steps.find(s => s.key === "pitch")?.status === "running"}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all hover:scale-[1.02] disabled:opacity-50"
+                  style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}
+                >
+                  {pipelineProgress.steps.find(s => s.key === "pitch")?.status === "running" ? "Running…" : "Pitch Deck"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         <FinancialTrendCharts
           biExtraction={biExtraction}
           governedData={governedDataTyped}
