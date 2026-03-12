@@ -17,7 +17,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch, adaptiveContext: rawAdaptiveCtx, upstreamIntel, disruptContext, rejectedIdeas } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch, adaptiveContext: rawAdaptiveCtx, upstreamIntel, disruptContext, rejectedIdeas, governedReasoning } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const ideaCount = count || 2;
@@ -188,6 +188,30 @@ CRITICAL: Each flipped idea MUST trace back to at least one hidden assumption or
 ${rejectedIdeas && rejectedIdeas.length > 0 ? `REJECTED IDEAS — the user has already seen and dismissed these. Do NOT regenerate similar concepts:
 ${rejectedIdeas.map((r: string, i: number) => `${i + 1}. "${r}"`).join("\n")}
 Generate STRUCTURALLY DIFFERENT ideas that explore different assumptions, business models, or audience segments than the rejected ones.` : ""}
+
+${governedReasoning ? `STRUCTURAL REASONING CONTEXT — This is the deep analysis of the system's constraints and mechanisms. Use this to ensure every flipped idea traces back to REAL structural leverage, not surface-level brainstorming.
+
+${governedReasoning.binding_constraint ? `BINDING CONSTRAINT (the #1 structural blocker in this system):
+${JSON.stringify(governedReasoning.binding_constraint)}
+→ Every flipped idea should either DISSOLVE this constraint, ROUTE AROUND it, or INVERT it into an advantage.` : ""}
+
+${governedReasoning.dominant_mechanism ? `DOMINANT MECHANISM (how value currently flows):
+${JSON.stringify(governedReasoning.dominant_mechanism)}
+→ Ideas that redirect or restructure this mechanism are higher-leverage than ideas that work within it.` : ""}
+
+${governedReasoning.constraint_map_summary?.friction_tiers ? `FRICTION TIERS (ranked structural blockers):
+${(governedReasoning.constraint_map_summary.friction_tiers as any[]).map((t: any, i: number) => `${i + 1}. ${t.constraint || t.name || JSON.stringify(t)}`).join("\n")}
+→ Target Tier 1 frictions for maximum impact.` : ""}
+
+${governedReasoning.constraint_map_summary?.dominance_proof ? `DOMINANCE PROOF: ${governedReasoning.constraint_map_summary.dominance_proof}` : ""}
+
+${governedReasoning.transformation_clusters ? `TRANSFORMATION CLUSTERS (proven reconfiguration paths from upstream analysis):
+${(governedReasoning.transformation_clusters as any[]).map((tc: any, i: number) => `${i + 1}. "${tc.cluster_name || tc.theme}" — includes: ${(tc.transformations || []).join(", ")}`).join("\n")}
+→ Use these as structural foundations for flip ideas. Combine or extend them rather than ignoring them.` : ""}
+
+${governedReasoning.reasoning_synopsis ? `STRATEGIC SYNOPSIS: ${governedReasoning.reasoning_synopsis}` : ""}
+
+CRITICAL: With this structural context available, your ideas MUST be grounded in the constraint architecture above. Do NOT generate generic innovation ideas that ignore the binding constraint or friction tiers.` : ""}
 
 GROUNDING RULES — make ideas SPECIFIC, not generic:
 1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
