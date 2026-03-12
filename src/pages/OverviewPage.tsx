@@ -95,7 +95,7 @@ export default function OverviewPage() {
         <p className="text-sm text-muted-foreground mt-1">Analysis Overview</p>
       </motion.div>
 
-      {/* Two-column grid */}
+      {/* Two-column: Problem/Challenges left, Analysis Overview right */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* ═══ LEFT COLUMN ═══ */}
         <div className="space-y-5">
@@ -163,10 +163,10 @@ export default function OverviewPage() {
         </div>
 
         {/* ═══ RIGHT COLUMN ═══ */}
-        <div className="space-y-5">
+        <div>
           {/* Analysis Overview */}
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
-            <Card className="border-border/60">
+            <Card className="border-border/60 h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Zap size={15} className="text-primary" />
@@ -190,72 +190,72 @@ export default function OverviewPage() {
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* SWOT */}
-          <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
-            <Card className="border-border/60">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-extrabold uppercase tracking-wider text-muted-foreground">
-                  Strategic Assessment
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-12 w-full" />)}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <SwotQuadrant icon={TrendingUp} label="Strengths" items={swot.strengths} color="text-emerald-500" bg="bg-emerald-500/10" />
-                    <SwotQuadrant icon={AlertTriangle} label="Weaknesses" items={swot.weaknesses} color="text-amber-500" bg="bg-amber-500/10" />
-                    <SwotQuadrant icon={Lightbulb} label="Opportunities" items={swot.opportunities} color="text-sky-500" bg="bg-sky-500/10" />
-                    <SwotQuadrant icon={ShieldAlert} label="Threats" items={swot.threats} color="text-red-500" bg="bg-red-500/10" />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Top Opportunities */}
-          <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.25 }}>
-            <Card className="border-border/60">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Lightbulb size={15} className="text-primary" />
-                  <CardTitle className="text-sm font-extrabold uppercase tracking-wider text-muted-foreground">
-                    Top Opportunities
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
-                  </div>
-                ) : topOpps.length > 0 ? (
-                  <div className="space-y-2.5">
-                    {topOpps.slice(0, 5).map((opp, i) => (
-                      <div key={opp.id} className="flex gap-3 items-start">
-                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
-                          {i + 1}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground leading-snug">{opp.label}</p>
-                          {opp.source && (
-                            <p className="text-xs text-muted-foreground mt-0.5">{opp.source}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">Complete the pipeline to surface opportunities.</p>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
         </div>
       </div>
+
+      {/* ═══ FULL-WIDTH: SWOT ═══ */}
+      <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
+        <Card className="border-border/60">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-extrabold uppercase tracking-wider text-muted-foreground">
+              Strategic Assessment
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <SwotQuadrant icon={TrendingUp} label="Strengths" items={swot.strengths} color="text-emerald-500" bg="bg-emerald-500/10" />
+                <SwotQuadrant icon={AlertTriangle} label="Weaknesses" items={swot.weaknesses} color="text-amber-500" bg="bg-amber-500/10" />
+                <SwotQuadrant icon={Lightbulb} label="Opportunities" items={swot.opportunities} color="text-sky-500" bg="bg-sky-500/10" />
+                <SwotQuadrant icon={ShieldAlert} label="Threats" items={swot.threats} color="text-red-500" bg="bg-red-500/10" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* ═══ FULL-WIDTH: Top Opportunities ═══ */}
+      <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.25 }}>
+        <Card className="border-border/60">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Lightbulb size={15} className="text-primary" />
+              <CardTitle className="text-sm font-extrabold uppercase tracking-wider text-muted-foreground">
+                Top Opportunities
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            ) : topOpps.length > 0 ? (
+              <div className="space-y-2.5">
+                {topOpps.slice(0, 5).map((opp, i) => (
+                  <div key={opp.id} className="flex gap-3 items-start">
+                    <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground leading-snug">{opp.label}</p>
+                      {opp.source && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{opp.source}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">Complete the pipeline to surface opportunities.</p>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* CTA */}
       <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pt-2">
