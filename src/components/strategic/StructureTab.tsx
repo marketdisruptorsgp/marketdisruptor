@@ -16,6 +16,9 @@ import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
 import { CausalConstraintMap } from "@/components/CausalConstraintMap";
 import { CausalConstraintSankey } from "@/components/CausalConstraintSankey";
 import { CompetitiveLandscape } from "@/components/CompetitiveLandscape";
+import { ResearchChecklist } from "@/components/ResearchChecklist";
+import { ConfidenceSummaryBar } from "@/components/ProvenanceBadge";
+import { assessDataConfidence } from "@/lib/confidenceGating";
 
 export type StructureViewMode = "assumptions" | "deconstruct" | "all";
 
@@ -565,6 +568,29 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
                     provenanceRegistry={systemIntelligence.provenanceRegistry}
                     convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
                   />
+
+                  {/* Data Confidence + Research Gaps */}
+                  {(() => {
+                    const decomp = analysis.decompositionData;
+                    const upstreamIntel = selectedProduct as any;
+                    const confidence = assessDataConfidence(
+                      { supplyChain: upstreamIntel?.supplyChain, pricingIntel: upstreamIntel?.pricingIntel, competitorAnalysis: upstreamIntel?.competitorAnalysis, patentLandscape: upstreamIntel?.patentLandscape, patentData: upstreamIntel?.patentData, trendAnalysis: upstreamIntel?.trendAnalysis, communityInsights: upstreamIntel?.communityInsights },
+                      decomp,
+                      { name: selectedProduct?.name, category: selectedProduct?.category, description: selectedProduct?.description },
+                    );
+                    return (
+                      <div className="mt-3 space-y-3">
+                        <ConfidenceSummaryBar
+                          overallScore={confidence.overallScore}
+                          knownCount={confidence.knownVsInferred.knownCount}
+                          inferredCount={confidence.knownVsInferred.inferredCount}
+                        />
+                        {confidence.researchQuestions.length > 0 && (
+                          <ResearchChecklist assessment={confidence} />
+                        )}
+                      </div>
+                    );
+                  })()}
                 </StructureSection>
 
                 {/* Causal Constraint Flow Map */}

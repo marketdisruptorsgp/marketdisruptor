@@ -907,6 +907,9 @@ export function DecompositionViewer() {
 
   const modeLabel = data.mode === "service" ? "Service" : data.mode === "business" ? "Business Model" : "Product";
 
+  // Extract confidence metadata if available
+  const dataConfidence = (data as any)?._dataConfidence;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-1">
@@ -915,12 +918,97 @@ export function DecompositionViewer() {
         <span className="text-xs text-muted-foreground">— Structural primitives + system dynamics</span>
       </div>
 
+      {/* Data Confidence Summary */}
+      {dataConfidence && (
+        <DataConfidenceBar confidence={dataConfidence} />
+      )}
+
       {data.mode === "product" && <ProductView data={data as ProductDecomposition} />}
       {data.mode === "service" && <ServiceView data={data as ServiceDecomposition} />}
       {data.mode === "business" && <BusinessView data={data as BusinessModelDecomposition} />}
 
+      {/* Research Gaps from Decomposition */}
+      {dataConfidence?.researchGaps?.length > 0 && (
+        <DecompositionResearchGaps gaps={dataConfidence.researchGaps} />
+      )}
+
       {/* Constraint Mapping (from governed reasoning) */}
       <ConstraintMappingView />
+    </div>
+  );
+}
+
+/* ── Data Confidence Bar (inline, lightweight) ── */
+function DataConfidenceBar({ confidence }: { confidence: any }) {
+  const score = confidence.overallScore || 0;
+  const label = score >= 0.6 ? "Partially Grounded"
+    : score >= 0.4 ? "Mostly Inferred"
+    : "Low Data — Treat as Hypotheses";
+  const color = score >= 0.6 ? "hsl(142 70% 40%)"
+    : score >= 0.4 ? "hsl(38 92% 42%)"
+    : "hsl(0 72% 50%)";
+
+  const areas = confidence.areas ? Object.entries(confidence.areas) : [];
+
+  return (
+    <div className="rounded-lg border border-border bg-card/50 p-2.5 space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+          Data Confidence
+        </span>
+        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color }}>
+          {label}
+        </span>
+      </div>
+      <div className="flex gap-1 flex-wrap">
+        {areas.map(([key, val]: [string, any]) => {
+          const areaColor = val.level === "scraped" ? "hsl(217 91% 45%)"
+            : val.level === "parametric" ? "hsl(271 70% 45%)"
+            : "hsl(38 92% 42%)";
+          return (
+            <span
+              key={key}
+              title={val.source}
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider cursor-help"
+              style={{ color: areaColor, background: `${areaColor}12`, border: `1px solid ${areaColor}25` }}
+            >
+              {key.replace(/([A-Z])/g, " $1").trim()}
+              {val.level === "ai_inferred" ? " ⚠" : " ✓"}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Research Gaps from Decomposition ── */
+function DecompositionResearchGaps({ gaps }: { gaps: { area: string; question: string; priority: string }[] }) {
+  return (
+    <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 space-y-2">
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+          🔍 Research Gaps
+        </span>
+        <span className="text-[9px] text-muted-foreground">
+          — Data not available, treat related findings as hypotheses
+        </span>
+      </div>
+      <div className="space-y-1">
+        {gaps.map((gap, i) => (
+          <div key={i} className="flex items-start gap-2 text-[10px]">
+            <span className={`flex-shrink-0 px-1 py-0.5 rounded text-[7px] font-bold uppercase ${
+              gap.priority === "high" ? "text-red-500 bg-red-500/10" : "text-amber-500 bg-amber-500/10"
+            }`}>
+              {gap.priority}
+            </span>
+            <div>
+              <span className="font-medium text-foreground">{gap.area}:</span>{" "}
+              <span className="text-muted-foreground">{gap.question}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

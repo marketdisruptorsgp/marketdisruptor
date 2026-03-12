@@ -515,7 +515,81 @@ ${schema}`;
       (decomposition.systemDynamics.controlPoints?.length || 0) +
       (decomposition.systemDynamics.substitutionPaths?.length || 0);
 
-    console.log(`[structural-decomposition] ${mode} decomposition complete — ${JSON.stringify(decomposition).length} bytes, dynamics: ${dynamicsCount} items, leverage: ${decomposition.leverageAnalysis.leveragePrimitives.length} primitives, deps: ${decomposition.leverageAnalysis.dependencyGraph.length} edges`);
+    // ── DATA CONFIDENCE ASSESSMENT ──
+    // Tag each section with provenance metadata based on what real data was available
+    const hasUpstreamIntel = upstreamIntel && Object.keys(upstreamIntel).length > 0;
+    const dataConfidence = {
+      overall: hasUpstreamIntel ? "partially_grounded" : "ai_inferred",
+      overallScore: hasUpstreamIntel ? 0.55 : 0.3,
+      areas: {
+        structuralPrimitives: {
+          level: "ai_inferred" as const,
+          score: 0.5, // Structural decomposition is AI reasoning — medium reliability
+          source: "AI structural analysis from product description",
+        },
+        systemDynamics: {
+          level: "ai_inferred" as const,
+          score: 0.4,
+          source: "AI inference — failure modes and feedback loops are hypothetical without operational data",
+        },
+        leverageAnalysis: {
+          level: (hasUpstreamIntel ? "parametric" : "ai_inferred") as string,
+          score: hasUpstreamIntel ? 0.6 : 0.35,
+          source: hasUpstreamIntel
+            ? "Parametric scoring using upstream patent/trend data"
+            : "AI inference only — leverage scores should be treated as hypotheses",
+        },
+        costDrivers: {
+          level: "ai_inferred" as const,
+          score: 0.2,
+          source: "AI-estimated costs — NOT verified against supplier data or real BOMs",
+        },
+        valueChain: {
+          level: (upstreamIntel?.supplyChain ? "scraped" : "ai_inferred") as string,
+          score: upstreamIntel?.supplyChain ? 0.65 : 0.3,
+          source: upstreamIntel?.supplyChain
+            ? "Grounded in scraped supply chain data"
+            : "AI inference — generic industry value chain",
+        },
+      },
+      // Research questions for low-confidence areas
+      researchGaps: [] as { area: string; question: string; priority: string }[],
+    };
+
+    // Generate research questions for areas with low confidence
+    if (!upstreamIntel?.supplyChain) {
+      dataConfidence.researchGaps.push({
+        area: "Supply Chain",
+        question: `Who actually manufactures ${product?.name || "this product"}? What are the real material costs?`,
+        priority: "high",
+      });
+    }
+    if (!upstreamIntel?.pricingIntel) {
+      dataConfidence.researchGaps.push({
+        area: "Pricing",
+        question: `What is the actual pricing structure across competitors? Retail vs wholesale margins?`,
+        priority: "high",
+      });
+    }
+    if (!upstreamIntel?.patentLandscape && !upstreamIntel?.patentData) {
+      dataConfidence.researchGaps.push({
+        area: "Patent / IP",
+        question: `Are any proposed mechanisms already patented? What IP white space exists?`,
+        priority: "high",
+      });
+    }
+    if (decomposition.costDrivers) {
+      dataConfidence.researchGaps.push({
+        area: "BOM Costs",
+        question: `Cost estimates are AI-generated. Get real quotes from suppliers for actual unit costs at volume.`,
+        priority: "medium",
+      });
+    }
+
+    // Attach confidence metadata to decomposition
+    decomposition._dataConfidence = dataConfidence;
+
+    console.log(`[structural-decomposition] ${mode} decomposition complete — ${JSON.stringify(decomposition).length} bytes, dynamics: ${dynamicsCount} items, leverage: ${decomposition.leverageAnalysis.leveragePrimitives.length} primitives, deps: ${decomposition.leverageAnalysis.dependencyGraph.length} edges, confidence: ${dataConfidence.overallScore}`);
 
     return new Response(
       JSON.stringify({ success: true, decomposition }),
