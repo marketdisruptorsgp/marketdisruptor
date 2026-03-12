@@ -412,6 +412,7 @@ const TYPE_COLORS: Record<string, string> = {
 function HorizontalPipelineFlow() {
   const stageColors: Record<string, string> = {
     evidence: "border-orange-500/40 bg-orange-500/5",
+    confidence: "border-amber-500/40 bg-amber-500/5",
     structural: "border-cyan-500/40 bg-cyan-500/5",
     pattern: "border-cyan-500/40 bg-cyan-500/5",
     deepening: "border-violet-500/40 bg-violet-500/5",
@@ -422,6 +423,7 @@ function HorizontalPipelineFlow() {
 
   const stageTextColors: Record<string, string> = {
     evidence: "text-orange-400",
+    confidence: "text-amber-400",
     structural: "text-cyan-400",
     pattern: "text-cyan-400",
     deepening: "text-violet-400",
