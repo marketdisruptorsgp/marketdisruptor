@@ -75,7 +75,8 @@ export default function OverviewPage() {
   const challenges = adaptiveContext?.selectedChallenges || [];
   const entityName = adaptiveContext?.entity?.name || selectedProduct?.name || "Analysis";
   const summaryText = narrative?.executiveSummary || narrative?.narrativeSummary || "";
-  const loading = isComputing || !hasRun;
+  const hasData = !!narrative || topOpps.length > 0;
+  const loading = isComputing && !hasData;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
