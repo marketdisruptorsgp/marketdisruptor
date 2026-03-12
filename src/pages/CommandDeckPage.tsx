@@ -441,17 +441,17 @@ function RealityCard({
         borderColor: `hsl(var(${colorVar}) / 0.15)`,
       }}
     >
-      <CardContent className="pt-3 pb-3">
-        <div className="flex items-center gap-1.5 mb-1">
-          <Icon size={13} style={{ color: `hsl(var(${colorVar}))` }} />
+      <CardContent className="pt-2.5 pb-2.5 px-3">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <Icon size={12} style={{ color: `hsl(var(${colorVar}))` }} />
           <span
-            className="text-[10px] font-extrabold uppercase tracking-wider"
+            className="text-[9px] font-extrabold uppercase tracking-wider"
             style={{ color: `hsl(var(${colorVar}))` }}
           >
             {label}
           </span>
         </div>
-        <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
+        <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{text}</p>
       </CardContent>
     </Card>
   );
