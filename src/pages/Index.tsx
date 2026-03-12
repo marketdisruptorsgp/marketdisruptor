@@ -542,6 +542,7 @@ export default function Index() {
           product,
           additionalContext: fullContext,
           rejectedIdeas: rejectedIdeas || undefined,
+          // Note: Index.tsx doesn't have governedData in scope; AnalysisContext version does
         },
       });
 

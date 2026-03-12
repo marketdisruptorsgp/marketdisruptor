@@ -939,6 +939,31 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           flippedLogic: dd.flippedLogic || null,
         };
       }
+      // Extract governed reasoning for structural grounding
+      let governedReasoningContext: Record<string, unknown> | undefined;
+      if (governedData) {
+        const gov = governedData as Record<string, unknown>;
+        const cm = gov.constraint_map as Record<string, unknown> | undefined;
+        governedReasoningContext = {
+          binding_constraint: cm?.binding_constraint || cm?.primary_constraint || null,
+          dominant_mechanism: cm?.dominant_mechanism || null,
+          constraint_map_summary: cm ? {
+            friction_tiers: (cm.friction_tiers as unknown[])?.slice(0, 5) || [],
+            dominance_proof: cm.dominance_proof || null,
+          } : null,
+          transformation_clusters: gov.transformation_clusters
+            ? (gov.transformation_clusters as unknown[]).slice(0, 5).map((tc: any) => ({
+                cluster_name: tc.cluster_name || tc.name,
+                theme: tc.theme || tc.description,
+                transformations: (tc.transformations || []).slice(0, 3).map((t: any) => t.title || t.name),
+              }))
+            : null,
+          reasoning_synopsis: typeof gov.reasoning_synopsis === 'string'
+            ? gov.reasoning_synopsis.slice(0, 500)
+            : null,
+        };
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
           product,
@@ -950,6 +975,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
           disruptContext: disruptCtx || undefined,
           rejectedIdeas: rejectedIdeas || undefined,
+          governedReasoning: governedReasoningContext || undefined,
         },
       });
 
