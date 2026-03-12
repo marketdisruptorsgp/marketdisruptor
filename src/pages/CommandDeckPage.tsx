@@ -434,7 +434,7 @@ function RealityCard({
             {label}
           </span>
         </div>
-        <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{text}</p>
+        <p className="text-[11px] text-foreground/80 leading-snug line-clamp-2">{text}</p>
       </CardContent>
     </Card>
   );
