@@ -1,12 +1,13 @@
 /**
- * Overview Page — Operator Briefing
+ * Overview Page — Founder Briefing
  *
- * Six sections:
- *   1. Key Insights — 3 cards: what + why it matters
- *   2. Business Reality — strengths / weaknesses / risks
- *   3. Structural Assumptions — industry beliefs worth questioning
- *   4. Top Opportunities — actionable opportunities
- *   5. Recommended Focus — single strategic takeaway
+ * Read in 90 seconds. Every field has hard character limits.
+ * Sections:
+ *   1. Single Insight (most surprising finding)
+ *   2. Assumption Banner (everyone assumes / evidence suggests / so what)
+ *   3. Business Reality (working / blocking / opening / risk — 2 sentences each)
+ *   4. Critical Question (max 20 words)
+ *   5. Opportunities (exactly 3 with badges)
  */
 
 import { useMemo } from "react";
@@ -16,25 +17,25 @@ import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { extractAllEvidence } from "@/lib/evidenceEngine";
 import {
   aggregateOpportunities,
-  type AggregatedOpportunity,
   type CommandDeckMetricsInput,
 } from "@/lib/commandDeckMetrics";
 import {
-  extractBusinessReality,
-  extractKeyInsights,
-  extractRecommendedFocus,
-  extractStructuralAssumptions,
-  type BusinessReality,
-  type KeyInsight,
-  type StructuralAssumption,
+  extractSingleInsight,
+  extractAssumptionBanner,
+  extractCriticalQuestion,
+  extractSwotProse,
+  extractOpportunitiesWithBadges,
+  type SingleInsight,
+  type AssumptionBanner,
+  type SwotProse,
+  type OpportunityWithBadges,
 } from "@/lib/swotExtractor";
-import { humanizeLabel } from "@/lib/humanize";
 import { motion } from "framer-motion";
 import {
-  ArrowRight, TrendingUp, AlertTriangle, ShieldAlert,
-  Lightbulb, Target, Compass, HelpCircle,
+  ArrowRight, Zap, TrendingUp, AlertTriangle,
+  ShieldAlert, Target, HelpCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -54,7 +55,6 @@ export default function OverviewPage() {
   }, []);
   const analysisId = ctxAnalysisId || urlAnalysisId;
 
-  // Evidence + opportunity aggregation
   const allEvidence = useMemo(() => extractAllEvidence({
     products: analysis.products, selectedProduct,
     disruptData: analysis.disruptData, redesignData: analysis.redesignData,
@@ -80,175 +80,148 @@ export default function OverviewPage() {
     analysis.businessAnalysisData, intelligence, completedSteps, allEvidence]);
 
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
-  const businessReality = useMemo(() => extractBusinessReality(narrative), [narrative]);
-  const keyInsights = useMemo(() => extractKeyInsights(narrative), [narrative]);
-  const recommendedFocus = useMemo(() => extractRecommendedFocus(narrative), [narrative]);
-  const structuralAssumptions = useMemo(
-    () => extractStructuralAssumptions(deepenedOpportunities || []),
-    [deepenedOpportunities],
-  );
+  const deepOpps = deepenedOpportunities || [];
+  const entityName = adaptiveContext?.entity?.name || selectedProduct?.name || "This business";
 
-  const entityName = adaptiveContext?.entity?.name || selectedProduct?.name || "Analysis";
+  // New spec extractors
+  const singleInsight = useMemo(() => extractSingleInsight(narrative, deepOpps), [narrative, deepOpps]);
+  const assumptionBanner = useMemo(() => extractAssumptionBanner(narrative, deepOpps, entityName), [narrative, deepOpps, entityName]);
+  const swotProse = useMemo(() => extractSwotProse(narrative, deepOpps), [narrative, deepOpps]);
+  const criticalQuestion = useMemo(() => extractCriticalQuestion(narrative, deepOpps), [narrative, deepOpps]);
+  const opportunities = useMemo(() => extractOpportunitiesWithBadges(topOpps, deepOpps), [topOpps, deepOpps]);
+
   const hasData = !!narrative || topOpps.length > 0;
   const loading = isComputing && !hasData;
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <motion.div {...fadeIn} transition={{ duration: 0.3 }}>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
           {entityName}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Operator Briefing</p>
+        <p className="text-sm text-muted-foreground mt-1">Strategic Briefing</p>
       </motion.div>
 
-      {/* ═══ 1. KEY INSIGHTS ═══ */}
-      <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <Lightbulb size={15} className="text-primary" />
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-              Key Insights
-            </h2>
-          </div>
+      {/* ═══ 1. SINGLE INSIGHT ═══ */}
+      {(loading || singleInsight) && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full" />)}
-            </div>
-          ) : keyInsights.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {keyInsights.map((ki, i) => (
-                <InsightCard key={i} insight={ki} />
-              ))}
-            </div>
-          ) : (
-            <Card className="border-border/60">
-              <CardContent className="py-6">
-                <p className="text-sm text-muted-foreground italic">Run the analysis to surface key insights.</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </motion.div>
+            <Skeleton className="h-28 w-full" />
+          ) : singleInsight ? (
+            <InsightHero insight={singleInsight} />
+          ) : null}
+        </motion.div>
+      )}
 
-      {/* ═══ 2. BUSINESS REALITY ═══ */}
-      <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <Target size={15} className="text-primary" />
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-              Business Reality
-            </h2>
-          </div>
+      {/* ═══ 2. ASSUMPTION BANNER ═══ */}
+      {(loading || assumptionBanner) && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full" />)}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <RealityColumn
-                icon={TrendingUp}
-                label="Strengths"
-                items={businessReality.strengths}
-                color="text-emerald-500"
-                bg="bg-emerald-500/10"
-              />
-              <RealityColumn
-                icon={AlertTriangle}
-                label="Weaknesses"
-                items={businessReality.weaknesses}
-                color="text-amber-500"
-                bg="bg-amber-500/10"
-              />
-              <RealityColumn
-                icon={ShieldAlert}
-                label="Risks"
-                items={businessReality.risks}
-                color="text-red-500"
-                bg="bg-red-500/10"
-              />
-            </div>
-          )}
-        </div>
-      </motion.div>
+            <Skeleton className="h-24 w-full" />
+          ) : assumptionBanner ? (
+            <AssumptionBannerCard banner={assumptionBanner} />
+          ) : null}
+        </motion.div>
+      )}
 
-      {/* ═══ 3. STRUCTURAL ASSUMPTIONS ═══ */}
-      {(loading || structuralAssumptions.length > 0) && (
+      {/* ═══ 3. BUSINESS REALITY ═══ */}
+      {(loading || Object.values(swotProse).some(Boolean)) && (
         <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.18 }}>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28 w-full" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {swotProse.working && (
+                <RealityCard
+                  icon={TrendingUp}
+                  label="What's Working"
+                  text={swotProse.working}
+                  colorClass="text-emerald-500"
+                  bgClass="bg-emerald-500/5"
+                  borderClass="border-emerald-500/15"
+                />
+              )}
+              {swotProse.blocking && (
+                <RealityCard
+                  icon={AlertTriangle}
+                  label="What's Blocking Growth"
+                  text={swotProse.blocking}
+                  colorClass="text-amber-500"
+                  bgClass="bg-amber-500/5"
+                  borderClass="border-amber-500/15"
+                />
+              )}
+              {swotProse.opening && (
+                <RealityCard
+                  icon={Target}
+                  label="The Opening"
+                  text={swotProse.opening}
+                  colorClass="text-primary"
+                  bgClass="bg-primary/5"
+                  borderClass="border-primary/15"
+                />
+              )}
+              {swotProse.risk && (
+                <RealityCard
+                  icon={ShieldAlert}
+                  label="The Risk"
+                  text={swotProse.risk}
+                  colorClass="text-destructive"
+                  bgClass="bg-destructive/5"
+                  borderClass="border-destructive/15"
+                />
+              )}
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* ═══ 4. CRITICAL QUESTION ═══ */}
+      {(loading || criticalQuestion) && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
+          {loading ? (
+            <Skeleton className="h-16 w-full" />
+          ) : criticalQuestion ? (
+            <div className="rounded-xl px-5 py-4 bg-muted/50 border border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <HelpCircle size={14} className="text-primary flex-shrink-0" />
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  The Question to Answer First
+                </span>
+              </div>
+              <p className="text-base font-bold text-foreground leading-snug">
+                {criticalQuestion}
+              </p>
+            </div>
+          ) : null}
+        </motion.div>
+      )}
+
+      {/* ═══ 5. OPPORTUNITIES (exactly 3) ═══ */}
+      {(loading || opportunities.length > 0) && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.22 }}>
           <div className="space-y-3">
             <div className="flex items-center gap-2 px-1">
-              <HelpCircle size={15} className="text-primary" />
+              <Zap size={15} className="text-primary" />
               <h2 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-                Structural Assumptions
+                Top Moves
               </h2>
             </div>
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2].map(i => <Skeleton key={i} className="h-32 w-full" />)}
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {structuralAssumptions.map((sa, i) => (
-                  <AssumptionCard key={i} assumption={sa} />
+              <div className="space-y-3">
+                {opportunities.map((opp, i) => (
+                  <OpportunityCard key={i} opp={opp} index={i} />
                 ))}
               </div>
             )}
           </div>
-        </motion.div>
-      )}
-
-      {/* ═══ 4. TOP OPPORTUNITIES ═══ */}
-      <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <Lightbulb size={15} className="text-primary" />
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-              Top Opportunities
-            </h2>
-          </div>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
-            </div>
-          ) : topOpps.length > 0 ? (
-            <div className="space-y-3">
-              {topOpps.slice(0, 3).map((opp, i) => (
-                <OpportunityCard key={opp.id} opp={opp} index={i} />
-              ))}
-            </div>
-          ) : (
-            <Card className="border-border/60">
-              <CardContent className="py-6">
-                <p className="text-sm text-muted-foreground italic">Complete the analysis to surface opportunities.</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </motion.div>
-
-      {/* ═══ 5. RECOMMENDED FOCUS ═══ */}
-      {(loading || recommendedFocus) && (
-        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.25 }}>
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <Compass size={15} className="text-primary" />
-                <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-primary">
-                  Recommended Focus
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-4/5" />
-                </div>
-              ) : (
-                <p className="text-sm leading-relaxed text-foreground/90">{recommendedFocus}</p>
-              )}
-            </CardContent>
-          </Card>
         </motion.div>
       )}
 
@@ -259,7 +232,7 @@ export default function OverviewPage() {
           onClick={() => navigate(`/analysis/${analysisId}/command-deck`)}
           className="gap-2"
         >
-          Explore Full Analysis
+          See Full Analysis
           <ArrowRight size={16} />
         </Button>
       </motion.div>
@@ -267,123 +240,103 @@ export default function OverviewPage() {
   );
 }
 
-/* ── Insight Card ── */
-function InsightCard({ insight }: { insight: KeyInsight }) {
+/* ── Insight Hero ── */
+function InsightHero({ insight }: { insight: SingleInsight }) {
   return (
-    <Card className="border-border/60 h-full">
-      <CardContent className="pt-5 space-y-3">
-        <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            Insight
-          </span>
-          <p className="text-sm font-semibold text-foreground leading-snug mt-1">
-            {insight.insight}
-          </p>
-        </div>
-        <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            Why it matters
-          </span>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-            {insight.whyItMatters}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ── Reality Column ── */
-function RealityColumn({
-  icon: Icon, label, items, color, bg,
-}: {
-  icon: React.ElementType; label: string; items: string[]; color: string; bg: string;
-}) {
-  return (
-    <div className={`rounded-lg p-4 ${bg}`}>
-      <div className="flex items-center gap-1.5 mb-2">
-        <Icon size={13} className={color} />
-        <span className={`text-[10px] font-extrabold uppercase tracking-wider ${color}`}>{label}</span>
-      </div>
-      {items.length > 0 ? (
-        <ul className="space-y-1.5">
-          {items.map((item, i) => (
-            <li key={i} className="text-xs text-foreground/80 leading-snug flex gap-1.5">
-              <span className="text-muted-foreground mt-0.5 flex-shrink-0">•</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-[11px] text-muted-foreground italic">Pending analysis</p>
-      )}
+    <div className="rounded-xl px-5 py-5 bg-primary/5 border-2 border-primary/20">
+      <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
+        The Key Finding
+      </span>
+      <h2 className="text-lg sm:text-xl font-black text-foreground leading-snug mt-2">
+        {insight.headline}
+      </h2>
+      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+        {insight.body}
+      </p>
     </div>
   );
 }
 
-/* ── Assumption Card ── */
-function AssumptionCard({ assumption }: { assumption: StructuralAssumption }) {
+/* ── Assumption Banner ── */
+function AssumptionBannerCard({ banner }: { banner: AssumptionBanner }) {
   return (
-    <Card className="border-border/60">
-      <CardContent className="pt-5 space-y-3">
-        <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            Industry assumes
-          </span>
-          <p className="text-sm font-semibold text-foreground leading-snug mt-1">
-            "{assumption.assumption}"
+    <div className="rounded-xl overflow-hidden border border-border">
+      <div className="flex flex-col sm:flex-row">
+        <div className="flex-1 px-4 py-3 bg-destructive/5">
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-destructive mb-1">
+            Everyone Assumes
+          </p>
+          <p className="text-sm text-foreground/80 leading-snug">
+            "{banner.everyone_assumes}"
           </p>
         </div>
-        <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            Worth questioning
-          </span>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-            {assumption.question}
+        <div className="flex items-center justify-center px-2">
+          <ArrowRight size={14} className="text-muted-foreground rotate-90 sm:rotate-0" />
+        </div>
+        <div className="flex-1 px-4 py-3 bg-primary/5">
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-primary mb-1">
+            The Evidence Suggests
+          </p>
+          <p className="text-sm text-foreground font-semibold leading-snug">
+            "{banner.evidence_suggests}"
           </p>
         </div>
-        <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-500">
-            Possible alternative
-          </span>
-          <p className="text-xs text-foreground/80 leading-relaxed mt-1">
-            {assumption.alternative}
-          </p>
+      </div>
+      <div className="px-4 py-2 bg-muted/40 border-t border-border">
+        <p className="text-xs text-muted-foreground">
+          <span className="font-bold text-foreground">{banner.so_what}</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Reality Card ── */
+function RealityCard({
+  icon: Icon, label, text, colorClass, bgClass, borderClass,
+}: {
+  icon: React.ElementType; label: string; text: string;
+  colorClass: string; bgClass: string; borderClass: string;
+}) {
+  return (
+    <Card className={`${bgClass} ${borderClass} border`}>
+      <CardContent className="pt-4 pb-4">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Icon size={13} className={colorClass} />
+          <span className={`text-[10px] font-extrabold uppercase tracking-wider ${colorClass}`}>{label}</span>
         </div>
+        <p className="text-sm text-foreground/80 leading-relaxed">{text}</p>
       </CardContent>
     </Card>
   );
 }
 
 /* ── Opportunity Card ── */
-function OpportunityCard({ opp, index }: { opp: AggregatedOpportunity; index: number }) {
+function OpportunityCard({ opp, index }: { opp: OpportunityWithBadges; index: number }) {
   return (
     <Card className="border-border/60">
-      <CardContent className="pt-5 pb-4 space-y-2">
+      <CardContent className="pt-5 pb-4">
         <div className="flex gap-3 items-start">
           <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
             {index + 1}
           </span>
-          <div className="min-w-0 space-y-1.5">
-            <p className="text-sm font-semibold text-foreground leading-snug">
-              {humanizeLabel(opp.label)}
+          <div className="min-w-0 space-y-2">
+            <p className="text-sm font-bold text-foreground leading-snug">
+              {opp.title}
             </p>
-            {opp.source && (
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                  Why it exists
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {opp.description}
+            </p>
+            <div className="flex gap-1.5 flex-wrap">
+              {opp.badges.map((badge) => (
+                <span
+                  key={badge}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary"
+                >
+                  {badge}
                 </span>
-                <p className="text-xs text-muted-foreground leading-relaxed">{opp.source}</p>
-              </div>
-            )}
-            {opp.firstMove && (
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                  What to do
-                </span>
-                <p className="text-xs text-muted-foreground leading-relaxed">{humanizeLabel(opp.firstMove)}</p>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </CardContent>
