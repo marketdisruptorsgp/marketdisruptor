@@ -66,6 +66,48 @@ export const PRECEDENT_LIBRARY: Record<string, PrecedentEntry[]> = {
     { company: "The UPS Store", description: "Franchised shipping and business services with centralized logistics infrastructure", pattern: "service franchise" },
     { company: "Home Instead", description: "Franchised in-home senior care with standardized training and matching systems", pattern: "care franchise" },
   ],
+  reframe_demand: [
+    { company: "Peloton", description: "Reframed stationary bike from gym equipment into connected fitness entertainment", pattern: "demand category creation" },
+    { company: "Canva", description: "Reframed design from professional creative tool into universal visual communication", pattern: "audience expansion" },
+    { company: "Slack", description: "Reframed workplace chat from IT tool into a work operating system", pattern: "job-to-be-done reframe" },
+    { company: "Airbnb", description: "Reframed spare rooms from housing into travel experiences", pattern: "demand reframing" },
+  ],
+  outcome_pricing: [
+    { company: "Rolls-Royce", description: "Shifted from selling jet engines to selling flight hours via Power-by-the-Hour", pattern: "outcome pricing" },
+    { company: "Hilti", description: "Shifted from selling tools to selling tool availability via fleet management", pattern: "usage-based pricing" },
+    { company: "Zenefits", description: "Gave away HR software free, monetized through insurance brokerage commissions", pattern: "outcome monetization" },
+    { company: "MainStreet", description: "Automated tax credit identification, charging a percentage of credits found", pattern: "success-based pricing" },
+  ],
+  network_effect: [
+    { company: "Waze", description: "More drivers → better traffic data → better routing → more drivers", pattern: "data network effect" },
+    { company: "Figma", description: "More designers → more shared design systems → stickier for teams", pattern: "collaboration network effect" },
+    { company: "LinkedIn", description: "More professionals → more recruiting value → more professionals", pattern: "social network effect" },
+    { company: "Stripe", description: "More developers → more payment infrastructure → more commerce → more developers", pattern: "platform network effect" },
+  ],
+  vertical_integrate: [
+    { company: "Apple", description: "Integrated hardware + software + services + retail for end-to-end control", pattern: "full vertical integration" },
+    { company: "Netflix", description: "Integrated from content distribution upstream into content production", pattern: "upstream integration" },
+    { company: "Zara/Inditex", description: "Integrated design → manufacturing → retail for 2-week fashion cycles", pattern: "speed-driven integration" },
+    { company: "TSMC", description: "Vertically specialized in chip fabrication, becoming essential infrastructure for the industry", pattern: "vertical specialization" },
+  ],
+  regulatory_arbitrage: [
+    { company: "Uber/Lyft", description: "Exploited taxi regulation gaps before rideshare-specific laws emerged", pattern: "regulatory gap exploitation" },
+    { company: "Stripe Atlas", description: "Simplified cross-border business incorporation through regulatory complexity", pattern: "compliance simplification" },
+    { company: "TransferWise/Wise", description: "Exploited currency transfer regulation asymmetries to undercut bank fees", pattern: "regulatory cost arbitrage" },
+    { company: "Lemonade", description: "Used insurance regulatory frameworks to build AI-first insurance with different cost structure", pattern: "regulated industry disruption" },
+  ],
+  freemium_flip: [
+    { company: "Zoom", description: "Free video calls created massive adoption → enterprise platform sales", pattern: "freemium to enterprise" },
+    { company: "Spotify", description: "Free tier as funnel to premium subscriptions and artist platform", pattern: "freemium conversion" },
+    { company: "Calendly", description: "Free scheduling tool → premium features for teams and enterprises", pattern: "bottoms-up freemium" },
+    { company: "Notion", description: "Free personal use → paid team workspaces with collaboration features", pattern: "individual-to-team freemium" },
+  ],
+  timing_play: [
+    { company: "Zoom", description: "Pre-positioned for remote work before COVID made it essential", pattern: "timing anticipation" },
+    { company: "Beyond Meat", description: "Timed plant-based protein to the sustainability awareness wave", pattern: "trend timing" },
+    { company: "Coinbase", description: "Pre-built crypto exchange infrastructure before mainstream adoption", pattern: "infrastructure pre-positioning" },
+    { company: "Shopify", description: "Built e-commerce infrastructure before the DTC wave made it essential", pattern: "platform timing" },
+  ],
 };
 
 /**
