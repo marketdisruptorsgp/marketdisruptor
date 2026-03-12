@@ -372,40 +372,33 @@ export default function CommandDeckPage() {
         {/* ═══ SECTION 4 — TOP 3 OPPORTUNITIES ═══ */}
         {opportunities.length > 0 && (
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-center gap-2 px-1">
-                <Zap size={13} className="text-primary" />
+                <Zap size={12} className="text-primary" />
                 <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
                   Top Moves
                 </h2>
               </div>
-              <div className="space-y-1.5">
-                {opportunities.map((opp, i) => (
-                  <Card key={i} className="border-border/60">
-                    <CardContent className="pt-3 pb-2.5 px-4">
-                      <div className="flex gap-2.5 items-start">
-                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
-                          {i + 1}
-                        </span>
-                        <div className="min-w-0 space-y-1">
-                          <p className="text-sm font-bold text-foreground leading-snug">{opp.title}</p>
-                          <p className="text-xs text-muted-foreground leading-relaxed">{opp.description}</p>
-                          <div className="flex gap-1.5 flex-wrap">
-                            {opp.badges.map((badge) => (
-                              <span
-                                key={badge}
-                                className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary"
-                              >
-                                {badge}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+              {opportunities.map((opp, i) => (
+                <div key={i} className="rounded-lg border border-border/60 bg-card px-3 py-2">
+                  <div className="flex gap-2 items-start">
+                    <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold mt-0.5">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-xs font-bold text-foreground leading-snug">{opp.title}</p>
+                        {opp.badges.map((badge) => (
+                          <span key={badge} className="text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary/10 text-primary">
+                            {badge}
+                          </span>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      <p className="text-[11px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{opp.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}
