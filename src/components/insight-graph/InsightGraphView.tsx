@@ -181,6 +181,9 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
         </div>
       ) : (
         <>
+          {/* Data confidence banner */}
+          <DataConfidenceBanner graph={enrichedGraph} />
+
           {/* Active path indicator */}
           <AnimatePresence>
             {selectedNode && highlightedIds && (
