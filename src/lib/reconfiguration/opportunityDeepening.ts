@@ -528,9 +528,9 @@ function deepenOpportunitiesDeterministic(
         ],
       },
       secondOrderEffects: [
-        `Early mover advantage in ${direction.label.toLowerCase()} creates switching costs`,
-        `Data and network effects compound over time`,
-        `Market position shifts from operator to infrastructure provider`,
+        "Process consistency compounds over time",
+        "Operational knowledge becomes easier to transfer across team members",
+        "Better reliability can improve pricing power and client retention",
       ],
       resolvesConstraints: profile.bindingConstraints.slice(0, 1).map(c => c.constraintName),
       evidenceIds: [],
