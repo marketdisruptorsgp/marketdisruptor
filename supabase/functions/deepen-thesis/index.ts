@@ -556,7 +556,7 @@ function buildToolSchema() {
                 },
                 secondOrderEffects: { type: "array", items: { type: "string" }, description: "3-5 downstream market consequences if this move succeeds" },
               },
-              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "precedents", "whyThisMatters", "strategicPrecedents", "secondOrderEffects"],
+              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove"],
               additionalProperties: false,
             },
           },
