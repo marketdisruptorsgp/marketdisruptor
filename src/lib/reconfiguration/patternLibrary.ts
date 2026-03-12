@@ -695,6 +695,10 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.laborIntensity === "artisan") {
         return { qualifies: false, reason: "Artisan delivery cannot scale to support free tier economics.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: traditional service business — freemium requires digital/scalable products
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — freemium requires a scalable digital product. Focus on pricing strategy.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (cNames.has("capital_barrier")) { resolves.push("capital_barrier"); strengths.push("High upfront cost barrier eliminated by free entry point"); }
       if (cNames.has("commoditized_pricing")) { resolves.push("commoditized_pricing"); strengths.push("Commoditized pricing — give away the commodity, monetize the complement"); }
