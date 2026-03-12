@@ -508,28 +508,27 @@ export function usePipelineOrchestrator(
     }
   }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch]);
 
-  // Auto-trigger when analysis is done but missing ANY pipeline step data
+  // Auto-trigger when analysis is done but missing CORE pipeline step data
+  // Stress test + pitch are lazy — don't auto-trigger for them
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
-    const hasMissingCriticalStep = !disruptData || !decompositionData;
-    const hasMissingDownstreamStep = !stressTestData || !pitchDeckData || !redesignData;
-    const hasMissingAnyStep = hasMissingCriticalStep || hasMissingDownstreamStep;
+    const hasMissingCoreStep = !disruptData || !decompositionData;
     if (
       step === "done" &&
       hasAnalyzableData &&
       analysisId &&
-      hasMissingAnyStep &&
+      hasMissingCoreStep &&
       !runningRef.current &&
       triggeredForRef.current !== analysisId
     ) {
       triggeredForRef.current = analysisId;
-      console.log(`[Pipeline] Auto-trigger: missing critical=${hasMissingCriticalStep}, downstream=${hasMissingDownstreamStep}`);
+      console.log(`[Pipeline] Auto-trigger: missing core steps (decomposition=${!decompositionData}, disrupt=${!disruptData})`);
       const timer = setTimeout(() => {
         runPipeline();
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, redesignData, stressTestData, pitchDeckData, runPipeline]);
+  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, runPipeline]);
 
   const steps = STEP_DEFS.map(d => ({
     key: d.key,
