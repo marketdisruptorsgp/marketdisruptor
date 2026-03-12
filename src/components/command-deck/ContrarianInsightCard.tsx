@@ -27,22 +27,21 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
   entityName,
 }: ContrarianInsightCardProps) {
   const bet = thesis?.strategicBet;
-  if (!bet?.contrarianBelief || !bet?.industryAssumption) return null;
 
   const everyoneAssumes = useMemo(
-    () => enforceWordLimit(bet.industryAssumption, 20),
-    [bet.industryAssumption],
+    () => bet?.industryAssumption ? enforceWordLimit(bet.industryAssumption, 20) : null,
+    [bet?.industryAssumption],
   );
   const evidenceSuggests = useMemo(
-    () => enforceWordLimit(bet.contrarianBelief, 20),
-    [bet.contrarianBelief],
+    () => bet?.contrarianBelief ? enforceWordLimit(bet.contrarianBelief, 20) : null,
+    [bet?.contrarianBelief],
   );
   const soWhat = useMemo(() => {
     const name = entityName || "This business";
-    const implication = bet.implication || thesis?.economicMechanism?.valueCreation || "";
+    const implication = bet?.implication || thesis?.economicMechanism?.valueCreation || "";
     if (!implication) return enforceWordLimit(`${name} can move on this before competitors do`, 15);
     return enforceWordLimit(`${name} ${scrubBannedWords(implication).toLowerCase()}`, 15);
-  }, [entityName, bet.implication, thesis?.economicMechanism?.valueCreation]);
+  }, [entityName, bet?.implication, thesis?.economicMechanism?.valueCreation]);
 
   if (!everyoneAssumes || !evidenceSuggests) return null;
 
