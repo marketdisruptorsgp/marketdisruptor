@@ -1,74 +1,105 @@
+# Product Reset Plan: From Pipeline Tool → Strategic Insight Product
 
+## The Problem
+The Command Deck is currently an 812-line engineering dashboard exposing pipeline internals. A user running an analysis sees: confidence meters, reasoning stage overlays, evidence thresholds, node counts, pipeline progress bars, convergence zones, friction dashboards, provenance registries, and developer diagnostics. The *actual strategic value* — the constraint diagnosis, opportunities, and recommended moves — is buried under layers of system chrome.
 
-# Rebuild Insight Graph Page: From "What did the AI find?" to "What should I do?"
+## The North Star
+**User inputs a business → gets strategic insight they didn't see before.**
 
-## What changes
+The experience should feel like receiving a strategy consultant's one-page brief, not watching an AI pipeline execute.
 
-Replace the entire `InsightGraphView` component (tabs, graph visualization, node cards, cytoscape) with a single-scroll **Strategic Action Brief** page. No tabs, no graph, no nodes.
+## Current UI Audit (CommandDeckPage.tsx — 812 lines)
 
-## New page structure (4 sections + collapsible)
+### What stays (core value):
+1. **SoWhatHeader** — "Do nothing → X. Act now → Y." (Good, decision-forcing)
+2. **OneThesisCard** — Constraint → Belief → Move → Economics → First Move (Strong, this IS the product)
+3. **WhatsNextPanel** — Kill question + first move (Actionable)
 
-### User context toggle (top bar)
-Three pill buttons: **Buyer** / **Founder** / **Investor**. Default based on `activeMode` from AnalysisContext (`"business"` → Buyer, `"custom"` → Founder, `"service"` → Investor). Stored in local state. Changes only the "As a [role]:" action lines in each card.
+### What gets demoted or removed:
 
-### Section 1 — The Verdict
-Two sentences, large text (18px). Derived from the graph's `topNodes.primaryConstraint` and `topNodes.breakthroughOpportunity` — synthesize into a situation summary. Example: "This business has strong recurring revenue but is bottlenecked by manual bid estimation. The biggest upside is automating the 70% of quotes that follow predictable rules."
+| Component | Current Role | Action |
+|---|---|---|
+| `ReasoningStagesOverlay` | Shows "Detecting patterns…" animation | **REMOVE** — internal diagnostic |
+| `RecomputeOverlay` | Loading spinner for recompute | **SIMPLIFY** — just a subtle loading state |
+| `PipelineProgress` bar | Shows 5-step pipeline completion | **REMOVE** from main view |
+| `ModeBadge` | Shows "Product/Service/Business" | **KEEP** but simplify |
+| `StrategicXRay` | Interactive reasoning chain w/ challenge mode | **MOVE** to "Deep Dive" tab |
+| `IndustrySystemMapView` | Industry map visualization | **MOVE** to "Deep Dive" tab |
+| `PowerToolsPanel` (6 tools) | Problem Statement, Current State, Scenario Sim, Scenario Lab, Outcome Sim, Lens Intelligence | **MOVE** to "Deep Dive" tab |
+| `ScenarioBanner` + `DeltaChanges` | Scenario mode UI | **MOVE** to "Deep Dive" tab |
+| `StrategicCommandDeck` component | Friction dashboard, convergence zones, opportunity landscape, constraint/leverage/opportunity 3-col grid | **REPLACE** with clean opportunity cards |
+| `ConfidenceMeter` / confidence tags | Numeric confidence display | **REMOVE** |
+| Pipeline step count ("3/5 steps") | Developer progress | **REMOVE** |
+| Signal counts, evidence counts | Developer metrics | **REMOVE** |
 
-### Section 2 — What's Blocking the Value (red left border)
-Top 3 constraint nodes from `graph.nodes.filter(n => n.type === "constraint")`, sorted by `impact * influence`. Each card:
-- **Title**: constraint label (scrubbed)
-- **Body**: 2 sentences from `node.detail` or `node.reasoning`
-- **Action line**: "As a [buyer/founder/investor]: [specific action]" — generated from constraint type + user role mapping
+## New Command Deck Layout (3 sections)
 
-### Section 3 — Where the Upside Is (green left border)
-Top 3 opportunity/leverage nodes from `graph.nodes.filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type) || n.type === "leverage_point")`, sorted by `impact`. Same card format with role-specific action line.
+### Section 1: Diagnosis
+**What we found** — One bold sentence explaining the structural constraint.
+- Source: `narrative.primaryConstraint` + `narrative.strategicVerdict`
+- Plain English, no jargon
+- No confidence scores, no "preliminary signal" labels
 
-### Section 4 — What to Do in Order (numbered list)
-4–5 action items derived from the constraints and levers above. Each item gets a timing badge: "Before close", "Month 1", "Year 1", or "Validate first". The sequencing logic: constraints with highest urgency → quick-win levers → longer-term opportunities.
+### Section 2: Opportunities (3–5 cards)
+**What you could do** — Multiple strategic directions derived from the constraint.
+- Each card: Title + 1-sentence explanation + "why this works"
+- Source: `autoAnalysis.deepenedOpportunities` (need to ensure we generate 3-5, not just 1-2)
+- Plain, action-oriented language
+- No impact scores, no node types
 
-### Collapsible — "How we reasoned"
-At the bottom, a single `<Collapsible>` section. For each key finding, show a linear text chain: `Signal → Assumption → Constraint → Lever → Concept`. Built from the existing `getInsightChain()` function, rendered as inline text with arrow separators.
+### Section 3: Recommended Move
+**What we'd do first** — The highest-leverage play with clear next step.
+- Source: Top `deepenedOpportunity` with `firstMove`
+- "Here's the move. Here's why. Here's how to start."
+- Timeline estimate in human terms
 
-## Files to modify
+### Section 4 (optional): "Show me why" link
+- Links to Deep Dive tab containing: Reasoning Map, X-Ray, Industry Map, Scenario tools
+- This is the explanation layer, NOT the product
 
-1. **`src/pages/InsightGraphPage.tsx`** — Remove `InsightGraphView` import. Replace with new `StrategicActionBrief` component. Keep the toolbar (nav breadcrumb, PDF, Refresh buttons). Pass `graph`, `activeMode`, entity name.
+## Opportunity Generation Fix
+Current problem: System often produces only 1 opportunity.
+Required: Generate 3–5 meaningful opportunity directions per constraint.
 
-2. **Create `src/components/insight-graph/StrategicActionBrief.tsx`** — New component with all 4 sections + collapsible. ~250 lines. Contains:
-   - `UserContextToggle` (inline, 3 buttons)
-   - `VerdictSection` — extracts summary from topNodes
-   - `BlockerCards` — filters/sorts constraint nodes, renders 3 cards with red left border
-   - `UpsideCards` — filters/sorts opportunity nodes, renders 3 cards with green left border  
-   - `ActionPlan` — derives sequenced actions from the constraints + opportunities, assigns timing badges
-   - `ReasoningCollapsible` — uses `getInsightChain()` to build text chains
-   - Role-specific action line generator: a simple function mapping `(nodeType, role)` → action sentence template
+### Approach:
+- Enhance `src/lib/reconfiguration.ts` to generate multiple opportunity vectors from a single constraint
+- Use different strategic lenses: automation, platform, marketplace, data, consolidation
+- Each opportunity = a different strategic path, not a variation of the same idea
 
-3. **`src/components/insight-graph/InsightGraphView.tsx`** — Keep the file but it becomes unused from this page. No deletion needed (other pages may reference sub-components).
+## Language Cleanup
+All user-facing text must be rewritten:
+- "Convergence zones" → removed
+- "Evidence threshold" → removed  
+- "Node count" → removed
+- "Pipeline step" → removed
+- "Reasoning chain" → "Our analysis shows…"
+- "Leverage point" → "Key advantage"
+- "Friction index" → removed
 
-## Role-to-action mapping logic
+## Navigation Changes
+Current 4-page structure:
+1. Command Deck (main)
+2. Intelligence Report
+3. Reasoning Map
+4. Pitch
 
-```text
-constraint + buyer  → "Negotiate a price reduction for this" / "Build a 90-day fix plan before closing"
-constraint + founder → "Fix this before it limits growth" / "Hire for this gap"
-constraint + investor → "Factor this into valuation" / "Require a remediation plan"
-lever + buyer → "This is your Day 1 value creation play"
-lever + founder → "Double down on this — it's your competitive edge"
-lever + investor → "This is the thesis — fund this"
-```
+New structure:
+1. **Strategic Brief** (the 3-section layout above) — this IS the product
+2. **Deep Dive** (reasoning map, X-Ray, industry map, scenario tools)
+3. **Intelligence Report** (raw evidence)
+4. **Pitch** (investor-ready output)
 
-These are template strings with the node label interpolated. Simple, no AI call needed.
+## Implementation Order
+1. **Phase 1**: Strip Command Deck to 3 sections (diagnosis, opportunities, recommended move)
+2. **Phase 2**: Create "Deep Dive" tab and move demoted components there
+3. **Phase 3**: Fix opportunity generation to produce 3–5 per analysis
+4. **Phase 4**: Language cleanup across all user-facing components
+5. **Phase 5**: Test with real analyses to ensure consistent, useful output
 
-## Timing badge assignment
-
-- Constraints with `impact > 0.7` → "Before close" (buyer) / "This quarter" (founder)
-- Leverage points with `feasibilityScore > 0.6` → "Month 1"
-- Lower-impact opportunities → "Year 1"
-- Anything with `confidence === "low"` → "Validate first"
-
-## What gets removed
-
-All imports and usage of: `CytoscapeReasoningMap`, `InsightNodeCard`, `OpportunityMatrix`, `ConstraintMap`, `DataConfidenceBanner`, `PrimaryBlockerCallout`, `StrategicPathways`, `SimulationPanel`, `RecomputeOverlay`, `IntelligenceEventFeed`, concept expansion hooks, simulation hooks. These files stay in the codebase but are no longer rendered on this page.
-
-## No new dependencies needed
-
-Uses existing: `framer-motion` (for section animations), `@radix-ui/react-collapsible`, `lucide-react`, graph data types from `insightGraph.ts`.
-
+## Success Criteria
+- User runs analysis → reads diagnosis in 3 seconds
+- Sees 3–5 actionable opportunity directions
+- Understands the recommended move and how to start
+- Can optionally explore "why" via Deep Dive
+- Zero developer terminology visible in default view
+- No numeric scores, thresholds, or pipeline indicators
