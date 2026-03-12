@@ -394,14 +394,15 @@ export default function CommandDeckPage() {
         )}
 
         {/* ═══ SEE FULL ANALYSIS ═══ */}
-        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pt-1 pb-2">
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pb-1">
           <Button
-            size="lg"
+            size="sm"
+            variant="outline"
             onClick={() => navigate(`${baseUrl}/report`)}
-            className="gap-2"
+            className="gap-1.5 text-xs"
           >
             See Full Analysis
-            <ArrowRight size={16} />
+            <ArrowRight size={14} />
           </Button>
         </motion.div>
 
