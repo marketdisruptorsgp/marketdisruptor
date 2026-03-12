@@ -14,8 +14,10 @@ import { NODE_TYPE_CONFIG, getInsightChain } from "@/lib/insightGraph";
 import { injectConceptVariants } from "@/lib/conceptExpansion";
 import { CytoscapeReasoningMap } from "./CytoscapeReasoningMap";
 import { InsightNodeCard } from "./InsightNodeCard";
-import { OpportunityLandscape } from "./OpportunityLandscape";
+import { OpportunityMatrix } from "./OpportunityMatrix";
 import { ConstraintMap } from "./ConstraintMap";
+import { DataConfidenceBanner } from "./DataConfidenceBanner";
+import { PrimaryBlockerCallout } from "./PrimaryBlockerCallout";
 import { StrategicPathways } from "./StrategicPathways";
 import { SimulationPanel } from "@/components/SimulationPanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
@@ -163,13 +165,25 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       </div>
 
       {activeTab === "landscape" ? (
-        <OpportunityLandscape graph={graph} onSelectNode={setSelectedNodeId} />
+        <div className="flex-1 min-h-0">
+          <OpportunityMatrix graph={graph} onSelectNode={setSelectedNodeId} />
+        </div>
       ) : activeTab === "constraints" ? (
-        <ConstraintMap graph={graph} onSelectNode={setSelectedNodeId} />
+        <div className="flex-1 min-h-0 flex flex-col gap-2">
+          <PrimaryBlockerCallout graph={graph} />
+          <div className="flex-1 min-h-0">
+            <ConstraintMap graph={graph} onSelectNode={setSelectedNodeId} />
+          </div>
+        </div>
       ) : activeTab === "pathways" ? (
-        <StrategicPathways graph={graph} onSelectNode={setSelectedNodeId} />
+        <div className="flex-1 min-h-0">
+          <StrategicPathways graph={graph} onSelectNode={setSelectedNodeId} />
+        </div>
       ) : (
         <>
+          {/* Data confidence banner */}
+          <DataConfidenceBanner graph={enrichedGraph} />
+
           {/* Active path indicator */}
           <AnimatePresence>
             {selectedNode && highlightedIds && (
