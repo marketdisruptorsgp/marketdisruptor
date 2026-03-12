@@ -57,32 +57,43 @@ const SECTIONS = [
 │                                                             │
 │  Edge Functions → Lovable AI Gateway (ai.gateway.lovable)   │
 │                                                             │
-│  Primary Analysis:                                          │
-│    analyze-products     → product analysis (Gemini 2.5 Pro) │
-│    business-model-analysis → business analysis              │
-│    first-principles-analysis → first principles             │
+│  Phase 1 — Foundation:                                      │
+│    structural-decomposition → product/service/biz parsing   │
+│    scrape-products        → web scraping (specs, pricing)   │
+│    analyze-products       → photo analysis (image→product)  │
+│    photo-analysis         → image recognition pipeline      │
+│    scrape-market-news     → market news & trend signals     │
+│    geo-market-data        → geographic market sizing        │
+│    research-competitive-positioning → competitor scouting   │
 │                                                             │
-│  Intelligence:                                              │
-│    generate-market-intel  → market intelligence             │
-│    scout-competitors      → competitor scanning             │
-│    patent-analysis        → patent intelligence             │
-│    scrape-market-news     → news aggregation                │
-│    scrape-trend-intel     → trend signals                   │
+│  Phase 1.5 — Confidence Gating (cross-cutting):             │
+│    confidenceGating.ts    → 7-domain confidence assessment  │
+│    Provenance tags: SCRAPED | PARAMETRIC | AI_INFERRED      │
+│    Low-confidence gates → research questions (score < 0.4)  │
 │                                                             │
-│  Deep Analysis:                                             │
-│    critical-validation    → stress testing                  │
-│    generate-flip-ideas    → disruption ideas                │
-│    generate-pitch-deck    → pitch synthesis                 │
-│    hypothesis-interrogation → assumption testing            │
-│    reasoning-interrogation  → reasoning challenges          │
-│    bundle-deep-dive       → bundle analysis                 │
+│  Phase 2 — Synthesis:                                       │
+│    strategic-synthesis    → hidden assumptions, flipped     │
+│                             logic, friction analysis         │
+│    transformation-engine  → structural redesign concepts    │
+│                                                             │
+│  Phase 3 — Concepts:                                        │
+│    concept-architecture   → morphological design space      │
+│    concept-synthesis      → product cards, unit economics   │
+│    generate-product-visual → AI visual mockups              │
+│    generate-opportunity-vectors → opportunity detection     │
+│                                                             │
+│  Phase 4 — Validation + Pitch:                              │
+│    critical-validation    → red/green team validation       │
+│    generate-pitch-deck    → 5-slide pitch synthesis         │
+│    business-model-analysis → business model analysis        │
+│    analyze-business-structure → structural biz analysis     │
+│    industry-benchmarks    → industry benchmark data         │
 │                                                             │
 │  Utility:                                                   │
-│    extract-business-intelligence → document BI extraction   │
 │    help-assistant         → in-app help                     │
-│    workspace-query        → natural language workspace      │
-│    share-analysis         → sharing                         │
-│    generate-product-visual → visual generation              │
+│    api-proxy              → external API routing            │
+│    fire-webhook           → webhook dispatch                │
+│    compute-analytics-insights → platform analytics          │
 └──────────────────────────┬──────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────┐
