@@ -276,8 +276,8 @@ function inferBadges(opp: DeepenedOpportunity): OpportunityBadge[] {
 
   if (defense.includes("hard") || defense.includes("moat") || defense.includes("barrier") || defense.includes("patent")) badges.push("Hard to copy");
 
-  if (feasibility === "straightforward" || timeframe.includes("week") || timeframe.includes("30 day")) badges.push("Fast to test");
-  else if (feasibility === "needs_validation") badges.push("Needs validation");
+  if (feasibility === "achievable" || timeframe.includes("week") || timeframe.includes("30 day")) badges.push("Fast to test");
+  else if (feasibility === "requires_validation") badges.push("Needs validation");
 
   if (cost.includes("low") || cost.includes("minimal") || cost.includes("no upfront")) badges.push("Low cost to start");
 
