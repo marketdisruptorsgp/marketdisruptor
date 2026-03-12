@@ -76,6 +76,11 @@ function scoreNovelty(
   if (candidate.features.patternFamily === "network") novelty += 0.15;
   if (candidate.features.patternFamily === "pricing") novelty += 0.1;
 
+  // Cross-domain analogy bonus — ideas from unrelated industries are inherently more novel
+  if (candidate.sourceAnalogy) {
+    novelty += 0.15;
+  }
+
   return Math.min(1, novelty);
 }
 
