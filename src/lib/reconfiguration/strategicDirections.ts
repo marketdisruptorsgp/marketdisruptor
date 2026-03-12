@@ -16,6 +16,27 @@
 
 import type { StructuralProfile } from "./structuralProfile";
 
+const DIGITAL_SCALE_DIRECTION_IDS = new Set([
+  "platformize",
+  "shared_infrastructure",
+  "marketplace",
+  "network_effect",
+  "data_advantage",
+  "freemium_flip",
+]);
+
+function isTraditionalServiceBusiness(profile: StructuralProfile): boolean {
+  const laborHeavy = profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan";
+  const nonDigitalRevenue =
+    profile.revenueModel === "project_based" ||
+    profile.revenueModel === "transactional" ||
+    profile.revenueModel === "mixed";
+  const servicePosition = profile.valueChainPosition === "end_service" || profile.valueChainPosition === "application";
+  const ownerDependent = profile.ownerDependency === "owner_reliant" || profile.ownerDependency === "owner_critical";
+
+  return laborHeavy && nonDigitalRevenue && (servicePosition || ownerDependent || profile.etaActive);
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  STRATEGIC DIRECTION ARCHETYPE
 // ═══════════════════════════════════════════════════════════════
@@ -127,6 +148,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Turn an internal capability into a product that others pay to use.",
     aiPromptHint: "Identify the specific internal capability, process, or tool that could be extracted and sold as a standalone product. Who would pay for it? What's the pricing model?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.assetUtilization === "underutilized" || p.assetUtilization === "idle") score += 4;
       if (p.valueChainPosition === "infrastructure" || p.valueChainPosition === "platform") score += 2;
@@ -200,6 +223,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Monetize information asymmetry by collecting, structuring, or analyzing data others don't have.",
     aiPromptHint: "What data does this business naturally generate or have access to? Who would pay for structured access to that data? What decisions does it inform? What's the data moat?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 2;
       if (p.valueChainPosition === "infrastructure" || p.valueChainPosition === "platform") score += 3;
@@ -218,6 +243,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Extract common operational needs across competitors into shared services they all use.",
     aiPromptHint: "What operational burden do ALL competitors in this space share? What if one company built that as shared infrastructure and charged for access? What's the specific service — scheduling, logistics, compliance, procurement?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "atomized" || p.supplyFragmentation === "fragmented") score += 3;
       if (p.valueChainPosition === "infrastructure") score += 3;
@@ -236,6 +263,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Create a two-sided marketplace connecting supply and demand, capturing a transaction fee.",
     aiPromptHint: "Who are the specific supply-side and demand-side participants? Why don't they connect efficiently today? What's the matching mechanism? How do you solve the chicken-and-egg problem to bootstrap liquidity?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "atomized") score += 4;
       if (p.supplyFragmentation === "fragmented") score += 2;
@@ -295,6 +324,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Create defensibility through usage — each new user makes the product more valuable for all existing users.",
     aiPromptHint: "What type of network effect could exist here — data, social, marketplace, or protocol? What's the usage loop that creates compounding value? How do you reach critical mass? What's the cold-start strategy?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 3;
       if (p.switchingCosts === "low" || p.switchingCosts === "none") score += 2;
@@ -347,6 +378,8 @@ export const STRATEGIC_DIRECTIONS: StrategicDirection[] = [
     description: "Give away what the industry charges for and monetize a different layer — invert the revenue model.",
     aiPromptHint: "What is currently the paid product? What complementary layer could generate more revenue if the primary product were free? What's the conversion mechanism from free to paid? How large does the free user base need to be?",
     relevance: (p) => {
+      if (isTraditionalServiceBusiness(p)) return 0;
+
       let score = 0;
       if (p.switchingCosts === "low" || p.switchingCosts === "none") score += 3;
       if (p.distributionControl !== "owned") score += 2;
@@ -401,19 +434,28 @@ export function selectRelevantDirections(
     ? PRODUCT_DIRECTIONS
     : STRATEGIC_DIRECTIONS;
 
-  const scored = directions.map(d => ({
+  const traditionalService = analysisType !== "product" && isTraditionalServiceBusiness(profile);
+
+  let scored = directions.map(d => ({
     direction: d,
     relevanceScore: d.relevance(profile),
   }));
 
+  if (traditionalService) {
+    scored = scored.filter(s => !DIGITAL_SCALE_DIRECTION_IDS.has(s.direction.id));
+  }
+
   // Sort by relevance descending
   scored.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
-  // Take top N, but ensure at least 3 with score > 0
-  const minCount = Math.min(3, scored.filter(s => s.relevanceScore > 0).length);
-  const targetCount = Math.max(minCount, Math.min(count, scored.filter(s => s.relevanceScore >= 2).length));
+  // Only keep meaningfully relevant directions.
+  // IMPORTANT: do NOT force 3+ directions, as that introduces unrealistic ideas.
+  const eligible = scored.filter(s => s.relevanceScore >= 2);
+  if (eligible.length > 0) {
+    return eligible.slice(0, Math.min(count, eligible.length));
+  }
 
-  return scored.slice(0, Math.max(3, targetCount));
+  return scored.filter(s => s.relevanceScore > 0).slice(0, Math.min(count, 2));
 }
 
 /**

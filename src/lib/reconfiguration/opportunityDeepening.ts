@@ -131,6 +131,72 @@ export interface DeepenedOpportunity {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  REALISM FILTER HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+const UNREALISTIC_DIRECTION_IDS = new Set([
+  "platformize",
+  "shared_infrastructure",
+  "marketplace",
+  "network_effect",
+  "data_advantage",
+  "freemium_flip",
+]);
+
+const UNREALISTIC_PATTERN_IDS = new Set([
+  "infrastructure_abstraction",
+  "network_effect",
+  "data_moat",
+  "freemium_flip",
+  "loss_leader_ecosystem",
+]);
+
+function isTraditionalBusinessProfile(profile: StructuralProfile): boolean {
+  const laborHeavy = profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan";
+  const nonDigitalRevenue =
+    profile.revenueModel === "project_based" ||
+    profile.revenueModel === "transactional" ||
+    profile.revenueModel === "mixed";
+  const servicePosition = profile.valueChainPosition === "end_service" || profile.valueChainPosition === "application";
+  const ownerDependent = profile.ownerDependency === "owner_reliant" || profile.ownerDependency === "owner_critical";
+
+  return laborHeavy && nonDigitalRevenue && (servicePosition || ownerDependent || profile.etaActive);
+}
+
+function isUnrealisticText(text: string): boolean {
+  return /(\bsaas\b|software[-\s]?as[-\s]?a[-\s]?service|\bmarketplace\b|\bplatform\b|network effects?|api[-\s]?first|developer tool|sell to other shops|shared infrastructure)/i.test(text);
+}
+
+function filterRealisticOpportunities(
+  opportunities: DeepenedOpportunity[],
+  profile: StructuralProfile,
+): DeepenedOpportunity[] {
+  if (!isTraditionalBusinessProfile(profile)) return opportunities;
+
+  return opportunities.filter((opp) => {
+    if (UNREALISTIC_PATTERN_IDS.has(opp.patternId) || UNREALISTIC_DIRECTION_IDS.has(opp.patternId)) {
+      return false;
+    }
+
+    const combinedText = [
+      opp.patternName,
+      opp.label,
+      opp.reconfigurationLabel,
+      opp.summary,
+      opp.strategicBet?.industryAssumption,
+      opp.strategicBet?.contrarianBelief,
+      opp.strategicBet?.implication,
+      opp.firstMove?.action,
+      opp.firstMove?.learningObjective,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    return !isUnrealisticText(combinedText);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  DEEPENING ENGINE
 // ═══════════════════════════════════════════════════════════════
 
@@ -303,11 +369,11 @@ export async function deepenOpportunitiesAsync(
     console.log(`[AI Deepening] Received ${data.theses.length} AI-generated theses`);
 
     // Map AI output to DeepenedOpportunity format
-    return data.theses.map((thesis: any, idx: number) => {
+    const mappedOpportunities = data.theses.map((thesis: any, idx: number) => {
       // Find matching qualified pattern (by patternId or directionId)
       const matchedQP = qualifiedPatterns.find(qp => qp.pattern.id === thesis.patternId)
         ?? qualifiedPatterns[Math.min(idx, qualifiedPatterns.length - 1)];
-      
+
       // For direction-based theses without a matching pattern, create a synthetic wrapper
       const patternId = thesis.directionId || thesis.patternId || `direction-${idx}`;
       const patternName = thesis.directionId
@@ -363,6 +429,17 @@ export async function deepenOpportunitiesAsync(
         signalDensity: matchedQP?.signalDensity || 0,
       } as DeepenedOpportunity;
     }).filter(Boolean) as DeepenedOpportunity[];
+
+    const filtered = filterRealisticOpportunities(mappedOpportunities, profile);
+    if (filtered.length === 0) {
+      console.warn("[AI Deepening] All AI theses failed realism filter; using deterministic fallback");
+      return filterRealisticOpportunities(
+        deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence),
+        profile,
+      ).slice(0, 5);
+    }
+
+    return filtered.slice(0, 5);
   } catch (err) {
     console.warn("[AI Deepening] Error, falling back to deterministic:", err);
     return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence);
@@ -394,6 +471,7 @@ function deepenOpportunitiesDeterministic(
     if (usedPatternIds.has(direction.id)) continue;
     if (direction.id === "aggregate" && usedPatternIds.has("aggregation")) continue;
     if (direction.id === "shared_infrastructure" && usedPatternIds.has("infrastructure_abstraction")) continue;
+    if (isTraditionalBusinessProfile(profile) && UNREALISTIC_DIRECTION_IDS.has(direction.id)) continue;
 
     const constraint = profile.bindingConstraints[0]?.explanation || "structural constraint";
     const driver = profile.bindingConstraints[0]?.constraintName.replace(/_/g, " ") || "underlying friction";
@@ -450,9 +528,9 @@ function deepenOpportunitiesDeterministic(
         ],
       },
       secondOrderEffects: [
-        `Early mover advantage in ${direction.label.toLowerCase()} creates switching costs`,
-        `Data and network effects compound over time`,
-        `Market position shifts from operator to infrastructure provider`,
+        "Process consistency compounds over time",
+        "Operational knowledge becomes easier to transfer across team members",
+        "Better reliability can improve pricing power and client retention",
       ],
       resolvesConstraints: profile.bindingConstraints.slice(0, 1).map(c => c.constraintName),
       evidenceIds: [],
@@ -460,7 +538,7 @@ function deepenOpportunitiesDeterministic(
     });
   }
 
-  return patternOpps;
+  return filterRealisticOpportunities(patternOpps, profile);
 }
 
 /** Extract rough business context from evidence labels for AI prompt enrichment */

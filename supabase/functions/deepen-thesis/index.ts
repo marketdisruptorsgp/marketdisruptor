@@ -235,9 +235,9 @@ function buildDirectionsBlock(directions: any[]): string {
     lines.push("");
   }
 
-  lines.push("IMPORTANT: Generate one thesis per direction. Each must be structurally distinct — NOT variations of the same idea.");
-  lines.push("If a direction truly doesn't apply to this business, still generate the best version you can — the user needs multiple options.");
-  lines.push("Set the 'directionId' field to match the direction ID above.");
+  lines.push("IMPORTANT: Generate one thesis per direction when it is genuinely relevant. Each must be structurally distinct — NOT variations of the same idea.");
+  lines.push("If a direction does not fit this business, SKIP it and explain why in one sentence.");
+  lines.push("Set the 'directionId' field to match the direction ID above when you do generate a thesis.");
 
   return lines.join("\n");
 }
@@ -640,13 +640,15 @@ Generate ${thesisCount} distinct strategic opportunities, each a STRUCTURALLY DI
 ${hasDirections ? `Each corresponds to a direction below. Make each SPECIFIC for this business.` : `Generate one thesis per qualified pattern.`}
 
 RULES:
-1. "reconfigurationLabel": SPECIFIC business move (e.g., "Productize internal dispatch workflow into a SaaS scheduling platform for independent plumbers")
+1. "reconfigurationLabel": SPECIFIC business move (e.g., "Standardize the top 5 repeat jobs into fixed-scope packages to cut estimating time and reduce rework")
 2. "causalChain": trace a specific constraint to outcome through a specific mechanism
 3. "economicMechanism": concrete value creation — revenue changes, cost shifts, defensibility
 4. "firstMove": something a business owner can literally do next week
 5. "strategicBet": genuine contrarian belief most industry people would disagree with
 6. Reference specifics from the structural profile and evidence
 7. Each opportunity must be STRUCTURALLY DISTINCT
+8. REALISM FILTER: if the business is labor-heavy, owner-dependent, project/transaction based, or ETA-focused, DO NOT propose SaaS, marketplaces, platform plays, API products, or "sell software to peers" ideas.
+9. Allowed opportunity types for traditional businesses: operational improvements, market positioning, pricing/margin strategy, capacity expansion, and process standardization.
 
 STRATEGIC LENSES: Cross-industry analogs | Constraint inversions | Second-order effects | Temporal arbitrage | Negative space | Three-lens mandate (structural viability, economic mechanism, operator capacity)
 
