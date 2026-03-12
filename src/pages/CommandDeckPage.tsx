@@ -630,49 +630,10 @@ export default function CommandDeckPage() {
           completedSteps={completedSteps.size}
         />
 
-        {/* Why This Matters — attached to diagnosis */}
-        {primaryThesis?.whyThisMatters && (
-          <div
-            className="rounded-xl px-5 py-4"
-            style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
-          >
-            <WhyThisMattersSection data={primaryThesis.whyThisMatters} />
-          </div>
-        )}
-
-        {/* CIM Key Findings — extracted constraints & opportunities with evidence */}
-        <CIMKeyFindings
-          biExtraction={biExtraction}
-          modeAccent={modeAccent}
-        />
-
         {/* ══════════════════════════════════════════════════════════
             SECTION 2 — OPPORTUNITIES
-            3–5 distinct strategic directions
+            3 distinct strategic directions
            ══════════════════════════════════════════════════════════ */}
-        <OpportunityDirectionsGrid
-          opportunities={allOpportunities}
-          modeAccent={modeAccent}
-        />
-
-        {/* ══════════════════════════════════════════════════════════
-            SECTION 3 — RECOMMENDED MOVE
-            What to pursue first + second-order effects
-           ══════════════════════════════════════════════════════════ */}
-        <RecommendedMoveCard
-          playbook={topPlaybook}
-          modeAccent={modeAccent}
-        />
-
-        {/* Second-Order Effects — attached to recommended move */}
-        {primaryThesis?.secondOrderEffects && primaryThesis.secondOrderEffects.length > 0 && (
-          <div
-            className="rounded-xl px-5 py-4"
-            style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
-          >
-            <SecondOrderEffectsSection effects={primaryThesis.secondOrderEffects} />
-          </div>
-        )}
 
         {/* What's Next — kill question + first move */}
         <WhatsNextPanel
