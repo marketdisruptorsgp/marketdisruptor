@@ -56,7 +56,7 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
         border: `1.5px solid ${modeAccent}30`,
       }}
     >
-      <div className="px-5 py-4 space-y-3">
+      <div className="px-4 py-3 space-y-2">
         {/* Header */}
         <div className="flex items-center gap-2">
           <Zap size={13} style={{ color: modeAccent }} />
