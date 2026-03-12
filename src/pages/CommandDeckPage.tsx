@@ -730,7 +730,42 @@ export default function CommandDeckPage() {
         {/* ══════════════════════════════════════════════════════════
             DEEP DIVE — Collapsed advanced analysis tools
            ══════════════════════════════════════════════════════════ */}
-        <PowerToolsPanel toolCount={8}>
+        <PowerToolsPanel toolCount={12}>
+          {/* CIM Key Findings — moved from main view */}
+          <CIMKeyFindings
+            biExtraction={biExtraction}
+            modeAccent={modeAccent}
+          />
+
+          {/* Industry Benchmark — moved from main view */}
+          <IndustryBenchmarkPanel benchmark={benchmark} />
+
+          {/* Revival Score — moved from main view */}
+          <RevivalScoreCard
+            score={selectedProduct?.revivalScore ?? (analysis as any)?.avg_revival_score ?? null}
+            modeAccent={modeAccent}
+            narrative={narrative}
+            metrics={{
+              opportunityScore: metrics.opportunityScore,
+              leverageScore: metrics.leverageScore,
+              frictionIndex: metrics.frictionIndex,
+              riskScore: metrics.riskScore,
+            }}
+          />
+
+          {/* Competitive Moat — moved from main view */}
+          <CompetitiveMoatRadar
+            governedData={governedDataTyped}
+            narrative={narrative}
+            modeAccent={modeAccent}
+          />
+
+          {/* Leverage → Directions — moved from main view */}
+          <LeverageToDirectionsLink
+            opportunities={allOpportunities}
+            decompositionData={analysis.decompositionData}
+            modeAccent={modeAccent}
+          />
           {/* Document Intelligence Health — moved from main view */}
           <DocumentIntelligenceBanner
             biExtraction={biExtraction}
