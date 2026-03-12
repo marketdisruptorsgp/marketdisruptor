@@ -311,6 +311,8 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
         autoScout
         onCompetitorsScouted={onCompetitorsScouted}
         steeringContext={steeringContext}
+        assumptionFlipped={idea.reasoning}
+        structuralPrimitives={(idea as any).structuralPrimitives}
       />
 
       {/* Action Plan */}

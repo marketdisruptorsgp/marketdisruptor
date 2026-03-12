@@ -8,6 +8,7 @@ export interface Competitor {
   url: string;
   description: string;
   competition_score: number;
+  structural_overlap?: string;
 }
 
 interface CompetitorScoutPanelProps {
@@ -17,9 +18,11 @@ interface CompetitorScoutPanelProps {
   autoScout?: boolean;
   onCompetitorsScouted?: (competitors: Competitor[]) => void;
   steeringContext?: string;
+  assumptionFlipped?: string;
+  structuralPrimitives?: string[];
 }
 
-export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, autoScout = false, onCompetitorsScouted, steeringContext }: CompetitorScoutPanelProps) => {
+export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, autoScout = false, onCompetitorsScouted, steeringContext, assumptionFlipped, structuralPrimitives }: CompetitorScoutPanelProps) => {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasScouted, setHasScouted] = useState(false);
@@ -30,7 +33,7 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
     setIsLoading(true);
     try {
       const { data, error } = await invokeWithTimeout("scout-competitors", {
-        body: { ideaName, ideaDescription, category, steeringContext },
+        body: { ideaName, ideaDescription, category, steeringContext, assumptionFlipped, structuralPrimitives },
       }, 30_000);
 
       if (error) throw error;
@@ -157,6 +160,9 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
                 </span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{comp.description}</p>
+              {comp.structural_overlap && (
+                <p className="text-[10px] font-medium text-primary/80 italic">⚙ {comp.structural_overlap}</p>
+              )}
               <a
                 href={comp.url}
                 target="_blank"
