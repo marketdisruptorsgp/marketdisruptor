@@ -19,7 +19,6 @@ import { ConstraintMap } from "./ConstraintMap";
 import { DataConfidenceBanner } from "./DataConfidenceBanner";
 import { PrimaryBlockerCallout } from "./PrimaryBlockerCallout";
 import { StrategicPathways } from "./StrategicPathways";
-import { StrategicPathways } from "./StrategicPathways";
 import { SimulationPanel } from "@/components/SimulationPanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
