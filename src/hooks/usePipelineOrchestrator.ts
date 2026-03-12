@@ -1,15 +1,17 @@
 /**
- * PIPELINE ORCHESTRATOR — 90-Second Architecture
+ * PIPELINE ORCHESTRATOR — Progressive Rendering Architecture
  *
- * 3-Phase Pipeline:
- *   Phase 1: Structural Decomposition (Flash, ~20s)
- *   Phase 2: Strategic Synthesis (Pro, ~45s) — replaces transform + concept
- *   Phase 3: Deep Validation + Pitch (Flash, parallel, NON-BLOCKING)
+ * 3-Phase Pipeline with Progressive UI Updates:
+ *   Phase 1: Structural Decomposition (Flash, ~20s) → renders immediately
+ *   Phase 2: Strategic Synthesis (Pro, ~45s) → renders immediately
+ *   Phase 2.5: Concept Synthesis (~20s) → renders immediately
+ *   Phase 3: Stress Test + Pitch (LAZY — on-demand only)
  *
  * Key behaviors:
- *   - Decomposition mandatory with retry
- *   - Strategic synthesis produces ALL analysis + concept in one call
- *   - Phase 3 fires after UI renders Phase 2 — results stream in
+ *   - Each phase triggers onRecompute() for progressive rendering
+ *   - Decomposition results appear within ~20s
+ *   - Synthesis cards appear within ~60s
+ *   - Stress Test + Pitch are user-triggered (not auto-run)
  *   - Reuses existing step data (skips completed steps)
  *   - Payload compression reduces token usage
  *   - Pre-context assembly (zero AI cost)
@@ -36,8 +38,8 @@ const STEP_DEFS = [
   { key: "decompose", label: "Understanding Structure" },
   { key: "synthesis", label: "Finding Opportunities" },
   { key: "concepts", label: "Generating Concepts" },
-  { key: "stressTest", label: "Stress Testing" },
-  { key: "pitch", label: "Building Pitch" },
+  { key: "stressTest", label: "Stress Testing", lazy: true },
+  { key: "pitch", label: "Building Pitch", lazy: true },
 ] as const;
 
 /**
@@ -176,7 +178,8 @@ export function usePipelineOrchestrator(
     await saveStepData("decomposition", decompResult, analysisId!);
     updateStatus("decompose", "done");
     onStepComplete?.("decompose");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: show decomposition results immediately
+    onRecompute?.();
     return decompResult;
   }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete]);
 
@@ -255,7 +258,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("redesign");
     updateStatus("synthesis", "done");
     onStepComplete?.("synthesis");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: show synthesis results immediately
+    onRecompute?.();
     return synthesisResult;
   }, [businessAnalysisData, analysisId, analysis.adaptiveContext, saveStepData, setDisruptData, setRedesignData, setGovernedData, clearStepOutdated, updateStatus, onStepComplete]);
 
@@ -339,7 +343,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("stressTest");
     updateStatus("stressTest", "done");
     onStepComplete?.("stressTest");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: update intelligence with stress test data
+    onRecompute?.();
     return stressResult;
   }, [analysisId, analysis.adaptiveContext, analysis.decompositionData, saveStepData, setStressTestData, clearStepOutdated, updateStatus, onStepComplete]);
 
@@ -373,7 +378,8 @@ export function usePipelineOrchestrator(
     clearStepOutdated("pitch");
     updateStatus("pitch", "done");
     onStepComplete?.("pitch");
-    // DON'T call onRecompute here — wait until pipeline is fully complete
+    // Progressive render: update with pitch data
+    onRecompute?.();
   }, [analysisId, analysis.adaptiveContext, saveStepData, setPitchDeckData, clearStepOutdated, updateStatus, onStepComplete]);
 
   // ── Full 3-Phase Pipeline ──
@@ -442,56 +448,19 @@ export function usePipelineOrchestrator(
       }
 
       // ═══ UI renders now — Phase 2/2.5 complete ═══
-      console.log("[Pipeline] Synthesis phases complete. Entering Phase 3 enrichment.");
+      console.log("[Pipeline] Core phases complete. Stress Test & Pitch are available on-demand.");
 
-      // ═══ PHASE 3: Background Enrichment (non-blocking) ═══
-      const needsStress = !stressTestData;
-      const needsPitch = !pitchDeckData;
-      // Use whatever synthesis data we have (even partial) for Phase 3
-      const phase3Data = synthesisResult || disruptData || null;
-
-      if (needsStress || needsPitch) {
-        setCurrentStep("stressTest");
-        console.log(`[Pipeline] Phase 3: stress=${needsStress}, pitch=${needsPitch}`);
-
-        // Fire both in parallel — these are background enrichment
-        const enrichmentPromises: Promise<unknown>[] = [];
-
-        if (needsStress) {
-          enrichmentPromises.push(
-            runStressTest(product, extractedContext, phase3Data, decompResult)
-              .catch(err => { console.error("[Pipeline] Stress test error:", err); return null; })
-          );
-        } else {
-          updateStatus("stressTest", "done");
-          enrichmentPromises.push(Promise.resolve(stressTestData));
-        }
-
-        if (needsPitch) {
-          enrichmentPromises.push(
-            runPitch(product, extractedContext, phase3Data, null)
-              .catch(err => { console.error("[Pipeline] Pitch error:", err); return null; })
-          );
-        } else {
-          updateStatus("pitch", "done");
-          enrichmentPromises.push(Promise.resolve(pitchDeckData));
-        }
-
-        // Run enrichment in parallel
-        const [stressSettled, pitchSettled] = await Promise.allSettled(enrichmentPromises);
-
-        if (stressSettled.status === "rejected") {
-          console.error("[Pipeline] Stress test rejected:", stressSettled.reason);
-        }
-        if (pitchSettled.status === "rejected") {
-          console.error("[Pipeline] Pitch rejected:", pitchSettled.reason);
-        }
-        console.log("[Pipeline] Phase 3 enrichment settled.");
-      } else {
-        console.log("[Pipeline] All steps already complete — skipping");
+      // ═══ PHASE 3: LAZY — Stress Test + Pitch are on-demand ═══
+      // Mark them as available to run (not auto-triggered)
+      if (stressTestData) {
         updateStatus("stressTest", "done");
+      }
+      // else stays "pending" — user can trigger via retryStep("stressTest")
+
+      if (pitchDeckData) {
         updateStatus("pitch", "done");
       }
+      // else stays "pending" — user can trigger via retryStep("pitch")
 
     } catch (err) {
       console.error("[Pipeline] Unexpected pipeline error:", err);
@@ -499,14 +468,14 @@ export function usePipelineOrchestrator(
       setCurrentStep(null);
       setIsRunning(false);
       runningRef.current = false;
-      onRecompute?.();
 
       const statuses = { ...stepStatuses };
-      const errorCount = Object.values(statuses).filter(s => s === "error").length;
-      if (errorCount > 0) {
-        toast.warning(`Pipeline complete with ${errorCount} step${errorCount > 1 ? "s" : ""} needing attention.`);
+      const coreSteps = ["decompose", "synthesis", "concepts"];
+      const coreErrors = coreSteps.filter(k => statuses[k] === "error").length;
+      if (coreErrors > 0) {
+        toast.warning(`Pipeline complete with ${coreErrors} step${coreErrors > 1 ? "s" : ""} needing attention.`);
       } else {
-        toast.success("Full pipeline complete — strategic intelligence updated.");
+        toast.success("Analysis ready — explore your strategic intelligence.");
       }
     }
   }, [effectiveProduct, analysisId, analysis.adaptiveContext, analysis.activeMode, decompositionData, disruptData, redesignData, conceptsData, stressTestData, pitchDeckData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch, stepStatuses, updateStatus, onRecompute]);
@@ -541,28 +510,27 @@ export function usePipelineOrchestrator(
     }
   }, [effectiveProduct, analysisId, analysis.adaptiveContext, decompositionData, disruptData, stressTestData, runDecompose, runStrategicSynthesis, runConceptSynthesis, runStressTest, runPitch]);
 
-  // Auto-trigger when analysis is done but missing ANY pipeline step data
+  // Auto-trigger when analysis is done but missing CORE pipeline step data
+  // Stress test + pitch are lazy — don't auto-trigger for them
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
-    const hasMissingCriticalStep = !disruptData || !decompositionData;
-    const hasMissingDownstreamStep = !stressTestData || !pitchDeckData || !redesignData;
-    const hasMissingAnyStep = hasMissingCriticalStep || hasMissingDownstreamStep;
+    const hasMissingCoreStep = !disruptData || !decompositionData;
     if (
       step === "done" &&
       hasAnalyzableData &&
       analysisId &&
-      hasMissingAnyStep &&
+      hasMissingCoreStep &&
       !runningRef.current &&
       triggeredForRef.current !== analysisId
     ) {
       triggeredForRef.current = analysisId;
-      console.log(`[Pipeline] Auto-trigger: missing critical=${hasMissingCriticalStep}, downstream=${hasMissingDownstreamStep}`);
+      console.log(`[Pipeline] Auto-trigger: missing core steps (decomposition=${!decompositionData}, disrupt=${!disruptData})`);
       const timer = setTimeout(() => {
         runPipeline();
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, redesignData, stressTestData, pitchDeckData, runPipeline]);
+  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, runPipeline]);
 
   const steps = STEP_DEFS.map(d => ({
     key: d.key,
