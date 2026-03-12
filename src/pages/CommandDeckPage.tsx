@@ -294,14 +294,9 @@ export default function CommandDeckPage() {
 
         {/* ═══ DEEPENING INDICATOR ═══ */}
         {isDeepening && hasRun && !pipelineProgress.isRunning && (
-          <div
-            className="rounded-xl px-4 py-3 flex items-center gap-2"
-            style={{ background: `${modeAccent}08`, border: `1px solid ${modeAccent}20` }}
-          >
-            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: modeAccent }} />
-            <span className="text-xs font-bold" style={{ color: modeAccent }}>
-              Refining insights…
-            </span>
+          <div className="flex items-center gap-1.5 px-1">
+            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: modeAccent }} />
+            <span className="text-[10px] font-bold" style={{ color: modeAccent }}>Refining insights…</span>
           </div>
         )}
 
