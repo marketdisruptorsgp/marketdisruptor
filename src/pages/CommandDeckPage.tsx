@@ -441,8 +441,8 @@ function RealityCard({
         borderColor: `hsl(var(${colorVar}) / 0.15)`,
       }}
     >
-      <CardContent className="pt-4 pb-4">
-        <div className="flex items-center gap-1.5 mb-2">
+      <CardContent className="pt-3 pb-3">
+        <div className="flex items-center gap-1.5 mb-1">
           <Icon size={13} style={{ color: `hsl(var(${colorVar}))` }} />
           <span
             className="text-[10px] font-extrabold uppercase tracking-wider"

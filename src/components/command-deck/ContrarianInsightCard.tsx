@@ -87,13 +87,13 @@ export const ContrarianInsightCard = memo(function ContrarianInsightCard({
 
           {/* Contrarian belief */}
           <div
-            className="flex-1 rounded-lg px-4 py-3"
+            className="flex-1 rounded-lg px-3 py-2"
             style={{ background: `${modeAccent}08`, border: `1px solid ${modeAccent}18` }}
           >
-            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: modeAccent }}>
+            <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1" style={{ color: modeAccent }}>
               The Evidence Suggests
             </p>
-            <p className="text-sm text-foreground font-semibold leading-snug">
+            <p className="text-xs text-foreground font-semibold leading-snug">
               "{evidenceSuggests}"
             </p>
           </div>
