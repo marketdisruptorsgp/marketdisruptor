@@ -785,8 +785,11 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.marginStructure === "negative_margin" && profile.revenueModel !== "recurring") {
         return { qualifies: false, reason: "Already negative margins without recurring revenue — loss-leader would deepen losses.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: traditional service — loss-leader requires scalable product economics
+      if (isTraditionalService(profile)) {
+        return { qualifies: false, reason: "Traditional service business — loss-leader requires scalable product with recurring consumables. Focus on pricing strategy.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
-      if (cNames.has("capital_barrier")) { resolves.push("capital_barrier"); strengths.push("Capital barrier eliminated by subsidizing the initial purchase"); }
       if (cNames.has("commoditized_pricing")) { resolves.push("commoditized_pricing"); strengths.push("Commodity pricing on the product — margin shifts to ecosystem monetization"); }
       if (profile.switchingCosts === "high" || profile.switchingCosts === "moderate") strengths.push("Switching costs lock customers into the ecosystem after initial purchase");
       if (profile.revenueModel === "transactional") strengths.push("Transactional model can convert to recurring via consumable ecosystem");
