@@ -451,7 +451,7 @@ function RealityCard({
             {label}
           </span>
         </div>
-        <p className="text-sm text-foreground/80 leading-relaxed">{text}</p>
+        <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
       </CardContent>
     </Card>
   );
