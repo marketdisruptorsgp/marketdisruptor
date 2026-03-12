@@ -16,6 +16,9 @@ import { ETAAcquisitionScorecard } from "@/components/ETAAcquisitionScorecard";
 import { CausalConstraintMap } from "@/components/CausalConstraintMap";
 import { CausalConstraintSankey } from "@/components/CausalConstraintSankey";
 import { CompetitiveLandscape } from "@/components/CompetitiveLandscape";
+import { ResearchChecklist } from "@/components/ResearchChecklist";
+import { ConfidenceSummaryBar } from "@/components/ProvenanceBadge";
+import { assessDataConfidence } from "@/lib/confidenceGating";
 
 export type StructureViewMode = "assumptions" | "deconstruct" | "all";
 
