@@ -530,7 +530,7 @@ export default function Index() {
     }
   };
 
-  const handleRegenerateIdeas = async (product: Product, userContext?: string) => {
+  const handleRegenerateIdeas = async (product: Product, userContext?: string, rejectedIdeas?: string[]) => {
     if (!analysisParams) return;
     setGeneratingIdeasFor(product.id);
 
@@ -541,6 +541,7 @@ export default function Index() {
         body: {
           product,
           additionalContext: fullContext,
+          rejectedIdeas: rejectedIdeas || undefined,
         },
       });
 
