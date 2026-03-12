@@ -20,6 +20,7 @@ export type {
   StrategySearchResult,
 } from "./types";
 
-export type { CrossDomainAnalogy, MatchedAnalogy } from "./analogyMatcher";
+export type { MatchedAnalogy } from "./analogyMatcher";
+export type { CrossDomainAnalogy } from "./analogyLibrary";
 
 export { DEFAULT_STRATEGY_SEARCH_CONFIG } from "./types";
