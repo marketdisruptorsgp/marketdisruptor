@@ -14,33 +14,29 @@ interface FlippedIdeasPanelProps {
   userScores?: Record<string, Record<string, number>>;
   onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void;
   onCompetitorsScouted?: (comps: unknown[]) => void;
+  initialRejectedIdeas?: string[];
 }
 
-export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted }: FlippedIdeasPanelProps) {
-  const analysisCtx = useAnalysis();
+export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted, initialRejectedIdeas }: FlippedIdeasPanelProps) {
+  const { saveStepData } = useAnalysis();
   const [userContext, setUserContext] = useState("");
+  const [rejectedIdeas, setRejectedIdeas] = useState<string[]>(initialRejectedIdeas || []);
 
-  // Hydrate rejected ideas from persisted analysis_data
-  const ad = analysisCtx.analysisData as Record<string, unknown> | null;
-  const persisted = ad?.rejectedIdeas;
-  const initialRejected = Array.isArray(persisted) ? (persisted as string[]) : [];
-  const [rejectedIdeas, setRejectedIdeas] = useState<string[]>(initialRejected);
-
-  // Re-sync when analysis_data changes (e.g. loading a saved analysis)
+  // Re-sync when hydrated data changes (e.g. loading a saved analysis)
   const lastHydratedRef = useRef<string>("");
   useEffect(() => {
-    const key = JSON.stringify(initialRejected);
+    const key = JSON.stringify(initialRejectedIdeas || []);
     if (key !== lastHydratedRef.current) {
       lastHydratedRef.current = key;
-      setRejectedIdeas(initialRejected);
+      setRejectedIdeas(initialRejectedIdeas || []);
     }
-  }, [initialRejected]);
+  }, [initialRejectedIdeas]);
 
   // Persist to DB whenever rejectedIdeas changes
   const isFirstMount = useRef(true);
   useEffect(() => {
     if (isFirstMount.current) { isFirstMount.current = false; return; }
-    analysisCtx.saveStepData?.("rejectedIdeas", rejectedIdeas);
+    saveStepData?.("rejectedIdeas", rejectedIdeas);
   }, [rejectedIdeas]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleReject = useCallback((ideaName: string) => {
