@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, GitBranch,
   Search, Brain, Lightbulb, Shield, Sparkles,
-  FolderOpen, PlusCircle, Zap, Map,
+  FolderOpen, PlusCircle, Zap, Map, Eye,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
