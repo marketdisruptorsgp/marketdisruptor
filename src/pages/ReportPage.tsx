@@ -138,6 +138,7 @@ export default function ReportPage() {
   const { shouldRedirectHome } = useHydrationGuard();
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
   const autoAnalysis = useAutoAnalysis();
+  const pipelineProgress = usePipelineOrchestrator(autoAnalysis.runAnalysis, autoAnalysis.runAnalysis);
 
   const modeAccent = theme.primary;
 
