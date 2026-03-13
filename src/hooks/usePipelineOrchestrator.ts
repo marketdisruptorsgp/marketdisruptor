@@ -441,6 +441,8 @@ export function usePipelineOrchestrator(
     if (runningRef.current) return;
     runningRef.current = true;
     setIsRunning(true);
+    setPipelineStartedAt(Date.now());
+    setStepTimings({});
 
     const product = effectiveProduct;
     const extractedContext = analysis.adaptiveContext?.extractedContext || "";
