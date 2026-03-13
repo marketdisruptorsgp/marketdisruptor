@@ -76,6 +76,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [sensitivityReports, setSensitivityReports] = useState<SensitivityReport[]>([]);
   const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
   const [isComputing, setIsComputing] = useState(false);
+  const isComputingRef = useRef(false);
   const [hasRun, setHasRun] = useState(false);
   const runIdRef = useRef(0); // Monotonic run counter to deduplicate concurrent runs
 
