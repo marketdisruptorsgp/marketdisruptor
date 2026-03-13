@@ -685,31 +685,35 @@ function buildFallbackConcept(
   isService?: boolean,
   _decomposition?: any,
 ): Record<string, unknown> {
+  const topCluster = Array.isArray(analysis.transformationClusters) ? (analysis.transformationClusters as any[])[0] : null;
+  const nonFilteredTransforms = Array.isArray(analysis.structuralTransformations)
+    ? (analysis.structuralTransformations as any[]).filter((t: any) => !t.filtered)
+    : [];
+  const topTransform = nonFilteredTransforms[0] || null;
+  const topFlip = Array.isArray(analysis.flippedLogic) ? (analysis.flippedLogic as any[])[0] : null;
   const productName = product?.name || "System";
   const category = product?.category || "";
   const primaryFriction = (analysis.frictionDimensions as any)?.primaryFriction || "";
-  const topFlip = Array.isArray(analysis.flippedLogic) ? (analysis.flippedLogic as any[])[0] : null;
-  const topAssumptions = Array.isArray(analysis.hiddenAssumptions) ? (analysis.hiddenAssumptions as any[]).slice(0, 3) : [];
 
-  const conceptName = topFlip
-    ? `Reimagined ${productName} — ${(topFlip.boldAlternative || "").split(" ").slice(0, 4).join(" ")}`
-    : `Redesigned ${productName}`;
+  const conceptName = topCluster?.name || (topFlip
+    ? `Reimagined ${productName}`
+    : `Redesigned ${productName}`);
 
   return {
     conceptName,
-    tagline: topFlip?.boldAlternative || `A first-principles ${isService ? "service" : "product"} reinvention of ${productName}`,
-    coreInsight: topFlip
-      ? `By flipping "${topFlip.originalAssumption}", we unlock: ${topFlip.rationale}`
-      : `Structural redesign of ${productName}'s core ${isService ? "delivery model" : "architecture"}`,
-    radicalDifferences: topAssumptions.map((a: any) => a.challengeIdea || a.assumption),
-    physicalDescription: topFlip?.physicalMechanism || `Fundamentally restructured ${isService ? "service experience" : "form factor"}`,
+    tagline: topCluster?.description || topFlip?.boldAlternative || `First-principles reinvention of ${productName}`,
+    coreInsight: topTransform
+      ? `By applying ${topTransform.transformationType} to ${topTransform.targetPrimitiveLabel}: ${topTransform.valueCreated}`
+      : topFlip ? `By flipping "${topFlip.originalAssumption}": ${topFlip.rationale}` : `Structural redesign of ${productName}`,
+    radicalDifferences: nonFilteredTransforms.slice(0, 4).map((t: any) => t.proposedState || t.mechanism),
+    physicalDescription: topTransform?.mechanism || `Restructured ${isService ? "service experience" : "form factor"}`,
     sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for core use case",
-    materials: topAssumptions.map((a: any) => a.challengeIdea || "Novel approach"),
-    smartFeatures: topAssumptions.slice(0, 3).map((a: any) => `Addresses: ${(a.assumption || "").slice(0, 50)}`),
-    userExperienceTransformation: `Before: ${primaryFriction || "constrained by legacy patterns"}. After: friction removed.`,
-    frictionEliminated: topAssumptions.map((a: any) => a.impactScenario || a.assumption),
-    whyItHasntBeenDone: "Incumbent economics, organizational inertia, and optimization of legacy architecture",
-    biggestRisk: "Adoption risk — requires behavioral change from existing users",
+    materials: nonFilteredTransforms.slice(0, 3).map((t: any) => t.mechanism || t.valueCreated),
+    smartFeatures: nonFilteredTransforms.slice(0, 3).map((t: any) => `${t.transformationType}: ${(t.proposedState || "").slice(0, 60)}`),
+    userExperienceTransformation: `Before: ${primaryFriction || "legacy patterns"}. After: friction removed.`,
+    frictionEliminated: nonFilteredTransforms.slice(0, 3).map((t: any) => t.valueCreated || t.proposedState),
+    whyItHasntBeenDone: "Incumbent economics, organizational inertia, legacy architecture optimization",
+    biggestRisk: "Adoption risk — behavioral change required",
     manufacturingPath: isService ? "Phased rollout over 12-18 months" : "Prototype → validation → production over 18-24 months",
     pricePoint: "Market-competitive with improved unit economics",
     targetUser: `Users experiencing friction in ${category || productName}`,
