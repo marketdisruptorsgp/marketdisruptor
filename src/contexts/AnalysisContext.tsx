@@ -1518,6 +1518,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       activeBranchId, setActiveBranchId,
       strategicProfile, setStrategicProfile,
       isHydrating,
+      instantInsights, setInstantInsights,
     }}>
       {children}
     </AnalysisContext.Provider>
