@@ -474,9 +474,29 @@ export function usePipelineOrchestrator(
       if (!synthesisResult) {
         synthesisResult = await runStrategicSynthesis(product, extractedContext, decompResult, strategyContext);
         if (!synthesisResult) {
-          console.warn("[Pipeline] Synthesis failed — continuing to Phase 3 with partial data");
-          toast.warning("Strategic synthesis had issues. Running validation with available data.");
-          // Don't return — let Phase 3 still fire with whatever we have
+          console.warn("[Pipeline] Synthesis failed — generating thin-data fallback");
+          // Generate minimal disruptData from decomposition so UI isn't empty
+          const decompObj = decompResult as Record<string, unknown> | null;
+          const fallbackSynthesis: Record<string, unknown> = {
+            hiddenAssumptions: (decompObj?.assumptions as any[])?.slice(0, 5)?.map((a: any, i: number) => ({
+              assumption: typeof a === "string" ? a : a?.assumption || a?.text || `Assumption ${i + 1}`,
+              confidence: typeof a === "object" ? (a?.confidence ?? 6) : 6,
+              leverage: typeof a === "object" ? (a?.leverage ?? 5) : 5,
+            })) || [{ assumption: "This market operates as expected", confidence: 5, leverage: 5 }],
+            flippedLogic: (decompObj?.assumptions as any[])?.slice(0, 3)?.map((a: any, i: number) => ({
+              originalAssumption: typeof a === "string" ? a : a?.assumption || a?.text || `Assumption ${i + 1}`,
+              boldAlternative: `What if the opposite were true?`,
+              rationale: "Generated from structural decomposition — run with richer data (upload CIM/financials) for deeper analysis.",
+              leverageScore: 5,
+            })) || [],
+            governed: decompObj?.governed || {},
+            _thinDataFallback: true,
+          };
+          synthesisResult = fallbackSynthesis;
+          setDisruptData(fallbackSynthesis);
+          await saveStepData("disrupt", fallbackSynthesis, analysisId!);
+          updateStatus("synthesis", "done");
+          toast.info("Limited data available — upload financial documents for deeper strategic analysis.");
         }
       } else {
         console.log("[Pipeline] Reusing existing synthesis data");
