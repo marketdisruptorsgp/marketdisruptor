@@ -219,6 +219,29 @@ OUTPUT RULES:
       "physicalMechanism": "How it works"
     }
   ],
+  "structuralTransformations": [
+    {
+      "id": "st_1",
+      "targetPrimitiveId": "id from leverageAnalysis",
+      "targetPrimitiveLabel": "Human label",
+      "transformationType": "elimination|substitution|reordering|aggregation",
+      "currentState": "What exists now (1 sentence)",
+      "proposedState": "What replaces it (1 sentence)",
+      "mechanism": "How (1 sentence)",
+      "valueCreated": "What improves",
+      "feasibility": "high|medium|low",
+      "filtered": false
+    }
+  ],
+  "transformationClusters": [
+    {
+      "id": "tc_1",
+      "name": "Cluster name",
+      "description": "How these work together",
+      "transformationIds": ["st_1", "st_2"],
+      "strategicPowerScore": 7.5
+    }
+  ],
   ${redesignedConceptSchema},
   ${quickValidationSchema},
   "governed": { ... }
