@@ -290,6 +290,7 @@ export default function ReportPage() {
               const baseUrl = `/analysis/${analysisId}`;
               navigate(`${baseUrl}/${stepKey}`);
             }}
+            onRunAllSteps={() => pipelineProgress.runAllSteps()}
           />
 
           {/* Diagnosis components moved from Command Deck */}
