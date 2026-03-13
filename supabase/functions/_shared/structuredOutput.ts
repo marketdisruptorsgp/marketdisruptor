@@ -398,7 +398,6 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
       smartTechAnalysis: { type: "object", additionalProperties: true },
       hiddenAssumptions: {
         type: "array",
-        minItems: 5,
         items: {
           type: "object",
           properties: {
@@ -413,13 +412,12 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
             urgencySignal: { type: "string" },
             urgencyReason: { type: "string" },
           },
-          required: ["assumption", "currentAnswer", "reason", "isChallengeable", "challengeIdea", "leverageScore", "impactScenario", "competitiveBlindSpot", "urgencySignal", "urgencyReason"],
+          required: ["assumption", "challengeIdea", "leverageScore"],
           additionalProperties: false,
         },
       },
       flippedLogic: {
         type: "array",
-        minItems: 4,
         items: {
           type: "object",
           properties: {
@@ -428,24 +426,12 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
             rationale: { type: "string" },
             physicalMechanism: { type: "string" },
           },
-          required: ["originalAssumption", "boldAlternative", "rationale", "physicalMechanism"],
+          required: ["originalAssumption", "boldAlternative"],
           additionalProperties: false,
         },
       },
       redesignedConcept: { type: "object", additionalProperties: true },
-      governed: {
-        type: "object",
-        properties: {
-          domain_confirmation: GOVERNED_CORE_PROPERTIES.domain_confirmation,
-          first_principles: GOVERNED_CORE_PROPERTIES.first_principles,
-          friction_tiers: GOVERNED_CORE_PROPERTIES.friction_tiers,
-          constraint_map: GOVERNED_CORE_PROPERTIES.constraint_map,
-          decision_synthesis: GOVERNED_CORE_PROPERTIES.decision_synthesis,
-          reasoning_synopsis: GOVERNED_CORE_PROPERTIES.reasoning_synopsis,
-        },
-        required: ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis", "reasoning_synopsis"],
-        additionalProperties: true,
-      },
+      governed: { type: "object", additionalProperties: true },
     },
     required: ["hiddenAssumptions", "flippedLogic", "redesignedConcept", "governed"],
     additionalProperties: true,
@@ -502,16 +488,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
   "critical-validation": {
     type: "object",
     properties: {
-      governed: {
-        type: "object",
-        properties: {
-          falsification: GOVERNED_CORE_PROPERTIES.falsification,
-          decision_synthesis: GOVERNED_CORE_PROPERTIES.decision_synthesis,
-          reasoning_synopsis: GOVERNED_CORE_PROPERTIES.reasoning_synopsis,
-        },
-        required: ["falsification", "decision_synthesis", "reasoning_synopsis"],
-        additionalProperties: true,
-      },
+      governed: { type: "object", additionalProperties: true },
     },
     required: ["governed"],
     additionalProperties: true,
@@ -567,7 +544,6 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
       },
       hiddenAssumptions: {
         type: "array",
-        minItems: 3,
         items: {
           type: "object",
           properties: {
@@ -578,7 +554,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
             challengeIdea: { type: "string" },
             leverageScore: { type: "number" },
           },
-          required: ["assumption", "currentAnswer", "challengeIdea", "leverageScore"],
+          required: ["assumption", "challengeIdea", "leverageScore"],
           additionalProperties: false,
         },
       },
@@ -671,19 +647,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
       },
       visualSpecs: { type: "array", items: { type: "object", additionalProperties: true } },
       actionPlans: { type: "array", items: { type: "object", additionalProperties: true } },
-      governed: {
-        type: "object",
-        properties: {
-          domain_confirmation: GOVERNED_CORE_PROPERTIES.domain_confirmation,
-          first_principles: GOVERNED_CORE_PROPERTIES.first_principles,
-          friction_tiers: GOVERNED_CORE_PROPERTIES.friction_tiers,
-          constraint_map: GOVERNED_CORE_PROPERTIES.constraint_map,
-          decision_synthesis: GOVERNED_CORE_PROPERTIES.decision_synthesis,
-          reasoning_synopsis: GOVERNED_CORE_PROPERTIES.reasoning_synopsis,
-        },
-        required: ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis", "reasoning_synopsis"],
-        additionalProperties: true,
-      },
+      governed: { type: "object", additionalProperties: true },
     },
     required: ["businessSummary", "operationalAudit", "hiddenAssumptions", "technologyLeverage", "revenueReinvention", "disruptionAnalysis", "reinventedModel"],
     additionalProperties: true,
