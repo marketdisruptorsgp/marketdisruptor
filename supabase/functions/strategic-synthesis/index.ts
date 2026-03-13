@@ -464,10 +464,10 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     ];
 
     const body: Record<string, unknown> = {
-      model: "google/gemini-2.5-pro",
+      model: "google/gemini-2.5-flash",
       messages: aiMessages,
       temperature: 0.5,
-      max_tokens: 16000,
+      max_tokens: 10000,
     };
     if (structuredTools) Object.assign(body, structuredTools);
 
