@@ -299,11 +299,13 @@ ${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c
 
 CRITICAL INSTRUCTIONS:
 1. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
-2. Generate redesignedConcept from highest-leverage assumptions/flips
-3. Generate quickValidation with top 3 threats and feasibility score
-4. Every claim needs an operational mechanism
-5. Reference real analogous services if possible
-6. Include unit economics and pricing math
+2. Generate 6-8 structuralTransformations targeting leverage primitives
+3. Group surviving transformations into 2-3 clusters
+4. Generate redesignedConcept from the highest-scoring cluster
+5. Generate quickValidation with top 3 threats and feasibility score
+6. Every claim needs an operational mechanism
+7. Reference real analogous services if possible
+8. Include unit economics and pricing math
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}${curationPrompt}`
       : `Apply radical first-principles deconstruction AND concept generation to this product.
