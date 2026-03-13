@@ -441,7 +441,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     // ── Validate concept ──
     const concept = analysis.redesignedConcept as Record<string, unknown> | undefined;
     if (!concept?.conceptName && !concept?.coreInsight) {
-      console.warn("[StrategicSynthesis] Missing concept — synthesizing from transformations");
+      console.warn("[StrategicSynthesis] Missing concept — synthesizing from assumptions/flips");
       analysis.redesignedConcept = buildFallbackConcept(analysis, product, isService, structuralDecomposition);
     }
 
