@@ -437,6 +437,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [rejectedIdeasPersisted, setRejectedIdeasPersisted] = useState<string[]>([]);
   // ── Concept Variants for Stress Test (from Insight Graph) ──
   const [conceptVariantsForStressTest, setConceptVariantsForStressTest] = useState<ConceptVariantSummary[]>([]);
+  // ── Instant Insights (deterministic pre-computation) ──
+  const [instantInsights, setInstantInsights] = useState<InstantInsights | null>(null);
 
   const fetchGeoData = useCallback(async (category: string, productName?: string) => {
     try {
