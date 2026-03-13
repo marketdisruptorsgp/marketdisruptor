@@ -55,16 +55,17 @@ export function MorphologicalExplorerPanel({
       const governedData = analysis.governedData as Record<string, unknown> | null;
 
       // Build evidence from product data
-      const evidenceMap = extractAllEvidence(
+      const evidenceMap = extractAllEvidence({
         products,
         selectedProduct,
         disruptData,
-        null, // redesignData not needed for exploration
-        null, // stressTestData
-        null, // pitchDeckData
+        redesignData: null,
+        stressTestData: null,
+        pitchDeckData: null,
         governedData,
-        null, // businessAnalysisData
-      );
+        businessAnalysisData: null,
+        intelligence: null,
+      });
       const flatEv = flattenEvidence(evidenceMap);
 
       if (flatEv.length < 5) {
