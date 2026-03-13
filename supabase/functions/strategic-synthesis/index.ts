@@ -116,8 +116,14 @@ Ensure at least 2 entries reference cross-domain precedents from unrelated indus
 "Cross-domain precedent: [Company] in [industry] resolved this same structural constraint by [mechanism]. This suggests [implication for target business]."
 Look for structural parallels — same constraint shape (e.g. fragmented supply, intermediated distribution, labor-heavy delivery) solved in a completely different domain.`}
 
+STRUCTURAL TRANSFORMATIONS MANDATE:
+Generate 6-8 "structuralTransformations" targeting leverage primitives. Use: elimination, substitution, reordering, aggregation.
+Keep each transformation LEAN — 1 sentence per field. Mark filtered=true if clearly infeasible.
+Group surviving ones into 2-3 "transformationClusters".
+
 CONCEPT GENERATION MANDATE:
-Generate a "redesignedConcept" directly from the highest-leverage hiddenAssumptions and flippedLogic. The concept MUST:
+Generate a "redesignedConcept" from the HIGHEST-SCORING cluster. The concept MUST:
+- Directly implement transformations from the winning cluster
 - Be STRUCTURALLY different from the current product/service — not a feature add
 - Include operational mechanism and implementation path
 - ${isService ? "Be implementable within 12-18 months" : "Be manufacturable within 2-3 years"}
@@ -219,6 +225,29 @@ OUTPUT RULES:
       "physicalMechanism": "How it works"
     }
   ],
+  "structuralTransformations": [
+    {
+      "id": "st_1",
+      "targetPrimitiveId": "id from leverageAnalysis",
+      "targetPrimitiveLabel": "Human label",
+      "transformationType": "elimination|substitution|reordering|aggregation",
+      "currentState": "What exists now (1 sentence)",
+      "proposedState": "What replaces it (1 sentence)",
+      "mechanism": "How (1 sentence)",
+      "valueCreated": "What improves",
+      "feasibility": "high|medium|low",
+      "filtered": false
+    }
+  ],
+  "transformationClusters": [
+    {
+      "id": "tc_1",
+      "name": "Cluster name",
+      "description": "How these work together",
+      "transformationIds": ["st_1", "st_2"],
+      "strategicPowerScore": 7.5
+    }
+  ],
   ${redesignedConceptSchema},
   ${quickValidationSchema},
   "governed": { ... }
@@ -270,11 +299,13 @@ ${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c
 
 CRITICAL INSTRUCTIONS:
 1. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
-2. Generate redesignedConcept from highest-leverage assumptions/flips
-3. Generate quickValidation with top 3 threats and feasibility score
-4. Every claim needs an operational mechanism
-5. Reference real analogous services if possible
-6. Include unit economics and pricing math
+2. Generate 6-8 structuralTransformations targeting leverage primitives
+3. Group surviving transformations into 2-3 clusters
+4. Generate redesignedConcept from the highest-scoring cluster
+5. Generate quickValidation with top 3 threats and feasibility score
+6. Every claim needs an operational mechanism
+7. Reference real analogous services if possible
+8. Include unit economics and pricing math
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}${curationPrompt}`
       : `Apply radical first-principles deconstruction AND concept generation to this product.
@@ -299,11 +330,13 @@ ${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c
 CRITICAL INSTRUCTIONS:
 1. FRICTION: Identify PRIMARY friction dimension — do NOT default to physical/size
 2. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
-3. Generate redesignedConcept from highest-leverage assumptions/flips
-4. Generate quickValidation with top 3 threats and feasibility score
-5. Every idea needs a physical mechanism
-6. Reference real analogous products if possible
-7. Include BOM estimate, target retail price, margin
+3. Generate 6-8 structuralTransformations targeting leverage primitives
+4. Group surviving transformations into 2-3 clusters
+5. Generate redesignedConcept from highest-scoring cluster
+6. Generate quickValidation with top 3 threats and feasibility score
+7. Every idea needs a physical mechanism
+8. Reference real analogous products if possible
+9. Include BOM estimate, target retail price, margin
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}${curationPrompt}`;
 
@@ -373,7 +406,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       model: "google/gemini-2.5-flash",
       messages: aiMessages,
       temperature: 0.5,
-      max_tokens: 6000,
+      max_tokens: 7500,
     };
     if (structuredTools) Object.assign(body, structuredTools);
 
@@ -600,6 +633,42 @@ function enforceMinimumArtifacts(
   }
   next.flippedLogic = existingFlips;
 
+  // ── Pad structuralTransformations (lean) ──
+  const existingTransforms = Array.isArray(next.structuralTransformations)
+    ? [...(next.structuralTransformations as Array<Record<string, unknown>>)]
+    : [];
+  const leveragePrimitives = decomposition?.leverageAnalysis?.leveragePrimitives || [];
+  const transformTypes = ["elimination", "substitution", "reordering", "aggregation"] as const;
+  while (existingTransforms.length < 4) {
+    const idx = existingTransforms.length;
+    const primitive = leveragePrimitives[idx % Math.max(1, leveragePrimitives.length)];
+    const tType = transformTypes[idx % transformTypes.length];
+    const primLabel = primitive?.label || `Component ${idx + 1}`;
+    existingTransforms.push({
+      id: `st_${idx + 1}`,
+      targetPrimitiveId: primitive?.id || `lp_${idx + 1}`,
+      targetPrimitiveLabel: primLabel,
+      transformationType: tType,
+      currentState: primitive?.currentBehavior || "Current approach",
+      proposedState: `Apply ${tType} to ${primLabel}`,
+      mechanism: primitive?.bestTransformation || `${tType} of ${primLabel}`,
+      valueCreated: "Reduced cost/friction",
+      feasibility: "medium",
+      filtered: false,
+    });
+  }
+  next.structuralTransformations = existingTransforms;
+
+  // ── Pad transformationClusters ──
+  if (!Array.isArray(next.transformationClusters) || (next.transformationClusters as any[]).length < 2) {
+    const nonFiltered = existingTransforms.filter((t: any) => !t.filtered);
+    const half = Math.ceil(nonFiltered.length / 2);
+    next.transformationClusters = [
+      { id: "tc_1", name: `${product?.name || "System"} Core Restructuring`, description: "Primary structural interventions", transformationIds: nonFiltered.slice(0, half).map((t: any) => t.id), strategicPowerScore: 7.0 },
+      { id: "tc_2", name: `${product?.name || "System"} Efficiency Redesign`, description: "Secondary optimization interventions", transformationIds: nonFiltered.slice(half).map((t: any) => t.id), strategicPowerScore: 6.0 },
+    ].filter(c => (c.transformationIds as string[]).length > 0);
+  }
+
   // ── If concept still missing, build it ──
   const concept = next.redesignedConcept as Record<string, unknown> | undefined;
   if (!concept?.conceptName && !concept?.coreInsight) {
@@ -616,31 +685,35 @@ function buildFallbackConcept(
   isService?: boolean,
   _decomposition?: any,
 ): Record<string, unknown> {
+  const topCluster = Array.isArray(analysis.transformationClusters) ? (analysis.transformationClusters as any[])[0] : null;
+  const nonFilteredTransforms = Array.isArray(analysis.structuralTransformations)
+    ? (analysis.structuralTransformations as any[]).filter((t: any) => !t.filtered)
+    : [];
+  const topTransform = nonFilteredTransforms[0] || null;
+  const topFlip = Array.isArray(analysis.flippedLogic) ? (analysis.flippedLogic as any[])[0] : null;
   const productName = product?.name || "System";
   const category = product?.category || "";
   const primaryFriction = (analysis.frictionDimensions as any)?.primaryFriction || "";
-  const topFlip = Array.isArray(analysis.flippedLogic) ? (analysis.flippedLogic as any[])[0] : null;
-  const topAssumptions = Array.isArray(analysis.hiddenAssumptions) ? (analysis.hiddenAssumptions as any[]).slice(0, 3) : [];
 
-  const conceptName = topFlip
-    ? `Reimagined ${productName} — ${(topFlip.boldAlternative || "").split(" ").slice(0, 4).join(" ")}`
-    : `Redesigned ${productName}`;
+  const conceptName = topCluster?.name || (topFlip
+    ? `Reimagined ${productName}`
+    : `Redesigned ${productName}`);
 
   return {
     conceptName,
-    tagline: topFlip?.boldAlternative || `A first-principles ${isService ? "service" : "product"} reinvention of ${productName}`,
-    coreInsight: topFlip
-      ? `By flipping "${topFlip.originalAssumption}", we unlock: ${topFlip.rationale}`
-      : `Structural redesign of ${productName}'s core ${isService ? "delivery model" : "architecture"}`,
-    radicalDifferences: topAssumptions.map((a: any) => a.challengeIdea || a.assumption),
-    physicalDescription: topFlip?.physicalMechanism || `Fundamentally restructured ${isService ? "service experience" : "form factor"}`,
+    tagline: topCluster?.description || topFlip?.boldAlternative || `First-principles reinvention of ${productName}`,
+    coreInsight: topTransform
+      ? `By applying ${topTransform.transformationType} to ${topTransform.targetPrimitiveLabel}: ${topTransform.valueCreated}`
+      : topFlip ? `By flipping "${topFlip.originalAssumption}": ${topFlip.rationale}` : `Structural redesign of ${productName}`,
+    radicalDifferences: nonFilteredTransforms.slice(0, 4).map((t: any) => t.proposedState || t.mechanism),
+    physicalDescription: topTransform?.mechanism || `Restructured ${isService ? "service experience" : "form factor"}`,
     sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for core use case",
-    materials: topAssumptions.map((a: any) => a.challengeIdea || "Novel approach"),
-    smartFeatures: topAssumptions.slice(0, 3).map((a: any) => `Addresses: ${(a.assumption || "").slice(0, 50)}`),
-    userExperienceTransformation: `Before: ${primaryFriction || "constrained by legacy patterns"}. After: friction removed.`,
-    frictionEliminated: topAssumptions.map((a: any) => a.impactScenario || a.assumption),
-    whyItHasntBeenDone: "Incumbent economics, organizational inertia, and optimization of legacy architecture",
-    biggestRisk: "Adoption risk — requires behavioral change from existing users",
+    materials: nonFilteredTransforms.slice(0, 3).map((t: any) => t.mechanism || t.valueCreated),
+    smartFeatures: nonFilteredTransforms.slice(0, 3).map((t: any) => `${t.transformationType}: ${(t.proposedState || "").slice(0, 60)}`),
+    userExperienceTransformation: `Before: ${primaryFriction || "legacy patterns"}. After: friction removed.`,
+    frictionEliminated: nonFilteredTransforms.slice(0, 3).map((t: any) => t.valueCreated || t.proposedState),
+    whyItHasntBeenDone: "Incumbent economics, organizational inertia, legacy architecture optimization",
+    biggestRisk: "Adoption risk — behavioral change required",
     manufacturingPath: isService ? "Phased rollout over 12-18 months" : "Prototype → validation → production over 18-24 months",
     pricePoint: "Market-competitive with improved unit economics",
     targetUser: `Users experiencing friction in ${category || productName}`,
