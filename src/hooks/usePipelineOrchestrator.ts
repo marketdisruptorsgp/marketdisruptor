@@ -82,6 +82,28 @@ function compressProductPayload(product: any): any {
   return compressed;
 }
 
+function hasUsableBusinessSynthesisData(data: any): boolean {
+  if (!data || typeof data !== "object") return false;
+
+  const governed = data.governed;
+  const hasGovernedStructure = !!(
+    governed?.constraint_map?.binding_constraint_id ||
+    governed?.constraint_map?.causal_chains?.length ||
+    governed?.first_principles?.viability_assumptions?.length ||
+    governed?.root_hypotheses?.length
+  );
+
+  const hasStrategicArtifacts = !!(
+    data.flippedIdeas?.length ||
+    data.ideas?.length ||
+    data.opportunities?.length ||
+    data.redesignedConcept ||
+    data.structuralTransformations?.length
+  );
+
+  return hasGovernedStructure || hasStrategicArtifacts;
+}
+
 export function usePipelineOrchestrator(
   onRecompute?: () => void,
   onStepComplete?: (stepKey: string) => void,
@@ -190,8 +212,9 @@ export function usePipelineOrchestrator(
   // ── Phase 2: Strategic Synthesis (replaces transform + concept) ──
 
   const runStrategicSynthesis = useCallback(async (product: any, extractedContext: string, decompResult: unknown, strategyContext?: any): Promise<unknown> => {
-    // If businessAnalysisData exists, reuse it
-    if (businessAnalysisData) {
+    // Reuse business analysis only when it already contains actionable structural artifacts.
+    const canReuseBusinessData = hasUsableBusinessSynthesisData(businessAnalysisData);
+    if (canReuseBusinessData) {
       console.log("[Pipeline] Reusing businessAnalysisData as synthesis step");
       setDisruptData(businessAnalysisData);
       await saveStepData("disrupt", businessAnalysisData, analysisId!);
@@ -209,6 +232,10 @@ export function usePipelineOrchestrator(
       onStepComplete?.("synthesis");
       onRecompute?.();
       return businessAnalysisData;
+    }
+
+    if (businessAnalysisData && !canReuseBusinessData) {
+      console.log("[Pipeline] businessAnalysisData is too thin; running strategic-synthesis for enrichment");
     }
 
     setCurrentStep("synthesis");

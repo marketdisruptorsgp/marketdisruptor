@@ -605,10 +605,14 @@ export const StrategicDashboard = memo(function StrategicDashboard({
 
   const totalInsights = graph?.nodes.length ?? 0;
   const constraintCount = commandDeck?.topConstraints.length ?? 0;
+  const leverageCount = commandDeck?.topLeveragePoints.length ?? 0;
   const opportunityNodeTypes = ["outcome", "flipped_idea", "concept", "opportunity_vector"];
   const graphOppCount = graph?.nodes.filter(n => opportunityNodeTypes.includes(n.type)).length ?? 0;
-  const oppScore = commandDeck?.topOpportunities.length
-    ? Math.round(commandDeck.topOpportunities.reduce((s, o) => s + o.impact, 0) / commandDeck.topOpportunities.length * 10)
+  const commandDeckOppCount = commandDeck?.topOpportunities.length ?? 0;
+  const opportunitiesCount = commandDeckOppCount > 0 ? commandDeckOppCount : graphOppCount;
+  const hasThinData = totalInsights === 0 && constraintCount === 0 && leverageCount === 0 && opportunitiesCount === 0;
+  const oppScore = commandDeckOppCount > 0
+    ? Math.round(commandDeck!.topOpportunities.reduce((s, o) => s + o.impact, 0) / commandDeckOppCount * 10)
     : graphOppCount > 0
       ? Math.min(100, graphOppCount * 15)
       : 0;
@@ -624,9 +628,30 @@ export const StrategicDashboard = memo(function StrategicDashboard({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricTile label="Insights Found" value={totalInsights} icon={Target} color={accentColor} delay={0} />
         <MetricTile label="Constraints" value={constraintCount} icon={Shield} color="hsl(0 72% 52%)" delay={0.05} />
-        <MetricTile label="Opportunities" value={commandDeck?.topOpportunities.length ?? graphOppCount} icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.1} />
+        <MetricTile label="Opportunities" value={opportunitiesCount} icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.1} />
         <MetricTile label="Analysis" value={completionPct >= 80 ? "Ready" : `${completionPct}%`} icon={Zap} color="hsl(38 92% 50%)" delay={0.15} />
       </div>
+
+      {hasThinData && (
+        <motion.div
+          {...fadeUp}
+          transition={{ delay: 0.16, duration: 0.45 }}
+          className="rounded-xl p-4 space-y-3"
+          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+        >
+          <p className="text-sm font-bold text-foreground">This run is data-thin, so strategic outputs are limited.</p>
+          <p className="text-xs text-muted-foreground">For business-mode analyses, upload a CIM/P&L/customer list and rerun to unlock constraints, opportunities, and impossibility ideas.</p>
+          {onRunAllSteps && (
+            <button
+              onClick={onRunAllSteps}
+              className="px-3 py-2 rounded-lg text-xs font-bold"
+              style={{ background: accentColor, color: "white" }}
+            >
+              Re-run analysis
+            </button>
+          )}
+        </motion.div>
+      )
 
       {/* Row 2: Constraint Radar + Opportunity Landscape */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
