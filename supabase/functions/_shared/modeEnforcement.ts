@@ -219,12 +219,24 @@ export function missingDataWarning(mode: AnalysisMode): string {
 /**
  * Resolve frontend mode identifier to strict analysis mode.
  */
+const SERVICE_CATEGORIES = new Set([
+  "Service", "Home Services", "Professional Services",
+  "Consulting", "Skilled Trades", "Healthcare Services",
+  "Financial Services", "Legal Services", "Education Services",
+  "Hospitality", "Transportation Services", "Cleaning Services",
+  "Maintenance & Repair", "Personal Services",
+]);
+
+const BUSINESS_CATEGORIES = new Set([
+  "Business Model", "Business", "Marketplace", "SaaS", "Fintech",
+]);
+
 export function resolveMode(
   frontendMode: string | undefined,
   category?: string,
 ): AnalysisMode {
-  if (frontendMode === "business" || category === "Business Model" || category === "Business") return "business";
-  if (frontendMode === "service" || category === "Service") return "service";
+  if (frontendMode === "business" || (category && BUSINESS_CATEGORIES.has(category))) return "business";
+  if (frontendMode === "service" || (category && SERVICE_CATEGORIES.has(category))) return "service";
   return "product";
 }
 
