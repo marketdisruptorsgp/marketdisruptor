@@ -191,13 +191,56 @@ export default function CommandDeckPage() {
         ];
     if (isActivelyRunning) {
       const ml = analysis.activeMode === "business" ? "Business Model" : analysis.activeMode === "service" ? "Service" : "Product";
+      const instantPair = analysis.instantInsights?.contrarianPair;
+      const computeTime = analysis.instantInsights?.computeTimeMs;
       return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 gap-6">
           <div className="w-full max-w-lg">
             <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={180} />
           </div>
-          {/* Show instant insights during loading */}
-          {analysis.instantInsights && (
+
+          {/* Instant contrarian card — the "holy shit" moment at 5 seconds */}
+          {instantPair && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="w-full max-w-lg"
+            >
+              <div className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--primary) / 0.3)" }}>
+                <div className="px-4 py-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Zap size={13} className="text-primary" />
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                        First Structural Insight
+                      </span>
+                    </div>
+                    {computeTime != null && (
+                      <span className="text-[9px] font-bold text-primary/60">
+                        ⚡ {computeTime < 1000 ? `${computeTime}ms` : `${(computeTime / 1000).toFixed(1)}s`}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="rounded-lg px-3 py-2" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.12)" }}>
+                      <p className="text-[9px] font-extrabold uppercase tracking-widest mb-0.5" style={{ color: "hsl(var(--destructive))" }}>Everyone Assumes</p>
+                      <p className="text-xs text-foreground/80 leading-snug">"{instantPair.everyoneAssumes}"</p>
+                    </div>
+                    <div className="rounded-lg px-3 py-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.12)" }}>
+                      <p className="text-[9px] font-extrabold uppercase tracking-widest mb-0.5 text-primary">The Evidence Suggests</p>
+                      <p className="text-xs text-foreground font-semibold leading-snug">"{instantPair.evidenceSuggests}"</p>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-foreground/60 leading-snug">{instantPair.soWhat}</p>
+                  <p className="text-[10px] text-muted-foreground/50 text-center italic">Deep analysis refining this insight…</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Additional instant insights */}
+          {analysis.instantInsights && !instantPair && (
             <div className="w-full max-w-lg space-y-3">
               <div className="flex items-center gap-2 px-1">
                 <Zap size={12} className="text-primary" />
@@ -328,6 +371,8 @@ export default function CommandDeckPage() {
           thesis={primaryThesis}
           modeAccent={modeAccent}
           entityName={analysisDisplayName}
+          instantPair={analysis.instantInsights?.contrarianPair}
+          computeTimeMs={analysis.instantInsights?.computeTimeMs}
         />
 
         {/* ═══ SECTION 2 — BUSINESS REALITY (SWOT) ═══ */}
@@ -392,26 +437,41 @@ export default function CommandDeckPage() {
                   Top Moves
                 </h2>
               </div>
-              {opportunities.map((opp, i) => (
-                <div key={i} className="rounded-lg border border-border/60 bg-card px-3 py-2">
-                  <div className="flex gap-2 items-start">
-                    <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold mt-0.5">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-xs font-bold text-foreground leading-snug">{opp.title}</p>
-                        {opp.badges.map((badge) => (
-                          <span key={badge} className="text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary/10 text-primary">
-                            {badge}
-                          </span>
-                        ))}
+              {opportunities.map((opp, i) => {
+                // Find matching deepened opportunity for analogy badge
+                const matchedDeep = deepOpps.find(d =>
+                  d.label === opp.title || d.reconfigurationLabel === opp.title
+                );
+                const precedent = matchedDeep?.strategicPrecedents?.[0];
+
+                return (
+                  <div key={i} className="rounded-lg border border-border/60 bg-card px-3 py-2">
+                    <div className="flex gap-2 items-start">
+                      <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold mt-0.5">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs font-bold text-foreground leading-snug">{opp.title}</p>
+                          {opp.badges.map((badge) => (
+                            <span key={badge} className="text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary/10 text-primary">
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{opp.description}</p>
+                        {precedent && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground">
+                              Inspired by: {precedent.company} → {precedent.pattern}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{opp.description}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
         )}

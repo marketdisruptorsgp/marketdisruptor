@@ -251,9 +251,15 @@ export default function OverviewPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {opportunities.map((opp, i) => (
-                  <OpportunityCard key={i} opp={opp} index={i} />
-                ))}
+                {opportunities.map((opp, i) => {
+                  const matchedDeep = deepOpps.find(d =>
+                    d.label === opp.title || d.reconfigurationLabel === opp.title
+                  );
+                  const precedent = matchedDeep?.strategicPrecedents?.[0];
+                  return (
+                    <OpportunityCard key={i} opp={opp} index={i} precedent={precedent} />
+                  );
+                })}
               </div>
             )}
           </div>
@@ -347,7 +353,11 @@ function RealityCard({
 }
 
 /* ── Opportunity Card ── */
-function OpportunityCard({ opp, index }: { opp: OpportunityWithBadges; index: number }) {
+function OpportunityCard({ opp, index, precedent }: {
+  opp: OpportunityWithBadges;
+  index: number;
+  precedent?: { company: string; description: string; pattern: string } | null;
+}) {
   return (
     <Card className="border-border/60">
       <CardContent className="pt-5 pb-4">
@@ -371,6 +381,11 @@ function OpportunityCard({ opp, index }: { opp: OpportunityWithBadges; index: nu
                   {badge}
                 </span>
               ))}
+              {precedent && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent text-accent-foreground">
+                  Inspired by: {precedent.company} → {precedent.pattern}
+                </span>
+              )}
             </div>
           </div>
         </div>
