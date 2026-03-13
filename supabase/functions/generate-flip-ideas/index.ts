@@ -5,6 +5,7 @@ import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
+import { buildImpossibilityPrompt } from "../_shared/impossibilityOperations.ts";
 // Governed schema: constraint-driven flip linkage
 
 const corsHeaders = {
