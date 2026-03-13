@@ -60,6 +60,7 @@ export interface InstantInsights {
  */
 export function computeInstantInsights(product: any): InstantInsights | null {
   if (!product) return null;
+  const startTime = performance.now();
 
   const assumptions: InstantAssumption[] = [];
   const leveragePoints: InstantLeveragePoint[] = [];
