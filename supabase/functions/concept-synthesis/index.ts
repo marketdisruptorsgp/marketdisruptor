@@ -300,6 +300,7 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation.`;
 PRODUCT: ${product.name} | CATEGORY: ${product.category}
 DESCRIPTION: ${product.description || "N/A"}
 ${userLensContext}
+${steeringContext}
 ${structuralContext}
 ${assumptionContext}
 ${morphologicalContext}
