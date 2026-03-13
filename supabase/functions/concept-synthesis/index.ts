@@ -223,6 +223,7 @@ serve(async (req) => {
       conceptCount = 4,
       userLens,
       morphologicalVectors,
+      steeringText,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
