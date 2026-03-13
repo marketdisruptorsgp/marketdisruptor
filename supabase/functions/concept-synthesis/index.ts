@@ -222,6 +222,7 @@ serve(async (req) => {
       flippedLogic,
       conceptCount = 4,
       userLens,
+      morphologicalVectors,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -259,6 +260,14 @@ ${(flippedLogic || []).slice(0, 5).map((f: any, i: number) =>
 USER LENS: Objective: ${userLens.primary_objective || "N/A"} | Resources: ${userLens.available_resources || "N/A"} | Risk: ${userLens.risk_tolerance || "N/A"}
 ` : "";
 
+    // Morphological vectors — user-selected design space directions
+    const morphVectors = Array.isArray(morphologicalVectors) && morphologicalVectors.length > 0
+      ? morphologicalVectors : [];
+    const morphologicalContext = morphVectors.length > 0 ? `
+MORPHOLOGICAL DESIGN VECTORS (user-selected — these MUST influence at least 1-2 concepts):
+${morphVectors.map((v: any, i: number) => `${i + 1}. [${v.archetype || v.type || "vector"}] ${v.label || v.name || ""}: ${v.description || v.rationale || ""}`).join("\n")}
+` : "";
+
     // Phase 5: Slimmed system prompt — removed persona_fit, performer_network,
     // system_architecture, breakthrough_metric to cut output tokens ~50%
     const systemPrompt = `You are an Invention Synthesis Engine generating physically buildable product concepts.
@@ -277,6 +286,10 @@ ${MECHANISM_LIBRARY}
 
 RESPOND WITH VALID JSON ONLY — no markdown, no explanation.`;
 
+    const morphNote = morphVectors.length > 0
+      ? `\nIMPORTANT: The user has selected ${morphVectors.length} morphological design vector(s). At least 1-2 of your concepts MUST be directly inspired by or incorporate these vectors. Cite which vector influenced each relevant concept in its origin.enabling_mechanism field.`
+      : "";
+
     const userPrompt = `Generate ${requestedCount} invention concepts for:
 
 PRODUCT: ${product.name} | CATEGORY: ${product.category}
@@ -284,6 +297,8 @@ DESCRIPTION: ${product.description || "N/A"}
 ${userLensContext}
 ${structuralContext}
 ${assumptionContext}
+${morphologicalContext}
+${morphNote}
 
 JSON schema:
 {
