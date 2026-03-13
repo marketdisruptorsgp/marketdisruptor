@@ -261,6 +261,10 @@ ${(flippedLogic || []).slice(0, 5).map((f: any, i: number) =>
 USER LENS: Objective: ${userLens.primary_objective || "N/A"} | Resources: ${userLens.available_resources || "N/A"} | Risk: ${userLens.risk_tolerance || "N/A"}
 ` : "";
 
+    const steeringContext = steeringText ? `
+USER STEERING GUIDANCE: "${steeringText}" — This MUST influence concept generation. Incorporate this direction into at least 2-3 concepts' design, materials, or form factor.
+` : "";
+
     // Morphological vectors — user-selected design space directions
     const morphVectors = Array.isArray(morphologicalVectors) && morphologicalVectors.length > 0
       ? morphologicalVectors : [];
