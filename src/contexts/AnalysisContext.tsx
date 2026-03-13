@@ -795,6 +795,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setSelectedProduct(liveProducts[0]);
       setDetailTab("overview");
       setStep("done");
+
+      // ── INSTANT INSIGHTS: Pre-compute structural hypotheses from scraped data (~0ms) ──
+      try {
+        const instant = computeInstantInsights(liveProducts[0]);
+        if (instant) {
+          setInstantInsights(instant);
+          console.log(`[InstantInsights] Pre-computed: ${instant.assumptions.length} assumptions, ${instant.leveragePoints.length} leverage points, ${instant.constraints.length} constraints`);
+        }
+      } catch (e) {
+        console.warn("[InstantInsights] Pre-computation failed (non-blocking):", e);
+      }
       // Defer toast to let React reconcile the DOM tree swap first
       setTimeout(() => {
         toast.success(`Found ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with deep intelligence reports!`);
