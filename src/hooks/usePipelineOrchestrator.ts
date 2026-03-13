@@ -82,6 +82,28 @@ function compressProductPayload(product: any): any {
   return compressed;
 }
 
+function hasUsableBusinessSynthesisData(data: any): boolean {
+  if (!data || typeof data !== "object") return false;
+
+  const governed = data.governed;
+  const hasGovernedStructure = !!(
+    governed?.constraint_map?.binding_constraint_id ||
+    governed?.constraint_map?.causal_chains?.length ||
+    governed?.first_principles?.viability_assumptions?.length ||
+    governed?.root_hypotheses?.length
+  );
+
+  const hasStrategicArtifacts = !!(
+    data.flippedIdeas?.length ||
+    data.ideas?.length ||
+    data.opportunities?.length ||
+    data.redesignedConcept ||
+    data.structuralTransformations?.length
+  );
+
+  return hasGovernedStructure || hasStrategicArtifacts;
+}
+
 export function usePipelineOrchestrator(
   onRecompute?: () => void,
   onStepComplete?: (stepKey: string) => void,
