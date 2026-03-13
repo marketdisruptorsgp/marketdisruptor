@@ -159,6 +159,16 @@ export function usePipelineOrchestrator(
 
   const updateStatus = useCallback((key: string, status: PipelineStepStatus, error?: string) => {
     setStepStatuses(prev => ({ ...prev, [key]: status }));
+    if (status === "running") {
+      setStepTimings(prev => ({ ...prev, [key]: { startedAt: Date.now() } }));
+    } else if (status === "done" || status === "error") {
+      setStepTimings(prev => {
+        const existing = prev[key];
+        if (!existing) return prev;
+        const completedAt = Date.now();
+        return { ...prev, [key]: { ...existing, completedAt, elapsedMs: completedAt - existing.startedAt } };
+      });
+    }
     if (error) {
       setStepErrors(prev => ({ ...prev, [key]: error }));
     } else if (status === "done" || status === "running") {
