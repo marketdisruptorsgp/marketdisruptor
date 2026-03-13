@@ -406,7 +406,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     evidenceHashRef.current = hash;
 
     // If currently computing, queue a recompute for when it finishes
-    if (isComputing) {
+    if (isComputingRef.current) {
       pendingRecomputeRef.current = true;
       return;
     }
@@ -416,7 +416,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       runAnalysis();
     }, 400);
     return () => clearTimeout(timer);
-  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, isComputing, runAnalysis]);
+    // NOTE: isComputing intentionally excluded to prevent infinite recompute loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, runAnalysis]);
 
   // Drain queued recompute when computing finishes
   useEffect(() => {
