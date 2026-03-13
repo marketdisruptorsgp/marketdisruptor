@@ -503,20 +503,30 @@ export function usePipelineOrchestrator(
         updateStatus("synthesis", "done");
       }
 
-      // ═══ Phase 2.5: Concept Synthesis (Product Mode only, auto-retry) ═══
+      // ═══ Phase 2.5: Concept Synthesis (Product Mode only, NON-BLOCKING) ═══
+      // Fire-and-forget so UI renders immediately after synthesis completes
       const isProductMode = analysis.activeMode === "custom" || (analysis.activeMode as string) === "product";
       if (isProductMode && !conceptsData && synthesisResult) {
-        let conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
-        if (!conceptResult) {
-          console.log("[Pipeline] Concept synthesis failed, retrying once...");
-          // Reset status for retry
-          updateStatus("concepts", "running");
-          conceptResult = await runConceptSynthesis(product, synthesisResult, decompResult);
-          if (!conceptResult) {
-            console.warn("[Pipeline] Concept synthesis failed after retry — continuing");
-            // Don't toast a scary warning — just note it
+        const conceptProduct = product;
+        const conceptSynthesis = synthesisResult;
+        const conceptDecomp = decompResult;
+        // Non-blocking: run in background, update UI when done
+        (async () => {
+          try {
+            let conceptResult = await runConceptSynthesis(conceptProduct, conceptSynthesis, conceptDecomp);
+            if (!conceptResult) {
+              console.log("[Pipeline] Concept synthesis failed, retrying once...");
+              updateStatus("concepts", "running");
+              conceptResult = await runConceptSynthesis(conceptProduct, conceptSynthesis, conceptDecomp);
+            }
+            if (!conceptResult) {
+              console.warn("[Pipeline] Concept synthesis failed after retry — continuing");
+            }
+            onRecompute?.();
+          } catch (err) {
+            console.warn("[Pipeline] Concept synthesis background error:", err);
           }
-        }
+        })();
       } else if (isProductMode && conceptsData) {
         console.log("[Pipeline] Reusing existing concepts data");
         updateStatus("concepts", "done");
