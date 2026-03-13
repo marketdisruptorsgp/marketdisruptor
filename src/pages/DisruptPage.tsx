@@ -23,6 +23,7 @@ import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 import { FlippedIdeasPanel } from "@/components/first-principles/FlippedIdeasPanel";
+import { MorphologicalExplorerPanel } from "@/components/first-principles/MorphologicalExplorerPanel";
 
 // ── Shared layout components ──
 import {
