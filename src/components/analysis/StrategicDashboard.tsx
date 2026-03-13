@@ -651,7 +651,7 @@ export const StrategicDashboard = memo(function StrategicDashboard({
             </button>
           )}
         </motion.div>
-      )
+      )}
 
       {/* Row 2: Constraint Radar + Opportunity Landscape */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
