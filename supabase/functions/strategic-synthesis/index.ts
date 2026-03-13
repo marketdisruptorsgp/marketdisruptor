@@ -620,49 +620,36 @@ function buildFallbackConcept(
   analysis: Record<string, unknown>,
   product: any,
   isService?: boolean,
-  decomposition?: any,
+  _decomposition?: any,
 ): Record<string, unknown> {
-  const topCluster = Array.isArray(analysis.transformationClusters) ? (analysis.transformationClusters as any[])[0] : null;
-  const nonFilteredTransforms = Array.isArray(analysis.structuralTransformations)
-    ? (analysis.structuralTransformations as any[]).filter((t: any) => !t.filtered)
-    : [];
-  const topTransform = nonFilteredTransforms[0] || null;
-
-  // Build a real name from product context
   const productName = product?.name || "System";
   const category = product?.category || "";
   const primaryFriction = (analysis.frictionDimensions as any)?.primaryFriction || "";
+  const topFlip = Array.isArray(analysis.flippedLogic) ? (analysis.flippedLogic as any[])[0] : null;
+  const topAssumptions = Array.isArray(analysis.hiddenAssumptions) ? (analysis.hiddenAssumptions as any[]).slice(0, 3) : [];
 
-  // Generate a meaningful concept name
-  let conceptName = topCluster?.name;
-  if (!conceptName || conceptName.includes("Reimagined")) {
-    // Use the dominant transformation type + product context
-    const dominantType = topTransform?.transformationType || "redesign";
-    const verb = dominantType === "elimination" ? "Streamlined"
-      : dominantType === "substitution" ? "Reimagined"
-      : dominantType === "reordering" ? "Restructured"
-      : "Unified";
-    conceptName = `${verb} ${productName}${primaryFriction ? ` — ${primaryFriction.split(" ").slice(0, 3).join(" ")} Solved` : ""}`;
-  }
+  const conceptName = topFlip
+    ? `Reimagined ${productName} — ${(topFlip.boldAlternative || "").split(" ").slice(0, 4).join(" ")}`
+    : `Redesigned ${productName}`;
 
   return {
     conceptName,
-    tagline: topCluster?.description || `A first-principles ${isService ? "service" : "product"} reinvention of ${productName}`,
-    coreInsight: topTransform
-      ? `By applying ${topTransform.transformationType} to ${topTransform.targetPrimitiveLabel}, we unlock: ${topTransform.valueCreated}`
-      : `Structural transformation of ${productName}'s core ${isService ? "delivery model" : "architecture"}`,
-    radicalDifferences: nonFilteredTransforms.slice(0, 4).map((t: any) => t.proposedState || t.mechanism),
-    physicalDescription: topTransform?.mechanism || `Fundamentally restructured ${isService ? "service experience" : "form factor and interaction"}`,
+    tagline: topFlip?.boldAlternative || `A first-principles ${isService ? "service" : "product"} reinvention of ${productName}`,
+    coreInsight: topFlip
+      ? `By flipping "${topFlip.originalAssumption}", we unlock: ${topFlip.rationale}`
+      : `Structural redesign of ${productName}'s core ${isService ? "delivery model" : "architecture"}`,
+    radicalDifferences: topAssumptions.map((a: any) => a.challengeIdea || a.assumption),
+    physicalDescription: topFlip?.physicalMechanism || `Fundamentally restructured ${isService ? "service experience" : "form factor"}`,
     sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for core use case",
-    materials: nonFilteredTransforms.slice(0, 3).map((t: any) => t.mechanism || t.valueCreated),
-    smartFeatures: nonFilteredTransforms.slice(0, 3).map((t: any) => `${t.transformationType}: ${(t.proposedState || "").slice(0, 60)}`),
-    userExperienceTransformation: `Before: ${primaryFriction || "constrained by legacy patterns"}. After: friction removed through structural ${topTransform?.transformationType || "redesign"}.`,
-    frictionEliminated: nonFilteredTransforms.slice(0, 3).map((t: any) => t.valueCreated || t.proposedState),
+    materials: topAssumptions.map((a: any) => a.challengeIdea || "Novel approach"),
+    smartFeatures: topAssumptions.slice(0, 3).map((a: any) => `Addresses: ${(a.assumption || "").slice(0, 50)}`),
+    userExperienceTransformation: `Before: ${primaryFriction || "constrained by legacy patterns"}. After: friction removed.`,
+    frictionEliminated: topAssumptions.map((a: any) => a.impactScenario || a.assumption),
     whyItHasntBeenDone: "Incumbent economics, organizational inertia, and optimization of legacy architecture",
-    biggestRisk: "Adoption risk — requires behavioral change from existing users and stakeholders",
-    manufacturingPath: isService ? "Phased rollout: pilot → validate → scale over 12-18 months" : "Prototype → field validation → production tooling over 18-24 months",
-    pricePoint: "Market-competitive with improved unit economics from structural efficiency gains",
-    targetUser: `Users who directly experience the identified friction in ${category || productName}`,
+    biggestRisk: "Adoption risk — requires behavioral change from existing users",
+    manufacturingPath: isService ? "Phased rollout over 12-18 months" : "Prototype → validation → production over 18-24 months",
+    pricePoint: "Market-competitive with improved unit economics",
+    targetUser: `Users experiencing friction in ${category || productName}`,
     riskLevel: "Medium",
     capitalRequired: "Medium",
   };
