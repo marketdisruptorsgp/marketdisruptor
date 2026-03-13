@@ -703,6 +703,26 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
 
+      // ── EARLY INSTANT INSIGHTS: Generate from scrape metadata before full analysis ──
+      try {
+        const earlyProduct: any = {
+          name: customProducts?.find(cp => cp.productName)?.productName || params.category,
+          category: params.category,
+          description: customProducts?.find(cp => cp.notes)?.notes || "",
+          communityInsights: scrapeData.stats ? {
+            topComplaints: [],
+            communitySentiment: scrapeData.stats.complaintSignals > 3 ? "frustrated" : "neutral",
+          } : undefined,
+        };
+        const earlyInsights = computeInstantInsights(earlyProduct);
+        if (earlyInsights) {
+          setInstantInsights(earlyInsights);
+          console.log(`[InstantInsights] Early pre-compute during scraping: ${earlyInsights.assumptions.length} assumptions`);
+        }
+      } catch (e) {
+        console.warn("[InstantInsights] Early pre-computation failed (non-blocking):", e);
+      }
+
       setStep("analyzing");
       setStepMessage(isServiceMode
         ? "Building deep intelligence: pricing, customer journey, competitive landscape & reinvention ideas…"
