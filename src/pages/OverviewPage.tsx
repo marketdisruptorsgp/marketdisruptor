@@ -111,6 +111,9 @@ export default function OverviewPage() {
   const hasData = !!narrative || topOpps.length > 0;
   const loading = isComputing && !hasData;
 
+  // Show instant insights when deep analysis hasn't arrived yet
+  const showInstantInsights = !!instantInsights && !singleInsight && !earlyConstraint;
+
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
       {/* Header */}
@@ -120,6 +123,13 @@ export default function OverviewPage() {
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Strategic Briefing</p>
       </motion.div>
+
+      {/* ═══ -1. INSTANT INSIGHTS (from scraped data — shows in ~0s after scraping) ═══ */}
+      {showInstantInsights && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.05 }} className="space-y-4">
+          <InstantInsightsPanel insights={instantInsights} isRefining={isComputing} />
+        </motion.div>
+      )}
 
       {/* ═══ 0. EARLY BINDING CONSTRAINT (from Phase 1 — shows in ~20s) ═══ */}
       {earlyConstraint && !singleInsight && (
