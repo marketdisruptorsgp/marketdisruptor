@@ -599,7 +599,7 @@ function GraphCTA({ graph, analysisId, accentColor }: {
 
 export const StrategicDashboard = memo(function StrategicDashboard({
   analysisId, analysisTitle, accentColor, graph, commandDeck, completedSteps,
-  outdatedSteps = new Set(), onRunStep, runningStep,
+  outdatedSteps = new Set(), onRunStep, onRunAllSteps, runningStep,
 }: StrategicDashboardProps) {
   const navigate = useNavigate();
 
