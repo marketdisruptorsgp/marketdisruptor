@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { computeInstantInsights, type InstantInsights } from "@/lib/instantInsights";
 import { normalizeProductFields, isServiceCategory } from "@/utils/normalizeProduct";
 import { clearAllState, hydrateFromRow, sanitizeProducts, type HydrationSetters } from "./hydrateAnalysis";
 import { type Product, type FlippedIdea } from "@/data/mockProducts";
