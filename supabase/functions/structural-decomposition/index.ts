@@ -437,7 +437,7 @@ ${schema}`;
           { role: "user", content: `Decompose this ${modeLabel.toLowerCase()} into its structural primitives, system dynamics, AND leverage analysis:\n${contextBlock}` },
         ],
         temperature: 0.3,
-        max_tokens: 8000,
+        max_tokens: 10000,
       }),
     });
 

@@ -224,7 +224,20 @@ export function usePipelineOrchestrator(
     await saveStepData("decomposition", decompResult, analysisId!);
     updateStatus("decompose", "done");
     onStepComplete?.("decompose");
-    // Progressive render: show decomposition results immediately
+
+    // ── EARLY INSIGHTS: Surface assumptions/flips from decomposition immediately ──
+    const dr = decompResult as Record<string, unknown> | null;
+    if (dr?._earlyAssumptions || dr?._earlyFlippedLogic) {
+      const earlyDisrupt: Record<string, unknown> = {
+        hiddenAssumptions: dr._earlyAssumptions || [],
+        flippedLogic: dr._earlyFlippedLogic || [],
+        _earlyInsights: true, // Flag so synthesis knows to replace
+      };
+      setDisruptData(earlyDisrupt);
+      console.log(`[Pipeline] Early insights surfaced: ${(dr._earlyAssumptions as any[])?.length || 0} assumptions, ${(dr._earlyFlippedLogic as any[])?.length || 0} flips`);
+    }
+
+    // Progressive render: show decomposition + early insights immediately
     onRecompute?.();
     return decompResult;
   }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete]);
