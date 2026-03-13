@@ -211,6 +211,10 @@ interface AnalysisContextType {
 
   // Hydration state — true while auto-hydration DB fetch is in progress
   isHydrating: boolean;
+
+  // Instant structural insights (deterministic, computed from scraped data)
+  instantInsights: InstantInsights | null;
+  setInstantInsights: (d: InstantInsights | null) => void;
 }
 
 export interface AdaptiveContextData {
