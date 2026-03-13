@@ -116,27 +116,16 @@ Ensure at least 2 entries reference cross-domain precedents from unrelated indus
 "Cross-domain precedent: [Company] in [industry] resolved this same structural constraint by [mechanism]. This suggests [implication for target business]."
 Look for structural parallels — same constraint shape (e.g. fragmented supply, intermediated distribution, labor-heavy delivery) solved in a completely different domain.`}
 
-STRUCTURAL TRANSFORMATIONS MANDATE:
-Generate a "structuralTransformations" array with 8-12 transformations.
-Each MUST: target a specific leverage primitive, use one of: elimination, substitution, reordering, aggregation.
-Include viabilityGate assessment (technical, economic, regulatory, behavioral — each scored 1-5).
-Mark as filtered=true if compositeScore < 2.5.
-Generate at least 2 transformations per type.
-
-After generating structuralTransformations, group surviving (non-filtered) ones into 2-4 "transformationClusters".
-
 CONCEPT GENERATION MANDATE:
-After clustering, generate a "redesignedConcept" from the HIGHEST-SCORING cluster. The concept MUST:
-- Directly implement transformations from the winning cluster
+Generate a "redesignedConcept" directly from the highest-leverage hiddenAssumptions and flippedLogic. The concept MUST:
 - Be STRUCTURALLY different from the current product/service — not a feature add
 - Include operational mechanism and implementation path
 - ${isService ? "Be implementable within 12-18 months" : "Be manufacturable within 2-3 years"}
 
 QUICK VALIDATION MANDATE:
 Generate a "quickValidation" with the top 3 threats, feasibility score, key risk, and confidence level.
-This serves as an immediate signal before the full stress test runs.
 
-${JSON.stringify(structuralDecomposition, null, 1).slice(0, 5000)}
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 4000)}
 ` : ''}
 
 OUTPUT RULES:
@@ -146,12 +135,6 @@ OUTPUT RULES:
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
 - SCORING: Apply friction penalties. Before finalizing any score, ask "What would cause this to fail?" — if material, reduce.
-
-USER JOURNEY RULE:
-- "userWorkflow" must describe the CURRENT/EXISTING journey AS IT IS TODAY
-- Do NOT suggest improvements in userWorkflow
-- FRICTION POINTS: Identify friction for EVERY step. Use "stepIndex" (0-based).
-- ANTI-ANCHORING: Do NOT let one friction type dominate all steps.
 `;
 
     // ── Analysis + Concept + QuickValidation schema ──
