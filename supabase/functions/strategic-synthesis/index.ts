@@ -116,8 +116,14 @@ Ensure at least 2 entries reference cross-domain precedents from unrelated indus
 "Cross-domain precedent: [Company] in [industry] resolved this same structural constraint by [mechanism]. This suggests [implication for target business]."
 Look for structural parallels — same constraint shape (e.g. fragmented supply, intermediated distribution, labor-heavy delivery) solved in a completely different domain.`}
 
+STRUCTURAL TRANSFORMATIONS MANDATE:
+Generate 6-8 "structuralTransformations" targeting leverage primitives. Use: elimination, substitution, reordering, aggregation.
+Keep each transformation LEAN — 1 sentence per field. Mark filtered=true if clearly infeasible.
+Group surviving ones into 2-3 "transformationClusters".
+
 CONCEPT GENERATION MANDATE:
-Generate a "redesignedConcept" directly from the highest-leverage hiddenAssumptions and flippedLogic. The concept MUST:
+Generate a "redesignedConcept" from the HIGHEST-SCORING cluster. The concept MUST:
+- Directly implement transformations from the winning cluster
 - Be STRUCTURALLY different from the current product/service — not a feature add
 - Include operational mechanism and implementation path
 - ${isService ? "Be implementable within 12-18 months" : "Be manufacturable within 2-3 years"}
