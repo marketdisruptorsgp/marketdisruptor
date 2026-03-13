@@ -502,6 +502,7 @@ export function usePipelineOrchestrator(
       setCurrentStep(null);
       setIsRunning(false);
       runningRef.current = false;
+      runAllRef.current = false;
 
       const statuses = { ...stepStatuses };
       const coreSteps = ["decompose", "synthesis", "concepts"];
