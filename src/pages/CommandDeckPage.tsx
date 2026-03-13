@@ -127,10 +127,10 @@ export default function CommandDeckPage() {
   }, [engineComputing, isRecomputing]);
 
   const handleRecomputeAll = useCallback(() => {
-    if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
+    if (completedSteps.size === 0) { pipelineProgress.runAllSteps(); return; }
     setIsRecomputing(true);
-    try { runAnalysis(); } catch { /* silent */ }
-  }, [completedSteps, navigate, baseUrl, runAnalysis]);
+    try { pipelineProgress.runAllSteps(); } catch { /* silent */ }
+  }, [completedSteps, pipelineProgress]);
 
   const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
     : analysis.activeMode === "business" ? "business" : "product";
@@ -192,10 +192,33 @@ export default function CommandDeckPage() {
     if (isActivelyRunning) {
       const ml = analysis.activeMode === "business" ? "Business Model" : analysis.activeMode === "service" ? "Service" : "Product";
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 gap-6">
           <div className="w-full max-w-lg">
             <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={180} />
           </div>
+          {/* Show instant insights during loading */}
+          {analysis.instantInsights && (
+            <div className="w-full max-w-lg space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <Zap size={12} className="text-primary" />
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Early Structural Insights</span>
+              </div>
+              {analysis.instantInsights.bindingConstraint && (
+                <div className="rounded-lg px-3 py-2.5 border" style={{ background: "hsl(var(--destructive) / 0.05)", borderColor: "hsl(var(--destructive) / 0.2)" }}>
+                  <p className="text-[9px] font-extrabold uppercase tracking-wider" style={{ color: "hsl(var(--destructive))" }}>Binding Constraint Hypothesis</p>
+                  <p className="text-xs font-bold text-foreground mt-1">{analysis.instantInsights.bindingConstraint.label}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{analysis.instantInsights.bindingConstraint.reasoning}</p>
+                </div>
+              )}
+              {analysis.instantInsights.assumptions.slice(0, 3).map((a, i) => (
+                <div key={i} className="rounded-lg px-3 py-2 border border-border bg-card">
+                  <p className="text-xs font-bold text-foreground">{a.assumption}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{a.challengeHint}</p>
+                </div>
+              ))}
+              <p className="text-[10px] text-muted-foreground/60 text-center italic">Refining with AI analysis…</p>
+            </div>
+          )}
         </div>
       );
     }

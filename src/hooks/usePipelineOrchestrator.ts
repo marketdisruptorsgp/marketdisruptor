@@ -34,6 +34,7 @@ export interface PipelineProgress {
   completedCount: number;
   totalCount: number;
   retryStep: (stepKey: string) => void;
+  runAllSteps: () => void;
 }
 
 const STEP_DEFS = [
@@ -100,6 +101,7 @@ export function usePipelineOrchestrator(
   const runningRef = useRef(false);
   const triggeredForRef = useRef<string | null>(null);
   const lastCompletedStepRef = useRef<string | null>(null); // Track for resume
+  const runAllRef = useRef(false);
 
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
     decompose: "pending",
@@ -478,17 +480,21 @@ export function usePipelineOrchestrator(
       // ═══ UI renders now — Phase 2/2.5 complete ═══
       console.log("[Pipeline] Core phases complete. Stress Test & Pitch are available on-demand.");
 
-      // ═══ PHASE 3: LAZY — Stress Test + Pitch are on-demand ═══
-      // Mark them as available to run (not auto-triggered)
+      // ═══ PHASE 3: Stress Test + Pitch (auto-run if runAllMode) ═══
       if (stressTestData) {
         updateStatus("stressTest", "done");
+      } else if (runAllRef.current && synthesisResult) {
+        const stressResult = await runStressTest(product, extractedContext, synthesisResult, decompResult);
+        if (stressResult && !pitchDeckData) {
+          await runPitch(product, extractedContext, synthesisResult, stressResult);
+        }
       }
-      // else stays "pending" — user can trigger via retryStep("stressTest")
 
       if (pitchDeckData) {
         updateStatus("pitch", "done");
+      } else if (runAllRef.current && !stressTestData && synthesisResult) {
+        // Pitch was already run above after stress test
       }
-      // else stays "pending" — user can trigger via retryStep("pitch")
 
     } catch (err) {
       console.error("[Pipeline] Unexpected pipeline error:", err);
@@ -496,6 +502,7 @@ export function usePipelineOrchestrator(
       setCurrentStep(null);
       setIsRunning(false);
       runningRef.current = false;
+      runAllRef.current = false;
 
       const statuses = { ...stepStatuses };
       const coreSteps = ["decompose", "synthesis", "concepts"];
@@ -560,6 +567,12 @@ export function usePipelineOrchestrator(
     }
   }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, runPipeline]);
 
+  // Run ALL steps including lazy (stress test + pitch)
+  const runAllSteps = useCallback(() => {
+    runAllRef.current = true;
+    runPipeline();
+  }, [runPipeline]);
+
   const steps = STEP_DEFS.map(d => ({
     key: d.key,
     label: d.label,
@@ -574,5 +587,6 @@ export function usePipelineOrchestrator(
     completedCount: steps.filter(s => s.status === "done").length,
     totalCount: steps.length,
     retryStep,
+    runAllSteps,
   };
 }

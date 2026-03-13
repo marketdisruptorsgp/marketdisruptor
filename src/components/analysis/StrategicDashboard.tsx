@@ -39,6 +39,7 @@ interface StrategicDashboardProps {
   completedSteps: Set<string>;
   outdatedSteps?: Set<string>;
   onRunStep?: (stepKey: string) => void;
+  onRunAllSteps?: () => void;
   runningStep?: string | null;
 }
 
@@ -440,9 +441,9 @@ function PathwayChip({ node, onClick }: { node: InsightGraphNode; onClick: () =>
 //  6. PIPELINE PROGRESS
 // ═══════════════════════════════════════════════════════
 
-function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accentColor, onRunStep, runningStep }: {
+function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accentColor, onRunStep, onRunAllSteps, runningStep }: {
   analysisId: string; completedSteps: Set<string>; outdatedSteps: Set<string>;
-  accentColor: string; onRunStep?: (key: string) => void; runningStep?: string | null;
+  accentColor: string; onRunStep?: (key: string) => void; onRunAllSteps?: () => void; runningStep?: string | null;
 }) {
   const navigate = useNavigate();
   const done = completedSteps.size;
@@ -458,11 +459,22 @@ function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accent
         <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
           {allDone ? "Analysis Complete" : "Analysis Steps"}
         </p>
-        {!allDone && (
-          <span className="text-sm font-extrabold tabular-nums" style={{ color: accentColor }}>
-            {done}/{total}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {!allDone && (
+            <span className="text-sm font-extrabold tabular-nums" style={{ color: accentColor }}>
+              {done}/{total}
+            </span>
+          )}
+          {!allDone && onRunAllSteps && (
+            <button
+              onClick={onRunAllSteps}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{ background: accentColor, color: "white" }}
+            >
+              <Rocket size={10} /> Run All
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Progress bar */}
@@ -587,7 +599,7 @@ function GraphCTA({ graph, analysisId, accentColor }: {
 
 export const StrategicDashboard = memo(function StrategicDashboard({
   analysisId, analysisTitle, accentColor, graph, commandDeck, completedSteps,
-  outdatedSteps = new Set(), onRunStep, runningStep,
+  outdatedSteps = new Set(), onRunStep, onRunAllSteps, runningStep,
 }: StrategicDashboardProps) {
   const navigate = useNavigate();
 
@@ -657,6 +669,7 @@ export const StrategicDashboard = memo(function StrategicDashboard({
         outdatedSteps={outdatedSteps}
         accentColor={accentColor}
         onRunStep={onRunStep}
+        onRunAllSteps={onRunAllSteps}
         runningStep={runningStep}
       />
     </div>

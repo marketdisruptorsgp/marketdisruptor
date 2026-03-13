@@ -6,6 +6,7 @@ import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
+import { usePipelineOrchestrator } from "@/hooks/usePipelineOrchestrator";
 import { supabase } from "@/integrations/supabase/client";
 import { isServiceCategory } from "@/utils/normalizeProduct";
 import { toast } from "sonner";
@@ -137,6 +138,7 @@ export default function ReportPage() {
   const { shouldRedirectHome } = useHydrationGuard();
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
   const autoAnalysis = useAutoAnalysis();
+  const pipelineProgress = usePipelineOrchestrator(autoAnalysis.runAnalysis, autoAnalysis.runAnalysis);
 
   const modeAccent = theme.primary;
 
@@ -288,6 +290,7 @@ export default function ReportPage() {
               const baseUrl = `/analysis/${analysisId}`;
               navigate(`${baseUrl}/${stepKey}`);
             }}
+            onRunAllSteps={() => pipelineProgress.runAllSteps()}
           />
 
           {/* Diagnosis components moved from Command Deck */}
