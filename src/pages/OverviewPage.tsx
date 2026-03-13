@@ -49,7 +49,7 @@ export default function OverviewPage() {
   const autoAnalysis = useAutoAnalysis();
   const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing } = autoAnalysis;
 
-  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData } = analysis;
+  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData, instantInsights } = analysis;
 
   // Extract early binding constraint hypothesis from Phase 1 decomposition
   const earlyConstraint = useMemo(() => {
