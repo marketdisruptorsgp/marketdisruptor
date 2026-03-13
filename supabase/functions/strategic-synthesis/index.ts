@@ -219,69 +219,8 @@ OUTPUT RULES:
       "physicalMechanism": "How it works"
     }
   ],
-  "structuralTransformations": [
-    {
-      "id": "st_1",
-      "targetPrimitiveId": "id from leverageAnalysis",
-      "targetPrimitiveLabel": "Human label",
-      "transformationType": "elimination|substitution|reordering|aggregation",
-      "currentState": "What exists now",
-      "proposedState": "What replaces it",
-      "mechanism": "How",
-      "valueCreated": "What improves",
-      "valueLost": "What degrades",
-      "viabilityGate": {
-        "technical": { "score": 4, "reasoning": "Why" },
-        "economic": { "score": 3, "reasoning": "Why" },
-        "regulatory": { "score": 5, "reasoning": "Why" },
-        "behavioral": { "score": 3, "reasoning": "Why" },
-        "compositeScore": 3.75,
-        "verdict": "pass|conditional|fail"
-      },
-      "filtered": false,
-      "systemImpact": {
-        "valueFlowChanges": ["..."],
-        "newBottleneck": "...",
-        "cascadeEffects": ["..."]
-      }
-    }
-  ],
-  "transformationClusters": [
-    {
-      "id": "tc_1",
-      "name": "Cluster name",
-      "description": "How these work together",
-      "transformationIds": ["st_1", "st_2"],
-      "compatibilityNote": "Why compatible",
-      "strategicPowerScore": 7.5
-    }
-  ],
   ${redesignedConceptSchema},
   ${quickValidationSchema},
-  "visualSpecs": [
-    {
-      "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
-      "title": "Short title",
-      "nodes": [{ "id": "id", "label": "Label", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1 }],
-      "edges": [{ "from": "src", "to": "tgt", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "optional" }],
-      "layout": "linear | vertical | hierarchical",
-      "interpretation": "One sentence"
-    }
-  ],
-  "actionPlans": [
-    {
-      "initiative": "Name",
-      "objective": "Goal",
-      "leverage_type": "optimization | structural_improvement | redesign",
-      "mechanism": "How",
-      "complexity": "low | medium | high",
-      "time_horizon": "near_term | mid_term | long_term",
-      "risk": { "execution": "risk", "adoption": "risk", "market": "risk" },
-      "validation": "MVP test",
-      "decision_readiness": 3,
-      "confidence": "high | medium | exploratory"
-    }
-  ],
   "governed": { ... }
 }`;
 
