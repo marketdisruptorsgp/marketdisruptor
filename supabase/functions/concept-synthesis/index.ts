@@ -286,6 +286,10 @@ ${MECHANISM_LIBRARY}
 
 RESPOND WITH VALID JSON ONLY — no markdown, no explanation.`;
 
+    const morphNote = morphVectors.length > 0
+      ? `\nIMPORTANT: The user has selected ${morphVectors.length} morphological design vector(s). At least 1-2 of your concepts MUST be directly inspired by or incorporate these vectors. Cite which vector influenced each relevant concept in its origin.enabling_mechanism field.`
+      : "";
+
     const userPrompt = `Generate ${requestedCount} invention concepts for:
 
 PRODUCT: ${product.name} | CATEGORY: ${product.category}
@@ -293,6 +297,8 @@ DESCRIPTION: ${product.description || "N/A"}
 ${userLensContext}
 ${structuralContext}
 ${assumptionContext}
+${morphologicalContext}
+${morphNote}
 
 JSON schema:
 {
