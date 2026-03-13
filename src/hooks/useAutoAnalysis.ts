@@ -307,6 +307,15 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       }
     };
 
+    // Safety timeout: force-clear isComputing after 45s to prevent UI hangs
+    const safetyTimer = setTimeout(() => {
+      if (isComputingRef.current && thisRunId === runIdRef.current) {
+        console.warn("[StrategicEngine] Safety timeout — force-clearing isComputing after 45s");
+        setIsComputing(false);
+        isComputingRef.current = false;
+      }
+    }, 45_000);
+
     // Run async (AI-powered) pipeline, then apply results
     runStrategicAnalysisAsync(input)
       .then(applyResult)
@@ -320,7 +329,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         }
       })
       .finally(() => {
-        // Only clear computing state if this is still the latest run
+        clearTimeout(safetyTimer);
+        // Always clear computing state for the latest run
         if (thisRunId === runIdRef.current) {
           setIsComputing(false);
           isComputingRef.current = false;
