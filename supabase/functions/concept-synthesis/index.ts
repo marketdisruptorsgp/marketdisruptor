@@ -222,6 +222,7 @@ serve(async (req) => {
       flippedLogic,
       conceptCount = 4,
       userLens,
+      morphologicalVectors,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
