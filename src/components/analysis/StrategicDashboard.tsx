@@ -39,6 +39,7 @@ interface StrategicDashboardProps {
   completedSteps: Set<string>;
   outdatedSteps?: Set<string>;
   onRunStep?: (stepKey: string) => void;
+  onRunAllSteps?: () => void;
   runningStep?: string | null;
 }
 
