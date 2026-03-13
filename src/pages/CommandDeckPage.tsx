@@ -51,6 +51,7 @@ import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { PipelineTimerStrip } from "@/components/analysis/PipelineTimerStrip";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", route: "report" },
