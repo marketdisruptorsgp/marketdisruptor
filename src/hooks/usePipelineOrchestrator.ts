@@ -667,5 +667,7 @@ export function usePipelineOrchestrator(
     totalCount: steps.length,
     retryStep,
     runAllSteps,
+    pipelineStartedAt,
+    stepTimings,
   };
 }
