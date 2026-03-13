@@ -534,7 +534,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         additionalProperties: true,
       },
     },
-    required: ["hiddenAssumptions", "flippedLogic", "redesignedConcept", "quickValidation", "governed"],
+    required: ["hiddenAssumptions", "flippedLogic", "structuralTransformations", "transformationClusters", "redesignedConcept", "quickValidation", "governed"],
     additionalProperties: true,
   },
   "critical-validation": {
