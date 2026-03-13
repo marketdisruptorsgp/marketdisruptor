@@ -34,6 +34,7 @@ export interface PipelineProgress {
   completedCount: number;
   totalCount: number;
   retryStep: (stepKey: string) => void;
+  runAllSteps: () => void;
 }
 
 const STEP_DEFS = [
