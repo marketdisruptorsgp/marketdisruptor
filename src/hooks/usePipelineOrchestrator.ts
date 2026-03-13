@@ -27,6 +27,12 @@ import { toast } from "sonner";
 
 export type PipelineStepStatus = "pending" | "running" | "done" | "error" | "skipped";
 
+export interface StepTiming {
+  startedAt: number;
+  completedAt?: number;
+  elapsedMs?: number;
+}
+
 export interface PipelineProgress {
   isRunning: boolean;
   currentStep: string | null;
@@ -35,6 +41,8 @@ export interface PipelineProgress {
   totalCount: number;
   retryStep: (stepKey: string) => void;
   runAllSteps: () => void;
+  pipelineStartedAt: number | null;
+  stepTimings: Record<string, StepTiming>;
 }
 
 const STEP_DEFS = [
