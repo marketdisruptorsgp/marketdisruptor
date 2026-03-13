@@ -556,6 +556,7 @@ export default function ReportPage() {
         outdatedSteps={analysis.outdatedSteps}
         currentStep="report"
         accentColor={modeAccent}
+        stepTimings={pipelineProgress.stepTimings}
       />
 
       <NextStepButton
