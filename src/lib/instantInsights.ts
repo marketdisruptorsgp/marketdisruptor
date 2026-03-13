@@ -31,6 +31,13 @@ export interface InstantConstraint {
   severity: "high" | "medium" | "low";
 }
 
+export interface InstantContrarianPair {
+  everyoneAssumes: string;
+  evidenceSuggests: string;
+  soWhat: string;
+  source: string; // which heuristic produced this
+}
+
 export interface InstantInsights {
   assumptions: InstantAssumption[];
   leveragePoints: InstantLeveragePoint[];
@@ -40,8 +47,11 @@ export interface InstantInsights {
     reasoning: string;
     leverageScore: number;
   } | null;
+  /** The "aha moment" — contrarian pair derived from deterministic heuristics */
+  contrarianPair: InstantContrarianPair | null;
   summary: string;
   computedAt: number;
+  computeTimeMs: number;
 }
 
 /**
