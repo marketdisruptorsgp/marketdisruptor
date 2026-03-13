@@ -565,6 +565,12 @@ export function usePipelineOrchestrator(
     }
   }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, runPipeline]);
 
+  // Run ALL steps including lazy (stress test + pitch)
+  const runAllSteps = useCallback(() => {
+    runAllRef.current = true;
+    runPipeline();
+  }, [runPipeline]);
+
   const steps = STEP_DEFS.map(d => ({
     key: d.key,
     label: d.label,
@@ -579,5 +585,6 @@ export function usePipelineOrchestrator(
     completedCount: steps.filter(s => s.status === "done").length,
     totalCount: steps.length,
     retryStep,
+    runAllSteps,
   };
 }
