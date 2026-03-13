@@ -399,7 +399,29 @@ VALUE CHAIN MANDATE (REQUIRED for all modes):
 - highestFrictionStage: Reference the stage id with most friction.
 - primaryValueLeakage: Where do intermediaries or inefficiency capture the most value?
 
-Respond ONLY with a single valid JSON object matching this schema:
+EARLY HYPOTHESIS MANDATE (REQUIRED):
+In addition to the structural decomposition, generate EARLY strategic hypotheses based on the primitives you just decomposed.
+These appear to users within 20 seconds — they are the first "aha moment."
+
+Generate "_earlyAssumptions" — 5 hidden assumptions this industry takes for granted. For each:
+- assumption: The specific belief everyone accepts (e.g. "Hand dryers must use heated air")
+- currentAnswer: Why it's done this way
+- reason: tradition|manufacturing|cost|physics|habit
+- isChallengeable: boolean
+- challengeIdea: How to challenge it (1 sentence)
+- leverageScore: 1-10 (calibrated: 5-6 default, ≥8 requires structural evidence from your decomposition)
+- urgencySignal: eroding|stable|emerging
+
+Generate "_earlyFlippedLogic" — 4 bold structural inversions. For each:
+- originalAssumption: The assumption being flipped
+- boldAlternative: The radical opposite (must be a TRUE negation, not a paraphrase)
+- rationale: Why this creates real value (1 sentence)
+- physicalMechanism: How it would actually work (1 sentence)
+
+CRITICAL: Ground these in the leverage primitives, bottlenecks, and control points you identified above.
+Target the highest-leverage primitives first. These must be SPECIFIC to this exact ${modeLabel.toLowerCase()}, not generic.
+
+Respond ONLY with a single valid JSON object matching this schema (with added _earlyAssumptions and _earlyFlippedLogic arrays at the top level):
 ${schema}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -415,7 +437,7 @@ ${schema}`;
           { role: "user", content: `Decompose this ${modeLabel.toLowerCase()} into its structural primitives, system dynamics, AND leverage analysis:\n${contextBlock}` },
         ],
         temperature: 0.3,
-        max_tokens: 8000,
+        max_tokens: 10000,
       }),
     });
 

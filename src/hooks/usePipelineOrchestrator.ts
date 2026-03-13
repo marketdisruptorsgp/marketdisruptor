@@ -224,7 +224,20 @@ export function usePipelineOrchestrator(
     await saveStepData("decomposition", decompResult, analysisId!);
     updateStatus("decompose", "done");
     onStepComplete?.("decompose");
-    // Progressive render: show decomposition results immediately
+
+    // ── EARLY INSIGHTS: Surface assumptions/flips from decomposition immediately ──
+    const dr = decompResult as Record<string, unknown> | null;
+    if (dr?._earlyAssumptions || dr?._earlyFlippedLogic) {
+      const earlyDisrupt: Record<string, unknown> = {
+        hiddenAssumptions: dr._earlyAssumptions || [],
+        flippedLogic: dr._earlyFlippedLogic || [],
+        _earlyInsights: true, // Flag so synthesis knows to replace
+      };
+      setDisruptData(earlyDisrupt);
+      console.log(`[Pipeline] Early insights surfaced: ${(dr._earlyAssumptions as any[])?.length || 0} assumptions, ${(dr._earlyFlippedLogic as any[])?.length || 0} flips`);
+    }
+
+    // Progressive render: show decomposition + early insights immediately
     onRecompute?.();
     return decompResult;
   }, [analysisId, analysis.adaptiveContext, saveStepData, setDecompositionData, updateStatus, onStepComplete]);
@@ -496,26 +509,21 @@ export function usePipelineOrchestrator(
       }
 
       // ═══ PHASE 2: Strategic Synthesis (~45s) ═══
-      // Check if we already have BOTH disrupt + redesign data
-      let synthesisResult = (disruptData && redesignData) ? disruptData : null;
+      // Check if we already have FULL synthesis data (not just early insights from decomposition)
+      const hasFullSynthesis = disruptData && redesignData && !(disruptData as any)?._earlyInsights;
+      let synthesisResult = hasFullSynthesis ? disruptData : null;
       if (!synthesisResult) {
         synthesisResult = await runStrategicSynthesis(product, extractedContext, decompResult, strategyContext);
         if (!synthesisResult) {
           console.warn("[Pipeline] Synthesis failed — generating thin-data fallback");
           // Generate minimal disruptData from decomposition so UI isn't empty
           const decompObj = decompResult as Record<string, unknown> | null;
+          // Use early assumptions from decomposition as fallback
+          const earlyAssumptions = decompObj?._earlyAssumptions as any[] || [];
+          const earlyFlips = decompObj?._earlyFlippedLogic as any[] || [];
           const fallbackSynthesis: Record<string, unknown> = {
-            hiddenAssumptions: (decompObj?.assumptions as any[])?.slice(0, 5)?.map((a: any, i: number) => ({
-              assumption: typeof a === "string" ? a : a?.assumption || a?.text || `Assumption ${i + 1}`,
-              confidence: typeof a === "object" ? (a?.confidence ?? 6) : 6,
-              leverage: typeof a === "object" ? (a?.leverage ?? 5) : 5,
-            })) || [{ assumption: "This market operates as expected", confidence: 5, leverage: 5 }],
-            flippedLogic: (decompObj?.assumptions as any[])?.slice(0, 3)?.map((a: any, i: number) => ({
-              originalAssumption: typeof a === "string" ? a : a?.assumption || a?.text || `Assumption ${i + 1}`,
-              boldAlternative: `What if the opposite were true?`,
-              rationale: "Generated from structural decomposition — run with richer data (upload CIM/financials) for deeper analysis.",
-              leverageScore: 5,
-            })) || [],
+            hiddenAssumptions: earlyAssumptions.length > 0 ? earlyAssumptions : [{ assumption: "This market operates as expected", confidence: 5, leverage: 5 }],
+            flippedLogic: earlyFlips.length > 0 ? earlyFlips : [],
             governed: decompObj?.governed || {},
             _thinDataFallback: true,
           };
