@@ -518,18 +518,12 @@ export function usePipelineOrchestrator(
           console.warn("[Pipeline] Synthesis failed — generating thin-data fallback");
           // Generate minimal disruptData from decomposition so UI isn't empty
           const decompObj = decompResult as Record<string, unknown> | null;
+          // Use early assumptions from decomposition as fallback
+          const earlyAssumptions = decompObj?._earlyAssumptions as any[] || [];
+          const earlyFlips = decompObj?._earlyFlippedLogic as any[] || [];
           const fallbackSynthesis: Record<string, unknown> = {
-            hiddenAssumptions: (decompObj?.assumptions as any[])?.slice(0, 5)?.map((a: any, i: number) => ({
-              assumption: typeof a === "string" ? a : a?.assumption || a?.text || `Assumption ${i + 1}`,
-              confidence: typeof a === "object" ? (a?.confidence ?? 6) : 6,
-              leverage: typeof a === "object" ? (a?.leverage ?? 5) : 5,
-            })) || [{ assumption: "This market operates as expected", confidence: 5, leverage: 5 }],
-            flippedLogic: (decompObj?.assumptions as any[])?.slice(0, 3)?.map((a: any, i: number) => ({
-              originalAssumption: typeof a === "string" ? a : a?.assumption || a?.text || `Assumption ${i + 1}`,
-              boldAlternative: `What if the opposite were true?`,
-              rationale: "Generated from structural decomposition — run with richer data (upload CIM/financials) for deeper analysis.",
-              leverageScore: 5,
-            })) || [],
+            hiddenAssumptions: earlyAssumptions.length > 0 ? earlyAssumptions : [{ assumption: "This market operates as expected", confidence: 5, leverage: 5 }],
+            flippedLogic: earlyFlips.length > 0 ? earlyFlips : [],
             governed: decompObj?.governed || {},
             _thinDataFallback: true,
           };
