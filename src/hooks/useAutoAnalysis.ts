@@ -110,6 +110,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const thisRunId = ++runIdRef.current;
 
     setIsComputing(true);
+    isComputingRef.current = true;
 
     // Build system intelligence (for legacy compat)
     invalidateIntelligence(analysisId);
