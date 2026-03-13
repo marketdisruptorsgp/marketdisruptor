@@ -441,9 +441,9 @@ function PathwayChip({ node, onClick }: { node: InsightGraphNode; onClick: () =>
 //  6. PIPELINE PROGRESS
 // ═══════════════════════════════════════════════════════
 
-function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accentColor, onRunStep, runningStep }: {
+function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accentColor, onRunStep, onRunAllSteps, runningStep }: {
   analysisId: string; completedSteps: Set<string>; outdatedSteps: Set<string>;
-  accentColor: string; onRunStep?: (key: string) => void; runningStep?: string | null;
+  accentColor: string; onRunStep?: (key: string) => void; onRunAllSteps?: () => void; runningStep?: string | null;
 }) {
   const navigate = useNavigate();
   const done = completedSteps.size;
