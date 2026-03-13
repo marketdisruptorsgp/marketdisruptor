@@ -142,8 +142,11 @@ export default function ReportPage() {
 
   const modeAccent = theme.primary;
 
-  // Build intelligence + graph for dashboard (hooks must be before early returns)
+  // Use intelligence from autoAnalysis (which already runs the full strategic engine)
+  // Fallback to building it locally if autoAnalysis hasn't run yet
   const intelligence = useMemo(() => {
+    // Prefer autoAnalysis intelligence — it's computed by the strategic engine and has full data
+    if (autoAnalysis.intelligence) return autoAnalysis.intelligence;
     if (!selectedProduct || !analysisId) return null;
     try {
       const input: SystemIntelligenceInput = {
@@ -157,9 +160,11 @@ export default function ReportPage() {
       };
       return buildSystemIntelligence(input);
     } catch { return null; }
-  }, [selectedProduct, analysisId, analysis.disruptData, analysis.governedData, analysis.businessAnalysisData]);
+  }, [autoAnalysis.intelligence, selectedProduct, analysisId, analysis.disruptData, analysis.governedData, analysis.businessAnalysisData]);
 
   const graph = useMemo(() => {
+    // Prefer autoAnalysis graph (computed by strategic engine with full data)
+    if (autoAnalysis.graph && autoAnalysis.graph.nodes.length > 0) return autoAnalysis.graph;
     return buildInsightGraph(
       products,
       intelligence,
@@ -167,7 +172,7 @@ export default function ReportPage() {
       analysis.redesignData,
       analysis.stressTestData,
     );
-  }, [products, intelligence, analysis.disruptData, analysis.redesignData, analysis.stressTestData]);
+  }, [autoAnalysis.graph, products, intelligence, analysis.disruptData, analysis.redesignData, analysis.stressTestData]);
 
   const completedSteps = useMemo(() => {
     const set = new Set<string>();
