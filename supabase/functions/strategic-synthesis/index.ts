@@ -633,6 +633,42 @@ function enforceMinimumArtifacts(
   }
   next.flippedLogic = existingFlips;
 
+  // ── Pad structuralTransformations (lean) ──
+  const existingTransforms = Array.isArray(next.structuralTransformations)
+    ? [...(next.structuralTransformations as Array<Record<string, unknown>>)]
+    : [];
+  const leveragePrimitives = decomposition?.leverageAnalysis?.leveragePrimitives || [];
+  const transformTypes = ["elimination", "substitution", "reordering", "aggregation"] as const;
+  while (existingTransforms.length < 4) {
+    const idx = existingTransforms.length;
+    const primitive = leveragePrimitives[idx % Math.max(1, leveragePrimitives.length)];
+    const tType = transformTypes[idx % transformTypes.length];
+    const primLabel = primitive?.label || `Component ${idx + 1}`;
+    existingTransforms.push({
+      id: `st_${idx + 1}`,
+      targetPrimitiveId: primitive?.id || `lp_${idx + 1}`,
+      targetPrimitiveLabel: primLabel,
+      transformationType: tType,
+      currentState: primitive?.currentBehavior || "Current approach",
+      proposedState: `Apply ${tType} to ${primLabel}`,
+      mechanism: primitive?.bestTransformation || `${tType} of ${primLabel}`,
+      valueCreated: "Reduced cost/friction",
+      feasibility: "medium",
+      filtered: false,
+    });
+  }
+  next.structuralTransformations = existingTransforms;
+
+  // ── Pad transformationClusters ──
+  if (!Array.isArray(next.transformationClusters) || (next.transformationClusters as any[]).length < 2) {
+    const nonFiltered = existingTransforms.filter((t: any) => !t.filtered);
+    const half = Math.ceil(nonFiltered.length / 2);
+    next.transformationClusters = [
+      { id: "tc_1", name: `${product?.name || "System"} Core Restructuring`, description: "Primary structural interventions", transformationIds: nonFiltered.slice(0, half).map((t: any) => t.id), strategicPowerScore: 7.0 },
+      { id: "tc_2", name: `${product?.name || "System"} Efficiency Redesign`, description: "Secondary optimization interventions", transformationIds: nonFiltered.slice(half).map((t: any) => t.id), strategicPowerScore: 6.0 },
+    ].filter(c => (c.transformationIds as string[]).length > 0);
+  }
+
   // ── If concept still missing, build it ──
   const concept = next.redesignedConcept as Record<string, unknown> | undefined;
   if (!concept?.conceptName && !concept?.coreInsight) {
