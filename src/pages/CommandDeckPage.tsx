@@ -328,6 +328,8 @@ export default function CommandDeckPage() {
           thesis={primaryThesis}
           modeAccent={modeAccent}
           entityName={analysisDisplayName}
+          instantPair={analysis.instantInsights?.contrarianPair}
+          computeTimeMs={analysis.instantInsights?.computeTimeMs}
         />
 
         {/* ═══ SECTION 2 — BUSINESS REALITY (SWOT) ═══ */}
