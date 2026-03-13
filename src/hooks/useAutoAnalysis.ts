@@ -323,6 +323,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         // Only clear computing state if this is still the latest run
         if (thisRunId === runIdRef.current) {
           setIsComputing(false);
+          isComputingRef.current = false;
         }
       });
   }, [
