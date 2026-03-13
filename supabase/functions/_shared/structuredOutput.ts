@@ -488,16 +488,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
   "critical-validation": {
     type: "object",
     properties: {
-      governed: {
-        type: "object",
-        properties: {
-          falsification: GOVERNED_CORE_PROPERTIES.falsification,
-          decision_synthesis: GOVERNED_CORE_PROPERTIES.decision_synthesis,
-          reasoning_synopsis: GOVERNED_CORE_PROPERTIES.reasoning_synopsis,
-        },
-        required: ["falsification", "decision_synthesis", "reasoning_synopsis"],
-        additionalProperties: true,
-      },
+      governed: { type: "object", additionalProperties: true },
     },
     required: ["governed"],
     additionalProperties: true,
