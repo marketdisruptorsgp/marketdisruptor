@@ -190,14 +190,10 @@ OUTPUT RULES:
     const coreAnalysisFields = isService
       ? `"currentStrengths": { "whatWorks": [...], "competitiveAdvantages": [...], "keepVsAdapt": "..." },
   "coreReality": { "trueProblem": "...", "actualUsage": "...", "normalizedFrustrations": [...], "userHacks": [...] },
-  "frictionDimensions": { "primaryFriction": "...", "deliveryModel": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },
-  "userWorkflow": { "stepByStep": [...], "frictionPoints": [{ "stepIndex": 0, "friction": "...", "severity": "high|medium|low", "rootCause": "..." }], "cognitiveLoad": "...", "contextOfUse": "..." },
-  "smartTechAnalysis": { "currentTechLevel": "...", "missedOpportunities": [...], "whyNotAlreadyDone": "...", "recommendedIntegration": "..." },`
+  "frictionDimensions": { "primaryFriction": "...", "deliveryModel": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },`
       : `"currentStrengths": { "whatWorks": [...], "competitiveAdvantages": [...], "keepVsAdapt": "..." },
   "coreReality": { "trueProblem": "...", "actualUsage": "...", "normalizedFrustrations": [...], "userHacks": [...] },
-  "frictionDimensions": { "primaryFriction": "...", "physicalForm": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },
-  "userWorkflow": { "stepByStep": [...], "frictionPoints": [{ "stepIndex": 0, "friction": "...", "severity": "high|medium|low", "rootCause": "..." }], "cognitiveLoad": "...", "contextOfUse": "..." },
-  "smartTechAnalysis": { "currentTechLevel": "...", "missedOpportunities": [...], "whyNotAlreadyDone": "...", "recommendedIntegration": "..." },`;
+  "frictionDimensions": { "primaryFriction": "...", "physicalForm": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },`;
 
     const analysisSchema = `{
   ${coreAnalysisFields}
