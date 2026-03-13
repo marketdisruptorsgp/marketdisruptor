@@ -516,8 +516,6 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         required: ["topThreats", "feasibilityScore", "keyRisk", "confidenceLevel"],
         additionalProperties: false,
       },
-      visualSpecs: { type: "array", items: { type: "object", additionalProperties: true } },
-      actionPlans: { type: "array", items: { type: "object", additionalProperties: true } },
       governed: {
         type: "object",
         properties: {
