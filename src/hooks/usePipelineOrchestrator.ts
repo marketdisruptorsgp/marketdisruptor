@@ -509,8 +509,9 @@ export function usePipelineOrchestrator(
       }
 
       // ═══ PHASE 2: Strategic Synthesis (~45s) ═══
-      // Check if we already have BOTH disrupt + redesign data
-      let synthesisResult = (disruptData && redesignData) ? disruptData : null;
+      // Check if we already have FULL synthesis data (not just early insights from decomposition)
+      const hasFullSynthesis = disruptData && redesignData && !(disruptData as any)?._earlyInsights;
+      let synthesisResult = hasFullSynthesis ? disruptData : null;
       if (!synthesisResult) {
         synthesisResult = await runStrategicSynthesis(product, extractedContext, decompResult, strategyContext);
         if (!synthesisResult) {
