@@ -100,6 +100,7 @@ export function usePipelineOrchestrator(
   const runningRef = useRef(false);
   const triggeredForRef = useRef<string | null>(null);
   const lastCompletedStepRef = useRef<string | null>(null); // Track for resume
+  const runAllRef = useRef(false);
 
   const [stepStatuses, setStepStatuses] = useState<Record<string, PipelineStepStatus>>({
     decompose: "pending",
