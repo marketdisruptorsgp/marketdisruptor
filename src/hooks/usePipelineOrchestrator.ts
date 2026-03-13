@@ -323,6 +323,10 @@ export function usePipelineOrchestrator(
 
     const sr = synthesisResult as Record<string, unknown> | null;
 
+    // Pull morphological vectors if user ran the explorer
+    const morphData = (analysis as any).analysisData?.morphologicalExploration;
+    const morphologicalVectors = morphData?.selectedVectors || undefined;
+
     const { data: result, error } = await invokeWithTimeout("concept-synthesis", {
       body: {
         product: compressProductPayload(product),
@@ -330,6 +334,7 @@ export function usePipelineOrchestrator(
         assumptions: sr?.hiddenAssumptions || [],
         flippedLogic: sr?.flippedLogic || [],
         conceptCount: 5,
+        morphologicalVectors,
       },
     }, 180_000);
 

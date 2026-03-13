@@ -23,6 +23,7 @@ import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 import { FlippedIdeasPanel } from "@/components/first-principles/FlippedIdeasPanel";
+import { MorphologicalExplorerPanel } from "@/components/first-principles/MorphologicalExplorerPanel";
 
 // ── Shared layout components ──
 import {
@@ -237,6 +238,16 @@ export default function DisruptPage() {
                       const merged = [...prev, ...(comps as any[])];
                       analysis.setScoutedCompetitors(merged);
                       analysis.saveStepData("scoutedCompetitors", merged);
+                    }}
+                  />
+                  {/* Morphological Design Space Explorer — optional, user-triggered */}
+                  <MorphologicalExplorerPanel
+                    onVectorsSelected={(vectors) => {
+                      // Persist selected vectors for downstream use
+                      analysis.saveStepData("morphologicalExploration", {
+                        selectedVectors: vectors,
+                        selectedAt: new Date().toISOString(),
+                      });
                     }}
                   />
                 </AnalysisContentCard>
