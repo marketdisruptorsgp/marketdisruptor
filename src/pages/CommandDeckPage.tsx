@@ -394,26 +394,41 @@ export default function CommandDeckPage() {
                   Top Moves
                 </h2>
               </div>
-              {opportunities.map((opp, i) => (
-                <div key={i} className="rounded-lg border border-border/60 bg-card px-3 py-2">
-                  <div className="flex gap-2 items-start">
-                    <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold mt-0.5">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-xs font-bold text-foreground leading-snug">{opp.title}</p>
-                        {opp.badges.map((badge) => (
-                          <span key={badge} className="text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary/10 text-primary">
-                            {badge}
-                          </span>
-                        ))}
+              {opportunities.map((opp, i) => {
+                // Find matching deepened opportunity for analogy badge
+                const matchedDeep = deepOpps.find(d =>
+                  d.label === opp.title || d.reconfigurationLabel === opp.title
+                );
+                const precedent = matchedDeep?.strategicPrecedents?.[0];
+
+                return (
+                  <div key={i} className="rounded-lg border border-border/60 bg-card px-3 py-2">
+                    <div className="flex gap-2 items-start">
+                      <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold mt-0.5">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs font-bold text-foreground leading-snug">{opp.title}</p>
+                          {opp.badges.map((badge) => (
+                            <span key={badge} className="text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary/10 text-primary">
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{opp.description}</p>
+                        {precedent && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground">
+                              Inspired by: {precedent.company} → {precedent.pattern}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{opp.description}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
         )}
