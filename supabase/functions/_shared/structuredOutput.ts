@@ -134,8 +134,6 @@ const MIN_ARRAY_ITEMS_BY_STEP: Record<string, Record<string, number>> = {
   "strategic-synthesis": {
     hiddenAssumptions: 5,
     flippedLogic: 4,
-    structuralTransformations: 6,
-    transformationClusters: 2,
   },
 };
 
