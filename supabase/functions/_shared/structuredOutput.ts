@@ -553,7 +553,6 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
       },
       hiddenAssumptions: {
         type: "array",
-        minItems: 3,
         items: {
           type: "object",
           properties: {
@@ -564,7 +563,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
             challengeIdea: { type: "string" },
             leverageScore: { type: "number" },
           },
-          required: ["assumption", "currentAnswer", "challengeIdea", "leverageScore"],
+          required: ["assumption", "challengeIdea", "leverageScore"],
           additionalProperties: false,
         },
       },
