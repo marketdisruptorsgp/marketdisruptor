@@ -192,9 +192,8 @@ export default function DisruptPage() {
               const flippedLogic = (disruptPayload?.flippedLogic as any[]) || [];
               const productIdeas = selectedProduct?.flippedIdeas || [];
 
-              // Derive ideas from deepenedOpportunities (strategicEngine) as additional fallback
-              const strategicEngine = (analysis as any).analysisData?.strategicEngine || {};
-              const deepenedOps = (strategicEngine?.deepenedOpportunities as any[]) || [];
+              // Derive ideas from deepenedOpportunities as additional fallback
+              const deepenedOps = (autoAnalysis.deepenedOpportunities as any[]) || [];
               const derivedFromDeepened = deepenedOps.map((op: any, i: number) => ({
                 id: `deepened-${i}`,
                 name: op.reconfigurationLabel || op.summary?.slice(0, 80) || `Opportunity ${i + 1}`,
