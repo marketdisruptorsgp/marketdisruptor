@@ -305,6 +305,7 @@ serve(async (req) => {
     if (product?.specs) contextBlock += `\nSpecs: ${product.specs}`;
     if (extractedContext) contextBlock += `\n\nExtracted Intelligence:\n${extractedContext}`;
     if (adaptiveContext?.problemStatement) contextBlock += `\nProblem: ${adaptiveContext.problemStatement}`;
+    if (steeringText) contextBlock += `\n\nUSER STEERING GUIDANCE: "${steeringText}" — Incorporate this direction into your decomposition focus, early assumptions, and flipped logic. Prioritize structural primitives and leverage points relevant to this guidance.`;
 
     // Include upstream scraped intelligence for grounding
     if (upstreamIntel) {

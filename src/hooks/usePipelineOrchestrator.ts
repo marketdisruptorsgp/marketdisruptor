@@ -349,6 +349,7 @@ export function usePipelineOrchestrator(
         flippedLogic: sr?.flippedLogic || [],
         conceptCount: 5,
         morphologicalVectors,
+        steeringText: (analysis as any).steeringText || undefined,
       },
     }, 180_000);
 
