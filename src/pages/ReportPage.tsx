@@ -6,6 +6,7 @@ import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
+import { usePipelineOrchestrator } from "@/hooks/usePipelineOrchestrator";
 import { supabase } from "@/integrations/supabase/client";
 import { isServiceCategory } from "@/utils/normalizeProduct";
 import { toast } from "sonner";
