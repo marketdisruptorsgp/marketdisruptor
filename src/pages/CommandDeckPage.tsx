@@ -127,10 +127,10 @@ export default function CommandDeckPage() {
   }, [engineComputing, isRecomputing]);
 
   const handleRecomputeAll = useCallback(() => {
-    if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
+    if (completedSteps.size === 0) { pipelineProgress.runAllSteps(); return; }
     setIsRecomputing(true);
-    try { runAnalysis(); } catch { /* silent */ }
-  }, [completedSteps, navigate, baseUrl, runAnalysis]);
+    try { pipelineProgress.runAllSteps(); } catch { /* silent */ }
+  }, [completedSteps, pipelineProgress]);
 
   const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
     : analysis.activeMode === "business" ? "business" : "product";
