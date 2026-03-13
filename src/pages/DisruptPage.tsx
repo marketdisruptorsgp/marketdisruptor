@@ -184,21 +184,65 @@ export default function DisruptPage() {
         )}
 
         {effectiveTab === "deconstruct" && (
-          <StructureTab
-            selectedProduct={selectedProduct}
-            analysis={analysis}
-            governedData={governedData as Record<string, unknown> | null}
-            synopsisData={synopsisData}
-            rawHypotheses={hasHypotheses ? rawHypotheses! : null}
-            hasDisruptData={hasDisruptData}
-            hasSynopsis={!!hasSynopsis}
-            hasHypotheses={!!hasHypotheses}
-            ranking={ranking}
-            products={products}
-            runTrigger={runTrigger}
-            onLoadingChange={setAnalysisLoading}
-            viewMode="deconstruct"
-          />
+          <>
+            <StructureTab
+              selectedProduct={selectedProduct}
+              analysis={analysis}
+              governedData={governedData as Record<string, unknown> | null}
+              synopsisData={synopsisData}
+              rawHypotheses={hasHypotheses ? rawHypotheses! : null}
+              hasDisruptData={hasDisruptData}
+              hasSynopsis={!!hasSynopsis}
+              hasHypotheses={!!hasHypotheses}
+              ranking={ranking}
+              products={products}
+              runTrigger={runTrigger}
+              onLoadingChange={setAnalysisLoading}
+              viewMode="deconstruct"
+            />
+
+            {/* ── Flipped Ideas / Impossibility Engine output ── */}
+            {hasDisruptData && (() => {
+              const disruptPayload = analysis.disruptData as Record<string, unknown> | null;
+              const flippedLogic = (disruptPayload?.flippedLogic as any[]) || [];
+              const productIdeas = selectedProduct?.flippedIdeas || [];
+              const effectiveIdeas = productIdeas.length > 0
+                ? productIdeas
+                : flippedLogic.map((fl: any, i: number) => ({
+                    id: `derived-${i}`,
+                    name: fl.boldAlternative || fl.alternative || `Idea ${i + 1}`,
+                    description: fl.rationale || fl.description || "",
+                    targetPrice: null,
+                    feasibility: fl.leverageScore ? fl.leverageScore / 10 : 0.7,
+                    marketPotential: "medium" as const,
+                    constraints: fl.originalAssumption ? [fl.originalAssumption] : [],
+                  }));
+
+              if (effectiveIdeas.length === 0) return null;
+              return (
+                <AnalysisContentCard>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles size={15} style={{ color: "hsl(var(--primary))" }} />
+                    <h3 className="text-sm font-extrabold uppercase tracking-wider text-foreground">
+                      Reinvention Ideas
+                    </h3>
+                  </div>
+                  <FlippedIdeasPanel
+                    flippedIdeas={effectiveIdeas}
+                    onRegenerateIdeas={(ctx, rejected) => analysis.handleRegenerateIdeas(selectedProduct, ctx, rejected)}
+                    generatingIdeas={analysis.generatingIdeasFor === selectedProduct?.id}
+                    initialRejectedIdeas={analysis.rejectedIdeasPersisted}
+                    onCompetitorsScouted={(comps) => {
+                      const prev = analysis.scoutedCompetitors || [];
+                      const merged = [...prev, ...(comps as any[])];
+                      analysis.setScoutedCompetitors(merged);
+                      analysis.saveStepData("scoutedCompetitors", merged);
+                    }}
+                  />
+                </AnalysisContentCard>
+              );
+            })()}
+          </>
         )}
 
         {effectiveTab === "reasoning" && hasSynopsis && (
