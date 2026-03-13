@@ -76,6 +76,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [sensitivityReports, setSensitivityReports] = useState<SensitivityReport[]>([]);
   const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
   const [isComputing, setIsComputing] = useState(false);
+  const isComputingRef = useRef(false);
   const [hasRun, setHasRun] = useState(false);
   const runIdRef = useRef(0); // Monotonic run counter to deduplicate concurrent runs
 
@@ -109,6 +110,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const thisRunId = ++runIdRef.current;
 
     setIsComputing(true);
+    isComputingRef.current = true;
 
     // Build system intelligence (for legacy compat)
     invalidateIntelligence(analysisId);
@@ -321,6 +323,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         // Only clear computing state if this is still the latest run
         if (thisRunId === runIdRef.current) {
           setIsComputing(false);
+          isComputingRef.current = false;
         }
       });
   }, [
@@ -406,7 +409,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     evidenceHashRef.current = hash;
 
     // If currently computing, queue a recompute for when it finishes
-    if (isComputing) {
+    if (isComputingRef.current) {
       pendingRecomputeRef.current = true;
       return;
     }
@@ -416,7 +419,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       runAnalysis();
     }, 400);
     return () => clearTimeout(timer);
-  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, isComputing, runAnalysis]);
+    // NOTE: isComputing intentionally excluded to prevent infinite recompute loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, runAnalysis]);
 
   // Drain queued recompute when computing finishes
   useEffect(() => {
