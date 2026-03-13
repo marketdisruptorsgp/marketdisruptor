@@ -154,6 +154,19 @@ export default function CommandDeckPage() {
   const criticalQuestion = useMemo(() => extractCriticalQuestion(narrative, deepOpps), [narrative, deepOpps]);
   const opportunities = useMemo(() => extractOpportunitiesWithBadges(topOpps, deepOpps), [topOpps, deepOpps]);
 
+  // Flipped ideas — available immediately after scraping (no pipeline needed)
+  const flippedIdeas = useMemo(() => {
+    const ideas = selectedProduct?.flippedIdeas || [];
+    return ideas
+      .filter((idea: any) => idea.name && idea.description)
+      .sort((a: any, b: any) => {
+        const scoreA = (a.scores?.feasibility || 0) + (a.scores?.profitability || 0) + (a.scores?.novelty || 0);
+        const scoreB = (b.scores?.feasibility || 0) + (b.scores?.profitability || 0) + (b.scores?.novelty || 0);
+        return scoreB - scoreA;
+      })
+      .slice(0, 3);
+  }, [selectedProduct]);
+
   // ── Guards ──
   const isHydrating = analysis.isHydrating;
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
