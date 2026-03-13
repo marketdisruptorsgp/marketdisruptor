@@ -293,13 +293,53 @@ export function computeInstantInsights(product: any): InstantInsights | null {
     ? `Initial scan reveals ${assumptions.length} hidden assumptions and ${leveragePoints.length} leverage points. Highest-impact opportunity: ${topLeverage.label.toLowerCase()}.`
     : `Initial scan of ${name} detected ${assumptions.length} structural assumptions to challenge.`;
 
+  // ═══ CONTRARIAN PAIR (deterministic "aha" moment) ═══
+  const contrarianPair = deriveContrarianPair(assumptions, constraints, leveragePoints, name);
+
+  const computeTimeMs = Math.round(performance.now() - startTime);
+
   return {
-    assumptions: assumptions.slice(0, 8), // Cap at 8 for clarity
+    assumptions: assumptions.slice(0, 8),
     leveragePoints: leveragePoints.sort((a, b) => b.score - a.score).slice(0, 6),
     constraints: sorted.slice(0, 5),
     bindingConstraint,
+    contrarianPair,
     summary,
     computedAt: Date.now(),
+    computeTimeMs,
+  };
+}
+
+/**
+ * Derive a contrarian "Everyone Assumes / Evidence Suggests" pair
+ * from deterministic heuristics. No AI needed — instant "aha".
+ */
+function deriveContrarianPair(
+  assumptions: InstantAssumption[],
+  constraints: InstantConstraint[],
+  leveragePoints: InstantLeveragePoint[],
+  entityName: string,
+): InstantContrarianPair | null {
+  // Pick the highest-leverage assumption
+  const sorted = [...assumptions].sort((a, b) => b.leverageEstimate - a.leverageEstimate);
+  const top = sorted[0];
+  if (!top) return null;
+
+  // The assumption IS the "everyone assumes" — the challenge hint IS the "evidence suggests"
+  const everyoneAssumes = top.assumption;
+  const evidenceSuggests = top.challengeHint;
+
+  // "So What" from the binding constraint or top leverage point
+  const topLeverage = [...leveragePoints].sort((a, b) => b.score - a.score)[0];
+  const soWhat = topLeverage
+    ? `${entityName} could unlock ${topLeverage.type === "cost" ? "margin expansion" : topLeverage.type === "friction" ? "customer satisfaction" : topLeverage.type === "bottleneck" ? "capacity growth" : "competitive advantage"} by challenging this assumption`
+    : `${entityName} has structural leverage that competitors aren't exploiting`;
+
+  return {
+    everyoneAssumes,
+    evidenceSuggests,
+    soWhat,
+    source: top.source,
   };
 }
 
