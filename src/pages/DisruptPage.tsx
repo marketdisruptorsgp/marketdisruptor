@@ -240,6 +240,16 @@ export default function DisruptPage() {
                       analysis.saveStepData("scoutedCompetitors", merged);
                     }}
                   />
+                  {/* Morphological Design Space Explorer — optional, user-triggered */}
+                  <MorphologicalExplorerPanel
+                    onVectorsSelected={(vectors) => {
+                      // Persist selected vectors for downstream use
+                      analysis.saveStepData("morphologicalExploration", {
+                        selectedVectors: vectors,
+                        selectedAt: new Date().toISOString(),
+                      });
+                    }}
+                  />
                 </AnalysisContentCard>
               );
             })()}
