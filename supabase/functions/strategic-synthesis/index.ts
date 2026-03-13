@@ -116,27 +116,16 @@ Ensure at least 2 entries reference cross-domain precedents from unrelated indus
 "Cross-domain precedent: [Company] in [industry] resolved this same structural constraint by [mechanism]. This suggests [implication for target business]."
 Look for structural parallels — same constraint shape (e.g. fragmented supply, intermediated distribution, labor-heavy delivery) solved in a completely different domain.`}
 
-STRUCTURAL TRANSFORMATIONS MANDATE:
-Generate a "structuralTransformations" array with 8-12 transformations.
-Each MUST: target a specific leverage primitive, use one of: elimination, substitution, reordering, aggregation.
-Include viabilityGate assessment (technical, economic, regulatory, behavioral — each scored 1-5).
-Mark as filtered=true if compositeScore < 2.5.
-Generate at least 2 transformations per type.
-
-After generating structuralTransformations, group surviving (non-filtered) ones into 2-4 "transformationClusters".
-
 CONCEPT GENERATION MANDATE:
-After clustering, generate a "redesignedConcept" from the HIGHEST-SCORING cluster. The concept MUST:
-- Directly implement transformations from the winning cluster
+Generate a "redesignedConcept" directly from the highest-leverage hiddenAssumptions and flippedLogic. The concept MUST:
 - Be STRUCTURALLY different from the current product/service — not a feature add
 - Include operational mechanism and implementation path
 - ${isService ? "Be implementable within 12-18 months" : "Be manufacturable within 2-3 years"}
 
 QUICK VALIDATION MANDATE:
 Generate a "quickValidation" with the top 3 threats, feasibility score, key risk, and confidence level.
-This serves as an immediate signal before the full stress test runs.
 
-${JSON.stringify(structuralDecomposition, null, 1).slice(0, 5000)}
+${JSON.stringify(structuralDecomposition, null, 1).slice(0, 4000)}
 ` : ''}
 
 OUTPUT RULES:
@@ -146,12 +135,6 @@ OUTPUT RULES:
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
 - SCORING: Apply friction penalties. Before finalizing any score, ask "What would cause this to fail?" — if material, reduce.
-
-USER JOURNEY RULE:
-- "userWorkflow" must describe the CURRENT/EXISTING journey AS IT IS TODAY
-- Do NOT suggest improvements in userWorkflow
-- FRICTION POINTS: Identify friction for EVERY step. Use "stepIndex" (0-based).
-- ANTI-ANCHORING: Do NOT let one friction type dominate all steps.
 `;
 
     // ── Analysis + Concept + QuickValidation schema ──
@@ -207,14 +190,10 @@ USER JOURNEY RULE:
     const coreAnalysisFields = isService
       ? `"currentStrengths": { "whatWorks": [...], "competitiveAdvantages": [...], "keepVsAdapt": "..." },
   "coreReality": { "trueProblem": "...", "actualUsage": "...", "normalizedFrustrations": [...], "userHacks": [...] },
-  "frictionDimensions": { "primaryFriction": "...", "deliveryModel": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },
-  "userWorkflow": { "stepByStep": [...], "frictionPoints": [{ "stepIndex": 0, "friction": "...", "severity": "high|medium|low", "rootCause": "..." }], "cognitiveLoad": "...", "contextOfUse": "..." },
-  "smartTechAnalysis": { "currentTechLevel": "...", "missedOpportunities": [...], "whyNotAlreadyDone": "...", "recommendedIntegration": "..." },`
+  "frictionDimensions": { "primaryFriction": "...", "deliveryModel": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },`
       : `"currentStrengths": { "whatWorks": [...], "competitiveAdvantages": [...], "keepVsAdapt": "..." },
   "coreReality": { "trueProblem": "...", "actualUsage": "...", "normalizedFrustrations": [...], "userHacks": [...] },
-  "frictionDimensions": { "primaryFriction": "...", "physicalForm": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },
-  "userWorkflow": { "stepByStep": [...], "frictionPoints": [{ "stepIndex": 0, "friction": "...", "severity": "high|medium|low", "rootCause": "..." }], "cognitiveLoad": "...", "contextOfUse": "..." },
-  "smartTechAnalysis": { "currentTechLevel": "...", "missedOpportunities": [...], "whyNotAlreadyDone": "...", "recommendedIntegration": "..." },`;
+  "frictionDimensions": { "primaryFriction": "...", "physicalForm": "...", "skillBarrier": "...", "costStructure": "...", "ecosystemLockIn": "...", "maintenanceBurden": "...", "gaps": [...], "opportunities": [...] },`;
 
     const analysisSchema = `{
   ${coreAnalysisFields}
@@ -240,69 +219,8 @@ USER JOURNEY RULE:
       "physicalMechanism": "How it works"
     }
   ],
-  "structuralTransformations": [
-    {
-      "id": "st_1",
-      "targetPrimitiveId": "id from leverageAnalysis",
-      "targetPrimitiveLabel": "Human label",
-      "transformationType": "elimination|substitution|reordering|aggregation",
-      "currentState": "What exists now",
-      "proposedState": "What replaces it",
-      "mechanism": "How",
-      "valueCreated": "What improves",
-      "valueLost": "What degrades",
-      "viabilityGate": {
-        "technical": { "score": 4, "reasoning": "Why" },
-        "economic": { "score": 3, "reasoning": "Why" },
-        "regulatory": { "score": 5, "reasoning": "Why" },
-        "behavioral": { "score": 3, "reasoning": "Why" },
-        "compositeScore": 3.75,
-        "verdict": "pass|conditional|fail"
-      },
-      "filtered": false,
-      "systemImpact": {
-        "valueFlowChanges": ["..."],
-        "newBottleneck": "...",
-        "cascadeEffects": ["..."]
-      }
-    }
-  ],
-  "transformationClusters": [
-    {
-      "id": "tc_1",
-      "name": "Cluster name",
-      "description": "How these work together",
-      "transformationIds": ["st_1", "st_2"],
-      "compatibilityNote": "Why compatible",
-      "strategicPowerScore": 7.5
-    }
-  ],
   ${redesignedConceptSchema},
   ${quickValidationSchema},
-  "visualSpecs": [
-    {
-      "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
-      "title": "Short title",
-      "nodes": [{ "id": "id", "label": "Label", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1 }],
-      "edges": [{ "from": "src", "to": "tgt", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "optional" }],
-      "layout": "linear | vertical | hierarchical",
-      "interpretation": "One sentence"
-    }
-  ],
-  "actionPlans": [
-    {
-      "initiative": "Name",
-      "objective": "Goal",
-      "leverage_type": "optimization | structural_improvement | redesign",
-      "mechanism": "How",
-      "complexity": "low | medium | high",
-      "time_horizon": "near_term | mid_term | long_term",
-      "risk": { "execution": "risk", "adoption": "risk", "market": "risk" },
-      "validation": "MVP test",
-      "decision_readiness": 3,
-      "confidence": "high | medium | exploratory"
-    }
-  ],
   "governed": { ... }
 }`;
 
@@ -352,17 +270,11 @@ ${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c
 
 CRITICAL INSTRUCTIONS:
 1. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
-2. Generate 8-12 structuralTransformations across all 4 types
-3. Group surviving transformations into 2-4 clusters
-4. Generate redesignedConcept from the highest-scoring cluster
-5. Generate quickValidation with top 3 threats and feasibility score
-6. Every claim needs an operational mechanism
-7. Reference real analogous services if possible
-8. Include unit economics and pricing math
-
-VISUAL & ACTION PLAN INSTRUCTIONS:
-- Generate 1-2 visual specs for dominant constraint structure
-- Generate 2-3 action plans for highest-leverage interventions
+2. Generate redesignedConcept from highest-leverage assumptions/flips
+3. Generate quickValidation with top 3 threats and feasibility score
+4. Every claim needs an operational mechanism
+5. Reference real analogous services if possible
+6. Include unit economics and pricing math
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}${curationPrompt}`
       : `Apply radical first-principles deconstruction AND concept generation to this product.
@@ -387,17 +299,11 @@ ${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c
 CRITICAL INSTRUCTIONS:
 1. FRICTION: Identify PRIMARY friction dimension — do NOT default to physical/size
 2. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
-3. Generate 8-12 structuralTransformations across all 4 types
-4. Group surviving transformations into 2-4 clusters
-5. Generate redesignedConcept from highest-scoring cluster
-6. Generate quickValidation with top 3 threats and feasibility score
-7. Every idea needs a physical mechanism
-8. Reference real analogous products if possible
-9. Include BOM estimate, target retail price, margin
-
-VISUAL & ACTION PLAN INSTRUCTIONS:
-- Generate 1-2 visual specs for dominant constraint structure
-- Generate 2-3 action plans for highest-leverage interventions
+3. Generate redesignedConcept from highest-leverage assumptions/flips
+4. Generate quickValidation with top 3 threats and feasibility score
+5. Every idea needs a physical mechanism
+6. Reference real analogous products if possible
+7. Include BOM estimate, target retail price, margin
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}${curationPrompt}`;
 
@@ -467,7 +373,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       model: "google/gemini-2.5-flash",
       messages: aiMessages,
       temperature: 0.5,
-      max_tokens: 10000,
+      max_tokens: 6000,
     };
     if (structuredTools) Object.assign(body, structuredTools);
 
@@ -535,7 +441,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     // ── Validate concept ──
     const concept = analysis.redesignedConcept as Record<string, unknown> | undefined;
     if (!concept?.conceptName && !concept?.coreInsight) {
-      console.warn("[StrategicSynthesis] Missing concept — synthesizing from transformations");
+      console.warn("[StrategicSynthesis] Missing concept — synthesizing from assumptions/flips");
       analysis.redesignedConcept = buildFallbackConcept(analysis, product, isService, structuralDecomposition);
     }
 
@@ -554,7 +460,6 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     console.log(
       `[StrategicSynthesis] counts: assumptions=${Array.isArray(analysis.hiddenAssumptions) ? analysis.hiddenAssumptions.length : 0}, ` +
       `flips=${Array.isArray(analysis.flippedLogic) ? analysis.flippedLogic.length : 0}, ` +
-      `transforms=${Array.isArray(analysis.structuralTransformations) ? analysis.structuralTransformations.length : 0}, ` +
       `concept=${(analysis.redesignedConcept as any)?.conceptName || "none"}`
     );
 
@@ -695,84 +600,6 @@ function enforceMinimumArtifacts(
   }
   next.flippedLogic = existingFlips;
 
-  // ── Pad structuralTransformations ──
-  const existingTransforms = Array.isArray(next.structuralTransformations)
-    ? [...(next.structuralTransformations as Array<Record<string, unknown>>)]
-    : [];
-
-  // Extract leverage primitives from decomposition for grounded padding
-  const leveragePrimitives = decomposition?.leverageAnalysis?.leveragePrimitives || [];
-  const transformTypes = ["elimination", "substitution", "reordering", "aggregation"] as const;
-
-  while (existingTransforms.length < 6) {
-    const idx = existingTransforms.length;
-    const primitive = leveragePrimitives[idx % leveragePrimitives.length];
-    const tType = transformTypes[idx % transformTypes.length];
-    const seed = seedPool[idx] || existingAssumptions[idx % existingAssumptions.length]?.assumption || "System constraint";
-    const primId = primitive?.id || `lp_${idx + 1}`;
-    const primLabel = primitive?.label || String(seed).slice(0, 60);
-
-    existingTransforms.push({
-      id: `st_${idx + 1}`,
-      targetPrimitiveId: primId,
-      targetPrimitiveLabel: primLabel,
-      transformationType: tType,
-      currentState: primitive?.currentBehavior || `Current: ${String(seed).slice(0, 80)}`,
-      proposedState: `Apply ${tType} to restructure ${primLabel}`,
-      mechanism: `Systematically ${tType === "elimination" ? "remove" : tType === "substitution" ? "replace" : tType === "reordering" ? "resequence" : "aggregate"} the ${primLabel} component`,
-      valueCreated: primitive?.bestTransformation || "Reduced cost/friction, improved throughput",
-      valueLost: "Requires change management and pilot validation",
-      viabilityGate: {
-        technical: { score: 4, reasoning: "Technically feasible with existing infrastructure" },
-        economic: { score: 3, reasoning: "Requires investment but positive ROI within 18 months" },
-        regulatory: { score: 4, reasoning: "No major regulatory barriers identified" },
-        behavioral: { score: 3, reasoning: "Moderate behavioral change required" },
-        compositeScore: 3.5,
-        verdict: "conditional",
-      },
-      filtered: false,
-      systemImpact: {
-        valueFlowChanges: [`Restructured ${primLabel} flow`],
-        newBottleneck: "Adjacent system component becomes new constraint",
-        cascadeEffects: ["Downstream processes need adaptation"],
-      },
-    });
-  }
-  next.structuralTransformations = existingTransforms;
-
-  // ── Pad transformationClusters ──
-  const existingClusters = Array.isArray(next.transformationClusters)
-    ? [...(next.transformationClusters as Array<Record<string, unknown>>)]
-    : [];
-  if (existingClusters.length < 2) {
-    const nonFiltered = existingTransforms.filter((t: any) => !t.filtered);
-    const half = Math.ceil(nonFiltered.length / 2);
-    const cluster1Ids = nonFiltered.slice(0, half).map((t: any) => t.id);
-    const cluster2Ids = nonFiltered.slice(half).map((t: any) => t.id);
-
-    if (existingClusters.length < 1 && cluster1Ids.length > 0) {
-      existingClusters.push({
-        id: "tc_1",
-        name: `${product?.name || "System"} Core Restructuring`,
-        description: `Primary structural interventions targeting the most constrained components of ${product?.name || "the system"}`,
-        transformationIds: cluster1Ids,
-        compatibilityNote: "These transformations target complementary system primitives",
-        strategicPowerScore: 7.0,
-      });
-    }
-    if (existingClusters.length < 2 && cluster2Ids.length > 0) {
-      existingClusters.push({
-        id: "tc_2",
-        name: `${product?.name || "System"} Efficiency Redesign`,
-        description: `Secondary interventions that optimize delivery and reduce operational friction`,
-        transformationIds: cluster2Ids,
-        compatibilityNote: "These complement the core restructuring cluster",
-        strategicPowerScore: 6.0,
-      });
-    }
-  }
-  next.transformationClusters = existingClusters;
-
   // ── If concept still missing, build it ──
   const concept = next.redesignedConcept as Record<string, unknown> | undefined;
   if (!concept?.conceptName && !concept?.coreInsight) {
@@ -787,49 +614,36 @@ function buildFallbackConcept(
   analysis: Record<string, unknown>,
   product: any,
   isService?: boolean,
-  decomposition?: any,
+  _decomposition?: any,
 ): Record<string, unknown> {
-  const topCluster = Array.isArray(analysis.transformationClusters) ? (analysis.transformationClusters as any[])[0] : null;
-  const nonFilteredTransforms = Array.isArray(analysis.structuralTransformations)
-    ? (analysis.structuralTransformations as any[]).filter((t: any) => !t.filtered)
-    : [];
-  const topTransform = nonFilteredTransforms[0] || null;
-
-  // Build a real name from product context
   const productName = product?.name || "System";
   const category = product?.category || "";
   const primaryFriction = (analysis.frictionDimensions as any)?.primaryFriction || "";
+  const topFlip = Array.isArray(analysis.flippedLogic) ? (analysis.flippedLogic as any[])[0] : null;
+  const topAssumptions = Array.isArray(analysis.hiddenAssumptions) ? (analysis.hiddenAssumptions as any[]).slice(0, 3) : [];
 
-  // Generate a meaningful concept name
-  let conceptName = topCluster?.name;
-  if (!conceptName || conceptName.includes("Reimagined")) {
-    // Use the dominant transformation type + product context
-    const dominantType = topTransform?.transformationType || "redesign";
-    const verb = dominantType === "elimination" ? "Streamlined"
-      : dominantType === "substitution" ? "Reimagined"
-      : dominantType === "reordering" ? "Restructured"
-      : "Unified";
-    conceptName = `${verb} ${productName}${primaryFriction ? ` — ${primaryFriction.split(" ").slice(0, 3).join(" ")} Solved` : ""}`;
-  }
+  const conceptName = topFlip
+    ? `Reimagined ${productName} — ${(topFlip.boldAlternative || "").split(" ").slice(0, 4).join(" ")}`
+    : `Redesigned ${productName}`;
 
   return {
     conceptName,
-    tagline: topCluster?.description || `A first-principles ${isService ? "service" : "product"} reinvention of ${productName}`,
-    coreInsight: topTransform
-      ? `By applying ${topTransform.transformationType} to ${topTransform.targetPrimitiveLabel}, we unlock: ${topTransform.valueCreated}`
-      : `Structural transformation of ${productName}'s core ${isService ? "delivery model" : "architecture"}`,
-    radicalDifferences: nonFilteredTransforms.slice(0, 4).map((t: any) => t.proposedState || t.mechanism),
-    physicalDescription: topTransform?.mechanism || `Fundamentally restructured ${isService ? "service experience" : "form factor and interaction"}`,
+    tagline: topFlip?.boldAlternative || `A first-principles ${isService ? "service" : "product"} reinvention of ${productName}`,
+    coreInsight: topFlip
+      ? `By flipping "${topFlip.originalAssumption}", we unlock: ${topFlip.rationale}`
+      : `Structural redesign of ${productName}'s core ${isService ? "delivery model" : "architecture"}`,
+    radicalDifferences: topAssumptions.map((a: any) => a.challengeIdea || a.assumption),
+    physicalDescription: topFlip?.physicalMechanism || `Fundamentally restructured ${isService ? "service experience" : "form factor"}`,
     sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for core use case",
-    materials: nonFilteredTransforms.slice(0, 3).map((t: any) => t.mechanism || t.valueCreated),
-    smartFeatures: nonFilteredTransforms.slice(0, 3).map((t: any) => `${t.transformationType}: ${(t.proposedState || "").slice(0, 60)}`),
-    userExperienceTransformation: `Before: ${primaryFriction || "constrained by legacy patterns"}. After: friction removed through structural ${topTransform?.transformationType || "redesign"}.`,
-    frictionEliminated: nonFilteredTransforms.slice(0, 3).map((t: any) => t.valueCreated || t.proposedState),
+    materials: topAssumptions.map((a: any) => a.challengeIdea || "Novel approach"),
+    smartFeatures: topAssumptions.slice(0, 3).map((a: any) => `Addresses: ${(a.assumption || "").slice(0, 50)}`),
+    userExperienceTransformation: `Before: ${primaryFriction || "constrained by legacy patterns"}. After: friction removed.`,
+    frictionEliminated: topAssumptions.map((a: any) => a.impactScenario || a.assumption),
     whyItHasntBeenDone: "Incumbent economics, organizational inertia, and optimization of legacy architecture",
-    biggestRisk: "Adoption risk — requires behavioral change from existing users and stakeholders",
-    manufacturingPath: isService ? "Phased rollout: pilot → validate → scale over 12-18 months" : "Prototype → field validation → production tooling over 18-24 months",
-    pricePoint: "Market-competitive with improved unit economics from structural efficiency gains",
-    targetUser: `Users who directly experience the identified friction in ${category || productName}`,
+    biggestRisk: "Adoption risk — requires behavioral change from existing users",
+    manufacturingPath: isService ? "Phased rollout over 12-18 months" : "Prototype → validation → production over 18-24 months",
+    pricePoint: "Market-competitive with improved unit economics",
+    targetUser: `Users experiencing friction in ${category || productName}`,
     riskLevel: "Medium",
     capitalRequired: "Medium",
   };

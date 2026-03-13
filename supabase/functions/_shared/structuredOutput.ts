@@ -134,8 +134,6 @@ const MIN_ARRAY_ITEMS_BY_STEP: Record<string, Record<string, number>> = {
   "strategic-synthesis": {
     hiddenAssumptions: 5,
     flippedLogic: 4,
-    structuralTransformations: 6,
-    transformationClusters: 2,
   },
 };
 
@@ -494,8 +492,6 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
           additionalProperties: false,
         },
       },
-      structuralTransformations: { type: "array", items: { type: "object", additionalProperties: true } },
-      transformationClusters: { type: "array", items: { type: "object", additionalProperties: true } },
       redesignedConcept: { type: "object", additionalProperties: true },
       quickValidation: {
         type: "object",
@@ -520,8 +516,6 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         required: ["topThreats", "feasibilityScore", "keyRisk", "confidenceLevel"],
         additionalProperties: false,
       },
-      visualSpecs: { type: "array", items: { type: "object", additionalProperties: true } },
-      actionPlans: { type: "array", items: { type: "object", additionalProperties: true } },
       governed: {
         type: "object",
         properties: {
@@ -536,7 +530,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         additionalProperties: true,
       },
     },
-    required: ["hiddenAssumptions", "flippedLogic", "structuralTransformations", "transformationClusters", "redesignedConcept", "quickValidation", "governed"],
+    required: ["hiddenAssumptions", "flippedLogic", "redesignedConcept", "quickValidation", "governed"],
     additionalProperties: true,
   },
   "critical-validation": {

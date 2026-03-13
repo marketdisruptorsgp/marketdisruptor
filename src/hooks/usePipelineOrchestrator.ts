@@ -210,7 +210,7 @@ export function usePipelineOrchestrator(
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
       },
-    }, 120_000);
+    }, 60_000);
 
     if (error || !result?.success) {
       const msg = result?.error || error?.message || "Structural decomposition failed";
@@ -277,7 +277,7 @@ export function usePipelineOrchestrator(
         userScores: (analysis as any).userScores || undefined,
         steeringText: (analysis as any).steeringText || undefined,
       },
-    }, 120_000);
+    }, 75_000);
 
     if (error || !result?.success) {
       const msg = result?.error || error?.message || "Strategic synthesis failed";
