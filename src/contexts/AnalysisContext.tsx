@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { computeInstantInsights, type InstantInsights } from "@/lib/instantInsights";
 import { normalizeProductFields, isServiceCategory } from "@/utils/normalizeProduct";
 import { clearAllState, hydrateFromRow, sanitizeProducts, type HydrationSetters } from "./hydrateAnalysis";
 import { type Product, type FlippedIdea } from "@/data/mockProducts";
@@ -210,6 +211,10 @@ interface AnalysisContextType {
 
   // Hydration state — true while auto-hydration DB fetch is in progress
   isHydrating: boolean;
+
+  // Instant structural insights (deterministic, computed from scraped data)
+  instantInsights: InstantInsights | null;
+  setInstantInsights: (d: InstantInsights | null) => void;
 }
 
 export interface AdaptiveContextData {
@@ -432,6 +437,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [rejectedIdeasPersisted, setRejectedIdeasPersisted] = useState<string[]>([]);
   // ── Concept Variants for Stress Test (from Insight Graph) ──
   const [conceptVariantsForStressTest, setConceptVariantsForStressTest] = useState<ConceptVariantSummary[]>([]);
+  // ── Instant Insights (deterministic pre-computation) ──
+  const [instantInsights, setInstantInsights] = useState<InstantInsights | null>(null);
 
   const fetchGeoData = useCallback(async (category: string, productName?: string) => {
     try {
@@ -788,6 +795,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setSelectedProduct(liveProducts[0]);
       setDetailTab("overview");
       setStep("done");
+
+      // ── INSTANT INSIGHTS: Pre-compute structural hypotheses from scraped data (~0ms) ──
+      try {
+        const instant = computeInstantInsights(liveProducts[0]);
+        if (instant) {
+          setInstantInsights(instant);
+          console.log(`[InstantInsights] Pre-computed: ${instant.assumptions.length} assumptions, ${instant.leveragePoints.length} leverage points, ${instant.constraints.length} constraints`);
+        }
+      } catch (e) {
+        console.warn("[InstantInsights] Pre-computation failed (non-blocking):", e);
+      }
       // Defer toast to let React reconcile the DOM tree swap first
       setTimeout(() => {
         toast.success(`Found ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with deep intelligence reports!`);
@@ -1500,6 +1518,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       activeBranchId, setActiveBranchId,
       strategicProfile, setStrategicProfile,
       isHydrating,
+      instantInsights, setInstantInsights,
     }}>
       {children}
     </AnalysisContext.Provider>

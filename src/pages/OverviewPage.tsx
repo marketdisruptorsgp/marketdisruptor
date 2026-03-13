@@ -31,9 +31,11 @@ import {
   type OpportunityWithBadges,
 } from "@/lib/swotExtractor";
 import { motion } from "framer-motion";
+import type { InstantInsights } from "@/lib/instantInsights";
 import {
   ArrowRight, Zap, TrendingUp, AlertTriangle,
   ShieldAlert, Target, HelpCircle, Lock,
+  Lightbulb, Crosshair, AlertCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +49,7 @@ export default function OverviewPage() {
   const autoAnalysis = useAutoAnalysis();
   const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing } = autoAnalysis;
 
-  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData } = analysis;
+  const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData, instantInsights } = analysis;
 
   // Extract early binding constraint hypothesis from Phase 1 decomposition
   const earlyConstraint = useMemo(() => {
@@ -109,6 +111,9 @@ export default function OverviewPage() {
   const hasData = !!narrative || topOpps.length > 0;
   const loading = isComputing && !hasData;
 
+  // Show instant insights when deep analysis hasn't arrived yet
+  const showInstantInsights = !!instantInsights && !singleInsight && !earlyConstraint;
+
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
       {/* Header */}
@@ -118,6 +123,13 @@ export default function OverviewPage() {
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Strategic Briefing</p>
       </motion.div>
+
+      {/* ═══ -1. INSTANT INSIGHTS (from scraped data — shows in ~0s after scraping) ═══ */}
+      {showInstantInsights && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.05 }} className="space-y-4">
+          <InstantInsightsPanel insights={instantInsights} isRefining={isComputing} />
+        </motion.div>
+      )}
 
       {/* ═══ 0. EARLY BINDING CONSTRAINT (from Phase 1 — shows in ~20s) ═══ */}
       {earlyConstraint && !singleInsight && (
@@ -425,6 +437,115 @@ function EarlyConstraintCard({
           <span className="font-semibold text-foreground/80">Bottleneck:</span>{" "}
           {constraint.bottleneck.resource} — {constraint.bottleneck.impact}
         </p>
+      )}
+    </div>
+  );
+}
+
+/* ── Instant Insights Panel (from scraped data — ~0s) ── */
+function InstantInsightsPanel({
+  insights,
+  isRefining,
+}: {
+  insights: InstantInsights;
+  isRefining: boolean;
+}) {
+  const REASON_ICONS: Record<string, typeof Lightbulb> = {
+    pricing_default: Target,
+    supply_chain: Crosshair,
+    labor: AlertCircle,
+    industry_norm: Lightbulb,
+    distribution: Zap,
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Summary banner */}
+      <div className="rounded-xl px-5 py-4 bg-primary/5 border border-primary/15 relative overflow-hidden">
+        {isRefining && (
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 overflow-hidden">
+            <div className="h-full w-1/3 bg-primary/60" style={{ animation: "pulse 2s ease-in-out infinite" }} />
+          </div>
+        )}
+        <div className="flex items-center gap-2 mb-1.5">
+          <Zap size={13} className="text-primary" />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
+            Instant Structural Scan
+          </span>
+          {isRefining && (
+            <span className="text-[9px] font-medium text-muted-foreground ml-auto">
+              Deep analysis running…
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-foreground font-medium leading-relaxed">{insights.summary}</p>
+      </div>
+
+      {/* Binding constraint */}
+      {insights.bindingConstraint && (
+        <div className="rounded-xl px-5 py-4 bg-destructive/5 border border-destructive/15">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Lock size={13} className="text-destructive" />
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-destructive">
+              #1 Structural Blocker (Hypothesis)
+            </span>
+          </div>
+          <h3 className="text-base font-black text-foreground leading-snug">{insights.bindingConstraint.label}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed mt-1">{insights.bindingConstraint.reasoning}</p>
+          <span className="inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+            Leverage: {insights.bindingConstraint.leverageScore.toFixed(1)}/10
+          </span>
+        </div>
+      )}
+
+      {/* Top assumptions */}
+      {insights.assumptions.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            Hidden Assumptions to Challenge ({insights.assumptions.length})
+          </p>
+          <div className="grid gap-2">
+            {insights.assumptions.slice(0, 4).map((a, i) => {
+              const Icon = REASON_ICONS[a.reason] || Lightbulb;
+              return (
+                <div key={i} className="rounded-lg px-4 py-3 bg-card border border-border">
+                  <div className="flex items-start gap-2">
+                    <Icon size={14} className="text-primary mt-0.5 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground leading-snug">{a.assumption}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{a.challengeHint}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-primary flex-shrink-0">{a.leverageEstimate}/10</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Top leverage points */}
+      {insights.leveragePoints.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            Highest-Leverage Opportunities ({insights.leveragePoints.length})
+          </p>
+          <div className="grid gap-2">
+            {insights.leveragePoints.slice(0, 3).map((lp, i) => (
+              <div key={i} className="rounded-lg px-4 py-3 bg-card border border-border">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground leading-snug">{lp.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{lp.description}</p>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex-shrink-0">
+                    {lp.score}/10
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
