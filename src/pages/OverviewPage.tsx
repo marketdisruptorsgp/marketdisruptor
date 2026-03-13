@@ -31,9 +31,11 @@ import {
   type OpportunityWithBadges,
 } from "@/lib/swotExtractor";
 import { motion } from "framer-motion";
+import type { InstantInsights } from "@/lib/instantInsights";
 import {
   ArrowRight, Zap, TrendingUp, AlertTriangle,
   ShieldAlert, Target, HelpCircle, Lock,
+  Lightbulb, Crosshair, AlertCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
