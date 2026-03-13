@@ -186,38 +186,39 @@ export default function DisruptPage() {
 
         {effectiveTab === "deconstruct" && (
           <>
-            <StructureTab
-              selectedProduct={selectedProduct}
-              analysis={analysis}
-              governedData={governedData as Record<string, unknown> | null}
-              synopsisData={synopsisData}
-              rawHypotheses={hasHypotheses ? rawHypotheses! : null}
-              hasDisruptData={hasDisruptData}
-              hasSynopsis={!!hasSynopsis}
-              hasHypotheses={!!hasHypotheses}
-              ranking={ranking}
-              products={products}
-              runTrigger={runTrigger}
-              onLoadingChange={setAnalysisLoading}
-              viewMode="deconstruct"
-            />
-
-            {/* ── Flipped Ideas / Impossibility Engine output ── */}
+            {/* ── Flipped Ideas / Reinvention Ideas — TOP of Deconstruct tab ── */}
             {hasDisruptData && (() => {
               const disruptPayload = analysis.disruptData as Record<string, unknown> | null;
               const flippedLogic = (disruptPayload?.flippedLogic as any[]) || [];
               const productIdeas = selectedProduct?.flippedIdeas || [];
+
+              // Derive ideas from deepenedOpportunities (strategicEngine) as additional fallback
+              const strategicEngine = (analysis as any).analysisData?.strategicEngine || {};
+              const deepenedOps = (strategicEngine?.deepenedOpportunities as any[]) || [];
+              const derivedFromDeepened = deepenedOps.map((op: any, i: number) => ({
+                id: `deepened-${i}`,
+                name: op.reconfigurationLabel || op.summary?.slice(0, 80) || `Opportunity ${i + 1}`,
+                description: op.summary || op.reconfigurationLabel || "",
+                targetPrice: null,
+                feasibility: op.feasibility?.level === "challenging" ? 0.5 : op.feasibility?.level === "achievable" ? 0.8 : 0.7,
+                marketPotential: "medium" as const,
+                constraints: [],
+                reasoning: op.whyThisMatters?.ifNotSolved?.[0] || op.strategicBet?.industryAssumption || "",
+              }));
+
               const effectiveIdeas = productIdeas.length > 0
                 ? productIdeas
-                : flippedLogic.map((fl: any, i: number) => ({
-                    id: `derived-${i}`,
-                    name: fl.boldAlternative || fl.alternative || `Idea ${i + 1}`,
-                    description: fl.rationale || fl.description || "",
-                    targetPrice: null,
-                    feasibility: fl.leverageScore ? fl.leverageScore / 10 : 0.7,
-                    marketPotential: "medium" as const,
-                    constraints: fl.originalAssumption ? [fl.originalAssumption] : [],
-                  }));
+                : flippedLogic.length > 0
+                  ? flippedLogic.map((fl: any, i: number) => ({
+                      id: `derived-${i}`,
+                      name: fl.boldAlternative || fl.alternative || `Idea ${i + 1}`,
+                      description: fl.rationale || fl.description || "",
+                      targetPrice: null,
+                      feasibility: fl.leverageScore ? fl.leverageScore / 10 : 0.7,
+                      marketPotential: "medium" as const,
+                      constraints: fl.originalAssumption ? [fl.originalAssumption] : [],
+                    }))
+                  : derivedFromDeepened;
 
               if (effectiveIdeas.length === 0) return null;
               return (
@@ -243,7 +244,6 @@ export default function DisruptPage() {
                   {/* Morphological Design Space Explorer — optional, user-triggered */}
                   <MorphologicalExplorerPanel
                     onVectorsSelected={(vectors) => {
-                      // Persist selected vectors for downstream use
                       analysis.saveStepData("morphologicalExploration", {
                         selectedVectors: vectors,
                         selectedAt: new Date().toISOString(),
@@ -253,6 +253,23 @@ export default function DisruptPage() {
                 </AnalysisContentCard>
               );
             })()}
+
+            {/* ── Full structural analysis below ideas ── */}
+            <StructureTab
+              selectedProduct={selectedProduct}
+              analysis={analysis}
+              governedData={governedData as Record<string, unknown> | null}
+              synopsisData={synopsisData}
+              rawHypotheses={hasHypotheses ? rawHypotheses! : null}
+              hasDisruptData={hasDisruptData}
+              hasSynopsis={!!hasSynopsis}
+              hasHypotheses={!!hasHypotheses}
+              ranking={ranking}
+              products={products}
+              runTrigger={runTrigger}
+              onLoadingChange={setAnalysisLoading}
+              viewMode="deconstruct"
+            />
           </>
         )}
 
