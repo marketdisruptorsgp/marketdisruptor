@@ -1001,6 +1001,24 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             : null,
         };
       }
+      // Inject leverage primitives from structural decomposition
+      if (decompositionData) {
+        const decomp = decompositionData as Record<string, unknown>;
+        const leverage = decomp.leverageAnalysis as Record<string, unknown> | undefined;
+        if (leverage?.leveragePrimitives) {
+          if (!governedReasoningContext) governedReasoningContext = {};
+          governedReasoningContext.leverage_primitives = (leverage.leveragePrimitives as any[]).slice(0, 5).map((lp: any) => ({
+            primitiveId: lp.primitiveId || lp.id,
+            primitiveLabel: lp.primitiveLabel || lp.label,
+            bindingStrength: lp.bindingStrength,
+            cascadeReach: lp.cascadeReach,
+            challengeability: lp.challengeability,
+            leverageScore: lp.leverageScore,
+            bestTransformation: lp.bestTransformation,
+            reasoning: typeof lp.reasoning === 'string' ? lp.reasoning.slice(0, 200) : undefined,
+          }));
+        }
+      }
 
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {

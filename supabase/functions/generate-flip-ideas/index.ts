@@ -5,6 +5,7 @@ import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
+import { buildImpossibilityPrompt } from "../_shared/impossibilityOperations.ts";
 // Governed schema: constraint-driven flip linkage
 
 const corsHeaders = {
@@ -36,6 +37,25 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    // Determine if impossibility engine should activate
+    const isStructuralMode = mode === "product" || mode === "business";
+    const hasLeveragePrimitives = governedReasoning?.leverage_primitives?.length > 0 ||
+      governedReasoning?.binding_constraint || governedReasoning?.transformation_clusters?.length > 0;
+    const useImpossibilityEngine = isStructuralMode && hasLeveragePrimitives;
+
+    const lensType = lens?.lensType || (lens?.name === "ETA Acquisition Lens" ? "eta" : "default");
+
+    // Build impossibility prompt block if structural data is available
+    const impossibilityBlock = useImpossibilityEngine ? buildImpossibilityPrompt({
+      mode: mode === "business" ? "business" : "product",
+      lensType,
+      leveragePrimitives: governedReasoning?.leverage_primitives || [],
+      transformationClusters: governedReasoning?.transformation_clusters || [],
+      bindingConstraint: governedReasoning?.binding_constraint,
+      dominantMechanism: governedReasoning?.dominant_mechanism,
+      ideaCount: ideaCount,
+    }) : "";
+
     const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
 ${branchPrompt}${adaptivePrompt}
@@ -44,6 +64,12 @@ CORE PRINCIPLES:
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
 
+${useImpossibilityEngine ? `MODE: STRUCTURAL IMPOSSIBILITY ENGINE ACTIVE
+You are NOT brainstorming ideas. You are systematically deriving structural reconfigurations
+from the system's irreducible primitives using impossibility operations.
+Every concept must trace back to a specific primitive + operation combination.
+NO freestyle idea generation. NO incremental optimization. ONLY structural derivation.` : `MODE: CREATIVE EXPLORATION (no structural data available)
+Generate bold, specific, actionable product ideas.`}
 
 OUTPUT RULES:
 - Metrics must be ≤12 words
@@ -52,9 +78,9 @@ OUTPUT RULES:
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
 
-You are also an expert product innovation strategist and venture market analyst who specializes in taking existing or discontinued products and "flipping" their core assumptions to create breakthrough, commercially viable product ideas.
+You are an expert product innovation strategist who specializes in taking existing products and structurally reconfiguring them to create breakthrough, commercially viable concepts.
 
-Your flipped ideas must be BOLD, SPECIFIC, and ACTIONABLE — not vague concepts. Prioritize NOVEL approaches that create new categories or rethink how things work. You are NOT limited to proven models — radical innovation often has no direct precedent, and that's a STRENGTH.
+${useImpossibilityEngine ? `Your concepts must be STRUCTURALLY DERIVED — traced from a specific leverage primitive through a specific impossibility operation. If you cannot show the derivation chain, the concept is INVALID.` : `Your flipped ideas must be BOLD, SPECIFIC, and ACTIONABLE — not vague concepts. Prioritize NOVEL approaches that create new categories or rethink how things work.`}
 
 IMPORTANT: Not everything needs to be flipped. If parts of the current product/service already work well (pricing model, core feature, delivery method, audience), CALL THAT OUT and build on it. The best flips preserve what's strong and reinvent what's broken.
 
@@ -96,7 +122,16 @@ Each object must follow this EXACT structure:
     "structural_inversion": "what structural change this creates",
     "causal_mechanism": "how the flip creates value through constraint removal",
     "constraint_relief_path": "which Tier 1 or Tier 2 friction this relaxes",
-    "constraint_linkage_id": "ID linking to a specific friction from upstream analysis"
+    "constraint_linkage_id": "ID linking to a specific friction from upstream analysis"${useImpossibilityEngine ? `,
+    "derivation": {
+      "primitive_targeted": "exact label from TARGET PRIMITIVES",
+      "primitive_leverage_score": 0,
+      "operation_applied": "constraint_weaponization | role_inversion | waste_as_product | zero_player | time_inversion",
+      "impossibility_statement": "What would it look like if [constraint] didn't exist?",
+      "backward_engineering": "The path from impossible → viable",
+      "structural_advantage": "Why this reconfiguration compounds over time",
+      "precedent": "Real company that proved a piece of this works"
+    }` : ""}
   },
   "visualSpec": {
     "visual_type": "causal_chain | leverage_hierarchy",
@@ -176,42 +211,22 @@ ${upstreamIntel.userWorkflow ? `USER WORKFLOW FRICTION:
 - Key Friction: ${((upstreamIntel.userWorkflow as any).frictionPoints || []).map((f: any) => `${f.friction} (${f.severity})`).join("; ")}
 - Cognitive Load: ${(upstreamIntel.userWorkflow as any).cognitiveLoad || "N/A"}` : ""}` : ""}
 
-${disruptContext ? `DISRUPT ANALYSIS (hidden assumptions + flipped logic from upstream — use these as the foundation for product ideas):
+${disruptContext ? `UPSTREAM EVIDENCE — Hidden assumptions and flipped logic (use as grounding evidence, NOT as the source of ideas):
 HIDDEN ASSUMPTIONS:
-${(disruptContext.hiddenAssumptions || []).map((a: any, i: number) => `${i + 1}. "${a.assumption}" — Reason: ${a.reason}, Leverage: ${a.leverageScore || "?"}/10${a.challengeIdea ? `, Challenge: ${a.challengeIdea}` : ""}${a.impactScenario ? `, Impact: ${a.impactScenario}` : ""}`).join("\n")}
+${(disruptContext.hiddenAssumptions || []).map((a: any, i: number) => `${i + 1}. "${a.assumption}" — Leverage: ${a.leverageScore || "?"}/10${a.impactScenario ? `, Impact: ${a.impactScenario}` : ""}`).join("\n")}
 
 FLIPPED LOGIC:
-${(disruptContext.flippedLogic || []).map((f: any, i: number) => `${i + 1}. "${f.originalAssumption}" → "${f.boldAlternative}" — ${f.rationale}`).join("\n")}
+${(disruptContext.flippedLogic || []).map((f: any, i: number) => `${i + 1}. "${f.originalAssumption}" → "${f.boldAlternative}"`).join("\n")}
+` : ""}
 
-CRITICAL: Each flipped idea MUST trace back to at least one hidden assumption or flipped logic item above. Do NOT generate ideas disconnected from these upstream findings.` : ""}
-
-${rejectedIdeas && rejectedIdeas.length > 0 ? `REJECTED IDEAS — the user has already seen and dismissed these. Do NOT regenerate similar concepts:
-${rejectedIdeas.map((r: string, i: number) => `${i + 1}. "${r}"`).join("\n")}
-Generate STRUCTURALLY DIFFERENT ideas that explore different assumptions, business models, or audience segments than the rejected ones.` : ""}
-
-${governedReasoning ? `STRUCTURAL REASONING CONTEXT — This is the deep analysis of the system's constraints and mechanisms. Use this to ensure every flipped idea traces back to REAL structural leverage, not surface-level brainstorming.
-
-${governedReasoning.binding_constraint ? `BINDING CONSTRAINT (the #1 structural blocker in this system):
-${JSON.stringify(governedReasoning.binding_constraint)}
-→ Every flipped idea should either DISSOLVE this constraint, ROUTE AROUND it, or INVERT it into an advantage.` : ""}
-
-${governedReasoning.dominant_mechanism ? `DOMINANT MECHANISM (how value currently flows):
-${JSON.stringify(governedReasoning.dominant_mechanism)}
-→ Ideas that redirect or restructure this mechanism are higher-leverage than ideas that work within it.` : ""}
-
-${governedReasoning.constraint_map_summary?.friction_tiers ? `FRICTION TIERS (ranked structural blockers):
-${(governedReasoning.constraint_map_summary.friction_tiers as any[]).map((t: any, i: number) => `${i + 1}. ${t.constraint || t.name || JSON.stringify(t)}`).join("\n")}
-→ Target Tier 1 frictions for maximum impact.` : ""}
-
-${governedReasoning.constraint_map_summary?.dominance_proof ? `DOMINANCE PROOF: ${governedReasoning.constraint_map_summary.dominance_proof}` : ""}
-
-${governedReasoning.transformation_clusters ? `TRANSFORMATION CLUSTERS (proven reconfiguration paths from upstream analysis):
-${(governedReasoning.transformation_clusters as any[]).map((tc: any, i: number) => `${i + 1}. "${tc.cluster_name || tc.theme}" — includes: ${(tc.transformations || []).join(", ")}`).join("\n")}
-→ Use these as structural foundations for flip ideas. Combine or extend them rather than ignoring them.` : ""}
-
-${governedReasoning.reasoning_synopsis ? `STRATEGIC SYNOPSIS: ${governedReasoning.reasoning_synopsis}` : ""}
-
-CRITICAL: With this structural context available, your ideas MUST be grounded in the constraint architecture above. Do NOT generate generic innovation ideas that ignore the binding constraint or friction tiers.` : ""}
+${useImpossibilityEngine ? impossibilityBlock : (governedReasoning ? `STRUCTURAL REASONING CONTEXT:
+${governedReasoning.binding_constraint ? `BINDING CONSTRAINT: ${JSON.stringify(governedReasoning.binding_constraint)}` : ""}
+${governedReasoning.dominant_mechanism ? `DOMINANT MECHANISM: ${JSON.stringify(governedReasoning.dominant_mechanism)}` : ""}
+${governedReasoning.constraint_map_summary?.friction_tiers ? `FRICTION TIERS:
+${(governedReasoning.constraint_map_summary.friction_tiers as any[]).map((t: any, i: number) => `${i + 1}. ${t.constraint || t.name || JSON.stringify(t)}`).join("\n")}` : ""}
+${governedReasoning.transformation_clusters ? `TRANSFORMATION CLUSTERS:
+${(governedReasoning.transformation_clusters as any[]).map((tc: any, i: number) => `${i + 1}. "${tc.cluster_name || tc.theme}" — ${(tc.transformations || []).join(", ")}`).join("\n")}` : ""}
+${governedReasoning.reasoning_synopsis ? `SYNOPSIS: ${governedReasoning.reasoning_synopsis}` : ""}` : "")}
 
 GROUNDING RULES — make ideas SPECIFIC, not generic:
 1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
@@ -224,7 +239,8 @@ ANTI-GENERIC RULES:
 - Do NOT suggest "add an app" or "make it smart" without specifying EXACTLY what the app/smartness does and why users would pay for it
 - Do NOT suggest "subscription model" without specifying what recurring value justifies ongoing payment
 - Do NOT use vague phrases like "leveraging nostalgia" — name the specific emotional trigger and who feels it
-- Each idea must be DIFFERENT in structural approach (e.g. one could be a material flip, one a business model flip, one an audience flip)
+${useImpossibilityEngine ? `- Each idea must target a DIFFERENT primitive or use a DIFFERENT impossibility operation
+- ANTI-INCREMENTALISM: If an industry insider would say "that's obvious" → REJECT and dig deeper` : `- Each idea must be DIFFERENT in structural approach (e.g. one could be a material flip, one a business model flip, one an audience flip)`}
 - NOVEL ideas without precedent are WELCOME — explain why the timing is right and what signals support them
 
 Return ONLY a JSON array with exactly ${ideaCount} flipped idea objects.${buildLensPrompt(lens)}`;
