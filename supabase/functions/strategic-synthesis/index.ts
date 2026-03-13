@@ -305,17 +305,11 @@ ${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c
 CRITICAL INSTRUCTIONS:
 1. FRICTION: Identify PRIMARY friction dimension — do NOT default to physical/size
 2. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
-3. Generate 8-12 structuralTransformations across all 4 types
-4. Group surviving transformations into 2-4 clusters
-5. Generate redesignedConcept from highest-scoring cluster
-6. Generate quickValidation with top 3 threats and feasibility score
-7. Every idea needs a physical mechanism
-8. Reference real analogous products if possible
-9. Include BOM estimate, target retail price, margin
-
-VISUAL & ACTION PLAN INSTRUCTIONS:
-- Generate 1-2 visual specs for dominant constraint structure
-- Generate 2-3 action plans for highest-leverage interventions
+3. Generate redesignedConcept from highest-leverage assumptions/flips
+4. Generate quickValidation with top 3 threats and feasibility score
+5. Every idea needs a physical mechanism
+6. Reference real analogous products if possible
+7. Include BOM estimate, target retail price, margin
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}${curationPrompt}`;
 
