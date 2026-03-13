@@ -251,9 +251,15 @@ export default function OverviewPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {opportunities.map((opp, i) => (
-                  <OpportunityCard key={i} opp={opp} index={i} />
-                ))}
+                {opportunities.map((opp, i) => {
+                  const matchedDeep = deepOpps.find(d =>
+                    d.label === opp.title || d.reconfigurationLabel === opp.title
+                  );
+                  const precedent = matchedDeep?.strategicPrecedents?.[0];
+                  return (
+                    <OpportunityCard key={i} opp={opp} index={i} precedent={precedent} />
+                  );
+                })}
               </div>
             )}
           </div>
