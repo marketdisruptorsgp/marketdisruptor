@@ -37,6 +37,7 @@ import {
 import {
   Play, RefreshCw, FileDown, ArrowRight,
   TrendingUp, AlertTriangle, Target, ShieldAlert, HelpCircle, Zap,
+  Lightbulb, Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
