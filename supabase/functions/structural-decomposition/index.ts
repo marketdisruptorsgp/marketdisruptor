@@ -287,7 +287,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, mode: explicitMode, adaptiveContext, extractedContext, upstreamIntel } = await req.json();
+    const { product, mode: explicitMode, adaptiveContext, extractedContext, upstreamIntel, steeringText } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -305,6 +305,7 @@ serve(async (req) => {
     if (product?.specs) contextBlock += `\nSpecs: ${product.specs}`;
     if (extractedContext) contextBlock += `\n\nExtracted Intelligence:\n${extractedContext}`;
     if (adaptiveContext?.problemStatement) contextBlock += `\nProblem: ${adaptiveContext.problemStatement}`;
+    if (steeringText) contextBlock += `\n\nUSER STEERING GUIDANCE: "${steeringText}" — Incorporate this direction into your decomposition focus, early assumptions, and flipped logic. Prioritize structural primitives and leverage points relevant to this guidance.`;
 
     // Include upstream scraped intelligence for grounding
     if (upstreamIntel) {

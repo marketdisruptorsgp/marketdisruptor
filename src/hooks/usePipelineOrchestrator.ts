@@ -209,6 +209,7 @@ export function usePipelineOrchestrator(
         upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
         adaptiveContext: analysis.adaptiveContext || undefined,
         extractedContext: extractedContext || undefined,
+        steeringText: (analysis as any).steeringText || undefined,
       },
     }, 60_000);
 
@@ -348,6 +349,7 @@ export function usePipelineOrchestrator(
         flippedLogic: sr?.flippedLogic || [],
         conceptCount: 5,
         morphologicalVectors,
+        steeringText: (analysis as any).steeringText || undefined,
       },
     }, 180_000);
 

@@ -223,6 +223,7 @@ serve(async (req) => {
       conceptCount = 4,
       userLens,
       morphologicalVectors,
+      steeringText,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -260,6 +261,10 @@ ${(flippedLogic || []).slice(0, 5).map((f: any, i: number) =>
 USER LENS: Objective: ${userLens.primary_objective || "N/A"} | Resources: ${userLens.available_resources || "N/A"} | Risk: ${userLens.risk_tolerance || "N/A"}
 ` : "";
 
+    const steeringContext = steeringText ? `
+USER STEERING GUIDANCE: "${steeringText}" — This MUST influence concept generation. Incorporate this direction into at least 2-3 concepts' design, materials, or form factor.
+` : "";
+
     // Morphological vectors — user-selected design space directions
     const morphVectors = Array.isArray(morphologicalVectors) && morphologicalVectors.length > 0
       ? morphologicalVectors : [];
@@ -295,6 +300,7 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation.`;
 PRODUCT: ${product.name} | CATEGORY: ${product.category}
 DESCRIPTION: ${product.description || "N/A"}
 ${userLensContext}
+${steeringContext}
 ${structuralContext}
 ${assumptionContext}
 ${morphologicalContext}
