@@ -466,7 +466,6 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     console.log(
       `[StrategicSynthesis] counts: assumptions=${Array.isArray(analysis.hiddenAssumptions) ? analysis.hiddenAssumptions.length : 0}, ` +
       `flips=${Array.isArray(analysis.flippedLogic) ? analysis.flippedLogic.length : 0}, ` +
-      `transforms=${Array.isArray(analysis.structuralTransformations) ? analysis.structuralTransformations.length : 0}, ` +
       `concept=${(analysis.redesignedConcept as any)?.conceptName || "none"}`
     );
 
