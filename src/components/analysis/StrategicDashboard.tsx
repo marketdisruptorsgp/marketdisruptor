@@ -669,6 +669,7 @@ export const StrategicDashboard = memo(function StrategicDashboard({
         outdatedSteps={outdatedSteps}
         accentColor={accentColor}
         onRunStep={onRunStep}
+        onRunAllSteps={onRunAllSteps}
         runningStep={runningStep}
       />
     </div>
