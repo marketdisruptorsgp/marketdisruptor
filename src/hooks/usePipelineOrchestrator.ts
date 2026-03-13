@@ -27,6 +27,12 @@ import { toast } from "sonner";
 
 export type PipelineStepStatus = "pending" | "running" | "done" | "error" | "skipped";
 
+export interface StepTiming {
+  startedAt: number;
+  completedAt?: number;
+  elapsedMs?: number;
+}
+
 export interface PipelineProgress {
   isRunning: boolean;
   currentStep: string | null;
@@ -35,6 +41,8 @@ export interface PipelineProgress {
   totalCount: number;
   retryStep: (stepKey: string) => void;
   runAllSteps: () => void;
+  pipelineStartedAt: number | null;
+  stepTimings: Record<string, StepTiming>;
 }
 
 const STEP_DEFS = [
@@ -135,6 +143,8 @@ export function usePipelineOrchestrator(
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [pipelineStartedAt, setPipelineStartedAt] = useState<number | null>(null);
+  const [stepTimings, setStepTimings] = useState<Record<string, StepTiming>>({});
 
   // Warn user if navigating away during active pipeline
   useEffect(() => {
@@ -149,6 +159,16 @@ export function usePipelineOrchestrator(
 
   const updateStatus = useCallback((key: string, status: PipelineStepStatus, error?: string) => {
     setStepStatuses(prev => ({ ...prev, [key]: status }));
+    if (status === "running") {
+      setStepTimings(prev => ({ ...prev, [key]: { startedAt: Date.now() } }));
+    } else if (status === "done" || status === "error") {
+      setStepTimings(prev => {
+        const existing = prev[key];
+        if (!existing) return prev;
+        const completedAt = Date.now();
+        return { ...prev, [key]: { ...existing, completedAt, elapsedMs: completedAt - existing.startedAt } };
+      });
+    }
     if (error) {
       setStepErrors(prev => ({ ...prev, [key]: error }));
     } else if (status === "done" || status === "running") {
@@ -421,6 +441,8 @@ export function usePipelineOrchestrator(
     if (runningRef.current) return;
     runningRef.current = true;
     setIsRunning(true);
+    setPipelineStartedAt(Date.now());
+    setStepTimings({});
 
     const product = effectiveProduct;
     const extractedContext = analysis.adaptiveContext?.extractedContext || "";
@@ -645,5 +667,7 @@ export function usePipelineOrchestrator(
     totalCount: steps.length,
     retryStep,
     runAllSteps,
+    pipelineStartedAt,
+    stepTimings,
   };
 }

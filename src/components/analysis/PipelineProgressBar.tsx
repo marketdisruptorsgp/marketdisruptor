@@ -1,17 +1,19 @@
 /**
  * PIPELINE PROGRESS BAR
  *
- * Lightweight bottom-of-step progress indicator replacing the heavy StepNavigator.
- * Shows pipeline progression as a visual bar with step markers and dynamic status text.
+ * Lightweight bottom-of-step progress indicator.
+ * Shows pipeline progression with step markers, timing badges, and dynamic status text.
  */
 
-import { CheckCircle2, Circle, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, Loader2, Timer } from "lucide-react";
+import type { StepTiming } from "@/hooks/usePipelineOrchestrator";
 
 interface PipelineProgressBarProps {
   completedSteps: Set<string>;
   outdatedSteps?: Set<string>;
   currentStep: string;
   accentColor: string;
+  stepTimings?: Record<string, StepTiming>;
 }
 
 const PIPELINE = [
@@ -22,8 +24,13 @@ const PIPELINE = [
   { key: "pitch", label: "Pitch", short: "Pit", activeText: "Assembling investor pitch…" },
 ];
 
+function formatSec(ms: number): string {
+  const s = Math.round(ms / 1000);
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${s % 60}s`;
+}
+
 export function PipelineProgressBar({
-  completedSteps, outdatedSteps, currentStep, accentColor,
+  completedSteps, outdatedSteps, currentStep, accentColor, stepTimings,
 }: PipelineProgressBarProps) {
   const totalCompleted = completedSteps.size;
   const pct = Math.round((totalCompleted / PIPELINE.length) * 100);
@@ -35,6 +42,11 @@ export function PipelineProgressBar({
     ? "Pipeline complete"
     : activeStep?.activeText || "Processing…";
 
+  // Total time from all completed step timings
+  const totalMs = stepTimings
+    ? Object.values(stepTimings).reduce((sum, t) => sum + (t.elapsedMs || 0), 0)
+    : 0;
+
   return (
     <div className="rounded-xl p-4 bg-card border border-border">
       {/* Progress bar */}
@@ -42,9 +54,17 @@ export function PipelineProgressBar({
         <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
           Pipeline Progress
         </p>
-        <span className="text-xs font-bold tabular-nums" style={{ color: accentColor }}>
-          {totalCompleted}/{PIPELINE.length}
-        </span>
+        <div className="flex items-center gap-2">
+          {totalMs > 0 && allDone && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground">
+              <Timer size={10} />
+              {formatSec(totalMs)}
+            </span>
+          )}
+          <span className="text-xs font-bold tabular-nums" style={{ color: accentColor }}>
+            {totalCompleted}/{PIPELINE.length}
+          </span>
+        </div>
       </div>
 
       {/* Dynamic status text */}
@@ -71,6 +91,14 @@ export function PipelineProgressBar({
             : isDone ? "hsl(142 70% 45%)"
             : "hsl(var(--muted-foreground))";
 
+          // Map step keys to orchestrator step keys for timing lookup
+          const timingKey = step.key === "report" ? "decompose"
+            : step.key === "disrupt" ? "synthesis"
+            : step.key === "redesign" ? "concepts"
+            : step.key === "stress-test" ? "stressTest"
+            : step.key === "pitch" ? "pitch" : null;
+          const timing = timingKey && stepTimings ? stepTimings[timingKey] : null;
+
           return (
             <div key={step.key} className="flex flex-col items-center gap-1">
               {isOutdated ? (
@@ -85,6 +113,11 @@ export function PipelineProgressBar({
                 <span className="hidden sm:inline">{step.label}</span>
                 <span className="sm:hidden">{step.short}</span>
               </span>
+              {timing?.elapsedMs && isDone && (
+                <span className="text-[8px] font-bold tabular-nums" style={{ color: "hsl(142 70% 45%)" }}>
+                  {formatSec(timing.elapsedMs)}
+                </span>
+              )}
             </div>
           );
         })}

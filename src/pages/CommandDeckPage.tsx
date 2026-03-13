@@ -51,6 +51,7 @@ import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { PipelineTimerStrip } from "@/components/analysis/PipelineTimerStrip";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", route: "report" },
@@ -344,32 +345,7 @@ export default function CommandDeckPage() {
 
         {/* ═══ ANALYSIS PROGRESS ═══ */}
         {pipelineProgress.isRunning && (
-          <div
-            className="rounded-xl px-5 py-4 space-y-3"
-            style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--primary) / 0.3)" }}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">
-                Building Your Analysis
-              </span>
-            </div>
-            <div className="flex gap-2">
-              {pipelineProgress.steps.filter(s => s.key !== "stressTest" && s.key !== "pitch").map(s => (
-                <div key={s.key} className="flex-1">
-                  <div
-                    className="h-1.5 rounded-full transition-all duration-500"
-                    style={{
-                      background: s.status === "done" ? "hsl(var(--success, 142 76% 36%))"
-                        : s.status === "running" ? "hsl(var(--primary))"
-                        : "hsl(var(--muted))",
-                    }}
-                  />
-                  <p className="text-[9px] text-muted-foreground mt-1 text-center">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PipelineTimerStrip pipelineProgress={pipelineProgress} />
         )}
 
         {/* ═══ DEEPENING INDICATOR ═══ */}
