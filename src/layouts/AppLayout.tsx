@@ -18,7 +18,7 @@ const NO_SIDEBAR_ROUTES = [
   "/about",
   "/methodology",
   "/faqs",
-  "/releases",
+  // "/releases",
   "/api",
   "/resources",
   "/pipeline",

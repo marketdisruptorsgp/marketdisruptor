@@ -337,7 +337,7 @@ export default function ResourcesPage() {
             <TabsTrigger value="faqs" className="text-sm">FAQs</TabsTrigger>
             <TabsTrigger value="methodology" className="text-sm">Methodology</TabsTrigger>
             <TabsTrigger value="market-intel" className="text-sm">Market Intel</TabsTrigger>
-            <TabsTrigger value="releases" className="text-sm">New Releases</TabsTrigger>
+            {/* <TabsTrigger value="releases" className="text-sm">New Releases</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="faqs">

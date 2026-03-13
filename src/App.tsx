@@ -216,7 +216,7 @@ function AppRoutes() {
         <Route path="/resources" element={<LazyRoute><ResourcesPage /></LazyRoute>} />
         <Route path="/methodology" element={<LazyRoute><MethodologyPage /></LazyRoute>} />
         <Route path="/faqs" element={<LazyRoute><FaqsPage /></LazyRoute>} />
-        <Route path="/releases" element={<LazyRoute><ReleasesPage /></LazyRoute>} />
+        {/* <Route path="/releases" element={<LazyRoute><ReleasesPage /></LazyRoute>} /> */}
         <Route path="/api" element={<LazyRoute><ApiPage /></LazyRoute>} />
         <Route path="/pipeline" element={<LazyRoute><PipelinePage /></LazyRoute>} />
         <Route path="/dashboard" element={<Navigate to="/workspace" replace />} />
