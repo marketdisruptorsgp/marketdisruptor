@@ -389,7 +389,66 @@ export default function CommandDeckPage() {
           computeTimeMs={analysis.instantInsights?.computeTimeMs}
         />
 
-        {/* ═══ SECTION 2 — BUSINESS REALITY (SWOT) ═══ */}
+        {/* ═══ SECTION 1.5 — FLIPPED IDEAS (available instantly after scraping) ═══ */}
+        {flippedIdeas.length > 0 && (
+          <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.12 }}>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 px-1">
+                <Lightbulb size={12} className="text-primary" />
+                <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                  Reinvention Ideas
+                </h2>
+                {!hasRun && (
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary ml-auto">
+                    Instant
+                  </span>
+                )}
+              </div>
+              {flippedIdeas.map((idea: any, i: number) => {
+                const topScore = Math.max(
+                  idea.scores?.feasibility || 0,
+                  idea.scores?.profitability || 0,
+                  idea.scores?.novelty || 0
+                );
+                const starLabel = topScore >= 8 ? "High potential" : topScore >= 6 ? "Promising" : null;
+                return (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-border/60 bg-card px-3 py-2.5"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ background: `${modeAccent}12`, border: `1px solid ${modeAccent}25` }}
+                      >
+                        <Lightbulb size={10} style={{ color: modeAccent }} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs font-bold text-foreground leading-snug">{idea.name}</p>
+                          {starLabel && (
+                            <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0 rounded-full bg-accent text-accent-foreground">
+                              <Star size={8} /> {starLabel}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 mt-0.5">
+                          {idea.description}
+                        </p>
+                        {idea.reasoning && (
+                          <p className="text-[10px] text-muted-foreground/70 leading-snug line-clamp-1 mt-1 italic">
+                            Why: {idea.reasoning}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
         {Object.values(swotProse).some(Boolean) && (
           <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
