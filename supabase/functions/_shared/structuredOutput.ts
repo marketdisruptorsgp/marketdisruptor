@@ -492,8 +492,6 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
           additionalProperties: false,
         },
       },
-      structuralTransformations: { type: "array", items: { type: "object", additionalProperties: true } },
-      transformationClusters: { type: "array", items: { type: "object", additionalProperties: true } },
       redesignedConcept: { type: "object", additionalProperties: true },
       quickValidation: {
         type: "object",
