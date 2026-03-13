@@ -163,6 +163,8 @@ export default function ReportPage() {
   }, [autoAnalysis.intelligence, selectedProduct, analysisId, analysis.disruptData, analysis.governedData, analysis.businessAnalysisData]);
 
   const graph = useMemo(() => {
+    // Prefer autoAnalysis graph (computed by strategic engine with full data)
+    if (autoAnalysis.graph && autoAnalysis.graph.nodes.length > 0) return autoAnalysis.graph;
     return buildInsightGraph(
       products,
       intelligence,
@@ -170,7 +172,7 @@ export default function ReportPage() {
       analysis.redesignData,
       analysis.stressTestData,
     );
-  }, [products, intelligence, analysis.disruptData, analysis.redesignData, analysis.stressTestData]);
+  }, [autoAnalysis.graph, products, intelligence, analysis.disruptData, analysis.redesignData, analysis.stressTestData]);
 
   const completedSteps = useMemo(() => {
     const set = new Set<string>();
