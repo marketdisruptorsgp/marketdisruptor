@@ -478,17 +478,21 @@ export function usePipelineOrchestrator(
       // ═══ UI renders now — Phase 2/2.5 complete ═══
       console.log("[Pipeline] Core phases complete. Stress Test & Pitch are available on-demand.");
 
-      // ═══ PHASE 3: LAZY — Stress Test + Pitch are on-demand ═══
-      // Mark them as available to run (not auto-triggered)
+      // ═══ PHASE 3: Stress Test + Pitch (auto-run if runAllMode) ═══
       if (stressTestData) {
         updateStatus("stressTest", "done");
+      } else if (runAllRef.current && synthesisResult) {
+        const stressResult = await runStressTest(product, extractedContext, synthesisResult, decompResult);
+        if (stressResult && !pitchDeckData) {
+          await runPitch(product, extractedContext, synthesisResult, stressResult);
+        }
       }
-      // else stays "pending" — user can trigger via retryStep("stressTest")
 
       if (pitchDeckData) {
         updateStatus("pitch", "done");
+      } else if (runAllRef.current && !stressTestData && synthesisResult) {
+        // Pitch was already run above after stress test
       }
-      // else stays "pending" — user can trigger via retryStep("pitch")
 
     } catch (err) {
       console.error("[Pipeline] Unexpected pipeline error:", err);
