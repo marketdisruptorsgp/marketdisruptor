@@ -402,7 +402,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       model: "google/gemini-2.5-flash",
       messages: aiMessages,
       temperature: 0.5,
-      max_tokens: 6000,
+      max_tokens: 7500,
     };
     if (structuredTools) Object.assign(body, structuredTools);
 
