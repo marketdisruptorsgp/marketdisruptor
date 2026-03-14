@@ -73,7 +73,7 @@ export default function RedesignPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("redesign");
   const shouldAutoTrigger = isOutdated || !analysis.redesignData;
-  const hasData = !!analysis.redesignData;
+  const hasData = !!analysis.redesignData || !!analysis.disruptData;
 
   return (
     <AnalysisPageShell tier={tier}>
@@ -122,7 +122,7 @@ export default function RedesignPage() {
 
       {/* ── Concept Visuals (mounted early to pre-generate AI images) ── */}
       {hasData && (() => {
-        const rd = analysis.redesignData as any;
+        const rd = (analysis.redesignData || analysis.disruptData) as any;
         const concept = rd?.redesignedConcept || rd?.concept;
         if (!concept?.conceptName) return null;
         return (

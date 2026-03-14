@@ -18,8 +18,19 @@ interface FlippedIdeasPanelProps {
 }
 
 export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted, initialRejectedIdeas }: FlippedIdeasPanelProps) {
-  const { saveStepData } = useAnalysis();
-  const [userContext, setUserContext] = useState("");
+  const { saveStepData, saveSteeringText, steeringText } = useAnalysis();
+  const [userContext, setUserContext] = useState(steeringText || "");
+
+  // Propagate steering text to AnalysisContext on change (debounced on blur)
+  const handleContextChange = useCallback((value: string) => {
+    setUserContext(value);
+  }, []);
+
+  const handleContextBlur = useCallback(() => {
+    if (userContext !== steeringText) {
+      saveSteeringText(userContext);
+    }
+  }, [userContext, steeringText, saveSteeringText]);
   const [rejectedIdeas, setRejectedIdeas] = useState<string[]>(initialRejectedIdeas || []);
 
   // Re-sync when hydrated data changes (e.g. loading a saved analysis)
@@ -56,7 +67,8 @@ export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingI
       <ExpandableDetail label="Steer ideas — add your goals, then regenerate" icon={Lightbulb}>
         <textarea
           value={userContext}
-          onChange={(e) => setUserContext(e.target.value)}
+          onChange={(e) => handleContextChange(e.target.value)}
+          onBlur={handleContextBlur}
           placeholder="e.g. Focus on eco-friendly materials, target Gen Z, keep under $30…"
           className="w-full rounded px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
           rows={2}
