@@ -67,7 +67,8 @@ export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingI
       <ExpandableDetail label="Steer ideas — add your goals, then regenerate" icon={Lightbulb}>
         <textarea
           value={userContext}
-          onChange={(e) => setUserContext(e.target.value)}
+          onChange={(e) => handleContextChange(e.target.value)}
+          onBlur={handleContextBlur}
           placeholder="e.g. Focus on eco-friendly materials, target Gen Z, keep under $30…"
           className="w-full rounded px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
           rows={2}
