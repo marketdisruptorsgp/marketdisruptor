@@ -147,7 +147,6 @@ export function usePipelineOrchestrator(
         runAll: runAllRef.current,
         existingDecomp: decompositionData,
         existingDisrupt: disruptData,
-        existingRedesign: redesignData,
         existingConcepts: conceptsData,
         existingStressTest: stressTestData,
         existingPitchDeck: pitchDeckData,
