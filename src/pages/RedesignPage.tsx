@@ -73,7 +73,7 @@ export default function RedesignPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("redesign");
   const shouldAutoTrigger = isOutdated || !analysis.redesignData;
-  const hasData = !!analysis.redesignData;
+  const hasData = !!analysis.redesignData || !!analysis.disruptData;
 
   return (
     <AnalysisPageShell tier={tier}>
