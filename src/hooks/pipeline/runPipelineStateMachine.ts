@@ -16,7 +16,7 @@ interface PipelineOptions {
   runAll: boolean;
   existingDecomp: unknown;
   existingDisrupt: unknown;
-  existingRedesign: unknown;
+  existingRedesign?: unknown; // deprecated — redesign is derived from disrupt
   existingConcepts: unknown;
   existingStressTest: unknown;
   existingPitchDeck: unknown;
