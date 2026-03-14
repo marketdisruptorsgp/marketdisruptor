@@ -16,7 +16,7 @@ interface PipelineOptions {
   runAll: boolean;
   existingDecomp: unknown;
   existingDisrupt: unknown;
-  existingRedesign: unknown;
+  existingRedesign?: unknown; // deprecated — redesign is derived from disrupt
   existingConcepts: unknown;
   existingStressTest: unknown;
   existingPitchDeck: unknown;
@@ -71,7 +71,7 @@ export async function runPipelineStateMachine(
   }
 
   // ═══ PHASE 2: Strategic Synthesis (~45s) ═══
-  const hasFullSynthesis = opts.existingDisrupt && opts.existingRedesign && !(opts.existingDisrupt as any)?._earlyInsights;
+  const hasFullSynthesis = opts.existingDisrupt && !(opts.existingDisrupt as any)?._earlyInsights;
   let synthesisResult = hasFullSynthesis ? opts.existingDisrupt : null;
   if (!synthesisResult) {
     synthesisResult = await runStrategicSynthesis(ctx, cb, store, decompResult, strategyContext);

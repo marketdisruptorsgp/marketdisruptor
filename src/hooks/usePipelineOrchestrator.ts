@@ -9,6 +9,7 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
 import { runPipelineStateMachine } from "./pipeline/runPipelineStateMachine";
+import { acquireKeepAlive, releaseKeepAlive } from "./pipeline/keepAlive";
 import { runDecompose } from "./pipeline/stepDecompose";
 import { runStrategicSynthesis } from "./pipeline/stepSynthesis";
 import { runConceptSynthesis } from "./pipeline/stepConcepts";
@@ -136,6 +137,7 @@ export function usePipelineOrchestrator(
     runningRef.current = true;
     setIsRunning(true);
     setPipelineStartedAt(Date.now());
+    acquireKeepAlive();
     setStepTimings({});
 
     const ctx = buildCtx();
@@ -147,7 +149,6 @@ export function usePipelineOrchestrator(
         runAll: runAllRef.current,
         existingDecomp: decompositionData,
         existingDisrupt: disruptData,
-        existingRedesign: redesignData,
         existingConcepts: conceptsData,
         existingStressTest: stressTestData,
         existingPitchDeck: pitchDeckData,
@@ -159,6 +160,7 @@ export function usePipelineOrchestrator(
       setIsRunning(false);
       runningRef.current = false;
       runAllRef.current = false;
+      releaseKeepAlive();
 
       setStepStatuses(prev => {
         const coreSteps = ["decompose", "synthesis", "concepts"];
