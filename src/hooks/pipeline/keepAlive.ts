@@ -8,29 +8,29 @@
  * are unavailable.
  */
 
-let releaseLock: (() => void) | null = null;
-let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+let _release: (() => void) | null = null;
+let _fallbackInterval: ReturnType<typeof setInterval> | null = null;
 
 export function acquireKeepAlive(): void {
-  if (releaselock()) return; // already held
+  if (_release) return; // already held
 
   // Prefer Web Locks API (Chrome 69+, Firefox 96+, Safari 15.4+)
   if ("locks" in navigator) {
     const controller = new AbortController();
+    let resolveHolder: (() => void) | null = null;
+
     navigator.locks.request(
       "pipeline-keepalive",
       { signal: controller.signal },
       () => new Promise<void>((resolve) => {
-        releaselock = () => {
-          resolve();
-          releaselock = null;
-        };
+        resolveHolder = resolve;
       }),
     ).catch(() => { /* aborted or unavailable */ });
 
-    releaseLock = () => {
+    _release = () => {
+      resolveHolder?.();
       controller.abort();
-      releaselock = null;
+      _release = null;
     };
     return;
   }
@@ -38,28 +38,23 @@ export function acquireKeepAlive(): void {
   // Fallback: BroadcastChannel ping keeps event loop alive
   try {
     const ch = new BroadcastChannel("pipeline-keepalive");
-    fallbackInterval = setInterval(() => ch.postMessage("ping"), 15_000);
-    releaselock = () => {
-      if (fallbackInterval) clearInterval(fallbackInterval);
-      fallbackInterval = null;
+    _fallbackInterval = setInterval(() => ch.postMessage("ping"), 15_000);
+    _release = () => {
+      if (_fallbackInterval) clearInterval(_fallbackInterval);
+      _fallbackInterval = null;
       ch.close();
-      releaselock = null;
+      _release = null;
     };
   } catch {
-    // Neither API available — best effort, nothing to do
+    // Neither API available — best effort
   }
 }
 
 export function releaseKeepAlive(): void {
-  releaselock?.();
-  releaselock = null;
-  if (fallbackInterval) {
-    clearInterval(fallbackInterval);
-    fallbackInterval = null;
+  _release?.();
+  _release = null;
+  if (_fallbackInterval) {
+    clearInterval(_fallbackInterval);
+    _fallbackInterval = null;
   }
-}
-
-// internal mutable ref
-function releaselock(): boolean {
-  return releaselock !== null;
 }
