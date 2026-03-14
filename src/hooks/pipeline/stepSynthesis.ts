@@ -69,14 +69,8 @@ export async function runStrategicSynthesis(
   store.setDisruptData(synthesisResult);
   await cb.saveStepData("disrupt", synthesisResult, ctx.analysisId);
 
-  const redesignPayload = {
-    redesignedConcept: synthesisResult.redesignedConcept,
-    visualSpecs: synthesisResult.visualSpecs,
-    actionPlans: synthesisResult.actionPlans,
-  };
-  store.setRedesignData(redesignPayload);
-  await cb.saveStepData("redesign", redesignPayload, ctx.analysisId);
-
+  // NOTE: redesignData fields (redesignedConcept, visualSpecs, actionPlans) are already
+  // in disruptData/synthesisResult. No separate save — RedesignPage falls back to disruptData.
   store.clearStepOutdated("redesign");
   cb.updateStatus("synthesis", "done");
   cb.onStepComplete?.("synthesis");

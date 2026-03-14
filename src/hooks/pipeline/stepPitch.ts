@@ -19,7 +19,7 @@ export async function runPitch(
       product: compressProductPayload(ctx.product),
       disruptData: synthesisResult || undefined,
       stressTestData: stressResult || undefined,
-      redesignData: synthesisResult || undefined,
+      // redesignData omitted — it's a subset of disruptData, no need to send duplicate payload
       adaptiveContext: ctx.adaptiveContext || undefined,
       extractedContext: ctx.extractedContext || undefined,
       patentData: (ctx.product as any).patentData || undefined,
