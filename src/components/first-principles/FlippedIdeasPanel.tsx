@@ -18,8 +18,19 @@ interface FlippedIdeasPanelProps {
 }
 
 export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingIdeas, userScores, onScoreChange, onCompetitorsScouted, initialRejectedIdeas }: FlippedIdeasPanelProps) {
-  const { saveStepData } = useAnalysis();
-  const [userContext, setUserContext] = useState("");
+  const { saveStepData, saveSteeringText, steeringText } = useAnalysis();
+  const [userContext, setUserContext] = useState(steeringText || "");
+
+  // Propagate steering text to AnalysisContext on change (debounced on blur)
+  const handleContextChange = useCallback((value: string) => {
+    setUserContext(value);
+  }, []);
+
+  const handleContextBlur = useCallback(() => {
+    if (userContext !== steeringText) {
+      saveSteeringText(userContext);
+    }
+  }, [userContext, steeringText, saveSteeringText]);
   const [rejectedIdeas, setRejectedIdeas] = useState<string[]>(initialRejectedIdeas || []);
 
   // Re-sync when hydrated data changes (e.g. loading a saved analysis)
