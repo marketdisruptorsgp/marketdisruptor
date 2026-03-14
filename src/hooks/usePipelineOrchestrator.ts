@@ -137,6 +137,7 @@ export function usePipelineOrchestrator(
     runningRef.current = true;
     setIsRunning(true);
     setPipelineStartedAt(Date.now());
+    acquireKeepAlive();
     setStepTimings({});
 
     const ctx = buildCtx();
