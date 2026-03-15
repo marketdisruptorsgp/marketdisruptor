@@ -36,7 +36,15 @@ import {
   runMorphologicalSearch,
   type OpportunityZone,
   type OpportunityVector,
+  extractBaseline,
+  identifyActiveDimensions,
+  getDimensionsByStatus,
 } from "@/lib/opportunityDesignEngine";
+import { extractConstraintShapes } from "@/lib/analogEngine";
+import { generateInversions, type ConstraintInversion } from "@/lib/constraintInverter";
+import { generateSecondOrderUnlocks, type SecondOrderUnlock } from "@/lib/secondOrderEngine";
+import { generateTemporalUnlocks, type TemporalUnlock } from "@/lib/temporalArbitrageEngine";
+import { exploreNegativeSpace, type CompetitiveGap } from "@/lib/negativeSpaceEngine";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
@@ -53,6 +61,10 @@ export interface AutoAnalysisResult {
   deepenedOpportunities: DeepenedOpportunity[];
   morphologicalZones: OpportunityZone[];
   morphologicalVectors: OpportunityVector[];
+  constraintInversions: ConstraintInversion[];
+  secondOrderUnlocks: SecondOrderUnlock[];
+  temporalUnlocks: TemporalUnlock[];
+  competitiveGaps: CompetitiveGap[];
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
@@ -84,6 +96,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
   const [morphologicalZones, setMorphologicalZones] = useState<OpportunityZone[]>([]);
   const [morphologicalVectors, setMorphologicalVectors] = useState<OpportunityVector[]>([]);
+  const [constraintInversions, setConstraintInversions] = useState<ConstraintInversion[]>([]);
+  const [secondOrderUnlocks, setSecondOrderUnlocks] = useState<SecondOrderUnlock[]>([]);
+  const [temporalUnlocks, setTemporalUnlocks] = useState<TemporalUnlock[]>([]);
+  const [competitiveGaps, setCompetitiveGaps] = useState<CompetitiveGap[]>([]);
   const [isComputing, setIsComputing] = useState(false);
   const isComputingRef = useRef(false);
   const [hasRun, setHasRun] = useState(false);
@@ -206,6 +222,24 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           console.log(`[Morphological] Auto-ran: ${morphResult.vectors.length} vectors, ${morphResult.zones.length} zones`);
         } catch (err) {
           console.warn("[Morphological] Auto-run failed:", err);
+        }
+
+        try {
+          // Run deterministic idea-generation engines — no AI cost, <100ms each
+          const constraintShapes = extractConstraintShapes(activeConstraints, result.flatEvidence);
+          const rawBaseline = extractBaseline(result.flatEvidence, activeConstraints, leveragePoints);
+          const baseline = identifyActiveDimensions(rawBaseline, activeConstraints, leveragePoints);
+          const hotDims = getDimensionsByStatus(baseline, "hot");
+          const warmDims = getDimensionsByStatus(baseline, "warm");
+          const activeDims = [...hotDims, ...warmDims];
+
+          setConstraintInversions(generateInversions(constraintShapes, 2, 4));
+          setSecondOrderUnlocks(generateSecondOrderUnlocks(constraintShapes, 2, 4));
+          setTemporalUnlocks(generateTemporalUnlocks(constraintShapes, activeDims, 5));
+          setCompetitiveGaps(exploreNegativeSpace(result.flatEvidence, activeDims, 4));
+          console.log("[StrategicEngines] Surfaced constraint inversions, second-order unlocks, temporal unlocks, competitive gaps");
+        } catch (err) {
+          console.warn("[StrategicEngines] Engine run failed:", err);
         }
       }
 
@@ -487,6 +521,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     deepenedOpportunities,
     morphologicalZones,
     morphologicalVectors,
+    constraintInversions,
+    secondOrderUnlocks,
+    temporalUnlocks,
+    competitiveGaps,
     isComputing,
     completedSteps,
     pipelineCompletion,

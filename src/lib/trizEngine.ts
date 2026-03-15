@@ -199,6 +199,8 @@ const APPLICATION_HINTS: Record<number, (entityName: string, constraintText: str
 // ─── Detection Constants ──────────────────────────────────────────────────────
 const MAX_TRIZ_SEEDS = 3;
 const MIN_KEYWORD_MATCHES = 1;
+
+function shorten(s: string, max = 60): string {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
 

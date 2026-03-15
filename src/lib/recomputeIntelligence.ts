@@ -42,10 +42,10 @@ import {
 } from "@/lib/evidenceEngine";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { extractConstraintShapes, findAnalogs } from "@/lib/analogEngine";
-import { generateInversions } from "@/lib/constraintInverter";
-import { generateSecondOrderUnlocks } from "@/lib/secondOrderEngine";
-import { generateTemporalUnlocks } from "@/lib/temporalArbitrageEngine";
-import { exploreNegativeSpace } from "@/lib/negativeSpaceEngine";
+import { generateInversions, type ConstraintInversion } from "@/lib/constraintInverter";
+import { generateSecondOrderUnlocks, type SecondOrderUnlock } from "@/lib/secondOrderEngine";
+import { generateTemporalUnlocks, type TemporalUnlock } from "@/lib/temporalArbitrageEngine";
+import { exploreNegativeSpace, type CompetitiveGap } from "@/lib/negativeSpaceEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -92,6 +92,10 @@ export interface IntelligenceOutput {
   marketStructure: MarketStructureReport | null;
   morphologicalZones?: import("@/lib/opportunityDesignEngine").OpportunityZone[];
   morphologicalVectors?: import("@/lib/opportunityDesignEngine").OpportunityVector[];
+  constraintInversions?: ConstraintInversion[];
+  secondOrderUnlocks?: SecondOrderUnlock[];
+  temporalUnlocks?: TemporalUnlock[];
+  competitiveGaps?: CompetitiveGap[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -143,6 +147,10 @@ function buildOutput(result: ReturnType<typeof runStrategicAnalysis>): Intellige
     marketStructure: result.marketStructure,
     morphologicalZones: [],
     morphologicalVectors: [],
+    constraintInversions: [],
+    secondOrderUnlocks: [],
+    temporalUnlocks: [],
+    competitiveGaps: [],
   };
 }
 
@@ -277,6 +285,49 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
       // generate-opportunity-vectors was removed in the architecture cleanup.
       // The deterministic engines (analogs, inversions, unlocks, temporal, gaps) above
       // already provide sufficient alternative generation without the AI call.
+
+      // Surface the computed engine results instead of dropping them
+      asyncOutput.constraintInversions = inversions.map(inv => ({
+        id: inv.id,
+        sourceConstraint: inv.sourceConstraint,
+        inversionType: inv.inversionType,
+        invertedFrame: inv.invertedFrame,
+        mechanism: inv.mechanism,
+        precedent: inv.precedent,
+        requiredConditions: inv.requiredConditions,
+        viability: inv.viability,
+      }));
+      asyncOutput.secondOrderUnlocks = unlocks.map(u => ({
+        id: u.id,
+        sourceConstraint: u.sourceConstraint,
+        unlockedBusinessModel: u.unlockedBusinessModel,
+        valueMechanism: u.valueMechanism,
+        unlockPath: u.unlockPath,
+        precedents: u.precedents,
+        enablers: u.enablers,
+        viability: u.viability,
+      }));
+      asyncOutput.temporalUnlocks = temporalUnlocks.map(t => ({
+        id: t.id,
+        recentChange: t.recentChange,
+        changeTimeframe: t.changeTimeframe,
+        changeCategory: t.changeCategory,
+        previouslyImpossible: t.previouslyImpossible,
+        nowPossible: t.nowPossible,
+        unlockedDimension: t.unlockedDimension,
+        timingEvidence: t.timingEvidence,
+        timingWindow: t.timingWindow,
+      }));
+      asyncOutput.competitiveGaps = gaps.map(g => ({
+        id: g.id,
+        gapDescription: g.gapDescription,
+        gapType: g.gapType,
+        gapReason: g.gapReason,
+        opportunityHypothesis: g.opportunityHypothesis,
+        supportingEvidence: g.supportingEvidence,
+        validationApproach: g.validationApproach,
+        opportunityConfidence: g.opportunityConfidence,
+      }));
     } else {
       console.log(`[Morphological] Only ${activeDimCount} active dims, skipping AI`);
     }
@@ -296,5 +347,9 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
   const enhancedOutput = buildOutput(enhancedResult);
   enhancedOutput.morphologicalZones = morphologicalZones;
   enhancedOutput.morphologicalVectors = morphologicalVectors;
+  enhancedOutput.constraintInversions = asyncOutput.constraintInversions;
+  enhancedOutput.secondOrderUnlocks = asyncOutput.secondOrderUnlocks;
+  enhancedOutput.temporalUnlocks = asyncOutput.temporalUnlocks;
+  enhancedOutput.competitiveGaps = asyncOutput.competitiveGaps;
   return enhancedOutput;
 }
