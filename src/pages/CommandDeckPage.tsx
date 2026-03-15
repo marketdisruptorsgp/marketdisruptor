@@ -1,75 +1,122 @@
 /**
- * Command Deck — Founder Briefing (fits one screen)
+ * Command Deck — Strategic Brief
  *
- * Shows ONLY:
- *   - Header + action buttons
- *   - Deal metrics strip
- *   - Contrarian insight card
- *   - 4-card SWOT grid
- *   - Critical question
- *   - Top 3 opportunities with badges
- *   - "See Full Analysis" button
+ * Three-section strategic interface:
+ *   1. Strategic Summary  — What we found (constraint + verdict)
+ *   2. Opportunity Grid   — What you could do (3-5 action directions)
+ *   3. Recommended Move   — What we'd do first (highest-leverage play)
+ *   4. "Deep Dive" button — Links to detailed analysis
  *
- * Everything else lives on ReportPage, DisruptPage, StressTestPage, or InsightGraphPage.
+ * Engineering chrome (pipeline progress, diagnostics, etc.) lives on DeepDivePage.
  */
 
-import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { useSubscription } from "@/hooks/useSubscription";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
-import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
-import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { usePipelineOrchestrator } from "@/hooks/usePipelineOrchestrator";
 import { ModeBadge } from "@/components/ModeBadge";
-import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
-import { DealMetricsStrip } from "@/components/command-deck/DealMetricsStrip";
 import { StepLoadingTracker, type StepTask } from "@/components/StepLoadingTracker";
 import {
-  extractSingleInsight,
-  extractAssumptionBanner,
-  extractCriticalQuestion,
-  extractSwotProse,
-  extractOpportunitiesWithBadges,
-} from "@/lib/swotExtractor";
-import {
-  Play, RefreshCw, FileDown, ArrowRight,
-  TrendingUp, AlertTriangle, Target, ShieldAlert, HelpCircle, Zap,
-  Lightbulb, Star,
+  Play, RefreshCw, ArrowRight, Zap,
+  Target, ChevronDown, ChevronUp, Clock,
+  Lightbulb, TrendingUp, Unlock, Calendar, Search,
 } from "lucide-react";
-import { toast } from "sonner";
-import {
-  computeCommandDeckMetrics, aggregateOpportunities,
-  type CommandDeckMetrics as DeckMetrics,
-} from "@/lib/commandDeckMetrics";
-import { extractAllEvidence } from "@/lib/evidenceEngine";
-import { humanizeLabel } from "@/lib/humanize";
-import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
-import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { PipelineTimerStrip } from "@/components/analysis/PipelineTimerStrip";
-
-const PIPELINE_STEPS = [
-  { key: "report", label: "Report", route: "report" },
-  { key: "disrupt", label: "Disrupt", route: "disrupt" },
-  { key: "redesign", label: "Redesign", route: "redesign" },
-  { key: "stress-test", label: "Stress Test", route: "stress-test" },
-  { key: "pitch", label: "Pitch", route: "pitch" },
-] as const;
+import type { DeepenedOpportunity } from "@/lib/reconfiguration";
+import type { StrategicNarrative } from "@/lib/strategicEngine";
+import type { OpportunityZone } from "@/lib/opportunityDesignEngine";
+import type { ConstraintInversion } from "@/lib/constraintInverter";
+import type { SecondOrderUnlock } from "@/lib/secondOrderEngine";
+import { humanizeLabel } from "@/lib/humanize";
 
 const fadeIn = { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 } };
 
+// ── Opportunity sources merged for the grid ──
+interface GridOpportunity {
+  id: string;
+  title: string;
+  explanation: string;
+  whyThisWorks: string;
+  source: "deepened" | "morphological" | "inversion" | "unlock" | "temporal" | "gap";
+}
+
+function buildOpportunityGrid(
+  deepened: DeepenedOpportunity[],
+  morphZones: OpportunityZone[],
+  inversions: ConstraintInversion[],
+  unlocks: SecondOrderUnlock[],
+): GridOpportunity[] {
+  const result: GridOpportunity[] = [];
+
+  // Primary: deepened opportunities (highest fidelity)
+  for (const d of deepened.slice(0, 4)) {
+    result.push({
+      id: d.id,
+      title: humanizeLabel(d.reconfigurationLabel),
+      explanation: d.summary || d.causalChain?.reasoning || "",
+      whyThisWorks: d.economicMechanism?.valueCreation || d.causalChain?.outcome || "",
+      source: "deepened",
+    });
+  }
+
+  // Fill remaining slots from morphological zones
+  for (const z of morphZones.slice(0, Math.max(0, 5 - result.length))) {
+    const title = humanizeLabel(z.theme ?? "");
+    if (!title) continue;
+    result.push({
+      id: z.id,
+      title,
+      explanation: "",
+      whyThisWorks: "",
+      source: "morphological",
+    });
+  }
+
+  // Fill from constraint inversions
+  for (const inv of inversions.slice(0, Math.max(0, 6 - result.length))) {
+    if (!inv.invertedFrame) continue;
+    result.push({
+      id: inv.id,
+      title: humanizeLabel(inv.invertedFrame),
+      explanation: inv.mechanism || "",
+      whyThisWorks: inv.precedent || "",
+      source: "inversion",
+    });
+  }
+
+  // Fill from second-order unlocks
+  for (const u of unlocks.slice(0, Math.max(0, 6 - result.length))) {
+    if (!u.unlockedBusinessModel) continue;
+    result.push({
+      id: u.id,
+      title: humanizeLabel(u.unlockedBusinessModel),
+      explanation: u.valueMechanism || "",
+      whyThisWorks: u.unlockPath || "",
+      source: "unlock",
+    });
+  }
+
+  return result.slice(0, 6);
+}
+
+const SOURCE_META: Record<GridOpportunity["source"], { label: string; icon: React.ElementType; color: string }> = {
+  deepened:     { label: "Strategic", icon: Target,    color: "hsl(var(--primary))" },
+  morphological:{ label: "Design",    icon: Lightbulb, color: "hsl(var(--success))" },
+  inversion:    { label: "Flip",      icon: TrendingUp, color: "hsl(var(--warning))" },
+  unlock:       { label: "Unlock",    icon: Unlock,    color: "hsl(var(--success))" },
+  temporal:     { label: "Timing",    icon: Calendar,  color: "hsl(143 70% 45%)" },
+  gap:          { label: "Gap",       icon: Search,    color: "hsl(263 70% 60%)" },
+};
+
 export default function CommandDeckPage() {
   const analysis = useAnalysis();
-  const { tier } = useSubscription();
   const theme = useModeTheme();
   const navigate = useNavigate();
   const { shouldRedirectHome } = useHydrationGuard();
-  const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
   const autoAnalysis = useAutoAnalysis();
   const pipelineProgress = usePipelineOrchestrator(autoAnalysis.runAnalysis, autoAnalysis.runAnalysis);
 
@@ -81,58 +128,16 @@ export default function CommandDeckPage() {
   }, []);
   const analysisId = ctxAnalysisId || urlAnalysisId;
   const modeAccent = theme.primary;
-  const { intelligence, completedSteps, narrative, runAnalysis, hasRun, isComputing: engineComputing } = autoAnalysis;
-
-  // ── Aggregated Metrics ──
-  const allEvidence = useMemo(() => extractAllEvidence({
-    products: analysis.products, selectedProduct,
-    disruptData: analysis.disruptData, redesignData: analysis.redesignData,
-    stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
-    governedData: analysis.governedData as Record<string, unknown> | null,
-    businessAnalysisData: analysis.businessAnalysisData, intelligence,
-    analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
-    geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
-  }), [
-    analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
-    analysis.stressTestData, analysis.pitchDeckData, analysis.governedData,
-    analysis.businessAnalysisData, intelligence, analysis.activeMode,
-    analysis.geoData, analysis.regulatoryData,
-  ]);
-
-  const metricsInput = useMemo(() => ({
-    products: analysis.products, selectedProduct,
-    disruptData: analysis.disruptData, redesignData: analysis.redesignData,
-    stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
-    governedData: analysis.governedData as Record<string, unknown> | null,
-    businessAnalysisData: analysis.businessAnalysisData, intelligence, completedSteps,
-    evidence: allEvidence,
-  }), [
-    analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
-    analysis.stressTestData, analysis.pitchDeckData, analysis.governedData,
-    analysis.businessAnalysisData, intelligence, completedSteps, allEvidence,
-  ]);
-
-  const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
-  const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
+  const {
+    completedSteps, narrative, runAnalysis, hasRun,
+    isComputing: engineComputing,
+    deepenedOpportunities, morphologicalZones,
+    constraintInversions, secondOrderUnlocks,
+  } = autoAnalysis;
 
   const baseUrl = `/analysis/${analysisId}`;
-  const totalSignals = metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0);
   const hasBusinessContext = !!businessAnalysisData;
   const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
-
-  // ── Recompute ──
-  const [isRecomputing, setIsRecomputing] = useState(false);
-  const isDeepening = engineComputing || isRecomputing;
-
-  useEffect(() => {
-    if (!engineComputing && isRecomputing) setIsRecomputing(false);
-  }, [engineComputing, isRecomputing]);
-
-  const handleRecomputeAll = useCallback(() => {
-    if (completedSteps.size === 0) { pipelineProgress.runAllSteps(); return; }
-    setIsRecomputing(true);
-    try { pipelineProgress.runAllSteps(); } catch { /* silent */ }
-  }, [completedSteps, pipelineProgress]);
 
   const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
     : analysis.activeMode === "business" ? "business" : "product";
@@ -143,30 +148,29 @@ export default function CommandDeckPage() {
     return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
   }, [businessModelInput, selectedProduct, modeKey]);
 
-  // ── Extracted data (must be before guards — hooks can't be after early returns) ──
-  const primaryThesis = autoAnalysis.deepenedOpportunities[0] ?? null;
-  const allOpportunities = autoAnalysis.deepenedOpportunities;
-  const biExtraction = (analysis as any)?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
-  const governedDataTyped = analysis.governedData as Record<string, any> | null;
-  const entityName = analysis.adaptiveContext?.entity?.name || selectedProduct?.name || "This business";
+  // ── Recompute ──
+  const [isRecomputing, setIsRecomputing] = useState(false);
+  useEffect(() => {
+    if (!engineComputing && isRecomputing) setIsRecomputing(false);
+  }, [engineComputing, isRecomputing]);
 
-  const deepOpps = autoAnalysis.deepenedOpportunities || [];
-  const swotProse = useMemo(() => extractSwotProse(narrative, deepOpps), [narrative, deepOpps]);
-  const criticalQuestion = useMemo(() => extractCriticalQuestion(narrative, deepOpps), [narrative, deepOpps]);
-  const opportunities = useMemo(() => extractOpportunitiesWithBadges(topOpps, deepOpps), [topOpps, deepOpps]);
+  const handleRunAnalysis = useCallback(() => {
+    if (completedSteps.size === 0) { pipelineProgress.runAllSteps(); return; }
+    setIsRecomputing(true);
+    try { pipelineProgress.runAllSteps(); } catch { /* silent */ }
+  }, [completedSteps, pipelineProgress]);
 
-  // Flipped ideas — available immediately after scraping (no pipeline needed)
-  const flippedIdeas = useMemo(() => {
-    const ideas = selectedProduct?.flippedIdeas || [];
-    return ideas
-      .filter((idea: any) => idea.name && idea.description)
-      .sort((a: any, b: any) => {
-        const scoreA = (a.scores?.feasibility || 0) + (a.scores?.profitability || 0) + (a.scores?.novelty || 0);
-        const scoreB = (b.scores?.feasibility || 0) + (b.scores?.profitability || 0) + (b.scores?.novelty || 0);
-        return scoreB - scoreA;
-      })
-      .slice(0, 3);
-  }, [selectedProduct]);
+  // ── Strategic data ──
+  const primaryThesis = deepenedOpportunities[0] ?? null;
+  const opportunityGrid = useMemo(
+    () => buildOpportunityGrid(
+      deepenedOpportunities,
+      morphologicalZones,
+      constraintInversions,
+      secondOrderUnlocks,
+    ),
+    [deepenedOpportunities, morphologicalZones, constraintInversions, secondOrderUnlocks],
+  );
 
   // ── Guards ──
   const isHydrating = analysis.isHydrating;
@@ -213,8 +217,6 @@ export default function CommandDeckPage() {
           <div className="w-full max-w-lg">
             <StepLoadingTracker title={`Building ${ml} Intelligence`} tasks={activeTasks} estimatedSeconds={180} />
           </div>
-
-          {/* Instant contrarian card — the "holy shit" moment at 5 seconds */}
           {instantPair && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -253,8 +255,6 @@ export default function CommandDeckPage() {
               </div>
             </motion.div>
           )}
-
-          {/* Additional instant insights */}
           {analysis.instantInsights && !instantPair && (
             <div className="w-full max-w-lg space-y-3">
               <div className="flex items-center gap-2 px-1">
@@ -287,14 +287,16 @@ export default function CommandDeckPage() {
     );
   }
 
+  const needsAnalysis = !hasRun && completedSteps.size === 0;
+
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <main className="max-w-[900px] mx-auto px-3 sm:px-6 py-1.5 sm:py-2 space-y-2">
+      <main className="max-w-[860px] mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
 
-        {/* ═══ HEADER ═══ */}
+        {/* ═══ HEADER — analysis name + mode badge only ═══ */}
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-black text-foreground truncate">
+            <h1 className="text-lg sm:text-xl font-black text-foreground truncate">
               {analysisDisplayName}
             </h1>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -303,238 +305,68 @@ export default function CommandDeckPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (
+            {needsAnalysis ? (
               <button
-                onClick={handleRecomputeAll}
+                onClick={handleRunAnalysis}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
                 style={{ background: modeAccent, color: "white" }}
               >
                 <Play size={12} /> Run Analysis
               </button>
+            ) : (
+              <button
+                onClick={handleRunAnalysis}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+                style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}
+              >
+                <RefreshCw size={13} className={(isRecomputing || engineComputing) ? "animate-spin" : ""} /> Refresh
+              </button>
             )}
-            <button
-              onClick={() => {
-                if (!selectedProduct) return;
-                const data = gatherAllAnalysisData(analysis);
-                toast.loading("Generating PDF…", { id: "pdf-progress" });
-                downloadReportAsPDF(selectedProduct, data, {
-                  title: selectedProduct.name || analysisDisplayName,
-                  mode: analysis.activeMode,
-                  onProgress: (msg: string) => toast.loading(msg, { id: "pdf-progress" }),
-                }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
-                  .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px] bg-muted text-foreground border border-border"
-            >
-              <FileDown size={13} /> PDF
-            </button>
-            <button onClick={handleRecomputeAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-              style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}>
-              <RefreshCw size={13} className={(isRecomputing || engineComputing) ? "animate-spin" : ""} /> Refresh
-            </button>
-            <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           </div>
         </div>
 
-        {/* ═══ DEAL METRICS STRIP ═══ */}
-        <DealMetricsStrip
-          biExtraction={biExtraction}
-          governedData={governedDataTyped}
-        />
-
-        {/* ═══ ANALYSIS PROGRESS ═══ */}
-        {pipelineProgress.isRunning && (
-          <PipelineTimerStrip pipelineProgress={pipelineProgress} />
-        )}
-
-        {/* ═══ DEEPENING INDICATOR ═══ */}
-        {isDeepening && hasRun && !pipelineProgress.isRunning && (
-          <div className="flex items-center gap-1.5 px-1">
-            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: modeAccent }} />
-            <span className="text-[10px] font-bold" style={{ color: modeAccent }}>Refining insights…</span>
-          </div>
-        )}
-
-        {/* ═══ SECTION 1 — CONTRARIAN INSIGHT ═══ */}
-        <ContrarianInsightCard
-          thesis={primaryThesis}
+        {/* ═══ SECTION 1 — STRATEGIC SUMMARY (What we found) ═══ */}
+        <StrategicSummarySection
+          narrative={narrative}
+          primaryThesis={primaryThesis}
           modeAccent={modeAccent}
-          entityName={analysisDisplayName}
-          instantPair={analysis.instantInsights?.contrarianPair}
-          computeTimeMs={analysis.instantInsights?.computeTimeMs}
+          hasRun={hasRun}
+          isComputing={engineComputing || isRecomputing}
         />
 
-        {/* ═══ SECTION 1.5 — FLIPPED IDEAS (available instantly after scraping) ═══ */}
-        {flippedIdeas.length > 0 && (
-          <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.12 }}>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 px-1">
-                <Lightbulb size={12} className="text-primary" />
-                <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                  Reinvention Ideas
-                </h2>
-                {!hasRun && (
-                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary ml-auto">
-                    Instant
-                  </span>
-                )}
-              </div>
-              {flippedIdeas.map((idea: any, i: number) => {
-                const topScore = Math.max(
-                  idea.scores?.feasibility || 0,
-                  idea.scores?.profitability || 0,
-                  idea.scores?.novelty || 0
-                );
-                const starLabel = topScore >= 8 ? "High potential" : topScore >= 6 ? "Promising" : null;
-                return (
-                  <div
-                    key={i}
-                    className="rounded-lg border border-border/60 bg-card px-3 py-2.5"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div
-                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                        style={{ background: `${modeAccent}12`, border: `1px solid ${modeAccent}25` }}
-                      >
-                        <Lightbulb size={10} style={{ color: modeAccent }} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-xs font-bold text-foreground leading-snug">{idea.name}</p>
-                          {starLabel && (
-                            <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0 rounded-full bg-accent text-accent-foreground">
-                              <Star size={8} /> {starLabel}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 mt-0.5">
-                          {idea.description}
-                        </p>
-                        {idea.reasoning && (
-                          <p className="text-[10px] text-muted-foreground/70 leading-snug line-clamp-1 mt-1 italic">
-                            Why: {idea.reasoning}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
+        {/* ═══ SECTION 2 — OPPORTUNITY GRID (What you could do) ═══ */}
+        {opportunityGrid.length > 0 && (
+          <OpportunityGridSection
+            opportunities={opportunityGrid}
+            modeAccent={modeAccent}
+          />
         )}
 
-        {Object.values(swotProse).some(Boolean) && (
-          <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.1 }}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {swotProse.working && (
-                <RealityCard
-                  icon={TrendingUp}
-                  label="What's Working"
-                  text={swotProse.working}
-                  colorVar="--success"
-                />
-              )}
-              {swotProse.blocking && (
-                <RealityCard
-                  icon={AlertTriangle}
-                  label="What's Blocking Growth"
-                  text={swotProse.blocking}
-                  colorVar="--warning"
-                />
-              )}
-              {swotProse.opening && (
-                <RealityCard
-                  icon={Target}
-                  label="The Opening"
-                  text={swotProse.opening}
-                  colorVar="--primary"
-                />
-              )}
-              {swotProse.risk && (
-                <RealityCard
-                  icon={ShieldAlert}
-                  label="The Risk"
-                  text={swotProse.risk}
-                  colorVar="--destructive"
-                />
-              )}
-            </div>
-          </motion.div>
+        {/* ═══ SECTION 3 — RECOMMENDED MOVE (What we'd do first) ═══ */}
+        {primaryThesis && (
+          <NextMoveSection thesis={primaryThesis} modeAccent={modeAccent} />
         )}
 
-        {/* ═══ SECTION 3 — CRITICAL QUESTION ═══ */}
-        {criticalQuestion && (
-          <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
-            <div className="rounded-lg px-3 py-2 bg-muted/50 border border-border flex items-start gap-2">
-              <HelpCircle size={13} className="text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">
-                {criticalQuestion}
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ═══ SECTION 4 — TOP 3 OPPORTUNITIES ═══ */}
-        {opportunities.length > 0 && (
-          <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }}>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 px-1">
-                <Zap size={12} className="text-primary" />
-                <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                  Top Moves
-                </h2>
-              </div>
-              {opportunities.map((opp, i) => {
-                // Find matching deepened opportunity for analogy badge
-                const matchedDeep = deepOpps.find(d =>
-                  d.label === opp.title || d.reconfigurationLabel === opp.title
-                );
-                const precedent = matchedDeep?.strategicPrecedents?.[0];
-
-                return (
-                  <div key={i} className="rounded-lg border border-border/60 bg-card px-3 py-2">
-                    <div className="flex gap-2 items-start">
-                      <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold mt-0.5">
-                        {i + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-xs font-bold text-foreground leading-snug">{opp.title}</p>
-                          {opp.badges.map((badge) => (
-                            <span key={badge} className="text-[9px] font-bold px-1.5 py-0 rounded-full bg-primary/10 text-primary">
-                              {badge}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{opp.description}</p>
-                        {precedent && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground">
-                              Inspired by: {precedent.company} → {precedent.pattern}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {/* ═══ SEE FULL ANALYSIS ═══ */}
-        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.3 }} className="flex justify-center pb-1">
+        {/* ═══ DEEP DIVE LINK ═══ */}
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.35 }} className="flex justify-center pb-2 gap-3">
           <Button
             size="sm"
             variant="outline"
-            onClick={() => navigate(`${baseUrl}/report`)}
+            onClick={() => navigate(`${baseUrl}/deep-dive`)}
             className="gap-1.5 text-xs"
           >
-            See Full Analysis
-            <ArrowRight size={14} />
+            <Search size={13} />
+            Show me why
+            <ArrowRight size={13} />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => navigate(`${baseUrl}/report`)}
+            className="gap-1.5 text-xs text-muted-foreground"
+          >
+            Full Report
+            <ArrowRight size={13} />
           </Button>
         </motion.div>
 
@@ -543,32 +375,268 @@ export default function CommandDeckPage() {
   );
 }
 
-/* ── Reality Card (SWOT) ── */
-function RealityCard({
-  icon: Icon, label, text, colorVar,
+// ─────────────────────────────────────────────────────────────────────────────
+//  Section 1 — Strategic Summary
+// ─────────────────────────────────────────────────────────────────────────────
+function StrategicSummarySection({
+  narrative,
+  primaryThesis,
+  modeAccent,
+  hasRun,
+  isComputing,
 }: {
-  icon: React.ElementType; label: string; text: string; colorVar: string;
+  narrative: StrategicNarrative | null;
+  primaryThesis: DeepenedOpportunity | null;
+  modeAccent: string;
+  hasRun: boolean;
+  isComputing: boolean;
+}) {
+  const constraint = narrative?.primaryConstraint
+    || primaryThesis?.causalChain?.constraint
+    || null;
+  const verdict = narrative?.strategicVerdict
+    || primaryThesis?.reconfigurationLabel
+    || null;
+  const verdictRationale = narrative?.verdictRationale
+    || primaryThesis?.causalChain?.reasoning
+    || null;
+
+  const isReady = hasRun && (!!constraint || !!verdict);
+
+  return (
+    <motion.div {...fadeIn} transition={{ duration: 0.35, delay: 0.05 }}>
+      <div
+        className="rounded-xl px-5 py-4 space-y-3"
+        style={{
+          background: "hsl(var(--card))",
+          border: `1.5px solid ${modeAccent}30`,
+        }}
+      >
+        {/* Section label */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Zap size={13} style={{ color: modeAccent }} />
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+              What we found
+            </span>
+          </div>
+          {isComputing && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: modeAccent }} />
+              <span className="text-[10px] font-bold" style={{ color: modeAccent }}>Refining…</span>
+            </div>
+          )}
+        </div>
+
+        {!isReady ? (
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {isComputing
+              ? "Analysing your business model — strategic insights will appear shortly."
+              : "Run the analysis to generate your strategic brief."}
+          </p>
+        ) : (
+          <>
+            {/* Constraint */}
+            {constraint && (
+              <div
+                className="rounded-lg px-3 py-2.5"
+                style={{ background: "hsl(var(--destructive) / 0.05)", border: "1px solid hsl(var(--destructive) / 0.15)" }}
+              >
+                <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>
+                  Structural Constraint
+                </p>
+                <p className="text-sm font-bold text-foreground leading-snug">
+                  {humanizeLabel(constraint)}
+                </p>
+              </div>
+            )}
+
+            {/* Strategic verdict */}
+            {verdict && (
+              <div>
+                <p className="text-base sm:text-lg font-black text-foreground leading-snug">
+                  {humanizeLabel(verdict)}
+                </p>
+                {verdictRationale && (
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                    {verdictRationale}
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Section 2 — Opportunity Grid
+// ─────────────────────────────────────────────────────────────────────────────
+function OpportunityGridSection({
+  opportunities,
+  modeAccent,
+}: {
+  opportunities: GridOpportunity[];
+  modeAccent: string;
 }) {
   return (
-    <Card
-      className="border"
-      style={{
-        background: `hsl(var(${colorVar}) / 0.04)`,
-        borderColor: `hsl(var(${colorVar}) / 0.15)`,
-      }}
+    <motion.div {...fadeIn} transition={{ duration: 0.35, delay: 0.12 }}>
+      <div className="space-y-2">
+        {/* Section label */}
+        <div className="flex items-center gap-2 px-1">
+          <Lightbulb size={13} style={{ color: modeAccent }} />
+          <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            What you could do
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {opportunities.map((opp, i) => (
+            <OpportunityCard key={opp.id} opp={opp} index={i} modeAccent={modeAccent} />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function OpportunityCard({
+  opp,
+  index,
+  modeAccent,
+}: {
+  opp: GridOpportunity;
+  index: number;
+  modeAccent: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const meta = SOURCE_META[opp.source];
+  const Icon = meta.icon;
+  const hasExtra = !!opp.whyThisWorks;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.12 + index * 0.04, duration: 0.3 }}
+      className="rounded-xl overflow-hidden"
+      style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
     >
-      <CardContent className="pt-2.5 pb-2.5 px-3">
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <Icon size={12} style={{ color: `hsl(var(${colorVar}))` }} />
+      <div className="px-4 py-3 space-y-2">
+        {/* Header */}
+        <div className="flex items-start gap-2.5">
           <span
-            className="text-[9px] font-extrabold uppercase tracking-wider"
-            style={{ color: `hsl(var(${colorVar}))` }}
+            className="text-xs font-extrabold tabular-nums w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ background: `${modeAccent}15`, color: modeAccent }}
           >
-            {label}
+            {index + 1}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-foreground leading-snug">{opp.title}</p>
+            <span
+              className="inline-flex items-center gap-1 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full mt-1"
+              style={{ background: `${meta.color}15`, color: meta.color }}
+            >
+              <Icon size={8} />
+              {meta.label}
+            </span>
+          </div>
+        </div>
+
+        {/* Explanation */}
+        {opp.explanation && (
+          <p className="text-[12px] text-muted-foreground leading-relaxed">
+            {opp.explanation}
+          </p>
+        )}
+
+        {/* Why this works — expandable */}
+        {hasExtra && (
+          <>
+            <button
+              onClick={() => setExpanded(v => !v)}
+              className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Why this works
+              {expanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+            </button>
+            {expanded && (
+              <p className="text-[11px] text-muted-foreground leading-relaxed border-t border-border/50 pt-2">
+                {opp.whyThisWorks}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Section 3 — Recommended Move
+// ─────────────────────────────────────────────────────────────────────────────
+function NextMoveSection({
+  thesis,
+  modeAccent,
+}: {
+  thesis: DeepenedOpportunity;
+  modeAccent: string;
+}) {
+  const firstMove = thesis.firstMove;
+  const timelineLabel = firstMove?.timeframe || "2–4 weeks";
+
+  return (
+    <motion.div {...fadeIn} transition={{ duration: 0.35, delay: 0.22 }}>
+      <div
+        className="rounded-xl px-5 py-4 space-y-3"
+        style={{
+          background: `${modeAccent}08`,
+          border: `1.5px solid ${modeAccent}30`,
+        }}
+      >
+        {/* Section label */}
+        <div className="flex items-center gap-2">
+          <Target size={13} style={{ color: modeAccent }} />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            What we'd do first
           </span>
         </div>
-        <p className="text-[11px] text-foreground/80 leading-snug line-clamp-2">{text}</p>
-      </CardContent>
-    </Card>
+
+        {/* The move */}
+        <div>
+          <h3 className="text-base sm:text-lg font-black text-foreground leading-snug">
+            {firstMove?.action ? humanizeLabel(firstMove.action) : humanizeLabel(thesis.reconfigurationLabel)}
+          </h3>
+        </div>
+
+        {/* Why */}
+        {(firstMove?.learningObjective || thesis.economicMechanism?.valueCreation) && (
+          <div className="space-y-1">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Why</p>
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              {firstMove?.learningObjective || thesis.economicMechanism?.valueCreation}
+            </p>
+          </div>
+        )}
+
+        {/* How to start */}
+        {firstMove?.successCriteria && (
+          <div className="space-y-1">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">How to start</p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{firstMove.successCriteria}</p>
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div className="flex items-center gap-1.5 pt-1 border-t border-border/30">
+          <Clock size={11} className="text-muted-foreground" />
+          <span className="text-[11px] font-semibold text-muted-foreground">
+            Timeline: {timelineLabel}
+          </span>
+        </div>
+      </div>
+    </motion.div>
   );
 }
