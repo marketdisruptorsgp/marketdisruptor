@@ -513,6 +513,90 @@ function InstantInsightsPanel({
         </div>
       )}
 
+      {/* Disruption Vulnerability */}
+      {insights.disruptionVulnerability && (
+        <div className="rounded-xl px-5 py-4 bg-orange-500/5 border border-orange-500/20">
+          <div className="flex items-start gap-3">
+            <ShieldAlert size={16} className="text-orange-500 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-orange-500">
+                  Disruption Vulnerability
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500">
+                  {insights.disruptionVulnerability.label}
+                </span>
+                <span className="text-[10px] text-muted-foreground ml-auto">
+                  {Math.round(insights.disruptionVulnerability.score * 100)}% signal match
+                </span>
+              </div>
+              <p className="text-sm text-foreground mt-1 leading-relaxed">
+                {insights.disruptionVulnerability.mechanism}
+              </p>
+              {insights.disruptionVulnerability.matchedSignals.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {insights.disruptionVulnerability.matchedSignals.slice(0, 5).map((signal, i) => (
+                    <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400">
+                      {signal}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Most Dangerous Assumption */}
+      {insights.dangerousAssumption && (
+        <div className="rounded-xl px-5 py-4 bg-destructive/5 border border-destructive/20">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={16} className="text-destructive mt-0.5 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-destructive">
+                  Most Dangerous Assumption
+                </span>
+                <span className="text-[10px] font-bold text-destructive ml-auto">
+                  {insights.dangerousAssumption.leverageEstimate}/10
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-foreground leading-snug">
+                {insights.dangerousAssumption.assumption}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {insights.dangerousAssumption.challengeHint}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Highest Leverage Opportunity */}
+      {insights.highestLeverage && (
+        <div className="rounded-xl px-5 py-4 bg-primary/5 border border-primary/20">
+          <div className="flex items-start gap-3">
+            <Target size={16} className="text-primary mt-0.5 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
+                  Highest Leverage Opportunity
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-auto">
+                  {insights.highestLeverage.score}/10
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-foreground leading-snug">
+                {insights.highestLeverage.label}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {insights.highestLeverage.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top assumptions */}
       {insights.assumptions.length > 0 && (
         <div className="space-y-2">
