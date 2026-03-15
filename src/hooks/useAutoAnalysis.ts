@@ -32,6 +32,11 @@ import {
 } from "@/lib/systemIntelligence";
 import { type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
 import { type SensitivityReport } from "@/lib/sensitivityEngine";
+import {
+  runMorphologicalSearch,
+  type OpportunityZone,
+  type OpportunityVector,
+} from "@/lib/opportunityDesignEngine";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
@@ -46,6 +51,8 @@ export interface AutoAnalysisResult {
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
   deepenedOpportunities: DeepenedOpportunity[];
+  morphologicalZones: OpportunityZone[];
+  morphologicalVectors: OpportunityVector[];
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
@@ -75,6 +82,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [scenarioComparison, setScenarioComparison] = useState<ScenarioComparison | null>(null);
   const [sensitivityReports, setSensitivityReports] = useState<SensitivityReport[]>([]);
   const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
+  const [morphologicalZones, setMorphologicalZones] = useState<OpportunityZone[]>([]);
+  const [morphologicalVectors, setMorphologicalVectors] = useState<OpportunityVector[]>([]);
   const [isComputing, setIsComputing] = useState(false);
   const isComputingRef = useRef(false);
   const [hasRun, setHasRun] = useState(false);
@@ -181,6 +190,24 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setSensitivityReports(result.sensitivityReports);
       setDeepenedOpportunities(result.deepenedOpportunities ?? []);
       setHasRun(true);
+
+      // Run morphological search deterministically — no AI cost, <100ms
+      // Only runs when we have sufficient structure (≥1 constraint, ≥18 evidence)
+      // The 18-evidence threshold matches the gate in recomputeIntelligenceAsync and ensures
+      // enough signal diversity for the morphological baseline to produce meaningful zones.
+      const activeConstraints = result.activeConstraints ?? [];
+      const leveragePoints = (result.insights ?? []).filter(i => i.insightType === "leverage_point");
+      if (activeConstraints.length >= 1 && result.flatEvidence.length >= 18) {
+        try {
+          // Pass empty array for aiAlternatives — morphological search is purely deterministic
+          const morphResult = runMorphologicalSearch(result.flatEvidence, activeConstraints, leveragePoints, []);
+          setMorphologicalZones(morphResult.zones);
+          setMorphologicalVectors(morphResult.vectors);
+          console.log(`[Morphological] Auto-ran: ${morphResult.vectors.length} vectors, ${morphResult.zones.length} zones`);
+        } catch (err) {
+          console.warn("[Morphological] Auto-run failed:", err);
+        }
+      }
 
       console.log("[StrategicEngine] Analysis complete:", {
         evidence: result.flatEvidence.length,
@@ -458,6 +485,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     scenarioComparison,
     sensitivityReports,
     deepenedOpportunities,
+    morphologicalZones,
+    morphologicalVectors,
     isComputing,
     completedSteps,
     pipelineCompletion,
