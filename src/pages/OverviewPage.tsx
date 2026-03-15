@@ -467,6 +467,46 @@ function EarlyConstraintCard({
   );
 }
 
+/* ── TRIZ Seeds Card (invention seeds from constraint patterns) ── */
+function TrizSeedsCard({ seeds }: { seeds: import("@/lib/trizEngine").TrizSeed[] }) {
+  if (seeds.length === 0) return null;
+  return (
+    <div className="rounded-xl overflow-hidden border border-primary/20">
+      <div className="px-4 py-3 bg-primary/5 border-b border-primary/10">
+        <div className="flex items-center gap-2">
+          <Lightbulb size={13} className="text-primary" />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
+            Invention Seeds — TRIZ Principles
+          </span>
+          <span className="text-[10px] text-muted-foreground ml-auto">
+            {seeds[0]?.contradictionType}
+          </span>
+        </div>
+      </div>
+      <div className="divide-y divide-border">
+        {seeds.map((seed) => (
+          <div key={seed.principleId} className="px-4 py-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-extrabold text-primary">
+                #{seed.principleId} {seed.principleName}
+              </span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary ml-auto">
+                {seed.inventiveScore}/10
+              </span>
+            </div>
+            <p className="text-xs text-foreground/80 leading-snug mb-1.5">
+              {seed.applicationHint}
+            </p>
+            <p className="text-[11px] text-muted-foreground leading-snug italic">
+              e.g. {seed.historicExample}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Instant Insights Panel (from scraped data — ~0s) ── */
 function InstantInsightsPanel({
   insights,
@@ -537,6 +577,11 @@ function InstantInsightsPanel({
             </p>
           </div>
         </div>
+      )}
+
+      {/* TRIZ Invention Seeds */}
+      {insights.trizSeeds.length > 0 && (
+        <TrizSeedsCard seeds={insights.trizSeeds} />
       )}
 
       {/* Binding constraint */}
