@@ -21,10 +21,60 @@ import type { Evidence } from "@/lib/evidenceEngine";
 import type { ConstraintCandidate } from "@/lib/constraintDetectionEngine";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { selectRelevantDirections, type ScoredDirection } from "./strategicDirections";
+import { getFallbackPrecedents } from "./precedentLibrary";
 
 // ═══════════════════════════════════════════════════════════════
-//  DEEPENED OPPORTUNITY — Stage 4 Output
+//  BUSINESS LANGUAGE TRANSLATION
 // ═══════════════════════════════════════════════════════════════
+
+/** Translate technical constraint names to plain business language */
+const CONSTRAINT_BUSINESS_LANGUAGE: Record<string, string> = {
+  labor_intensity: "Your revenue is handcuffed to billable hours — every dollar requires someone's time",
+  owner_dependency: "The business can't grow beyond what you can personally handle — you're the bottleneck",
+  operational_bottleneck: "A single process step is choking throughput — growth piles up behind it",
+  skill_scarcity: "The talent needed is hard to find and expensive to keep — growth is gated by who you can hire",
+  manual_process: "You're paying people to do work that could be systematized — every error is structural, not personal",
+  commoditized_pricing: "You're competing on price and losing ground — customers treat the offering as interchangeable",
+  revenue_concentration: "A handful of clients hold revenue hostage — lose one, feel the pain immediately",
+  transactional_revenue: "You start from zero every month — no recurring base means no compounding",
+  forced_bundling: "Customers buy the whole package when they only need part — creating objections and leaving money on the table",
+  capital_barrier: "The upfront cost is killing demand — good prospects walk away before they start",
+  supply_fragmentation: "Supply is scattered across dozens of small providers — whoever aggregates it first captures the relationship premium",
+  geographic_constraint: "Value can only travel as far as your team — geography is the growth ceiling",
+  channel_dependency: "Intermediaries own the customer relationships and capture the margin — you're working for the middleman",
+  inventory_burden: "Unsold inventory is cash sitting in a warehouse — every day it doesn't sell, it costs money",
+  capacity_ceiling: "Fixed assets have a hard ceiling — business is being turned away because the answer can't be yes",
+  legacy_lock_in: "Outdated systems are costing speed and flexibility — the tech stack is slowing down every decision",
+  information_asymmetry: "Decisions are being made blind — the data exists but isn't being captured or used",
+  analog_process: "Manual workflows are creating delays and errors that compound as the business grows",
+  expertise_barrier: "The product requires specialist knowledge to use — most potential customers give up before getting the value",
+  switching_friction: "Customers are locked in and so are you — high switching costs cut both ways",
+  trust_deficit: "The market doesn't believe you yet — trust is the bottleneck, not the product",
+  regulatory_barrier: "Compliance is a cost and a constraint — whoever turns it into a structural moat wins",
+  margin_compression: "Margins are shrinking from all sides — the current model doesn't have a structural answer",
+  asset_underutilization: "The biggest assets sit idle half the time — every hour of downtime is potential revenue lost",
+  linear_scaling: "Growth requires hiring — revenue can't scale faster than headcount",
+  vendor_concentration: "One supplier failure away from a crisis — concentrated supply is concentrated risk",
+  awareness_gap: "The people who need this don't know it exists — distribution, not product, is the bottleneck",
+  access_constraint: "Ideal customers can't reach the offering — access, not demand, is the real problem",
+  motivation_decay: "Customers start but don't stick — the drop-off is structural, not a sales problem",
+  perceived_value_mismatch: "Customers don't see what this is worth — the value exists but isn't communicated in their language",
+};
+
+function constraintToBusinessLanguage(constraintName: string, fallback?: string): string {
+  const business = CONSTRAINT_BUSINESS_LANGUAGE[constraintName];
+  if (business) return business;
+  return fallback || constraintName.replace(/_/g, " ");
+}
+
+/** Translate a direction relevance score to a plain English strength label */
+function getDirectionStrengthLabel(relevanceScore: number): string {
+  if (relevanceScore >= 6) return "strong";
+  if (relevanceScore >= 3) return "meaningful";
+  return "exploratory";
+}
+
+
 
 export interface CausalChain {
   /** The binding constraint this opportunity resolves */
@@ -225,6 +275,9 @@ export function deepenOpportunities(
     const reconfigurationLabel = buildReconfigurationLabel(qp, profile, constraint);
     const summary = buildSummary(qp, causalChain, economicMechanism);
     const relevantEvidenceIds = findRelevantEvidence(qp, evidence);
+    // Add structural precedents from the library for the pattern or closest direction mapping
+    const directionId = qp.pattern.id;
+    const libraryPrecedents = getFallbackPrecedents(directionId);
 
     return {
       id: `deep-opp-${idx + 1}`,
@@ -239,6 +292,9 @@ export function deepenOpportunities(
       feasibility,
       firstMove,
       precedents: qp.pattern.precedents,
+      strategicPrecedents: libraryPrecedents.length > 0
+        ? libraryPrecedents.slice(0, 3).map(p => ({ company: p.company, description: p.description, pattern: p.pattern }))
+        : undefined,
       resolvesConstraints: qp.qualification.resolvesConstraints,
       evidenceIds: relevantEvidenceIds,
       signalDensity: qp.signalDensity,
@@ -473,8 +529,19 @@ function deepenOpportunitiesDeterministic(
     if (direction.id === "shared_infrastructure" && usedPatternIds.has("infrastructure_abstraction")) continue;
     if (isTraditionalBusinessProfile(profile) && UNREALISTIC_DIRECTION_IDS.has(direction.id)) continue;
 
-    const constraint = profile.bindingConstraints[0]?.explanation || "structural constraint";
-    const driver = profile.bindingConstraints[0]?.constraintName.replace(/_/g, " ") || "underlying friction";
+    const primaryConstraintName = profile.bindingConstraints[0]?.constraintName || "";
+    const constraint = constraintToBusinessLanguage(primaryConstraintName, profile.bindingConstraints[0]?.explanation || "a structural constraint is limiting growth");
+    const driver = profile.bindingConstraints[0]?.explanation || "underlying structural friction";
+
+    // Get real company precedents from the precedent library
+    const fallbackPrecedents = getFallbackPrecedents(direction.id);
+    const topPrecedent = fallbackPrecedents[0];
+    const precedentIntro = topPrecedent
+      ? `${topPrecedent.company} proved this works: ${topPrecedent.description}.`
+      : "";
+
+    const strengthLabel = getDirectionStrengthLabel(relevanceScore);
+    const summary = `${precedentIntro ? `${precedentIntro} ` : ""}${direction.description} There is a ${strengthLabel} structural case for this direction based on the current business profile.`;
 
     patternOpps.push({
       id: `deep-opp-dir-${direction.id}`,
@@ -482,55 +549,63 @@ function deepenOpportunitiesDeterministic(
       patternName: direction.label,
       label: `${direction.label}: ${direction.description.slice(0, 80)}`,
       reconfigurationLabel: `${direction.label} — ${direction.description}`,
-      summary: `${direction.description} This direction has ${relevanceScore >= 6 ? "high" : relevanceScore >= 3 ? "moderate" : "exploratory"} structural relevance based on the current business profile.`,
+      summary,
       causalChain: {
         constraint,
         driver,
         pattern: direction.label,
-        outcome: `Unlock new value through ${direction.label.toLowerCase()}`,
-        reasoning: `Because ${driver}, applying ${direction.label.toLowerCase()} could address the structural constraint.`,
+        outcome: `Unlock new revenue and margin through ${direction.label.toLowerCase()}`,
+        reasoning: `Because ${driver}, applying ${direction.label.toLowerCase()} could remove the ceiling on growth.`,
       },
       strategicBet: {
-        industryAssumption: "The current model is the only viable approach",
-        contrarianBelief: `${direction.label} could fundamentally change the economics`,
-        implication: "First mover in this direction captures structural advantage",
+        industryAssumption: "The current operating model is the only viable approach in this market",
+        contrarianBelief: `${direction.label} can change the economics without requiring the same inputs`,
+        implication: "The first business to execute this captures a structural advantage that's hard to copy",
       },
       economicMechanism: {
         valueCreation: direction.description,
-        costStructureShift: "Shifts from variable to fixed costs",
-        revenueImplication: "Creates new revenue stream or improves unit economics",
-        defensibility: null,
+        costStructureShift: "Decouples revenue growth from proportional cost increases",
+        revenueImplication: "Creates a new revenue mechanism or significantly improves margin on existing revenue",
+        defensibility: fallbackPrecedents.length > 0 ? `${fallbackPrecedents[0].company} built defensibility through ${fallbackPrecedents[0].pattern}` : null,
       },
       feasibility: {
         level: "requires_validation" as FeasibilityLevel,
-        marketConditions: ["Market readiness for this approach"],
-        requiredCapabilities: ["Execution capability for this direction"],
-        executionRisks: ["Unvalidated demand"],
+        marketConditions: ["The market has enough structural similarity to precedent companies that executed this move"],
+        requiredCapabilities: [`Ability to execute ${direction.label.toLowerCase()} with available resources`],
+        executionRisks: ["Requires validation with real customers before full commitment"],
         regulatoryConsiderations: null,
       },
       firstMove: {
-        action: `Research 3-5 companies that have successfully applied ${direction.label.toLowerCase()} in adjacent industries`,
-        learningObjective: "Whether the structural conditions support this direction",
-        timeframe: "1 week",
-        successCriteria: "At least 2 viable precedents identified with transferable mechanics",
+        action: fallbackPrecedents.length > 0
+          ? `Study how ${fallbackPrecedents[0].company} executed this move. Map the specific mechanism to this business. Then identify 3-5 customers who would benefit first.`
+          : `Identify 3-5 companies that have successfully applied ${direction.label.toLowerCase()} in adjacent industries and map the specific mechanism to this business`,
+        learningObjective: "Whether the structural conditions here match those that made this approach work elsewhere",
+        timeframe: "1-2 weeks",
+        successCriteria: "Clear analogy to a company that executed this successfully, with a specific mechanism that transfers",
       },
-      precedents: [],
+      precedents: fallbackPrecedents.map(p => `${p.company}: ${p.description}`),
+      strategicPrecedents: fallbackPrecedents.slice(0, 3).map(p => ({
+        company: p.company,
+        description: p.description,
+        pattern: p.pattern,
+      })),
       whyThisMatters: {
         implications: [
-          `Current operations are constrained by ${driver}`,
-          `Growth potential is limited without addressing this structural friction`,
-          `Competitors who solve this first gain a lasting advantage`,
+          constraint,
+          `Without addressing this, growth requires proportional increases in cost or effort`,
+          `Competitors who solve this constraint first establish a position that's hard to match`,
         ],
         ifSolved: [
-          `${direction.label} unlocks new revenue or margin opportunities`,
-          `The business can scale without proportional cost increases`,
-          `Structural position improves relative to competitors`,
+          `${direction.label} creates a path to revenue growth that doesn't require proportional headcount increases`,
+          `Businesses that have made this shift typically see 30-50% improvement in unit economics within 12-18 months`,
+          `The structural position becomes more defensible — a solved constraint becomes a competitive moat`,
         ],
       },
       secondOrderEffects: [
-        "Process consistency compounds over time",
-        "Operational knowledge becomes easier to transfer across team members",
-        "Better reliability can improve pricing power and client retention",
+        "Consistency compounds — each iteration improves the next",
+        "Operational knowledge becomes transferable rather than locked in key people",
+        "Improved margins create room to invest in the next strategic move",
+        "Better competitive positioning attracts higher-quality customers",
       ],
       resolvesConstraints: profile.bindingConstraints.slice(0, 1).map(c => c.constraintName),
       evidenceIds: [],
@@ -557,12 +632,14 @@ function findPrimaryConstraint(qp: QualifiedPattern, profile: StructuralProfile)
   if (qp.qualification.resolvesConstraints.length > 0) {
     const constraintName = qp.qualification.resolvesConstraints[0];
     const binding = profile.bindingConstraints.find(c => c.constraintName === constraintName);
-    return binding?.explanation || constraintName.replace(/_/g, " ");
+    // Prefer business-language translation over raw name
+    return constraintToBusinessLanguage(constraintName, binding?.explanation || constraintName.replace(/_/g, " "));
   }
   if (profile.bindingConstraints.length > 0) {
-    return profile.bindingConstraints[0].explanation || profile.bindingConstraints[0].constraintName.replace(/_/g, " ");
+    const top = profile.bindingConstraints[0];
+    return constraintToBusinessLanguage(top.constraintName, top.explanation || top.constraintName.replace(/_/g, " "));
   }
-  return "structural constraint limiting growth";
+  return "a structural constraint is limiting growth";
 }
 
 function inferDriver(constraint: string, profile: StructuralProfile, evidence: Evidence[]): string {
