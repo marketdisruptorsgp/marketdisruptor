@@ -44,6 +44,7 @@ const PipelinePage = lazy(() => import("./pages/PipelinePage"));
 const PipelineObservabilityPage = lazy(() => import("./pages/PipelineObservabilityPage"));
 const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage"));
 const CommandDeckPage = lazy(() => import("./pages/CommandDeckPage"));
+const DeepDivePage = lazy(() => import("./pages/DeepDivePage"));
 const OverviewPage = lazy(() => import("./pages/OverviewPage"));
 const ProblemStatementPage = lazy(() => import("./pages/ProblemStatementPage"));
 const BenchmarkRunner = lazy(() => import("./pages/BenchmarkRunner"));
@@ -188,6 +189,7 @@ function AppRoutes() {
         <Route path="/analysis/:id/problem" element={<LazyRoute><ProblemStatementPage /></LazyRoute>} />
         <Route path="/analysis/:id/overview" element={<LazyRoute><OverviewPage /></LazyRoute>} />
         <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
+        <Route path="/analysis/:id/deep-dive" element={<LazyRoute><DeepDivePage /></LazyRoute>} />
         <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
         <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
         <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />

@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, GitBranch,
   Search, Brain, Lightbulb, Shield, Sparkles,
-  FolderOpen, PlusCircle, Zap, Map, Eye,
+  FolderOpen, PlusCircle, Zap, Map, Eye, Layers,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -44,7 +44,8 @@ interface NavItem {
 const DISCOVERY_ITEMS: NavItem[] = [
   { label: "Problem Statement", icon: Map, path: (id) => id ? `/analysis/${id}/problem` : "/workspace", requiresAnalysis: true },
   { label: "Overview", icon: Eye, path: (id) => id ? `/analysis/${id}/overview` : "/workspace", requiresAnalysis: true },
-  { label: "Command Deck", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace", requiresAnalysis: true },
+  { label: "Strategic Brief", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace", requiresAnalysis: true },
+  { label: "Deep Dive", icon: Layers, path: (id) => id ? `/analysis/${id}/deep-dive` : "/workspace", requiresAnalysis: true },
   { label: "Insight Graph", icon: GitBranch, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
 ];
 
