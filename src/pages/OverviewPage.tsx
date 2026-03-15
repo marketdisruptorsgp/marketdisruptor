@@ -496,6 +496,39 @@ function InstantInsightsPanel({
         <p className="text-sm text-foreground font-medium leading-relaxed">{insights.summary}</p>
       </div>
 
+      {/* Contrarian Pair */}
+      {insights.contrarianPair && (
+        <div className="rounded-xl overflow-hidden border-2 border-primary/20">
+          <div className="flex flex-col sm:flex-row">
+            <div className="flex-1 px-4 py-3 bg-destructive/5">
+              <p className="text-[9px] font-extrabold uppercase tracking-widest text-destructive mb-1">
+                Everyone Assumes
+              </p>
+              <p className="text-sm text-foreground/80 leading-snug">
+                "{insights.contrarianPair.everyoneAssumes}"
+              </p>
+            </div>
+            <div className="flex items-center justify-center px-2 py-1 sm:py-0">
+              <ArrowRight size={14} className="text-muted-foreground rotate-90 sm:rotate-0" />
+            </div>
+            <div className="flex-1 px-4 py-3 bg-primary/5">
+              <p className="text-[9px] font-extrabold uppercase tracking-widest text-primary mb-1">
+                Evidence Suggests
+              </p>
+              <p className="text-sm text-foreground font-semibold leading-snug">
+                "{insights.contrarianPair.evidenceSuggests}"
+              </p>
+            </div>
+          </div>
+          <div className="px-4 py-2 bg-muted/40 border-t border-border">
+            <p className="text-xs text-muted-foreground leading-snug">
+              <span className="font-bold text-foreground">The move: </span>
+              {insights.contrarianPair.soWhat}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Binding constraint */}
       {insights.bindingConstraint && (
         <div className="rounded-xl px-5 py-4 bg-destructive/5 border border-destructive/15">
