@@ -10,6 +10,8 @@
  * after scraping finishes.
  */
 
+import { classifyDisruptionArchetype } from "./disruptionArchetypeClassifier";
+
 export interface InstantAssumption {
   assumption: string;
   reason: "industry_norm" | "pricing_default" | "supply_chain" | "distribution" | "labor";
@@ -52,6 +54,12 @@ export interface InstantInsights {
   summary: string;
   computedAt: number;
   computeTimeMs: number;
+  /** The single most dangerous assumption — highest leverageEstimate from assumptions array */
+  dangerousAssumption: InstantAssumption | null;
+  /** The single highest leverage point — highest score from leveragePoints array */
+  highestLeverage: InstantLeveragePoint | null;
+  /** The disruption category this business is most vulnerable to */
+  disruptionVulnerability: import("./disruptionArchetypeClassifier").DisruptionArchetype | null;
 }
 
 /**
@@ -75,13 +83,17 @@ export function computeInstantInsights(product: any): InstantInsights | null {
     const pi = product.pricingIntel;
 
     if (pi.currentMarketPrice || pi.msrpOriginal) {
-      assumptions.push({
-        assumption: `${name} must charge per-unit/per-visit pricing`,
-        reason: "pricing_default",
-        challengeHint: "Subscription, membership, or outcome-based pricing could unlock recurring revenue",
-        leverageEstimate: 8,
-        source: "pricingIntel",
-      });
+      const pricingText = JSON.stringify(pi).toLowerCase();
+      const alreadySubscription = /subscri|recurring|monthly|annual|membership|saas|per.seat|per.user/.test(pricingText);
+      if (!alreadySubscription) {
+        assumptions.push({
+          assumption: `${name} must charge per-unit/per-visit pricing`,
+          reason: "pricing_default",
+          challengeHint: "Subscription, membership, or outcome-based pricing could unlock recurring revenue",
+          leverageEstimate: 8,
+          source: "pricingIntel",
+        });
+      }
     }
 
     if (pi.margins && typeof pi.margins === "object") {
@@ -185,13 +197,17 @@ export function computeInstantInsights(product: any): InstantInsights | null {
 
   // ═══ SERVICE-SPECIFIC INSIGHTS ═══
   if (isService) {
-    assumptions.push({
-      assumption: `${name} requires in-person, on-site delivery`,
-      reason: "labor",
-      challengeHint: "Remote diagnostics, IoT monitoring, or preventive subscription models could reduce truck rolls by 30-50%",
-      leverageEstimate: 9,
-      source: "service_mode",
-    });
+    const isRemote = isRemoteLike(category, product);
+
+    if (!isRemote) {
+      assumptions.push({
+        assumption: `${name} requires in-person, on-site delivery`,
+        reason: "labor",
+        challengeHint: "Remote diagnostics, IoT monitoring, or preventive subscription models could reduce truck rolls by 30-50%",
+        leverageEstimate: 9,
+        source: "service_mode",
+      });
+    }
 
     assumptions.push({
       assumption: `Pricing must be per-job with manual quoting`,
@@ -298,6 +314,17 @@ export function computeInstantInsights(product: any): InstantInsights | null {
 
   const computeTimeMs = Math.round(performance.now() - startTime);
 
+  // ═══ THREE NAMED OUTPUTS ═══
+  const dangerousAssumption = assumptions.length > 0
+    ? [...assumptions].sort((a, b) => b.leverageEstimate - a.leverageEstimate)[0]
+    : null;
+
+  const highestLeverage = leveragePoints.length > 0
+    ? [...leveragePoints].sort((a, b) => b.score - a.score)[0]
+    : null;
+
+  const disruptionVulnerability = classifyDisruptionArchetype(product);
+
   return {
     assumptions: assumptions.slice(0, 8),
     leveragePoints: leveragePoints.sort((a, b) => b.score - a.score).slice(0, 6),
@@ -307,6 +334,9 @@ export function computeInstantInsights(product: any): InstantInsights | null {
     summary,
     computedAt: Date.now(),
     computeTimeMs,
+    dangerousAssumption,
+    highestLeverage,
+    disruptionVulnerability,
   };
 }
 
@@ -359,6 +389,19 @@ function isServiceLike(category: string, product: any): boolean {
   const desc = (product.description || "").toLowerCase();
   const serviceKeywords = ["service", "repair", "install", "maintenance", "consult", "deliver", "clean", "fix"];
   return serviceKeywords.some(kw => desc.includes(kw));
+}
+
+function isRemoteLike(category: string, product: any): boolean {
+  const remoteCategories = new Set([
+    "saas", "software", "digital", "online", "remote", "virtual",
+    "consulting", "coaching", "financial services", "legal services",
+    "education", "e-learning", "marketing", "seo", "content",
+  ]);
+  const cat = category.toLowerCase().trim();
+  if (remoteCategories.has(cat)) return true;
+  const desc = (product.description || "").toLowerCase();
+  const remoteKeywords = ["online", "remote", "virtual", "digital", "software", "saas", "cloud", "platform"];
+  return remoteKeywords.some(kw => desc.includes(kw));
 }
 
 function truncate(s: string, max: number): string {
