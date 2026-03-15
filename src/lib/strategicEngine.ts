@@ -46,10 +46,73 @@ import {
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
+import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
 
 // ═══════════════════════════════════════════════════════════════
-//  TYPES
+//  BUSINESS LANGUAGE TRANSLATION LAYER
+//  Maps internal constraint names to entrepreneur-facing language
 // ═══════════════════════════════════════════════════════════════
+
+const CONSTRAINT_BUSINESS_LANGUAGE: Record<string, string> = {
+  labor_intensity: "Your revenue is handcuffed to billable hours — every dollar requires someone's time",
+  owner_dependency: "The business can't grow beyond what you can personally handle — you're the bottleneck",
+  operational_bottleneck: "A single process step is choking your throughput — growth piles up behind the bottleneck",
+  skill_scarcity: "The talent you need is hard to find and expensive to keep — growth is gated by who you can hire",
+  manual_process: "You're paying people to do work that could be systematized — every error and delay is structural, not personal",
+  commoditized_pricing: "You're competing on price and losing ground — customers treat your offering as interchangeable",
+  revenue_concentration: "A handful of clients hold your revenue hostage — lose one, feel the pain immediately",
+  transactional_revenue: "You start from zero every month — no recurring base means no compounding",
+  forced_bundling: "Customers buy your whole package when they only need part of it — you're creating objections and leaving money on the table",
+  capital_barrier: "The upfront cost is killing demand — good prospects walk away before they start",
+  supply_fragmentation: "Supply is scattered across dozens of small providers — whoever aggregates it first captures the relationship premium",
+  geographic_constraint: "Your value can only travel as far as your team — geography is your ceiling",
+  channel_dependency: "Intermediaries own your customer relationships and capture your margin — you're working for the middleman",
+  inventory_burden: "Unsold inventory is cash sitting in a warehouse — every day it doesn't sell, it costs you",
+  capacity_ceiling: "Your fixed assets have a hard ceiling — you're turning away business because you can't say yes",
+  legacy_lock_in: "Outdated systems are costing you speed and flexibility — your tech stack is slowing down every decision",
+  information_asymmetry: "You're making decisions blind — the data exists but you're not capturing or using it",
+  analog_process: "Manual, paper-based workflows are creating delays and errors that compound as you grow",
+  expertise_barrier: "Your product requires specialist knowledge to use — most potential customers give up before they get the value",
+  switching_friction: "Customers are locked in and so are you — high switching costs cut both ways",
+  trust_deficit: "The market doesn't believe you yet — trust is the bottleneck, not the product",
+  regulatory_barrier: "Compliance is a cost and a constraint — whoever turns it into a structural moat wins",
+  margin_compression: "Margins are shrinking from all sides — the current model doesn't have a structural answer",
+  asset_underutilization: "Your biggest assets sit idle half the time — every hour of downtime is revenue you'll never recover",
+  linear_scaling: "Growth requires hiring — you can't scale revenue faster than you can scale headcount",
+  vendor_concentration: "You're one supplier failure away from a crisis — concentrated supply is concentrated risk",
+  awareness_gap: "The people who need this don't know it exists — distribution, not product, is the bottleneck",
+  access_constraint: "Your ideal customers can't reach you — access, not demand, is the real problem",
+  motivation_decay: "Customers start but don't stick — the drop-off is structural, not a sales problem",
+  perceived_value_mismatch: "Customers don't see what you're worth — the value exists but you're not communicating it in their language",
+};
+
+/** Translate a technical constraint name to entrepreneur-facing business language */
+function constraintToBusinessLanguage(constraintName: string, fallback?: string): string {
+  const business = CONSTRAINT_BUSINESS_LANGUAGE[constraintName];
+  if (business) return business;
+  // Fall back to humanized version of the constraint name or provided fallback
+  return fallback || humanize(constraintName.replace(/_/g, " "));
+}
+
+/** Get a pattern-specific business narrative that references real company precedents */
+function patternToBusinessNarrative(patternId: string, contrarianBelief: string): string {
+  const precedents = getFallbackPrecedents(patternId);
+  const companyNames = precedents.slice(0, 2).map(p => p.company);
+
+  const patternIntros: Record<string, string> = {
+    aggregation: `${companyNames[0] || "Uber"} proved this: aggregate fragmented supply and you own the relationship layer.`,
+    unbundling: `${companyNames[0] || "Dollar Shave Club"} and ${companyNames[1] || "Robinhood"} built category leaders by unbundling one high-value piece.`,
+    rebundling: `${companyNames[0] || "Apple"} and ${companyNames[1] || "Salesforce"} built empires by rebundling around the real job-to-be-done.`,
+    supply_chain_relocation: `${companyNames[0] || "Tesla"} and ${companyNames[1] || "Warby Parker"} bet everything on owning the supply chain — and won.`,
+    stakeholder_monetization: `${companyNames[0] || "Google"} and ${companyNames[1] || "Airbnb"} unlocked value from stakeholders everyone else ignored.`,
+    infrastructure_abstraction: `${companyNames[0] || "AWS"} and ${companyNames[1] || "Stripe"} turned internal capability into the category-defining infrastructure layer.`,
+  };
+
+  const intro = patternIntros[patternId] || (companyNames.length > 0 ? `${companyNames[0]} took exactly this approach.` : "");
+  return intro ? `${intro} ${contrarianBelief}` : contrarianBelief;
+}
+
+
 
 export type StrategicInsightType =
   | "constraint_cluster"
@@ -308,17 +371,25 @@ function buildStrategicNarrative(
 
   // Strategic Verdict — the headline
   const strategicVerdict = move;
-  const verdictRationale = `This business is held back by ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
+  const verdictRationale = `Here's what's holding this business back: ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
   const verdictConfidence = Math.min(0.4 + primary.signalDensity * 0.15, 0.9);
 
-  // Why This Matters — from the strategic bet (plain English, no jargon)
+  // Why This Matters — with company precedent from strategicPrecedents if available
+  const topPrecedent = primary.strategicPrecedents?.[0];
+  const precedentStory = topPrecedent
+    ? `${topPrecedent.company} faced this exact situation: ${topPrecedent.description}`
+    : null;
   const whyThisMatters = primary.strategicBet.industryAssumption && primary.strategicBet.contrarianBelief
-    ? `Most people in this market believe "${primary.strategicBet.industryAssumption}" — but the evidence points another way. ${primary.strategicBet.contrarianBelief}. ${primary.strategicBet.implication || ""}`
+    ? `${precedentStory ? `${precedentStory}. ` : ""}Most people in this market believe "${primary.strategicBet.industryAssumption}" — but the evidence points another way. ${primary.strategicBet.contrarianBelief}. ${primary.strategicBet.implication || ""}`
     : primary.strategicBet.contrarianBelief || primary.causalChain.reasoning || null;
 
   // Trapped Value — from economic mechanism
   const trappedValue = `${primary.economicMechanism.valueCreation}. Current cost picture: ${primary.economicMechanism.costStructureShift}`;
-  const unlockPotential = `${primary.economicMechanism.revenueImplication}${primary.economicMechanism.defensibility ? `. Why it's hard to copy: ${primary.economicMechanism.defensibility}` : ""}`;
+  const unlockPotential = `${primary.economicMechanism.revenueImplication}${primary.economicMechanism.defensibility ? `. What makes this defensible: ${primary.economicMechanism.defensibility}` : ""}`;
+
+  // Business impact estimates — from whyThisMatters.ifSolved if available
+  const topIfSolved = primary.whyThisMatters?.ifSolved?.[0];
+  const trappedValueEstimate = topIfSolved || null;
 
   // Kill Question — concise, max ~15 words, written to length (not truncated)
   const topRisk = primary.feasibility.executionRisks[0] || "structural barriers";
@@ -354,16 +425,19 @@ function buildStrategicNarrative(
   }
 
   if (alternative) {
-    parts.push(`If the primary thesis doesn't hold, an alternative move exists: ${trimAt(alternative.reconfigurationLabel, 120).toLowerCase()}, which resolves ${alternative.resolvesConstraints[0]?.replace(/_/g, " ") || "a different structural constraint"}.`);
+    parts.push(`If the primary thesis doesn't hold, an alternative path exists: ${trimAt(alternative.reconfigurationLabel, 120).toLowerCase()}.`);
   }
   if (profile.bindingConstraints.length > 1) {
-    parts.push(`${profile.bindingConstraints.length} structural constraints are interconnected, creating compounding friction.`);
+    parts.push(`${profile.bindingConstraints.length} constraints are compounding each other — solving the primary one typically unlocks the others.`);
   }
-  const narrativeSummary = parts.length > 0 ? parts.join(" ") : `The structural diagnosis identified ${constraint.toLowerCase()} as the binding constraint, with a clear resolution path.`;
+  const narrativeSummary = parts.length > 0 ? parts.join(" ") : `The analysis identified a clear constraint and resolution path. ${constraint.toLowerCase()}.`;
 
   // Executive Summary — one paragraph
   const etaPrefix = profile.etaActive ? `[Acquisition Lens] ` : "";
-  const executiveSummary = `${etaPrefix}The biggest opportunity here: ${move.toLowerCase()}. Right now, ${constraint.toLowerCase()} because ${driver.toLowerCase()}. The fix — ${primary.patternName.toLowerCase()} — should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
+  const precedentContext = primary.strategicPrecedents?.[0]
+    ? ` ${primary.strategicPrecedents[0].company} faced this and responded with: ${primary.strategicPrecedents[0].description.slice(0, 100)}.`
+    : "";
+  const executiveSummary = `${etaPrefix}The biggest opportunity here: ${move.toLowerCase()}. Right now, ${constraint.toLowerCase()} because ${driver.toLowerCase()}.${precedentContext} The move — ${primary.patternName.toLowerCase()} — should ${outcome.toLowerCase()}. ${primary.strategicBet.contrarianBelief}. First test: ${trimAt(primary.firstMove.action, 100).toLowerCase()} (${validationTimeframe}).${alternative ? ` Alternative path: ${trimAt(alternative.reconfigurationLabel, 80).toLowerCase()}.` : ""}`;
 
   return {
     primaryConstraint: constraint,
@@ -378,7 +452,7 @@ function buildStrategicNarrative(
     whyThisMatters,
     trappedValue,
     unlockPotential,
-    trappedValueEstimate: null,
+    trappedValueEstimate,
     trappedValueBenchmark: null,
     trappedValueEvidenceCount: flatEvidence.filter(e => e.type === "constraint" || e.type === "friction").length,
     killQuestion,
@@ -531,12 +605,13 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // Add constraint insights from structural profile
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
+      const businessLabel = constraintToBusinessLanguage(bc.constraintName, bc.explanation);
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
         insightType: "constraint_cluster",
-        label: bc.explanation || bc.constraintName.replace(/_/g, " "),
-        description: `Binding structural constraint: ${bc.constraintName}`,
+        label: businessLabel,
+        description: `Here's what's holding this business back: ${businessLabel}`,
         evidenceIds: bc.evidenceIds ?? [],
         relatedInsightIds: [],
         impact: 8,
@@ -555,8 +630,8 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
       id: nextId("leverage"),
       analysisId: input.analysisId,
       insightType: "leverage_point",
-      label: `Resolve: ${cleanLabel}`,
-      description: `Resolving "${cleanLabel}" creates a high-leverage intervention point that unlocks disproportionate value.`,
+      label: `Opportunity: ${cleanLabel}`,
+      description: `Solving "${cleanLabel}" removes a structural ceiling — businesses that resolve this constraint typically unlock disproportionate revenue growth.`,
       evidenceIds: con.evidenceIds,
       relatedInsightIds: [con.id],
       impact: con.impact,
@@ -567,12 +642,13 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   // ── Synthesize strategic pathways from qualified patterns ──
   for (const qp of qualifiedPatternsResult.slice(0, 3)) {
+    const narrative = patternToBusinessNarrative(qp.pattern.id, qp.strategicBet.contrarianBelief.slice(0, 120));
     insights.push(makeInsight({
       id: nextId("pathway"),
       analysisId: input.analysisId,
       insightType: "strategic_pathway",
-      label: `${qp.pattern.name}: ${qp.strategicBet.contrarianBelief.slice(0, 80)}`,
-      description: `Pattern "${qp.pattern.name}" qualified with ${qp.qualification.strengthSignals.length} strength signals. ${qp.strategicBet.industryAssumption}`,
+      label: narrative.slice(0, 120),
+      description: `${narrative} Industry assumption to challenge: "${qp.strategicBet.industryAssumption}"`,
       evidenceIds: qp.qualification.strengthSignals.slice(0, 4),
       relatedInsightIds: constraintInsights.map(c => c.id),
       impact: 7 + Math.min(qp.signalDensity, 3),
@@ -865,12 +941,13 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
+      const businessLabel = constraintToBusinessLanguage(bc.constraintName, bc.explanation);
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
         insightType: "constraint_cluster",
-        label: bc.explanation || bc.constraintName.replace(/_/g, " "),
-        description: `Binding structural constraint: ${bc.constraintName}`,
+        label: businessLabel,
+        description: `Here's what's holding this business back: ${businessLabel}`,
         evidenceIds: bc.evidenceIds ?? [],
         relatedInsightIds: [],
         impact: 8,
@@ -888,8 +965,8 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
       id: nextId("leverage"),
       analysisId: input.analysisId,
       insightType: "leverage_point",
-      label: `Resolve: ${cleanLabel}`,
-      description: `Resolving "${cleanLabel}" creates a high-leverage intervention point that unlocks disproportionate value.`,
+      label: `Opportunity: ${cleanLabel}`,
+      description: `Solving "${cleanLabel}" removes a structural ceiling — businesses that resolve this constraint typically unlock disproportionate revenue growth.`,
       evidenceIds: con.evidenceIds,
       relatedInsightIds: [con.id],
       impact: con.impact,
@@ -900,12 +977,13 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   // ── Synthesize strategic pathways from qualified patterns ──
   for (const qp of qualifiedPatternsResult.slice(0, 3)) {
+    const narrative = patternToBusinessNarrative(qp.pattern.id, qp.strategicBet.contrarianBelief.slice(0, 120));
     insights.push(makeInsight({
       id: nextId("pathway"),
       analysisId: input.analysisId,
       insightType: "strategic_pathway",
-      label: `${qp.pattern.name}: ${qp.strategicBet.contrarianBelief.slice(0, 80)}`,
-      description: `Pattern "${qp.pattern.name}" qualified with ${qp.qualification.strengthSignals.length} strength signals. ${qp.strategicBet.industryAssumption}`,
+      label: narrative.slice(0, 120),
+      description: `${narrative} Industry assumption to challenge: "${qp.strategicBet.industryAssumption}"`,
       evidenceIds: qp.qualification.strengthSignals.slice(0, 4),
       relatedInsightIds: constraintInsights.map(c => c.id),
       impact: 7 + Math.min(qp.signalDensity, 3),

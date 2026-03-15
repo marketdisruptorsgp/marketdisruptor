@@ -472,12 +472,12 @@ function buildToolSchema() {
               properties: {
                 patternId: { type: "string", description: "The pattern ID or direction ID (e.g. 'aggregation', 'automate', 'platformize')" },
                 directionId: { type: "string", description: "The strategic direction category ID (e.g. 'automate', 'platformize', 'go_direct'). Required when strategic directions are provided." },
-                reconfigurationLabel: { type: "string", description: "Concrete, specific business move in one sentence. NOT the pattern name. Must be unique to this operator." },
-                summary: { type: "string", description: "One-paragraph summary of the opportunity." },
+                reconfigurationLabel: { type: "string", description: "Concrete, specific business move in plain English — one sentence. NOT the pattern name. Must be unique to this operator. Example: 'Standardize the top 5 repeat jobs into fixed-scope packages — cut estimating time by 60% and stop scope creep from eating your margin'" },
+                summary: { type: "string", description: "One-paragraph summary that opens with a real company precedent analogy. Example: 'Uber didn't build better taxis — they aggregated fragmented supply. This business has the same structural opportunity.' Then describe the specific opportunity for this business in plain language." },
                 causalChain: {
                   type: "object",
                   properties: {
-                    constraint: { type: "string", description: "The binding constraint this resolves" },
+                    constraint: { type: "string", description: "The binding constraint in plain business language — NOT a technical label. BAD: 'labor_intensity'. GOOD: 'Your revenue is handcuffed to billable hours — every dollar requires someone's time'" },
                     driver: { type: "string", description: "Root cause behind the constraint" },
                     pattern: { type: "string", description: "The structural pattern or direction applied" },
                     outcome: { type: "string", description: "Expected outcome if the pattern works" },
@@ -534,8 +534,8 @@ function buildToolSchema() {
                 whyThisMatters: {
                   type: "object",
                   properties: {
-                    implications: { type: "array", items: { type: "string" }, description: "3-4 business consequences of the constraint. Plain language, strategic advisor tone." },
-                    ifSolved: { type: "array", items: { type: "string" }, description: "3-4 outcomes if the constraint is resolved. Focus on new capabilities and margin expansion." },
+                    implications: { type: "array", items: { type: "string" }, description: "3-4 business consequences of the constraint. Write as a business owner would talk — plain English, no jargon. Example: 'You start from zero revenue every month — no recurring base, no compounding.'" },
+                    ifSolved: { type: "array", items: { type: "string" }, description: "3-4 outcomes if the constraint is resolved. EACH item MUST include a revenue/business impact estimate. Example: 'Comparable businesses that shifted to retainer pricing saw 40-60% revenue increase within 12 months — and the first $50K in retainer revenue typically lands within 90 days of the offer going live.'" },
                   },
                   required: ["implications", "ifSolved"],
                   additionalProperties: false,
@@ -545,18 +545,18 @@ function buildToolSchema() {
                   items: {
                     type: "object",
                     properties: {
-                      company: { type: "string", description: "Real company name" },
-                      description: { type: "string", description: "One sentence: what they did that's analogous" },
-                      pattern: { type: "string", description: "Strategic pattern name (e.g. platformization, marketplace creation)" },
+                      company: { type: "string", description: "Real company or product name" },
+                      description: { type: "string", description: "Specific parallel: what they faced, what they did, and what happened. Example: 'Netflix faced exactly this constraint in 2011 — 96% of revenue from DVDs. They invested $200M in streaming content while revenue was still growing. By 2013 streaming was 50%+ of revenue.'" },
+                      pattern: { type: "string", description: "Strategic pattern name (e.g., platformization, marketplace creation, vertical integration)" },
                     },
                     required: ["company", "description", "pattern"],
                     additionalProperties: false,
                   },
-                  description: "2-3 real companies that executed a structurally similar move",
+                  description: "REQUIRED: 2-3 real companies that executed a structurally similar move. Make the parallel EXPLICIT — don't just name the company, explain what they faced and what they did.",
                 },
                 secondOrderEffects: { type: "array", items: { type: "string" }, description: "3-5 downstream market consequences if this move succeeds" },
               },
-              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove"],
+              required: ["patternId", "reconfigurationLabel", "summary", "causalChain", "strategicBet", "economicMechanism", "feasibility", "firstMove", "whyThisMatters", "strategicPrecedents"],
               additionalProperties: false,
             },
           },
@@ -598,6 +598,10 @@ function parseWithRecovery(content: string): unknown {
 //  MODE-SPECIFIC SYSTEM PROMPTS
 // ═══════════════════════════════════════════════════════════════
 
+/** Shared banned-word list enforced in both product and business mode prompts */
+const BANNED_WORDS_INSTRUCTION = `NEVER USE THESE WORDS: leverage, synergy, optimize, streamline, ecosystem, utilize, stakeholder, paradigm, holistic, proportional, actionable, robust, headcount-driven, operationalize.
+   Use plain English: "use" not "leverage", "simplify" not "streamline", "team" not "headcount".`;
+
 function buildProductModeSystemPrompt(
   thesisCount: number,
   hasDirections: boolean,
@@ -605,18 +609,38 @@ function buildProductModeSystemPrompt(
   lensBlock: string,
   directionsBlock: string,
 ): string {
-  return `You are a product engineer and inventor. Given a structural decomposition of a physical product, generate SPECIFIC, CONCRETE product innovation opportunities — not business model plays.
+  return `You are a product engineer and inventor who turns component analysis into "I never thought of that" product innovations. Generate SPECIFIC, CONCRETE product innovation opportunities — not business model plays.
 
 Generate ${thesisCount} distinct product innovations, each a STRUCTURALLY DIFFERENT engineering approach.
 ${hasDirections ? `Each opportunity corresponds to a direction below. Make each SPECIFIC for this product.` : `Generate one thesis per qualified pattern.`}
 
-RULES:
-1. "reconfigurationLabel": SPECIFIC physical product change (e.g., "Replace rubber flapper with silicone diaphragm valve — eliminates chlorine degradation, extends lifespan 4x")
+══════════════════════════════════════════════════════
+BUSINESS LANGUAGE MANDATE — NON-NEGOTIABLE
+══════════════════════════════════════════════════════
+1. EVERY "summary" MUST reference a real product or company that made a similar innovation:
+   "Dyson didn't improve suction — they eliminated the bag. The same logic applies here..."
+   "Moen's MotionSense faucet turned a commodity product into a premium category by adding a sensor that costs $4. The same opportunity exists here..."
+
+2. EVERY "whyThisMatters.ifSolved" item MUST include a business impact estimate:
+   Format: "This change enables a $X–Y premium over the commodity version" OR "Reduces warranty claims by X%, saving $Y per 1,000 units sold"
+
+3. EVERY "strategicPrecedents" MUST have 2–3 real products/companies with the specific parallel made explicit.
+   BAD: "Dyson (product innovation)"
+   GOOD: "Dyson: replaced the filter bag (a $0.20 component) with cyclone technology — turned a $39 commodity into a $500 premium product and created the bagless category"
+
+4. EVERY "firstMove" MUST be something a product engineer can do in a workshop THIS WEEK.
+   Specify exact steps: "Buy $50 in silicone sheet material and fabricate 3 prototype diaphragm valves. Test against chlorinated water for 48 hours."
+
+5. ${BANNED_WORDS_INSTRUCTION}
+
+══════════════════════════════════════════════════════
+STRUCTURAL RULES
+══════════════════════════════════════════════════════
+1. "reconfigurationLabel": SPECIFIC physical product change (e.g., "Replace rubber flapper with silicone diaphragm valve — eliminates chlorine degradation, extends lifespan 4x at +$0.15/unit cost")
 2. BANNED: SaaS, subscription platform, marketplace, API, white-label, data products, software-as-primary-product
 3. Include physical specifics: materials, manufacturing method, estimated unit cost impact, certifications
 4. "causalChain": trace a physical failure mode to a specific engineering solution
-5. "firstMove": something doable in a workshop this week — NOT "raise funding"
-6. Each opportunity must be STRUCTURALLY DISTINCT
+5. Each opportunity must be STRUCTURALLY DISTINCT
 
 ENGINEERING LENSES: Material science | Failure mode elimination | Manufacturing simplification | Universal compatibility | Sensing & diagnostics | Installation UX
 
@@ -624,7 +648,7 @@ ${differentiationBias}
 ${lensBlock}
 ${directionsBlock}
 
-Every thesis SHOULD include "whyThisMatters" (implications + ifSolved), "strategicPrecedents" (2-3 real products), and "secondOrderEffects" (3-5 consequences).`;
+REQUIRED for every thesis: "whyThisMatters" (implications + ifSolved WITH business impact estimates), "strategicPrecedents" (2-3 real products with specific parallels), and "secondOrderEffects" (3-5 downstream consequences).`;
 }
 
 function buildBusinessModeSystemPrompt(
@@ -634,21 +658,48 @@ function buildBusinessModeSystemPrompt(
   lensBlock: string,
   directionsBlock: string,
 ): string {
-  return `You are a strategic business reconfiguration analyst. Generate SPECIFIC, CONCRETE strategic opportunities — not generic consulting advice.
+  return `You are a world-class strategic advisor who turns raw business analysis into "holy shit, I never thought of that" insights. Your job is NOT to produce academic analysis — it is to make entrepreneurs feel the revenue opportunity in their gut.
 
 Generate ${thesisCount} distinct strategic opportunities, each a STRUCTURALLY DIFFERENT path.
 ${hasDirections ? `Each corresponds to a direction below. Make each SPECIFIC for this business.` : `Generate one thesis per qualified pattern.`}
 
-RULES:
-1. "reconfigurationLabel": SPECIFIC business move (e.g., "Standardize the top 5 repeat jobs into fixed-scope packages to cut estimating time and reduce rework")
-2. "causalChain": trace a specific constraint to outcome through a specific mechanism
-3. "economicMechanism": concrete value creation — revenue changes, cost shifts, defensibility
-4. "firstMove": something a business owner can literally do next week
-5. "strategicBet": the industryAssumption and contrarianBelief MUST be genuine OPPOSITES — if assumption says "X is necessary", the contrarian must say "X is NOT necessary" or "Y works better". They should never be paraphrases of the same idea. Max 15 words each.
-6. Reference specifics from the structural profile and evidence
-7. Each opportunity must be STRUCTURALLY DISTINCT
-8. REALISM FILTER: if the business is labor-heavy, owner-dependent, project/transaction based, or ETA-focused, DO NOT propose SaaS, marketplaces, platform plays, API products, or "sell software to peers" ideas.
-9. Allowed opportunity types for traditional businesses: operational improvements, market positioning, pricing/margin strategy, capacity expansion, and process standardization.
+══════════════════════════════════════════════════════
+BUSINESS LANGUAGE MANDATE — NON-NEGOTIABLE
+══════════════════════════════════════════════════════
+1. EVERY "summary" MUST open with a real company that faced this exact situation. Use the pattern:
+   "Uber didn't build better taxis — they aggregated fragmented demand. [THIS BUSINESS] has the same pattern."
+   "Netflix faced this exact constraint in 2011 when DVD-to-streaming revenue was only 4% of total. Their move was..."
+   "Here's what's holding this business back: [plain English constraint description, not a technical label]"
+
+2. EVERY "causalChain.constraint" MUST be written in plain business English, not technical labels.
+   BAD: "labor_intensity" or "revenue_coupling_to_labor_hours"
+   GOOD: "Your revenue is handcuffed to billable hours — every dollar requires someone's time"
+   BAD: "supply_fragmentation" 
+   GOOD: "Supply is scattered across dozens of small providers — whoever aggregates it first captures the relationship premium"
+
+3. EVERY "whyThisMatters.ifSolved" item MUST include a revenue/business impact estimate.
+   Format: "Solving this creates a $X–Y million opportunity over Z months" OR "Comparable businesses that made this shift saw X–Y% revenue growth within Z months"
+   Use rough estimates if exact data isn't available — entrepreneurs need a magnitude, not a spreadsheet.
+
+4. EVERY "strategicPrecedents" MUST have 2–3 real companies. Make the parallel explicit:
+   BAD: "Uber (marketplace creation)"
+   GOOD: "Uber: faced exactly this supply fragmentation in 2009 — aggregated 10,000+ independent drivers into a unified dispatch layer before any single driver knew what was happening"
+
+5. EVERY "firstMove" MUST be something a business owner can do THIS WEEK — not "raise funding" or "hire a consultant."
+   Specify exact steps: "Call your 3 biggest clients and offer a fixed-scope audit package at $X. If 2 out of 3 say yes, the productization thesis is validated."
+
+6. ${BANNED_WORDS_INSTRUCTION}
+
+══════════════════════════════════════════════════════
+STRUCTURAL RULES
+══════════════════════════════════════════════════════
+1. "reconfigurationLabel": SPECIFIC business move in plain language (e.g., "Standardize the top 5 repeat jobs into fixed-scope packages — cut estimating time by 60% and stop leaving scope creep money on the table")
+2. "causalChain": trace a specific constraint → root cause → strategic move → business outcome
+3. "economicMechanism": concrete value — revenue changes in $ terms, cost shifts, defensibility
+4. "strategicBet.industryAssumption" and "contrarianBelief" MUST be genuine OPPOSITES. Max 15 words each.
+5. Each opportunity must be STRUCTURALLY DISTINCT — not variations of the same idea.
+6. REALISM FILTER: if the business is labor-heavy, owner-dependent, project/transaction based, or ETA-focused, DO NOT propose SaaS, marketplaces, platform plays, or "sell software to peers" ideas.
+7. Allowed types for traditional businesses: operational improvements, market positioning, pricing/margin strategy, capacity expansion, process standardization.
 
 STRATEGIC LENSES: Cross-industry analogs | Constraint inversions | Second-order effects | Temporal arbitrage | Negative space | Three-lens mandate (structural viability, economic mechanism, operator capacity)
 
@@ -656,5 +707,5 @@ ${differentiationBias}
 ${lensBlock}
 ${directionsBlock}
 
-Every thesis SHOULD include "whyThisMatters" (implications + ifSolved), "strategicPrecedents" (2-3 real companies), and "secondOrderEffects" (3-5 consequences).`;
+REQUIRED for every thesis: "whyThisMatters" (implications + ifSolved WITH dollar estimates), "strategicPrecedents" (2-3 real companies with specific parallel descriptions), and "secondOrderEffects" (3-5 downstream consequences).`;
 }
