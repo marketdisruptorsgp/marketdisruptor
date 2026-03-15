@@ -37,6 +37,7 @@ import {
   ArrowRight, Zap, TrendingUp, AlertTriangle,
   ShieldAlert, Target, HelpCircle, Lock,
   Lightbulb, Crosshair, AlertCircle, Grid3X3,
+  FlipHorizontal2, Unlock, Clock, Search,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ export default function OverviewPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const autoAnalysis = useAutoAnalysis();
-  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing, morphologicalZones: rawMorphZones } = autoAnalysis;
+  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing, morphologicalZones: rawMorphZones, constraintInversions, secondOrderUnlocks, temporalUnlocks, competitiveGaps } = autoAnalysis;
 
   const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData, instantInsights } = analysis;
 
@@ -138,6 +139,34 @@ export default function OverviewPage() {
       {topMorphZones.length > 0 && (
         <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.07 }}>
           <MorphologicalZonesPanel zones={topMorphZones} />
+        </motion.div>
+      )}
+
+      {/* ═══ 0c. CONSTRAINT INVERSIONS (turn constraint into advantage) ═══ */}
+      {constraintInversions.length > 0 && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.09 }}>
+          <ConstraintInversionsCard data={constraintInversions} />
+        </motion.div>
+      )}
+
+      {/* ═══ 0d. SECOND-ORDER UNLOCKS (what becomes possible if constraint removed) ═══ */}
+      {secondOrderUnlocks.length > 0 && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.11 }}>
+          <SecondOrderUnlocksCard data={secondOrderUnlocks} />
+        </motion.div>
+      )}
+
+      {/* ═══ 0e. TEMPORAL UNLOCKS (new possibilities since recent changes) ═══ */}
+      {temporalUnlocks.length > 0 && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.13 }}>
+          <TemporalUnlocksCard data={temporalUnlocks} />
+        </motion.div>
+      )}
+
+      {/* ═══ 0f. COMPETITIVE GAPS (what no competitor is doing) ═══ */}
+      {competitiveGaps.length > 0 && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
+          <CompetitiveGapsCard data={competitiveGaps} />
         </motion.div>
       )}
 
@@ -770,6 +799,152 @@ function MorphologicalZonesPanel({ zones }: { zones: OpportunityZone[] }) {
                 {zone.vectors[0]?.explorationMode === "constraint" ? "constraint-driven" : "adjacency"}
               </span>
             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Constraint Inversions Card (turn constraint into competitive advantage) ── */
+function ConstraintInversionsCard({ data }: { data: import("@/lib/constraintInverter").ConstraintInversion[] }) {
+  if (data.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 px-1">
+        <FlipHorizontal2 size={13} className="text-amber-500" />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+          Turn Constraint Into Advantage ({data.length})
+        </span>
+      </div>
+      <div className="space-y-2">
+        {data.map((inv) => (
+          <div key={inv.id} className="rounded-xl px-4 py-3 bg-amber-500/5 border border-amber-500/15">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-600">
+                {inv.sourceConstraint.sourceConstraintLabel}
+              </span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                inv.viability === "strong" ? "bg-green-500/15 text-green-600" :
+                inv.viability === "moderate" ? "bg-amber-500/15 text-amber-600" :
+                "bg-muted text-muted-foreground"
+              }`}>
+                {inv.viability}
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-foreground leading-snug mb-1">{inv.invertedFrame}</p>
+            <p className="text-xs text-muted-foreground leading-snug">{inv.mechanism}</p>
+            {inv.precedent && (
+              <p className="text-[10px] text-muted-foreground mt-1 italic">e.g. {inv.precedent}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Second-Order Unlocks Card (what becomes possible if constraint removed) ── */
+function SecondOrderUnlocksCard({ data }: { data: import("@/lib/secondOrderEngine").SecondOrderUnlock[] }) {
+  if (data.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 px-1">
+        <Unlock size={13} className="text-emerald-500" />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+          Remove Constraint Entirely ({data.length})
+        </span>
+      </div>
+      <div className="space-y-2">
+        {data.map((unlock) => (
+          <div key={unlock.id} className="rounded-xl px-4 py-3 bg-emerald-500/5 border border-emerald-500/15">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">
+                {unlock.sourceConstraint.sourceConstraintLabel}
+              </span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                unlock.viability === "transformational" ? "bg-green-500/15 text-green-600" :
+                unlock.viability === "significant" ? "bg-emerald-500/15 text-emerald-600" :
+                "bg-muted text-muted-foreground"
+              }`}>
+                {unlock.viability}
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-foreground leading-snug mb-1">{unlock.unlockedBusinessModel}</p>
+            <p className="text-xs text-muted-foreground leading-snug">{unlock.valueMechanism}</p>
+            {unlock.precedents.length > 0 && (
+              <p className="text-[10px] text-muted-foreground mt-1 italic">e.g. {unlock.precedents[0]}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Temporal Unlocks Card (new possibilities since recent changes) ── */
+function TemporalUnlocksCard({ data }: { data: import("@/lib/temporalArbitrageEngine").TemporalUnlock[] }) {
+  if (data.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 px-1">
+        <Clock size={13} className="text-blue-500" />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+          New Possibilities Since 2024 ({data.length})
+        </span>
+      </div>
+      <div className="space-y-2">
+        {data.map((unlock) => (
+          <div key={unlock.id} className="rounded-xl px-4 py-3 bg-blue-500/5 border border-blue-500/15">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-600">
+                {unlock.recentChange}
+              </span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                unlock.timingWindow === "narrow" ? "bg-red-500/15 text-red-600" :
+                unlock.timingWindow === "moderate" ? "bg-blue-500/15 text-blue-600" :
+                "bg-muted text-muted-foreground"
+              }`}>
+                {unlock.timingWindow} window
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-foreground leading-snug mb-1">{unlock.nowPossible}</p>
+            <p className="text-xs text-muted-foreground leading-snug">Previously: {unlock.previouslyImpossible}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Competitive Gaps Card (what no competitor is doing) ── */
+function CompetitiveGapsCard({ data }: { data: import("@/lib/negativeSpaceEngine").CompetitiveGap[] }) {
+  if (data.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 px-1">
+        <Search size={13} className="text-violet-500" />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+          What No One Else Does ({data.length})
+        </span>
+      </div>
+      <div className="space-y-2">
+        {data.map((gap) => (
+          <div key={gap.id} className="rounded-xl px-4 py-3 bg-violet-500/5 border border-violet-500/15">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-violet-600">
+                {gap.gapType.replace(/_/g, " ")}
+              </span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                gap.opportunityConfidence === "high" ? "bg-green-500/15 text-green-600" :
+                gap.opportunityConfidence === "medium" ? "bg-violet-500/15 text-violet-600" :
+                "bg-muted text-muted-foreground"
+              }`}>
+                {gap.opportunityConfidence} confidence
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-foreground leading-snug mb-1">{gap.opportunityHypothesis}</p>
+            <p className="text-xs text-muted-foreground leading-snug">{gap.gapDescription}</p>
           </div>
         ))}
       </div>
