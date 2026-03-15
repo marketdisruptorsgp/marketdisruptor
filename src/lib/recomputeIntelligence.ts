@@ -33,6 +33,7 @@ import {
   identifyActiveDimensions,
   getDimensionsByStatus,
   prepareEdgeFunctionPayload,
+  runMorphologicalSearch,
   type DimensionAlternative,
 } from "@/lib/opportunityDesignEngine";
 import {
@@ -89,6 +90,8 @@ export interface IntelligenceOutput {
   severityReport: SeverityReport | null;
   viabilityReport: ViabilityReport | null;
   marketStructure: MarketStructureReport | null;
+  morphologicalZones?: import("@/lib/opportunityDesignEngine").OpportunityZone[];
+  morphologicalVectors?: import("@/lib/opportunityDesignEngine").OpportunityVector[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -138,6 +141,8 @@ function buildOutput(result: ReturnType<typeof runStrategicAnalysis>): Intellige
     severityReport: result.severityReport,
     viabilityReport: result.viabilityReport,
     marketStructure: result.marketStructure,
+    morphologicalZones: [],
+    morphologicalVectors: [],
   };
 }
 
@@ -175,6 +180,19 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
   if (constraints.length < 1 || flat.length < 18) {
     console.log(`[Morphological] Skipping AI: ${constraints.length} constraints, ${flat.length} evidence`);
     return asyncOutput;
+  }
+
+  // Run morphological search deterministically — no AI cost, <100ms
+  let morphologicalZones: import("@/lib/opportunityDesignEngine").OpportunityZone[] = [];
+  let morphologicalVectors: import("@/lib/opportunityDesignEngine").OpportunityVector[] = [];
+  try {
+    // Pass empty aiAlternatives — morphological search is purely deterministic (no AI cost)
+    const morphResult = runMorphologicalSearch(flat, constraints, leveragePoints, []);
+    morphologicalZones = morphResult.zones;
+    morphologicalVectors = morphResult.vectors;
+    console.log(`[Morphological] Auto-ran: ${morphResult.vectors.length} vectors, ${morphResult.zones.length} zones`);
+  } catch (err) {
+    console.warn("[Morphological] Auto-run failed:", err);
   }
 
   let aiAlternatives: DimensionAlternative[] | undefined;
@@ -268,10 +286,15 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
 
   // If no AI alternatives, return the async result
   if (!aiAlternatives || aiAlternatives.length === 0) {
+    asyncOutput.morphologicalZones = morphologicalZones;
+    asyncOutput.morphologicalVectors = morphologicalVectors;
     return asyncOutput;
   }
 
   // Pass 2: Re-run full pipeline with AI alternatives injected
   const enhancedResult = await runStrategicAnalysisAsync(buildEngineInput(input, aiAlternatives));
-  return buildOutput(enhancedResult);
+  const enhancedOutput = buildOutput(enhancedResult);
+  enhancedOutput.morphologicalZones = morphologicalZones;
+  enhancedOutput.morphologicalVectors = morphologicalVectors;
+  return enhancedOutput;
 }

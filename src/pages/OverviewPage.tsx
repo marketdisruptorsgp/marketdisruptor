@@ -32,10 +32,11 @@ import {
 } from "@/lib/swotExtractor";
 import { motion } from "framer-motion";
 import type { InstantInsights } from "@/lib/instantInsights";
+import type { OpportunityZone } from "@/lib/opportunityDesignEngine";
 import {
   ArrowRight, Zap, TrendingUp, AlertTriangle,
   ShieldAlert, Target, HelpCircle, Lock,
-  Lightbulb, Crosshair, AlertCircle,
+  Lightbulb, Crosshair, AlertCircle, Grid3X3,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ export default function OverviewPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const autoAnalysis = useAutoAnalysis();
-  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing } = autoAnalysis;
+  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing, morphologicalZones: rawMorphZones } = autoAnalysis;
 
   const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData, instantInsights } = analysis;
 
@@ -114,6 +115,8 @@ export default function OverviewPage() {
   // Show instant insights when deep analysis hasn't arrived yet
   const showInstantInsights = !!instantInsights && !singleInsight && !earlyConstraint;
 
+  const topMorphZones = rawMorphZones.filter(z => z.vectors.length > 0).slice(0, 3);
+
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
       {/* Header */}
@@ -128,6 +131,13 @@ export default function OverviewPage() {
       {showInstantInsights && (
         <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.05 }} className="space-y-4">
           <InstantInsightsPanel insights={instantInsights} isRefining={isComputing} />
+        </motion.div>
+      )}
+
+      {/* ═══ 0b. MORPHOLOGICAL ZONES (from strategic engine — shows after AI phase 1 completes) ═══ */}
+      {topMorphZones.length > 0 && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.07 }}>
+          <MorphologicalZonesPanel zones={topMorphZones} />
         </motion.div>
       )}
 
@@ -679,6 +689,45 @@ function InstantInsightsPanel({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Morphological Zones Panel (from strategic engine — after AI phase 1) ── */
+function MorphologicalZonesPanel({ zones }: { zones: OpportunityZone[] }) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 px-1">
+        <Grid3X3 size={13} className="text-primary" />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+          Opportunity Zones ({zones.length})
+        </span>
+      </div>
+      <div className="space-y-2">
+        {zones.map((zone) => (
+          <div key={zone.id} className="rounded-xl px-4 py-3 bg-primary/5 border border-primary/15">
+            <p className="text-xs font-extrabold uppercase tracking-widest text-primary mb-1">
+              {zone.theme}
+            </p>
+            <div className="space-y-1 mt-2">
+              {zone.vectors.slice(0, 3).map((vec) => (
+                <div key={vec.id} className="flex items-start gap-2">
+                  <ArrowRight size={11} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-foreground/80 leading-snug">{vec.rationale}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                {zone.vectors.length} vector{zone.vectors.length !== 1 ? "s" : ""}
+              </span>
+              <span className="text-[10px] text-muted-foreground capitalize">
+                {zone.vectors[0]?.explorationMode === "constraint" ? "constraint-driven" : "adjacency"}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
