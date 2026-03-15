@@ -11,6 +11,7 @@
  */
 
 import { classifyDisruptionArchetype } from "./disruptionArchetypeClassifier";
+import { deriveTrizSeeds, type TrizSeed } from "./trizEngine";
 
 export interface InstantAssumption {
   assumption: string;
@@ -60,6 +61,8 @@ export interface InstantInsights {
   highestLeverage: InstantLeveragePoint | null;
   /** The disruption category this business is most vulnerable to */
   disruptionVulnerability: import("./disruptionArchetypeClassifier").DisruptionArchetype | null;
+  /** TRIZ invention seeds — 2-3 historically-proven principles for resolving the binding constraint */
+  trizSeeds: TrizSeed[];
 }
 
 /**
@@ -325,6 +328,8 @@ export function computeInstantInsights(product: any): InstantInsights | null {
 
   const disruptionVulnerability = classifyDisruptionArchetype(product);
 
+  const trizSeeds = deriveTrizSeeds(sorted, bindingConstraint, name);
+
   return {
     assumptions: assumptions.slice(0, 8),
     leveragePoints: leveragePoints.sort((a, b) => b.score - a.score).slice(0, 6),
@@ -337,6 +342,7 @@ export function computeInstantInsights(product: any): InstantInsights | null {
     dangerousAssumption,
     highestLeverage,
     disruptionVulnerability,
+    trizSeeds,
   };
 }
 
