@@ -22,6 +22,7 @@ import {
 } from "@/lib/modeIntelligence";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
+import { computeInstantInsights } from "@/lib/instantInsights";
 import { toast } from "sonner";
 import { useBIExtraction, fileToDocumentText, extractionToContext, type BIExtraction } from "@/hooks/useBIExtraction";
 import { StepLoadingTracker, type StepTask } from "@/components/StepLoadingTracker";
@@ -514,8 +515,29 @@ export default function NewAnalysisPage() {
           return;
         }
 
-        // 2. Call edge function
-        const { data: result, error } = await invokeWithTimeout("business-model-analysis", {
+        // 2. Compute instant insights from input immediately (~0ms) and show them on command deck
+        try {
+          const syntheticProduct = {
+            name: name || "Business Model",
+            category: "Business Model",
+            description: challengeContext ? `${notes}\n\n${challengeContext}` : notes,
+          };
+          const earlyInsights = computeInstantInsights(syntheticProduct);
+          if (earlyInsights) {
+            analysis.setInstantInsights(earlyInsights);
+            console.log("[InstantInsights] Business model pre-compute: " + earlyInsights.assumptions.length + " assumptions");
+          }
+        } catch (insightErr) {
+          console.warn("[InstantInsights] Pre-computation failed (non-blocking):", insightErr);
+        }
+
+        // 3. Navigate to command-deck immediately — don't wait for AI analysis
+        analysis.setStep("analyzing");
+        navigate(`/analysis/${analysisId}/command-deck`);
+        setLaunching(false);
+
+        // 4. Run AI analysis in background — updates context when complete
+        invokeWithTimeout("business-model-analysis", {
           body: {
             businessModel: {
               type: name,
@@ -529,58 +551,65 @@ export default function NewAnalysisPage() {
             extractedContext,
             adaptiveContext: adaptiveCtx,
           },
-        }, 180_000);
+        }, 180_000).then(({ data: result, error }) => {
+          if (error || !result?.success) {
+            console.error("[BusinessAnalysis] Background analysis failed:", result?.error || error?.message);
+            toast.error("Analysis failed: " + (result?.error || error?.message || "Unknown error"));
+            analysis.setStep("error");
+            return;
+          }
 
-        if (error || !result?.success) {
-          toast.error("Analysis failed: " + (result?.error || error?.message || "Unknown error"));
-          setLaunching(false);
-          return;
-        }
+          // Update context — CommandDeckPage will re-render with full data
+          analysis.setBusinessAnalysisData(result.analysis);
+          analysis.setBusinessModelInput({
+            type: name,
+            description: notes,
+            revenueModel: finalExtraction?.revenue_engine?.revenue_sources?.join(", ") || "",
+            painPoints: notes,
+          });
+          analysis.setStep("done");
 
-        // 3. Persist results via context saveStepData
-        analysis.setBusinessAnalysisData(result.analysis);
-        analysis.setBusinessModelInput({
-          type: name,
-          description: notes,
-          revenueModel: finalExtraction?.revenue_engine?.revenue_sources?.join(", ") || "",
-          painPoints: notes,
-        });
-        analysis.setStep("done");
-
-        // Save business analysis data — use direct update as primary path
-        // to avoid governed extraction complexity that was silently dropping the key
-        try {
-          const { data: existingRow } = await supabase
+          // Persist results to database
+          supabase
             .from("saved_analyses")
             .select("analysis_data")
             .eq("id", analysisId)
-            .single() as any;
-          const prev = (existingRow?.analysis_data as Record<string, unknown>) || {};
-          const merged = {
-            ...prev,
-            businessAnalysis: result.analysis,
-            // Persist raw BI extraction so evidence engine can use it on reload
-            ...(finalExtraction ? { biExtraction: finalExtraction } : {}),
-            // Persist adaptive context so pipeline steps get document intelligence on reload
-            ...(adaptiveCtx ? { adaptiveContext: adaptiveCtx } : {}),
-          };
-          const { error: updateErr } = await (supabase.from("saved_analyses") as any)
-            .update({ analysis_data: merged, updated_at: new Date().toISOString() })
-            .eq("id", analysisId);
-          if (updateErr) {
-            console.error("[BusinessSave] Direct update failed:", updateErr);
-            // Fallback to RPC
-            await analysis.saveStepData("businessAnalysis", result.analysis, analysisId);
-          } else {
-            console.log("[BusinessSave] Successfully saved businessAnalysis via direct update");
-          }
-        } catch (saveErr) {
-          console.error("[BusinessSave] Save error:", saveErr);
-          await analysis.saveStepData("businessAnalysis", result.analysis, analysisId);
-        }
+            .single()
+            .then(({ data: existingRow }) => {
+              const prev = (existingRow?.analysis_data as Record<string, unknown>) || {};
+              const merged = {
+                ...prev,
+                businessAnalysis: result.analysis,
+                ...(finalExtraction ? { biExtraction: finalExtraction } : {}),
+                ...(adaptiveCtx ? { adaptiveContext: adaptiveCtx } : {}),
+              };
+              return (supabase.from("saved_analyses") as any)
+                .update({ analysis_data: merged, updated_at: new Date().toISOString() })
+                .eq("id", analysisId);
+            })
+            .then(({ error: updateErr }: { error: any }) => {
+              if (updateErr) {
+                console.error("[BusinessSave] Direct update failed:", updateErr);
+                analysis.saveStepData("businessAnalysis", result.analysis, analysisId).catch((retryErr: unknown) => {
+                  console.error("[BusinessSave] Fallback saveStepData also failed:", retryErr);
+                });
+              } else {
+                console.log("[BusinessSave] Successfully saved businessAnalysis via direct update");
+              }
+            })
+            .catch((saveErr: unknown) => {
+              console.error("[BusinessSave] Save error:", saveErr);
+              analysis.saveStepData("businessAnalysis", result.analysis, analysisId).catch((retryErr: unknown) => {
+                console.error("[BusinessSave] Fallback saveStepData also failed:", retryErr);
+              });
+            });
 
-        toast.success("Business model analysis complete!");
-        navigate(`/analysis/${analysisId}/command-deck`);
+          toast.success("Business model analysis complete!");
+        }).catch((err: unknown) => {
+          console.error("[BusinessAnalysis] Unexpected error:", err);
+          toast.error("Unexpected error: " + String(err));
+          analysis.setStep("error");
+        });
       } else {
         const isService = primaryCard === "service";
         analysis.setMainTab(isService ? "service" : "custom");

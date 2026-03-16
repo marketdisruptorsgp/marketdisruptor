@@ -307,102 +307,64 @@ export function generateStrategicStory(
     };
   }
 
-  const paragraphs: string[] = [];
+  const bullets: string[] = [];
 
-  // Evidence counts by category
-  const catCounts = new Map<string, number>();
-  for (const e of evidence) {
-    const cat = e.category || "general";
-    catCounts.set(cat, (catCounts.get(cat) || 0) + 1);
-  }
-  const demandCount = catCounts.get("demand_signal") || 0;
-  const costCount = catCounts.get("cost_structure") || 0;
-  const opCount = catCounts.get("operational_dependency") || 0;
-  const compCount = catCounts.get("competitive_pressure") || 0;
-  const custCount = catCounts.get("customer_behavior") || 0;
-
-  // P1 — The constraint (with evidence reference)
-  if (narrative.primaryConstraint) {
-    const constraintEvidence = opCount + costCount;
-    const evidenceRef = constraintEvidence > 0
-      ? `, supported by ${constraintEvidence} structural indicator${constraintEvidence !== 1 ? "s" : ""} across cost and operational data`
-      : "";
-    // Translate the constraint to business language before using it in prose.
-    // primaryConstraint may be a raw technical name (e.g. "labor_intensity") when
-    // coming from older data or a deterministic fallback path, so we always apply
-    // the business-language layer first, then fall back to humanized text.
-    const constraintPhrase = translateConstraintToBusinessLanguage(narrative.primaryConstraint);
-    paragraphs.push(
-      `The current model shows strong fundamentals, but a structural constraint is limiting growth: ${constraintPhrase}${evidenceRef}.`
-    );
+  // Bullet 1: CONTRARIAN INSIGHT — the "holy shit" moment
+  // Use whyThisMatters if it contains a contrarian belief, otherwise try strategicVerdict
+  if (narrative.whyThisMatters && narrative.whyThisMatters.includes("believe")) {
+    bullets.push(narrative.whyThisMatters);
+  } else if (narrative.strategicVerdict) {
+    // Only include if specific enough (contains a proper noun or number)
+    const hasSpecific = /[A-Z][a-z]+|[\d]+%/.test(narrative.strategicVerdict);
+    if (hasSpecific) bullets.push(narrative.strategicVerdict);
   }
 
-  // P2 — The scaling problem (with evidence counts)
-  if (demandCount > 0 && (opCount > 0 || costCount > 0)) {
-    const demandRef = demandCount >= 3
-      ? `${demandCount} customer demand indicators identified across pricing, usage, and market signals`
-      : `${demandCount} demand signal${demandCount !== 1 ? "s" : ""} detected`;
-
-    const constraintRef = opCount > 0
-      ? "delivery depends on operational capacity, creating a structural scaling limit"
-      : "the cost structure limits scaling efficiency";
-
-    paragraphs.push(
-      `Demand signals are strong, with ${demandRef}. However, ${constraintRef}.`
-    );
+  // Bullet 2: THE MECHANISM — why the constraint exists (specific, not generic)
+  if (narrative.keyDriver && narrative.keyDriver !== narrative.primaryConstraint) {
+    const driver = narrative.keyDriver;
+    // Only include if not already covered by bullet 1
+    const driverKey = driver.toLowerCase().slice(0, Math.min(driver.length, 20));
+    if (!bullets.some(b => b.toLowerCase().includes(driverKey))) {
+      bullets.push(driver);
+    }
   }
 
-  // P3 — The consequence (with trapped value)
-  if (narrative.trappedValue) {
-    const tvRef = narrative.trappedValueEstimate
-      ? `an estimated ${narrative.trappedValueEstimate} in`
-      : "";
-    paragraphs.push(
-      `As a result, ${tvRef} value remains trapped in the current delivery model, limiting growth and margin expansion.`
-    );
-  } else if (narrative.primaryConstraint) {
-    paragraphs.push(
-      "Revenue growth requires proportional increases in capacity, creating a structural ceiling that limits both growth and margins."
-    );
+  // Bullet 3: FIRST MOVE — specific action with measurable outcome
+  if (narrative.validationExperiment) {
+    const exp = narrative.validationExperiment;
+    // Trim to first sentence only
+    const firstSentence = exp.split(".")[0];
+    const sentenceKey = firstSentence.toLowerCase().slice(0, Math.min(firstSentence.length, 20));
+    if (firstSentence && !bullets.some(b => b.toLowerCase().includes(sentenceKey))) {
+      bullets.push(firstSentence + ".");
+    }
   }
 
-  // P4 — The strategic direction
-  if (narrative.strategicVerdict) {
-    paragraphs.push(
-      `The most promising strategic move is to ${narrative.strategicVerdict.toLowerCase()}.`
-    );
-  } else if (playbook) {
-    paragraphs.push(
-      `The most promising move is to ${playbook.strategicShift.toLowerCase()}.`
-    );
+  // Fallback: if no bullets from narrative fields, use constraint + breakthrough
+  if (bullets.length === 0) {
+    if (narrative.primaryConstraint) {
+      const constraintPhrase = translateConstraintToBusinessLanguage(narrative.primaryConstraint);
+      bullets.push(`The binding constraint is ${constraintPhrase}.`);
+    }
+    if (narrative.breakthroughOpportunity && bullets.length < 2) {
+      bullets.push(narrative.breakthroughOpportunity);
+    }
   }
 
-  // P5 — The mechanism (with evidence reference)
-  if (playbook) {
-    const supportSignals = compCount + custCount;
-    const supportRef = supportSignals > 0
-      ? `, supported by ${supportSignals} competitive and customer behavior signal${supportSignals !== 1 ? "s" : ""}`
-      : "";
-    paragraphs.push(
-      `This would standardize delivery, reduce operational complexity, and enable scalable revenue generation${supportRef}.`
-    );
-  }
-
-  // Impact line
-  let impactLine = "Impact assessment pending additional evidence.";
+  // Impact line — only if specific (has numbers), skip generic phrases
+  let impactLine = "";
   if (playbook) {
     const rev = playbook.impact.revenueExpansion;
     const margin = playbook.impact.marginImprovement;
     if (rev >= 7 && margin >= 7) {
-      impactLine = `${Math.round(1 + rev / 3)}–${Math.round(2 + rev / 2)}× revenue potential with significantly improved margins and repeatable delivery.`;
+      impactLine = `${Math.round(1 + rev / 3)}–${Math.round(2 + rev / 2)}× revenue potential with significantly improved margins.`;
     } else if (rev >= 5) {
-      impactLine = `${Math.round(1 + rev / 3)}–${Math.round(2 + rev / 2)}× revenue potential with improved operational leverage and unit economics.`;
-    } else {
-      impactLine = "Meaningful improvement in operational efficiency and margin structure expected.";
+      impactLine = `${Math.round(1 + rev / 3)}–${Math.round(2 + rev / 2)}× revenue potential with improved unit economics.`;
     }
+    // Don't show generic "meaningful improvement" — it adds no value
   }
 
-  return { paragraphs, impactLine };
+  return { paragraphs: bullets, impactLine };
 }
 
 /* ══════════════════════════════════════════════════════════════

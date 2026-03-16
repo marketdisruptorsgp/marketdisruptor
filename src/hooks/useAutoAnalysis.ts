@@ -105,6 +105,40 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [hasRun, setHasRun] = useState(false);
   const runIdRef = useRef(0); // Monotonic run counter to deduplicate concurrent runs
 
+  // ── Reset strategic engine state when analysis changes — prevents cross-analysis contamination ──
+  const prevAnalysisIdRef = useRef<string | null>(null);
+  // Hydration ref must be declared before the reset effect (also used in hydration effect below)
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (!analysisId) return;
+    if (prevAnalysisIdRef.current && prevAnalysisIdRef.current !== analysisId) {
+      setNarrative(null);
+      setDeepenedOpportunities([]);
+      setMorphologicalZones([]);
+      setMorphologicalVectors([]);
+      setConstraintInversions([]);
+      setSecondOrderUnlocks([]);
+      setTemporalUnlocks([]);
+      setCompetitiveGaps([]);
+      setHasRun(false);
+      setIsComputing(false);
+      setIntelligence(null);
+      setStructuralProfile(null);
+      setGraph(null);
+      setEvidence(null);
+      setFlatEvidenceState([]);
+      setInsights([]);
+      setOpportunities([]);
+      setDiagnostic(null);
+      isComputingRef.current = false;
+      hydratedRef.current = false;
+      runIdRef.current = 0;
+      console.log("[useAutoAnalysis] Analysis changed — strategic state reset");
+    }
+    prevAnalysisIdRef.current = analysisId;
+  }, [analysisId]);
+
   // Track completed steps
   const completedSteps = useMemo(() => {
     const set = new Set<string>();
@@ -404,7 +438,6 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   ]);
 
   // ── Hydrate strategic engine from persisted state on reload ──
-  const hydratedRef = useRef(false);
 
   useEffect(() => {
     if (!loadedFromSaved || !analysisId || hydratedRef.current || hasRun) return;
