@@ -8,6 +8,7 @@
  */
 
 import { motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
 import { humanizeLabel } from "@/lib/humanize";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
@@ -61,19 +62,28 @@ export function SituationReport({ narrative, thesis, modeAccent }: SituationRepo
             {/* Binding constraint — always in plain business English */}
             {constraint && (
               <div
-                className="rounded-xl px-4 py-3"
+                className="rounded-xl px-5 py-4 space-y-2"
                 style={{
-                  background: "hsl(var(--destructive) / 0.05)",
-                  border: "1px solid hsl(var(--destructive) / 0.18)",
+                  background: "hsl(var(--destructive) / 0.07)",
+                  border: "1.5px solid hsl(var(--destructive) / 0.28)",
                 }}
               >
-                <p
-                  className="text-[9px] font-extrabold uppercase tracking-widest mb-1.5"
-                  style={{ color: "hsl(var(--destructive))" }}
-                >
-                  The #1 thing holding this business back
-                </p>
-                <p className="text-sm font-bold text-foreground leading-snug">
+                {/* Header row */}
+                <div className="flex items-center gap-2">
+                  <AlertTriangle
+                    size={13}
+                    aria-hidden="true"
+                    style={{ color: "hsl(var(--destructive))", flexShrink: 0 }}
+                  />
+                  <p
+                    className="text-[9px] font-extrabold uppercase tracking-widest"
+                    style={{ color: "hsl(var(--destructive))" }}
+                  >
+                    The #1 thing holding this business back
+                  </p>
+                </div>
+                {/* Constraint text — dominant */}
+                <p className="text-lg font-black text-foreground leading-snug">
                   {constraint}
                 </p>
               </div>
