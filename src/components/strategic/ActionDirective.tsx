@@ -1,36 +1,72 @@
 /**
  * ActionDirective — Zone 3: Action Directive (What To Do)
  *
- * Single recommended move with full strategic context:
- *   - Primary action ("Do this next week")
- *   - Mechanism ("Here's how it works")
- *   - Timing rationale ("Why now is the moment")
- *   - Risk mitigation ("How to de-risk execution")
+ * Single recommended strategic move with full context:
+ *   - Primary action (one sentence, imperative — "Your move:")
+ *   - Mechanism (how it works)
+ *   - First move (what to do THIS WEEK — from thesis.firstMove.action)
+ *   - Success criteria (go/no-go — from thesis.firstMove.successCriteria)
+ *   - Strategic precedents (2-3 real companies — from thesis.strategicPrecedents)
  *
- * Executive briefing aesthetic — one directive, fully contextualised.
+ * Accepts either a full `thesis` (DeepenedOpportunity) for the self-contained
+ * API, or individual props for backward compatibility with StrategicBriefing.
+ *
+ * Design: Dominant, high-contrast, action-focused — highest visual weight.
  */
 
 import { motion } from "framer-motion";
-import { Clock, Target, ArrowRight } from "lucide-react";
+import { Clock, Target, ArrowRight, CheckCircle2, Building2 } from "lucide-react";
 import { humanizeLabel } from "@/lib/humanize";
+import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 
 interface ActionDirectiveProps {
-  action: string;
-  mechanism: string | null;
-  timingRationale: string | null;
-  riskMitigation: string | null;
-  timeline: string;
+  /** Full thesis object — self-contained API for CommandDeckPage */
+  thesis?: DeepenedOpportunity | null;
+  /** Backward-compat individual props (used by StrategicBriefing) */
+  action?: string;
+  mechanism?: string | null;
+  timingRationale?: string | null;
+  riskMitigation?: string | null;
+  timeline?: string;
   modeAccent: string;
 }
 
 export function ActionDirective({
-  action,
-  mechanism,
+  thesis,
+  action: actionProp,
+  mechanism: mechanismProp,
   timingRationale,
   riskMitigation,
-  timeline,
+  timeline: timelineProp,
   modeAccent,
 }: ActionDirectiveProps) {
+  // Derive from thesis when provided, fall back to individual props
+  const action =
+    (thesis?.firstMove?.action ? humanizeLabel(thesis.firstMove.action) : null) ??
+    (actionProp ? humanizeLabel(actionProp) : null);
+
+  const mechanism =
+    thesis?.economicMechanism?.valueCreation ??
+    thesis?.firstMove?.learningObjective ??
+    mechanismProp ??
+    null;
+
+  const successCriteria = thesis?.firstMove?.successCriteria ?? null;
+  const timeline = thesis?.firstMove?.timeframe ?? timelineProp ?? "2–4 weeks";
+
+  // Use structured precedents when available; fall back to legacy string array only when absent
+  const structuredPrecedents = thesis?.strategicPrecedents;
+  const precedents =
+    structuredPrecedents && structuredPrecedents.length > 0
+      ? structuredPrecedents.slice(0, 3)
+      : (thesis?.precedents?.slice(0, 3).map((p, i) => ({
+          company: `Precedent ${i + 1}`,
+          description: p,
+          pattern: "",
+        })) ?? []);
+
+  if (!action) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -48,16 +84,16 @@ export function ActionDirective({
         <div className="flex items-center gap-2">
           <Target size={13} style={{ color: modeAccent }} />
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Action Directive
+            Your Move
           </span>
         </div>
 
-        {/* Primary action */}
+        {/* Primary action — dominant type */}
         <h3 className="text-base sm:text-lg font-black text-foreground leading-snug">
-          {humanizeLabel(action)}
+          {action}
         </h3>
 
-        {/* Context grid */}
+        {/* Context rows */}
         <div className="space-y-3">
           {mechanism && (
             <ContextRow label="How it works" value={mechanism} accent={modeAccent} />
@@ -70,7 +106,57 @@ export function ActionDirective({
           )}
         </div>
 
-        {/* Timeline */}
+        {/* First move this week */}
+        {thesis?.firstMove?.action && (
+          <div
+            className="rounded-xl px-4 py-3 space-y-1"
+            style={{
+              background: `${modeAccent}0d`,
+              border: `1px solid ${modeAccent}20`,
+            }}
+          >
+            <p
+              className="text-[9px] font-extrabold uppercase tracking-widest"
+              style={{ color: modeAccent }}
+            >
+              This week
+            </p>
+            <p className="text-sm font-semibold text-foreground leading-snug">
+              {humanizeLabel(thesis.firstMove.action)}
+            </p>
+            {successCriteria && (
+              <div className="flex items-start gap-1.5 pt-1">
+                <CheckCircle2 size={11} className="flex-shrink-0 mt-0.5" style={{ color: modeAccent }} />
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  <span className="font-bold">Go/no-go: </span>
+                  {successCriteria}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Strategic precedents */}
+        {precedents.length > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <Building2 size={11} className="text-muted-foreground" />
+              <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                Precedents
+              </p>
+            </div>
+            <div className="space-y-1">
+              {precedents.map((p, i) => (
+                <p key={i} className="text-[11px] text-muted-foreground leading-relaxed">
+                  <span className="font-bold text-foreground/80">{p.company}</span>
+                  {p.description ? ` — ${p.description}` : ""}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Timeline footer */}
         <div
           className="flex items-center gap-1.5 pt-1"
           style={{ borderTop: "1px solid hsl(var(--border) / 0.4)" }}
