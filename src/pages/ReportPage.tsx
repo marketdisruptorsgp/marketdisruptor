@@ -191,6 +191,7 @@ export default function ReportPage() {
           step={analysis.step as "scraping" | "analyzing"}
           elapsedSeconds={analysis.elapsedSeconds}
           loadingLog={analysis.loadingLog}
+          instantInsights={analysis.instantInsights ?? null}
         />
       </AnalysisPageShell>
     );
