@@ -682,11 +682,8 @@ export function detectParadigmVulnerabilities(
     const rawScore = pattern.baseVulnerabilityScore * evidenceModulation * constraintModulation;
     const vulnerabilityScore = Math.min(10, Math.round(rawScore * 10) / 10);
 
-    // Map which context shifts are relevant for this pattern
-    const relevantContextChanges = pattern.contextShifts.filter(shift => {
-      const shiftTokens = shift.toLowerCase().split(/\W+/);
-      return shiftTokens.some(t => t.length > 4 && evidenceTokens.has(t)) || true;
-    });
+    // Use the pattern's pre-defined context shifts directly (already curated per pattern)
+    const relevantContextChanges = pattern.contextShifts;
 
     sacredAssumptions.push({
       assumption: pattern.template.assumption,
