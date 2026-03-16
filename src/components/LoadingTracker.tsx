@@ -1,7 +1,10 @@
+import type { InstantInsights } from "@/lib/instantInsights";
+
 interface LoadingTrackerProps {
   step: "scraping" | "analyzing";
   elapsedSeconds: number;
   loadingLog: { text: string; ts: number }[];
+  instantInsights?: InstantInsights | null;
 }
 
 const SCRAPE_SOURCES = [
@@ -21,7 +24,7 @@ const ANALYZE_TASKS = [
   { label: "User Journey", detail: "Workflow & friction mapping" },
 ];
 
-export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrackerProps) {
+export function LoadingTracker({ step, elapsedSeconds, loadingLog, instantInsights }: LoadingTrackerProps) {
   const isScraping = step === "scraping";
   const SCRAPE_EST = 60;
   const ANALYZE_EST = 140;
@@ -100,6 +103,93 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
           </div>
         </div>
       </div>
+
+      {/* ── First Signals panel — shown during analyzing phase when instant insights are ready ── */}
+      {!isScraping && instantInsights && (
+        <div className="px-4 sm:px-6 py-4 space-y-3 border-b border-border bg-muted/30">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
+            First Signals — while deep analysis runs
+          </p>
+
+          {/* Dangerous assumption */}
+          {instantInsights.dangerousAssumption && (
+            <div
+              className="rounded-xl px-4 py-3 space-y-1"
+              style={{
+                background: "hsl(var(--destructive) / 0.05)",
+                border: "1px solid hsl(var(--destructive) / 0.18)",
+              }}
+            >
+              <p
+                className="text-[9px] font-extrabold uppercase tracking-widest"
+                style={{ color: "hsl(var(--destructive))" }}
+              >
+                Most dangerous assumption
+              </p>
+              <p className="text-sm font-bold text-foreground leading-snug">
+                &ldquo;{instantInsights.dangerousAssumption.assumption}&rdquo;
+              </p>
+              {instantInsights.dangerousAssumption.challengeHint && (
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {instantInsights.dangerousAssumption.challengeHint}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Highest leverage point */}
+          {instantInsights.highestLeverage && (
+            <div
+              className="rounded-xl px-4 py-3 space-y-1"
+              style={{
+                background: "hsl(var(--primary) / 0.05)",
+                border: "1px solid hsl(var(--primary) / 0.18)",
+              }}
+            >
+              <p
+                className="text-[9px] font-extrabold uppercase tracking-widest"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                Highest-leverage opportunity
+              </p>
+              <p className="text-sm font-bold text-foreground leading-snug">
+                {instantInsights.highestLeverage.label}
+              </p>
+              {instantInsights.highestLeverage.description && (
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {instantInsights.highestLeverage.description}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Binding constraint hypothesis */}
+          {instantInsights.bindingConstraint && (
+            <div
+              className="rounded-xl px-4 py-3 space-y-1"
+              style={{
+                background: "hsl(38 92% 50% / 0.05)",
+                border: "1px solid hsl(38 92% 50% / 0.18)",
+              }}
+            >
+              <p
+                className="text-[9px] font-extrabold uppercase tracking-widest"
+                style={{ color: "hsl(38 92% 50%)" }}
+              >
+                Binding constraint hypothesis
+              </p>
+              <p className="text-sm font-bold text-foreground leading-snug">
+                {instantInsights.bindingConstraint.label}
+              </p>
+              {instantInsights.bindingConstraint.reasoning && (
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {instantInsights.bindingConstraint.reasoning}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       <div className="px-4 sm:px-6 py-3 flex items-center justify-between bg-muted">

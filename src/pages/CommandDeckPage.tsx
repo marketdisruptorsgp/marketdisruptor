@@ -55,13 +55,30 @@ function buildOpportunityGrid(
   for (const zone of morphZones.slice(0, Math.max(0, 4 - result.length))) {
     const title = humanizeLabel(zone.theme ?? "");
     if (!title) continue;
+
+    // Use the best vector's rationale — prefer constraint-mode vectors
+    const bestVector = zone.vectors.find(v => v.explorationMode === "constraint") ?? zone.vectors[0];
+    const rationale = bestVector?.rationale ?? "";
+
+    // Build a plain-English contrarian belief from the primary dimension shift
+    const primaryShift = bestVector?.changedDimensions[0];
+    const contrarianBelief = primaryShift
+      ? `Instead of "${primaryShift.from}", shift to "${primaryShift.to}"`
+      : "";
+
+    // Use real vector count as a confidence proxy — more vectors = more evidence
+    const BASE_CONFIDENCE = 0.4;
+    const CONFIDENCE_INCREMENT_PER_VECTOR = 0.07;
+    const MAX_CONFIDENCE = 0.75;
+    const vectorConfidence = Math.min(MAX_CONFIDENCE, BASE_CONFIDENCE + zone.vectors.length * CONFIDENCE_INCREMENT_PER_VECTOR);
+
     result.push({
       id: zone.id,
       title,
-      rationale: "",
-      contrarianBelief: "",
+      rationale,
+      contrarianBelief,
       category: "optimization",
-      confidence: 0.5,
+      confidence: vectorConfidence,
     });
   }
 
