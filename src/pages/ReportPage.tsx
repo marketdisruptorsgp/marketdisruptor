@@ -320,7 +320,9 @@ export default function ReportPage() {
               narrative={autoAnalysis.narrative}
               thesis={autoAnalysis.deepenedOpportunities?.[0] ?? null}
               modeAccent={modeAccent}
-              onChallenge={() => {}}
+              onChallenge={(_stage, _value) => {
+                navigate(`/analysis/${analysisId}/disrupt`);
+              }}
             />
           </div>
         </>
