@@ -2,9 +2,9 @@
  * Command Deck — Strategic Intelligence Briefing
  *
  * Executive-level strategic interface — 3-zone layout:
- *   Zone 1 — Situation Assessment  (What Is)
- *   Zone 2 — Breakthrough Vectors  (What Could Be)
- *   Zone 3 — Action Directive      (What To Do)
+ *   Zone 1 — Situation Report    (What We Found)
+ *   Zone 2 — Breakthrough Grid   (What You Could Do)
+ *   Zone 3 — Action Directive    (What To Do First)
  *
  * Engineering complexity (pipeline progress, diagnostics, etc.) is hidden
  * from this view. Deep-dive and report pages surface the technical detail.
@@ -18,8 +18,9 @@ import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { usePipelineOrchestrator } from "@/hooks/usePipelineOrchestrator";
 import { ModeBadge } from "@/components/ModeBadge";
-import { StrategicBriefing } from "@/components/strategic/StrategicBriefing";
-import type { BreakthroughVector } from "@/components/strategic/BreakthroughVectors";
+import { SituationReport } from "@/components/strategic/SituationReport";
+import { BreakthroughGrid, type OpportunityGridItem } from "@/components/strategic/BreakthroughGrid";
+import { ActionDirective } from "@/components/strategic/ActionDirective";
 import { ArrowRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -29,23 +30,24 @@ import type { ConstraintInversion } from "@/lib/constraintInverter";
 import type { SecondOrderUnlock } from "@/lib/secondOrderEngine";
 import { humanizeLabel } from "@/lib/humanize";
 
-// ── Map analysis outputs → BreakthroughVector shape ───────────────────────────
-function buildBreakthroughVectors(
+// ── Map analysis outputs → OpportunityGridItem shape ─────────────────────────
+function buildOpportunityGrid(
   deepened: DeepenedOpportunity[],
   morphZones: OpportunityZone[],
   inversions: ConstraintInversion[],
   unlocks: SecondOrderUnlock[],
-): BreakthroughVector[] {
-  const result: BreakthroughVector[] = [];
+): OpportunityGridItem[] {
+  const result: OpportunityGridItem[] = [];
 
   // Paradigm-level: deepened opportunities (highest fidelity)
   for (const d of deepened.slice(0, 3)) {
     result.push({
       id: d.id,
       title: humanizeLabel(d.reconfigurationLabel),
-      explanation: d.summary || d.causalChain?.reasoning || "",
-      mechanism: d.economicMechanism?.valueCreation || d.causalChain?.outcome || "",
+      rationale: d.summary || d.causalChain?.reasoning || "",
+      contrarianBelief: d.strategicBet?.contrarianBelief || "",
       category: "paradigm",
+      confidence: d.signalDensity ?? 0.7,
     });
   }
 
@@ -53,34 +55,44 @@ function buildBreakthroughVectors(
   for (const zone of morphZones.slice(0, Math.max(0, 4 - result.length))) {
     const title = humanizeLabel(zone.theme ?? "");
     if (!title) continue;
-    result.push({ id: zone.id, title, explanation: "", mechanism: "", category: "optimization" });
+    result.push({
+      id: zone.id,
+      title,
+      rationale: "",
+      contrarianBelief: "",
+      category: "optimization",
+      confidence: 0.5,
+    });
   }
 
   // Flanking moves from constraint inversions
-  for (const inv of inversions.slice(0, Math.max(0, 5 - result.length))) {
+  for (const inv of inversions.slice(0, Math.max(0, 4 - result.length))) {
     if (!inv.invertedFrame) continue;
     result.push({
       id: inv.id,
       title: humanizeLabel(inv.invertedFrame),
-      explanation: inv.mechanism || "",
-      mechanism: inv.precedent || "",
+      rationale: inv.mechanism || "",
+      contrarianBelief: inv.precedent || "",
       category: "flanking",
+      confidence: 0.45,
     });
   }
 
   // Value unlocks from second-order engine
-  for (const u of unlocks.slice(0, Math.max(0, 6 - result.length))) {
+  for (const u of unlocks.slice(0, Math.max(0, 4 - result.length))) {
     if (!u.unlockedBusinessModel) continue;
     result.push({
       id: u.id,
       title: humanizeLabel(u.unlockedBusinessModel),
-      explanation: u.valueMechanism || "",
-      mechanism: u.unlockPath || "",
+      rationale: u.valueMechanism || "",
+      contrarianBelief: u.unlockPath || "",
       category: "unlock",
+      confidence: 0.4,
     });
   }
 
-  return result.slice(0, 6);
+  // Rank by confidence, cap at 4 cards
+  return result.sort((a, b) => b.confidence - a.confidence).slice(0, 4);
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -111,7 +123,6 @@ export default function CommandDeckPage() {
   const {
     narrative,
     hasRun,
-    isComputing: engineComputing,
     deepenedOpportunities,
     morphologicalZones,
     constraintInversions,
@@ -128,32 +139,13 @@ export default function CommandDeckPage() {
   }, []);
 
   const baseUrl = `/analysis/${analysisId}`;
-  const hasBusinessContext = !!businessAnalysisData;
   const analysisDisplayName =
     selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
-  const modeKey: "product" | "service" | "business" =
-    analysis.activeMode === "service"
-      ? "service"
-      : analysis.activeMode === "business"
-      ? "business"
-      : "product";
-
-  const industryLabel = useMemo(() => {
-    if (businessModelInput?.type) return businessModelInput.type;
-    if (selectedProduct?.category) return selectedProduct.category;
-    return modeKey === "service"
-      ? "Service Industry"
-      : modeKey === "business"
-      ? "Business Model"
-      : "Product Market";
-  }, [businessModelInput, selectedProduct, modeKey]);
-
   // ── Guards ─────────────────────────────────────────────────────────────────
-  const isHydrating = analysis.isHydrating;
-  if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
+  if (analysis.step !== "done" || (!selectedProduct && !businessAnalysisData)) {
     if (shouldRedirectHome) return null;
-    if (analysis.step === "done" && !isHydrating) {
+    if (analysis.step === "done" && !analysis.isHydrating) {
       return (
         <div className="flex-1 bg-background flex items-center justify-center px-4">
           <div className="text-center space-y-3 max-w-md">
@@ -171,7 +163,6 @@ export default function CommandDeckPage() {
         </div>
       );
     }
-    // Background preparation — subtle indicator, no engineering chrome
     return (
       <div className="flex-1 bg-background flex items-center justify-center">
         <div
@@ -185,9 +176,9 @@ export default function CommandDeckPage() {
   // ── Strategic data ─────────────────────────────────────────────────────────
   const primaryThesis = deepenedOpportunities[0] ?? null;
 
-  const breakthroughVectors = useMemo(
+  const opportunityGrid = useMemo(
     () =>
-      buildBreakthroughVectors(
+      buildOpportunityGrid(
         deepenedOpportunities,
         morphologicalZones,
         constraintInversions,
@@ -196,91 +187,47 @@ export default function CommandDeckPage() {
     [deepenedOpportunities, morphologicalZones, constraintInversions, secondOrderUnlocks],
   );
 
-  const constraint =
-    narrative?.primaryConstraint || primaryThesis?.causalChain?.constraint || null;
-  const verdict =
-    narrative?.strategicVerdict || primaryThesis?.reconfigurationLabel || null;
-  const verdictRationale =
-    narrative?.verdictRationale || primaryThesis?.causalChain?.reasoning || null;
-
-  // Market position — use breakthrough opportunity or narrative summary as
-  // a one-sentence competitive context statement
-  const marketPosition =
-    narrative?.breakthroughOpportunity ||
-    (narrative?.narrativeSummary !== verdict ? (narrative?.narrativeSummary ?? null) : null);
-
-  const actionDirective = primaryThesis?.firstMove?.action
-    ? humanizeLabel(primaryThesis.firstMove.action)
-    : verdict
-    ? humanizeLabel(verdict)
-    : null;
-
-  const mechanism =
-    primaryThesis?.firstMove?.learningObjective ||
-    primaryThesis?.economicMechanism?.valueCreation ||
-    null;
-
-  const timingRationale =
-    narrative?.whyThisMatters ||
-    primaryThesis?.whyThisMatters?.ifSolved?.[0] ||
-    primaryThesis?.firstMove?.successCriteria ||
-    null;
-
-  const riskMitigation =
-    narrative?.validationExperiment ||
-    primaryThesis?.feasibility?.executionRisks?.[0] ||
-    primaryThesis?.causalChain?.outcome ||
-    null;
-
-  const timeline = primaryThesis?.firstMove?.timeframe ?? "2–4 weeks";
-
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <main className="max-w-[860px] mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
+      <main className="max-w-[720px] mx-auto px-4 py-6 space-y-6">
 
-        {/* ═══ HEADER — company name + strategic assessment badge ═══ */}
+        {/* ═══ HEADER ═══ */}
         <motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center justify-between gap-3"
+          className="flex items-center gap-3"
         >
           <div className="min-w-0">
             <h1 className="text-lg sm:text-xl font-black text-foreground truncate">
               {analysisDisplayName}
             </h1>
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <div className="flex items-center gap-2 mt-0.5">
               <ModeBadge />
-              <span className="text-[11px] text-muted-foreground">{industryLabel}</span>
-              {engineComputing && (
-                <span
-                  className="text-[10px] font-bold"
-                  style={{ color: `${modeAccent}99` }}
-                >
-                  · updating
-                </span>
-              )}
             </div>
           </div>
         </motion.div>
 
-        {/* ═══ 3-ZONE STRATEGIC BRIEFING ═══ */}
-        <StrategicBriefing
-          constraint={constraint}
-          verdict={verdict}
-          verdictRationale={verdictRationale}
-          marketPosition={marketPosition}
-          vectors={breakthroughVectors}
-          action={actionDirective}
-          mechanism={mechanism}
-          timingRationale={timingRationale}
-          riskMitigation={riskMitigation}
-          timeline={timeline}
+        {/* ═══ Zone 1: What we found ═══ */}
+        <SituationReport
+          narrative={narrative}
+          thesis={primaryThesis}
           modeAccent={modeAccent}
-          isComputing={engineComputing}
         />
 
-        {/* ═══ NAVIGATION ═══ */}
+        {/* ═══ Zone 2: What you could do ═══ */}
+        <BreakthroughGrid
+          opportunities={opportunityGrid}
+          modeAccent={modeAccent}
+        />
+
+        {/* ═══ Zone 3: What to do first ═══ */}
+        <ActionDirective
+          thesis={primaryThesis}
+          modeAccent={modeAccent}
+        />
+
+        {/* ═══ Navigation to deeper analysis ═══ */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -312,3 +259,4 @@ export default function CommandDeckPage() {
     </div>
   );
 }
+
