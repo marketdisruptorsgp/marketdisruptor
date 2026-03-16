@@ -22,9 +22,10 @@ export function useHydrationGuard(graceMs = 1200) {
   const effectiveGraceMs = urlHasAnalysisId ? Math.max(graceMs, 5000) : graceMs;
 
   useEffect(() => {
+    setReady(false);
     const t = setTimeout(() => setReady(true), effectiveGraceMs);
     return () => clearTimeout(t);
-  }, [effectiveGraceMs]);
+  }, [effectiveGraceMs, location.pathname]);
 
   const shouldRedirectHome = ready && !analysis.isHydrating && analysis.step === "idle";
 

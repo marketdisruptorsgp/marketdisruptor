@@ -406,6 +406,31 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   // ── Hydrate strategic engine from persisted state on reload ──
   const hydratedRef = useRef(false);
 
+  // ── Reset all engine state when analysis switches ──
+  // MUST be before the hydration useEffect so hydratedRef is cleared before it runs
+  useEffect(() => {
+    if (!analysisId) return;
+    hydratedRef.current = false;
+    runIdRef.current = 0;
+    setHasRun(false);
+    setNarrative(null);
+    setDeepenedOpportunities([]);
+    setGraph(null);
+    setStructuralProfile(null);
+    setInsights([]);
+    setOpportunities([]);
+    setEvidence(null);
+    setFlatEvidenceState([]);
+    setDiagnostic(null);
+    setIntelligence(null);
+    setMorphologicalZones([]);
+    setMorphologicalVectors([]);
+    setConstraintInversions([]);
+    setSecondOrderUnlocks([]);
+    setTemporalUnlocks([]);
+    setCompetitiveGaps([]);
+  }, [analysisId]); // only on analysisId change
+
   useEffect(() => {
     // Trigger when:
     // 1. loadedFromSaved=true  — user clicked a saved analysis from the list
