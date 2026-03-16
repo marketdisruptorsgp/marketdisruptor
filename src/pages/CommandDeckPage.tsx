@@ -21,6 +21,7 @@ import { ModeBadge } from "@/components/ModeBadge";
 import { SituationReport } from "@/components/strategic/SituationReport";
 import { BreakthroughGrid, type OpportunityGridItem } from "@/components/strategic/BreakthroughGrid";
 import { ActionDirective } from "@/components/strategic/ActionDirective";
+import { ActionPath } from "@/components/command-deck/ActionPath";
 import { ArrowRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -193,6 +194,12 @@ export default function CommandDeckPage() {
   // ── Strategic data ─────────────────────────────────────────────────────────
   const primaryThesis = deepenedOpportunities[0] ?? null;
 
+  const mode: "product" | "service" | "business" = businessAnalysisData && !selectedProduct
+    ? "business"
+    : (selectedProduct?.category ?? "").toLowerCase().includes("service")
+      ? "service"
+      : "product";
+
   const opportunityGrid = useMemo(
     () =>
       buildOpportunityGrid(
@@ -244,7 +251,16 @@ export default function CommandDeckPage() {
           modeAccent={modeAccent}
         />
 
-        {/* ═══ Navigation to deeper analysis ═══ */}
+        {/* ═══ Zone 4: What to explore next (pipeline journey) ═══ */}
+        {analysisId && (
+          <ActionPath
+            analysisId={analysisId}
+            completedSteps={completedSteps}
+            mode={mode}
+          />
+        )}
+
+        {/* ═══ Secondary navigation ═══ */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
