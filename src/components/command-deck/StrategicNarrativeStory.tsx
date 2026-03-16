@@ -26,31 +26,34 @@ export const StrategicNarrativeStory = memo(function StrategicNarrativeStory({ s
         </span>
       </div>
 
-      {/* Narrative */}
+      {/* Narrative — bold highlighted bullets instead of dense paragraphs */}
       <div className="px-5 pb-4">
         <div className="space-y-2">
           {story.paragraphs.map((p, i) => (
-            <p key={i} className="text-sm text-foreground leading-relaxed">
-              {p}
-            </p>
+            <div key={i} className="flex gap-3 items-start p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <span className="text-primary font-black text-lg leading-none mt-0.5">→</span>
+              <p className="text-sm font-semibold text-foreground leading-snug">{p}</p>
+            </div>
           ))}
         </div>
 
-        {/* Impact line */}
-        <div
-          className="mt-4 rounded-lg p-3 flex items-start gap-2"
-          style={{ background: "hsl(var(--success) / 0.06)", border: "1px solid hsl(var(--success) / 0.12)" }}
-        >
-          <TrendingUp size={13} style={{ color: "hsl(var(--success))" }} className="mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-wider mb-0.5" style={{ color: "hsl(var(--success))" }}>
-              Expected Impact
-            </p>
-            <p className="text-xs font-bold text-foreground leading-relaxed">
-              {story.impactLine}
-            </p>
+        {/* Impact line — only shown when specific and data-backed */}
+        {story.impactLine && (
+          <div
+            className="mt-4 rounded-lg p-3 flex items-start gap-2"
+            style={{ background: "hsl(var(--success) / 0.06)", border: "1px solid hsl(var(--success) / 0.12)" }}
+          >
+            <TrendingUp size={13} style={{ color: "hsl(var(--success))" }} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider mb-0.5" style={{ color: "hsl(var(--success))" }}>
+                Expected Impact
+              </p>
+              <p className="text-xs font-bold text-foreground leading-relaxed">
+                {story.impactLine}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

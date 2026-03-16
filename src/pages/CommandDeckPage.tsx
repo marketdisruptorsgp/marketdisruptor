@@ -127,7 +127,7 @@ export default function CommandDeckPage() {
     autoAnalysis.runAnalysis,
   );
 
-  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput } =
+  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput, instantInsights } =
     analysis;
 
   const urlAnalysisId = useMemo(() => {
@@ -178,6 +178,133 @@ export default function CommandDeckPage() {
               Go to Report
             </button>
           </div>
+        </div>
+      );
+    }
+    // Show instant insights during loading instead of a blank spinner
+    if (instantInsights?.contrarianPair || instantInsights?.bindingConstraint) {
+      return (
+        <div className="flex-1 bg-background overflow-y-auto">
+          <main className="max-w-[720px] mx-auto px-4 py-6 space-y-4">
+            {/* Loading header */}
+            <div className="flex items-center gap-3">
+              <div
+                className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin flex-shrink-0"
+                style={{ borderColor: modeAccent }}
+              />
+              <p className="text-sm font-semibold text-muted-foreground">
+                Deep analysis running — first insights ready now
+              </p>
+            </div>
+
+            {/* Contrarian pair — the "aha moment" */}
+            {instantInsights.contrarianPair && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-xl overflow-hidden"
+                style={{
+                  background: "hsl(var(--card))",
+                  border: `1.5px solid ${modeAccent}30`,
+                }}
+              >
+                <div className="px-4 py-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: modeAccent }} />
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                        Early Signal
+                      </span>
+                    </div>
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary animate-pulse">
+                      Refining…
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div
+                      className="flex-1 rounded-lg px-3 py-2"
+                      style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.12)" }}
+                    >
+                      <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>
+                        Everyone Assumes
+                      </p>
+                      <p className="text-xs text-foreground/80 leading-snug">
+                        "{instantInsights.contrarianPair.everyoneAssumes}"
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <ArrowRight size={16} className="text-muted-foreground rotate-90 sm:rotate-0" />
+                    </div>
+                    <div
+                      className="flex-1 rounded-lg px-3 py-2"
+                      style={{ background: `${modeAccent}08`, border: `1px solid ${modeAccent}18` }}
+                    >
+                      <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1" style={{ color: modeAccent }}>
+                        The Evidence Suggests
+                      </p>
+                      <p className="text-xs text-foreground font-semibold leading-snug">
+                        "{instantInsights.contrarianPair.evidenceSuggests}"
+                      </p>
+                    </div>
+                  </div>
+                  {instantInsights.contrarianPair.soWhat && (
+                    <p className="text-xs text-foreground/70 leading-snug pt-1 border-t border-border/50">
+                      <span className="font-semibold">{instantInsights.contrarianPair.soWhat}</span>
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Binding constraint hypothesis */}
+            {instantInsights.bindingConstraint && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.1 }}
+                className="rounded-xl px-4 py-3"
+                style={{
+                  background: "hsl(var(--card))",
+                  border: "1.5px solid hsl(var(--border))",
+                }}
+              >
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+                  Binding Constraint Hypothesis
+                </p>
+                <p className="text-sm font-bold text-foreground leading-snug">
+                  {instantInsights.bindingConstraint.label}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                  {instantInsights.bindingConstraint.reasoning}
+                </p>
+              </motion.div>
+            )}
+
+            {/* Assumptions being tested */}
+            {instantInsights.assumptions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="space-y-1.5"
+              >
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  Assumptions Being Challenged
+                </p>
+                {instantInsights.assumptions.slice(0, 3).map((a, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg px-3 py-2 text-xs"
+                    style={{ background: "hsl(var(--muted) / 0.4)", border: "1px solid hsl(var(--border) / 0.5)" }}
+                  >
+                    <span className="font-semibold text-foreground/80">{a.assumption}</span>
+                    <span className="text-muted-foreground"> — {a.challengeHint}</span>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </main>
         </div>
       );
     }
