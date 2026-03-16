@@ -7,6 +7,7 @@ import { memo } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, AlertTriangle, Zap } from "lucide-react";
 import { humanizeLabel, trimAt } from "@/lib/humanize";
+import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 
@@ -21,9 +22,15 @@ export const SoWhatHeader = memo(function SoWhatHeader({
   thesis,
   modeAccent,
 }: SoWhatHeaderProps) {
-  // Build consequence of inaction — use specific language from the analysis
+  // Build consequence of inaction — use specific language from the analysis.
+  // Apply business language translation before humanizeLabel so technical constraint
+  // names like "labor_intensity" become entrepreneur-facing sentences, not just
+  // title-cased technical terms.
   const constraint = narrative?.primaryConstraint
-    ? humanizeLabel(narrative.primaryConstraint)
+    ? translateConstraintToBusinessLanguage(
+        narrative.primaryConstraint,
+        humanizeLabel(narrative.primaryConstraint),
+      )
     : null;
   
   // Use verdictRationale or the constraint directly — never generic filler

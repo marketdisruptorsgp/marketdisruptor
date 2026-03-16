@@ -47,52 +47,7 @@ import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
-
-// ═══════════════════════════════════════════════════════════════
-//  BUSINESS LANGUAGE TRANSLATION LAYER
-//  Maps internal constraint names to entrepreneur-facing language
-// ═══════════════════════════════════════════════════════════════
-
-const CONSTRAINT_BUSINESS_LANGUAGE: Record<string, string> = {
-  labor_intensity: "Your revenue is handcuffed to billable hours — every dollar requires someone's time",
-  owner_dependency: "The business can't grow beyond what you can personally handle — you're the bottleneck",
-  operational_bottleneck: "A single process step is choking your throughput — growth piles up behind the bottleneck",
-  skill_scarcity: "The talent you need is hard to find and expensive to keep — growth is gated by who you can hire",
-  manual_process: "You're paying people to do work that could be systematized — every error and delay is structural, not personal",
-  commoditized_pricing: "You're competing on price and losing ground — customers treat your offering as interchangeable",
-  revenue_concentration: "A handful of clients hold your revenue hostage — lose one, feel the pain immediately",
-  transactional_revenue: "You start from zero every month — no recurring base means no compounding",
-  forced_bundling: "Customers buy your whole package when they only need part of it — you're creating objections and leaving money on the table",
-  capital_barrier: "The upfront cost is killing demand — good prospects walk away before they start",
-  supply_fragmentation: "Supply is scattered across dozens of small providers — whoever aggregates it first captures the relationship premium",
-  geographic_constraint: "Your value can only travel as far as your team — geography is your ceiling",
-  channel_dependency: "Intermediaries own your customer relationships and capture your margin — you're working for the middleman",
-  inventory_burden: "Unsold inventory is cash sitting in a warehouse — every day it doesn't sell, it costs you",
-  capacity_ceiling: "Your fixed assets have a hard ceiling — you're turning away business because you can't say yes",
-  legacy_lock_in: "Outdated systems are costing you speed and flexibility — your tech stack is slowing down every decision",
-  information_asymmetry: "You're making decisions blind — the data exists but you're not capturing or using it",
-  analog_process: "Manual, paper-based workflows are creating delays and errors that compound as you grow",
-  expertise_barrier: "Your product requires specialist knowledge to use — most potential customers give up before they get the value",
-  switching_friction: "Customers are locked in and so are you — high switching costs cut both ways",
-  trust_deficit: "The market doesn't believe you yet — trust is the bottleneck, not the product",
-  regulatory_barrier: "Compliance is a cost and a constraint — whoever turns it into a structural moat wins",
-  margin_compression: "Margins are shrinking from all sides — the current model doesn't have a structural answer",
-  asset_underutilization: "Your biggest assets sit idle half the time — every hour of downtime is revenue you'll never recover",
-  linear_scaling: "Growth requires hiring — you can't scale revenue faster than you can scale headcount",
-  vendor_concentration: "You're one supplier failure away from a crisis — concentrated supply is concentrated risk",
-  awareness_gap: "The people who need this don't know it exists — distribution, not product, is the bottleneck",
-  access_constraint: "Your ideal customers can't reach you — access, not demand, is the real problem",
-  motivation_decay: "Customers start but don't stick — the drop-off is structural, not a sales problem",
-  perceived_value_mismatch: "Customers don't see what you're worth — the value exists but you're not communicating it in their language",
-};
-
-/** Translate a technical constraint name to entrepreneur-facing business language */
-function constraintToBusinessLanguage(constraintName: string, fallback?: string): string {
-  const business = CONSTRAINT_BUSINESS_LANGUAGE[constraintName];
-  if (business) return business;
-  // Fall back to humanized version of the constraint name or provided fallback
-  return fallback || humanize(constraintName.replace(/_/g, " "));
-}
+import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
 
 /** Get a pattern-specific business narrative that references real company precedents */
 function patternToBusinessNarrative(patternId: string, contrarianBelief: string): string {
@@ -605,7 +560,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // Add constraint insights from structural profile
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = constraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
@@ -941,7 +896,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = constraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,

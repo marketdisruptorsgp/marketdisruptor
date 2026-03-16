@@ -10,6 +10,7 @@
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 import type { TransformationPlaybook } from "@/lib/playbookEngine";
+import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
 
 /* ══════════════════════════════════════════════════════════════
    MODEL ARCHETYPES
@@ -326,8 +327,13 @@ export function generateStrategicStory(
     const evidenceRef = constraintEvidence > 0
       ? `, supported by ${constraintEvidence} structural indicator${constraintEvidence !== 1 ? "s" : ""} across cost and operational data`
       : "";
+    // Translate the constraint to business language before using it in prose.
+    // primaryConstraint may be a raw technical name (e.g. "labor_intensity") when
+    // coming from older data or a deterministic fallback path, so we always apply
+    // the business-language layer first, then fall back to humanized text.
+    const constraintPhrase = translateConstraintToBusinessLanguage(narrative.primaryConstraint);
     paragraphs.push(
-      `The current model shows strong fundamentals but is constrained by ${narrative.primaryConstraint.toLowerCase()}${evidenceRef}.`
+      `The current model shows strong fundamentals, but a structural constraint is limiting growth: ${constraintPhrase}${evidenceRef}.`
     );
   }
 
