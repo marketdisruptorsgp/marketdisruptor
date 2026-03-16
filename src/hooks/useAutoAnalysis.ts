@@ -79,7 +79,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
     geoData, regulatoryData, activeLens,
-    saveStepData, loadedFromSaved,
+    saveStepData,
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
@@ -407,7 +407,16 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const hydratedRef = useRef(false);
 
   useEffect(() => {
-    if (!loadedFromSaved || !analysisId || hydratedRef.current || hasRun) return;
+    // Trigger when:
+    // 1. loadedFromSaved=true  — user clicked a saved analysis from the list
+    // 2. loadedFromSaved=false — direct URL navigation / page refresh
+    //    (AnalysisContext auto-hydration sets analysisId regardless of loadedFromSaved)
+    // Skip if already hydrated, already running, or no data yet to hydrate into
+    if (!analysisId || hydratedRef.current || hasRun) return;
+    // Skip if strategic engine data is already present in state — either field being
+    // set means a previous hydration (from DB or a fresh run) already populated data.
+    // hasRun=true guards the fresh-run case; this catches any remaining edge cases.
+    if (narrative || deepenedOpportunities.length > 0) return;
 
     // Try to restore persisted strategic engine + graph state from DB
     import("@/integrations/supabase/client").then(({ supabase }) => {
@@ -457,7 +466,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         })
         .catch(() => { /* non-critical */ });
     });
-  }, [loadedFromSaved, analysisId, hasRun]);
+  }, [analysisId, hasRun, narrative, deepenedOpportunities.length]);
 
   // ── Auto-recompute whenever evidence dataset changes ──
   const evidenceHashRef = useRef<string>("");
