@@ -489,6 +489,12 @@ export function buildDimensionConstraintMatrix(
     }
   }
 
+  /** Compute average constraint strength for a dimension based on its evidence IDs */
+  function dimStrength(dim: BusinessDimension): number {
+    return dim.evidenceIds.reduce((s, eid) => s + (evidenceConstraintMap.get(eid) ?? 0), 0) /
+      Math.max(1, dim.evidenceIds.length);
+  }
+
   // Evaluate all dimension pairs
   for (let i = 0; i < activeDimensions.length; i++) {
     for (let j = i + 1; j < activeDimensions.length; j++) {
@@ -496,9 +502,7 @@ export function buildDimensionConstraintMatrix(
       const dimB = activeDimensions[j];
 
       // Find the average constraint strength for each dimension
-      const aStrength = dimA.evidenceIds.reduce((s, eid) => s + (evidenceConstraintMap.get(eid) ?? 0), 0) / Math.max(1, dimA.evidenceIds.length);
-      const bStrength = dimB.evidenceIds.reduce((s, eid) => s + (evidenceConstraintMap.get(eid) ?? 0), 0) / Math.max(1, dimB.evidenceIds.length);
-      const baseStrength = (aStrength + bStrength) / 2;
+      const baseStrength = (dimStrength(dimA) + dimStrength(dimB)) / 2;
 
       // Find applicable interaction rule
       const rule = DIMENSION_INTERACTION_RULES.find(r =>

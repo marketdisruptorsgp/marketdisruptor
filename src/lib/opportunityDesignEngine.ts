@@ -351,10 +351,12 @@ export function buildZwickyBox(
           if (disqualified) {
             status = "disqualified";
           } else {
-            // Mark cross-constraint combinations that lack strong evidence as needing investigation
-            const bothHot = rowDim.status === "hot" && colDim.status === "hot";
+            // Mark as requires_investigation when evidence is thin on either dimension
+            // regardless of whether both are hot — low evidence means less confidence
             const lowEvidence = rowDim.evidenceCount < 3 || colDim.evidenceCount < 3;
-            status = bothHot && lowEvidence ? "requires_investigation" : "viable";
+            const bothHot = rowDim.status === "hot" && colDim.status === "hot";
+            // Hot + adequate evidence = viable; any low-evidence dim = needs investigation
+            status = bothHot && !lowEvidence ? "viable" : lowEvidence ? "requires_investigation" : "viable";
           }
 
           const noveltyScore = status === "viable" || status === "requires_investigation"

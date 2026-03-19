@@ -580,8 +580,8 @@ export function applyScamper(product: any): ScamperResult {
   const defaultElement: BusinessElement = {
     id: "be-fallback",
     type: "core_offering",
-    label: elements[0]?.label ?? "Core business element",
-    description: elements[0]?.description ?? "",
+    label: elements.length > 0 ? elements[0].label : "Core business element",
+    description: elements.length > 0 ? elements[0].description : "",
     evidenceIds: [],
   };
 
