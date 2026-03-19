@@ -140,7 +140,7 @@ export default function DeepDivePage() {
 
   // ── Extracted data (must be before guards — hooks can't be after early returns) ──
   const primaryThesis = autoAnalysis.deepenedOpportunities[0] ?? null;
-  const biExtraction = (analysis as { biExtraction?: unknown })?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null;
+  const biExtraction = ((analysis as { biExtraction?: unknown })?.biExtraction ?? analysis.adaptiveContext?.biExtraction ?? null) as Record<string, unknown> | null;
   const governedDataTyped = (analysis.governedData ?? null) as Record<string, unknown> | null;
   const entityName = analysis.adaptiveContext?.entity?.name || selectedProduct?.name || "This business";
 

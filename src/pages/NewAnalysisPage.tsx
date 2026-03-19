@@ -570,12 +570,12 @@ export default function NewAnalysisPage() {
           analysis.setStep("done");
 
           // Persist results to database
-          supabase
+          (supabase
             .from("saved_analyses")
             .select("analysis_data")
             .eq("id", analysisId)
-            .single()
-            .then(({ data: existingRow }) => {
+            .single() as any)
+            .then(({ data: existingRow }: { data: any }) => {
               const prev = (existingRow?.analysis_data as Record<string, unknown>) || {};
               const merged = {
                 ...prev,
