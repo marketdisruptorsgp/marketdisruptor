@@ -294,3 +294,130 @@ export function discoverConstraintInteractions(
     hasReinforcingLoops: interactions.some(i => i.interactionType === "reinforcing"),
   };
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  EVIDENCE-BACKED CONSTRAINT MATRIX
+// ═══════════════════════════════════════════════════════════════
+
+/** A single cell in the constraint interaction matrix */
+export interface ConstraintMatrixCell {
+  rowId: string;
+  colId: string;
+  rowLabel: string;
+  colLabel: string;
+  /** null = no interaction detected */
+  interaction: ConstraintInteraction | null;
+  /** Raw evidence overlap ratio (0–1) between the two constraints */
+  evidenceOverlap: number;
+  /** Whether this cell is on the diagonal (same constraint) */
+  isDiagonal: boolean;
+}
+
+/** Full N×N constraint interaction matrix with evidence backing */
+export interface ConstraintInteractionMatrix {
+  /** Ordered list of constraints (defines row and column order) */
+  constraintIds: string[];
+  constraintLabels: string[];
+  /** Flat list of all cells, row-major order */
+  cells: ConstraintMatrixCell[];
+  /** Interaction set used to build the matrix */
+  interactionSet: ConstraintInteractionSet;
+  /** Total number of evidence-backed interactions found */
+  evidenceBackedCount: number;
+  /** Constraint ID with the most interactions (highest row sum of strength) */
+  mostConnectedConstraintId: string | null;
+}
+
+/**
+ * Builds a full N×N constraint interaction matrix backed by evidence overlap.
+ *
+ * For each pair (i, j):
+ *   - If an interaction was discovered by `discoverConstraintInteractions`, the
+ *     corresponding `ConstraintInteraction` record is embedded in the cell.
+ *   - Raw evidence overlap is always computed so the UI can render gradient
+ *     fill even when no structural rule matched.
+ *   - Diagonal cells are flagged (same constraint with itself).
+ */
+export function buildEvidenceBackedConstraintMatrix(
+  activeConstraints: StrategicInsight[],
+  hypotheses: ConstraintHypothesisSet | null,
+): ConstraintInteractionMatrix {
+  const interactionSet = discoverConstraintInteractions(activeConstraints, hypotheses);
+
+  // Build a lookup: sorted pair key → interaction
+  const interactionLookup = new Map<string, ConstraintInteraction>();
+  for (const ix of interactionSet.interactions) {
+    const key = ix.constraintIds[0] < ix.constraintIds[1]
+      ? `${ix.constraintIds[0]}|${ix.constraintIds[1]}`
+      : `${ix.constraintIds[1]}|${ix.constraintIds[0]}`;
+    interactionLookup.set(key, ix);
+  }
+
+  const ids = activeConstraints.map(c => c.id);
+  const labels = activeConstraints.map(c => c.label);
+  const cells: ConstraintMatrixCell[] = [];
+  let evidenceBackedCount = 0;
+
+  // Row-sum of strength per constraint for "most connected" detection
+  const strengthSums = new Map<string, number>();
+  for (const id of ids) strengthSums.set(id, 0);
+
+  for (let r = 0; r < activeConstraints.length; r++) {
+    for (let c = 0; c < activeConstraints.length; c++) {
+      const a = activeConstraints[r];
+      const b = activeConstraints[c];
+      const isDiagonal = a.id === b.id;
+
+      let interaction: ConstraintInteraction | null = null;
+      let evidenceOverlap = 0;
+
+      if (!isDiagonal) {
+        const key = a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`;
+        interaction = interactionLookup.get(key) ?? null;
+
+        // Compute evidence overlap inline
+        const setA = new Set(a.evidenceIds);
+        const union = new Set([...a.evidenceIds, ...b.evidenceIds]);
+        const overlapCount = b.evidenceIds.filter(eid => setA.has(eid)).length;
+        evidenceOverlap = union.size > 0 ? overlapCount / union.size : 0;
+
+        if (interaction) {
+          evidenceBackedCount++;
+          strengthSums.set(a.id, (strengthSums.get(a.id) ?? 0) + interaction.strength);
+        } else if (evidenceOverlap > 0) {
+          evidenceBackedCount++;
+          strengthSums.set(a.id, (strengthSums.get(a.id) ?? 0) + evidenceOverlap);
+        }
+      }
+
+      cells.push({
+        rowId: a.id,
+        colId: b.id,
+        rowLabel: a.label,
+        colLabel: b.label,
+        interaction,
+        evidenceOverlap,
+        isDiagonal,
+      });
+    }
+  }
+
+  // Find the most connected constraint
+  let mostConnectedConstraintId: string | null = null;
+  let maxStrength = 0;
+  for (const [id, sum] of strengthSums) {
+    if (sum > maxStrength) {
+      maxStrength = sum;
+      mostConnectedConstraintId = id;
+    }
+  }
+
+  return {
+    constraintIds: ids,
+    constraintLabels: labels,
+    cells,
+    interactionSet,
+    evidenceBackedCount,
+    mostConnectedConstraintId,
+  };
+}
