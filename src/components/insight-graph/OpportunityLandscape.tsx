@@ -5,6 +5,8 @@
  * upstream constraints/assumptions. Visual reasoning, not text lists.
  *
  * Uses graphQuery.ts as single source of truth for node selection.
+ * Classifies each opportunity as "safe" (incremental) or "moonshot"
+ * (high-leverage, disruptive) and lets users filter by category.
  */
 
 import { memo, useMemo, useState, useCallback } from "react";
@@ -21,10 +23,10 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { motion } from "framer-motion";
-import { Lightbulb, Zap } from "lucide-react";
+import { Lightbulb, Rocket, Shield, Zap } from "lucide-react";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
-import { getOpportunityNodes, getUpstreamNodes, getUpstreamConstraints } from "@/lib/graphQuery";
+import { getOpportunityNodes, getUpstreamNodes, classifyOpportunity, partitionOpportunities, type OpportunityRisk } from "@/lib/graphQuery";
 
 /* ═══════════════════════════════════════════════════════
    CUSTOM NODE COMPONENTS
@@ -34,6 +36,7 @@ import { getOpportunityNodes, getUpstreamNodes, getUpstreamConstraints } from "@
 const OpportunityNode = memo(({ data, selected }: NodeProps) => {
   const [hovered, setHovered] = useState(false);
   const config = NODE_TYPE_CONFIG[data.nodeType as InsightNodeType] || NODE_TYPE_CONFIG.outcome;
+  const isMoonshot = data.riskCategory === "moonshot";
 
   return (
     <div
@@ -58,8 +61,8 @@ const OpportunityNode = memo(({ data, selected }: NodeProps) => {
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
 
-      {/* Type badge */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+      {/* Type badge + risk category badge */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
         <span
           style={{
             padding: "3px 10px",
@@ -73,6 +76,24 @@ const OpportunityNode = memo(({ data, selected }: NodeProps) => {
           }}
         >
           {config.label}
+        </span>
+        {/* Safe / Moonshot classification badge */}
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 3,
+            padding: "3px 8px",
+            borderRadius: 8,
+            fontSize: 9,
+            fontWeight: 800,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            color: isMoonshot ? "hsl(280 80% 60%)" : "hsl(142 70% 40%)",
+            background: isMoonshot ? "hsl(280 80% 60% / 0.12)" : "hsl(142 70% 40% / 0.12)",
+          }}
+        >
+          {isMoonshot ? "🚀 Moonshot" : "🛡 Safe"}
         </span>
         {data.confidence && (
           <span style={{
@@ -211,6 +232,7 @@ function buildClusterLayout(
         confidence: opp.confidence,
         reasoning: opp.reasoning,
         evidenceCount: opp.evidenceCount,
+        riskCategory: classifyOpportunity(opp),
       },
       sourcePosition: Position.Bottom,
       targetPosition: Position.Top,
@@ -292,8 +314,10 @@ interface OpportunityLandscapeProps {
 export const OpportunityLandscape = memo(function OpportunityLandscape({
   graph, onSelectNode, compact = false,
 }: OpportunityLandscapeProps) {
+  const [riskFilter, setRiskFilter] = useState<"all" | OpportunityRisk>("all");
+
   // Use graph query layer as single source of truth
-  const opportunities = useMemo(
+  const allOpportunities = useMemo(
     () => getOpportunityNodes(graph)
       .sort((a, b) => {
         if (b.impact !== a.impact) return b.impact - a.impact;
@@ -302,6 +326,17 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
       }),
     [graph],
   );
+
+  const { safe: safeOpps, moonshot: moonshotOpps } = useMemo(
+    () => partitionOpportunities(allOpportunities),
+    [allOpportunities],
+  );
+
+  const opportunities = useMemo(() => {
+    if (riskFilter === "safe") return safeOpps;
+    if (riskFilter === "moonshot") return moonshotOpps;
+    return allOpportunities;
+  }, [riskFilter, allOpportunities, safeOpps, moonshotOpps]);
 
   const { nodes, edges } = useMemo(
     () => buildClusterLayout(graph, opportunities),
@@ -312,7 +347,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
     onSelectNode?.(node.id);
   }, [onSelectNode]);
 
-  if (opportunities.length === 0) {
+  if (allOpportunities.length === 0) {
     return (
       <div
         className="flex flex-col items-center justify-center rounded-xl py-10 gap-2"
@@ -327,7 +362,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
     );
   }
 
-  const clusterRows = Math.ceil(opportunities.length / 3);
+  const clusterRows = Math.ceil(Math.max(opportunities.length, 1) / 3);
   const containerH = Math.max(400, clusterRows * 380 + 120);
 
   return (
@@ -336,76 +371,118 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
       animate={{ opacity: 1 }}
       className="space-y-3"
     >
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center"
-          style={{ background: "hsl(var(--primary) / 0.1)" }}
-        >
-          <Lightbulb size={14} style={{ color: "hsl(var(--primary))" }} />
+      {/* Header + filter controls */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{ background: "hsl(var(--primary) / 0.1)" }}
+          >
+            <Lightbulb size={14} style={{ color: "hsl(var(--primary))" }} />
+          </div>
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
+              Opportunity Landscape
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {opportunities.length} of {allOpportunities.length} move{opportunities.length !== 1 ? "s" : ""} · click any node to trace reasoning
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
-            Opportunity Landscape
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {opportunities.length} strategic move{opportunities.length !== 1 ? "s" : ""} · click any node to trace reasoning
-          </p>
+
+        {/* Safe / Moonshot filter */}
+        <div className="flex items-center gap-1 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          {(["all", "safe", "moonshot"] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setRiskFilter(f)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all"
+              style={{
+                background: riskFilter === f ? "hsl(var(--card))" : "transparent",
+                color: riskFilter === f ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                boxShadow: riskFilter === f ? "0 1px 4px hsl(var(--foreground) / 0.06)" : "none",
+              }}
+            >
+              {f === "moonshot" && <Rocket size={9} />}
+              {f === "safe" && <Shield size={9} />}
+              {f === "all" ? `All (${allOpportunities.length})` : f === "safe" ? `Safe (${safeOpps.length})` : `Moonshot (${moonshotOpps.length})`}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Empty state for filtered view */}
+      {opportunities.length === 0 && (
+        <div
+          className="flex flex-col items-center justify-center rounded-xl py-8 gap-2"
+          style={{ background: "hsl(var(--muted))", border: "1.5px dashed hsl(var(--border))" }}
+        >
+          <p className="text-xs font-semibold text-muted-foreground">
+            No {riskFilter} opportunities identified yet
+          </p>
+          <button
+            onClick={() => setRiskFilter("all")}
+            className="text-[10px] font-bold text-primary underline"
+          >
+            Show all
+          </button>
+        </div>
+      )}
 
       {/* React Flow Canvas */}
-      <div
-        className="rounded-xl overflow-hidden relative group"
-        style={{
-          height: containerH,
-          background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--background)))",
-          border: "1.5px solid hsl(var(--border))",
-          boxShadow: "0 2px 12px hsl(var(--foreground) / 0.03)",
-        }}
-      >
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodeClick={handleNodeClick}
-          fitView
-          fitViewOptions={{ padding: 0.3 }}
-          connectionLineType={ConnectionLineType.SmoothStep}
-          proOptions={{ hideAttribution: true }}
-          nodesDraggable={true}
-          nodesConnectable={false}
-          elementsSelectable={true}
-          panOnDrag={true}
-          zoomOnScroll={true}
-          zoomOnPinch={true}
-          preventScrolling={false}
-          minZoom={0.3}
-          maxZoom={2}
+      {opportunities.length > 0 && (
+        <div
+          className="rounded-xl overflow-hidden relative group"
+          style={{
+            height: containerH,
+            background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--background)))",
+            border: "1.5px solid hsl(var(--border))",
+            boxShadow: "0 2px 12px hsl(var(--foreground) / 0.03)",
+          }}
         >
-          <Background gap={28} size={1} color="hsl(var(--border) / 0.15)" />
-          <Controls
-            showInteractive={false}
-            position="bottom-right"
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: 2,
-              background: "hsl(var(--card) / 0.9)",
-              borderRadius: 8,
-              border: "1px solid hsl(var(--border))",
-              padding: 2,
-            }}
-          />
-        </ReactFlow>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodeClick={handleNodeClick}
+            fitView
+            fitViewOptions={{ padding: 0.3 }}
+            connectionLineType={ConnectionLineType.SmoothStep}
+            proOptions={{ hideAttribution: true }}
+            nodesDraggable={true}
+            nodesConnectable={false}
+            elementsSelectable={true}
+            panOnDrag={true}
+            zoomOnScroll={true}
+            zoomOnPinch={true}
+            preventScrolling={false}
+            minZoom={0.3}
+            maxZoom={2}
+          >
+            <Background gap={28} size={1} color="hsl(var(--border) / 0.15)" />
+            <Controls
+              showInteractive={false}
+              position="bottom-right"
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 2,
+                background: "hsl(var(--card) / 0.9)",
+                borderRadius: 8,
+                border: "1px solid hsl(var(--border))",
+                padding: 2,
+              }}
+            />
+          </ReactFlow>
 
-        {/* Interaction hint */}
-        <div className="absolute bottom-3 left-3 opacity-60 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
-          <span className="text-[10px] font-semibold text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md">
-            Drag nodes · Scroll to zoom · Click to explore
-          </span>
+          {/* Interaction hint */}
+          <div className="absolute bottom-3 left-3 opacity-60 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
+            <span className="text-[10px] font-semibold text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md">
+              Drag nodes · Scroll to zoom · Click to explore
+            </span>
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 });
