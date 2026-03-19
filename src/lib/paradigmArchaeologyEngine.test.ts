@@ -43,8 +43,7 @@ function makeConstraint(
   return {
     constraintId,
     constraintName,
-    // @ts-expect-error — minimal stub; definition not needed for detection logic
-    definition: { id: constraintId, name: constraintName, category: "labor_operations", description: "", defaultTier: 1 },
+    definition: { id: constraintId, name: constraintName, category: "labor_operations", description: "", defaultTier: 1 } as any,
     tier: 1,
     evidenceIds: ["ev-001"],
     facetBasis: [],
