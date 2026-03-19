@@ -45,6 +45,7 @@ import { generateInversions, type ConstraintInversion } from "@/lib/constraintIn
 import { generateSecondOrderUnlocks, type SecondOrderUnlock } from "@/lib/secondOrderEngine";
 import { generateTemporalUnlocks, type TemporalUnlock } from "@/lib/temporalArbitrageEngine";
 import { exploreNegativeSpace, type CompetitiveGap } from "@/lib/negativeSpaceEngine";
+import { buildDiagnosticContext, type DiagnosticContext } from "@/lib/diagnosticContext";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
@@ -70,6 +71,8 @@ export interface AutoAnalysisResult {
   pipelineCompletion: number;
   runAnalysis: () => void;
   hasRun: boolean;
+  /** Active DiagnosticContext (mode + lens) for the current analysis run */
+  diagnosticContext: DiagnosticContext | null;
 }
 
 export function useAutoAnalysis(): AutoAnalysisResult {
@@ -160,6 +163,17 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     return "product" as const;
   }, [(analysis as any).activeMode]);
 
+  // Build DiagnosticContext from active mode + lens — the canonical context contract
+  const diagnosticContext = useMemo((): DiagnosticContext => {
+    const uiMode = (analysis as any).activeMode ?? "custom";
+    return buildDiagnosticContext(
+      uiMode,
+      activeLens?.id ?? null,
+      activeLens?.name ?? null,
+      activeLens ?? null,
+    );
+  }, [(analysis as any).activeMode, activeLens]);
+
   // Run the full strategic analysis (async — AI-powered deepening)
   const runAnalysis = useCallback(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
@@ -219,6 +233,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       regulatoryData,
       lensConfig,
       biExtraction,
+      diagnosticContext,
     };
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {
@@ -250,7 +265,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       if (activeConstraints.length >= 1 && result.flatEvidence.length >= 18) {
         try {
           // Pass empty array for aiAlternatives — morphological search is purely deterministic
-          const morphResult = runMorphologicalSearch(result.flatEvidence, activeConstraints, leveragePoints, []);
+          const morphResult = runMorphologicalSearch(result.flatEvidence, activeConstraints, leveragePoints, [], diagnosticContext);
           setMorphologicalZones(morphResult.zones);
           setMorphologicalVectors(morphResult.vectors);
           console.log(`[Morphological] Auto-ran: ${morphResult.vectors.length} vectors, ${morphResult.zones.length} zones`);
@@ -597,5 +612,6 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     pipelineCompletion,
     runAnalysis,
     hasRun,
+    diagnosticContext,
   };
 }

@@ -15,6 +15,8 @@
 
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { EvidenceFacets, BusinessFacets, ObjectFacets, DemandFacets, MarketFacets } from "@/lib/evidenceFacets";
+import type { DiagnosticContext } from "@/lib/diagnosticContext";
+import { getConstraintPriorityWeight } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  CONSTRAINT TAXONOMY — Stable IDs
@@ -649,6 +651,47 @@ export function rankConstraintCandidates(
 //  LAYER 3: COUNTERFACTUAL VALIDATION + PROBABILISTIC STACK
 // ═══════════════════════════════════════════════════════════════
 
+/**
+ * Mode-aware ranking variant. Applies DiagnosticContext category weights on
+ * top of the standard ranking so the binding constraint reflects the active
+ * analysis mode (product / service / business_model).
+ */
+function rankConstraintCandidatesWithContext(
+  candidates: ConstraintCandidate[],
+  evidence: { label: string; description?: string }[] | undefined,
+  ctx: DiagnosticContext,
+): ConstraintCandidate[] {
+  const base = rankConstraintCandidates(candidates, evidence);
+
+  // Compute a composite mode-weighted score and re-sort
+  return [...base].sort((a, b) => {
+    const aDef = CONSTRAINT_BY_NAME.get(a.constraintName);
+    const bDef = CONSTRAINT_BY_NAME.get(b.constraintName);
+    const aWeight = aDef ? getConstraintPriorityWeight(ctx, aDef.category) : 1.0;
+    const bWeight = bDef ? getConstraintPriorityWeight(ctx, bDef.category) : 1.0;
+
+    // Tier still dominates; within same tier apply mode weight
+    if (a.tier !== b.tier) return a.tier - b.tier;
+
+    const confOrder = { strong: 0, moderate: 1, limited: 2 };
+    const aConf = confOrder[a.confidence] ?? 2;
+    const bConf = confOrder[b.confidence] ?? 2;
+
+    // Composite score explanation:
+    //   -aConf      : converts the ordinal confidence level (0=strong, 2=limited)
+    //                 into a negative penalty so stronger confidence = higher score.
+    //   aWeight * n : the mode priority weight amplifies the raw evidence count.
+    //                 Weights are in the range [0.7, 1.5], so this term dominates
+    //                 only when both evidence count and mode relevance are high.
+    //   Net effect  : within the same tier, a high-evidence constraint that is
+    //                 relevant to the active mode beats a weaker-evidence or
+    //                 off-mode constraint of equal confidence.
+    const aScore = -aConf + aWeight * a.evidenceIds.length;
+    const bScore = -bConf + bWeight * b.evidenceIds.length;
+    return bScore - aScore;
+  });
+}
+
 /** Constraint stack role: binding (primary limit), secondary, or enabling */
 export type ConstraintStackRole = "binding" | "secondary" | "enabling";
 
@@ -778,13 +821,23 @@ function computeCounterfactualImpact(
  *
  * Returns a ranked set of 2-3 constraint hypotheses with full
  * evidence chains and counterfactual impact scores.
+ *
+ * @param evidence  Evidence dataset (with facets) to analyse
+ * @param ctx       Optional DiagnosticContext — when supplied, mode-specific
+ *                  category weights are applied to the candidate ranking so
+ *                  that the binding constraint reflects the active mode.
  */
-export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): ConstraintHypothesisSet {
+export function detectConstraintHypotheses(
+  evidence: EvidenceWithFacets[],
+  ctx?: DiagnosticContext,
+): ConstraintHypothesisSet {
   // Layer 1: Detect candidates
   const candidates = detectCandidateConstraints(evidence);
 
-  // Layer 2: Rank candidates
-  const ranked = rankConstraintCandidates(candidates, evidence);
+  // Layer 2: Rank candidates (mode-weighted when ctx is provided)
+  const ranked = ctx
+    ? rankConstraintCandidatesWithContext(candidates, evidence, ctx)
+    : rankConstraintCandidates(candidates, evidence);
 
   // Layer 3: Counterfactual validation + probabilistic stack on top candidates
   const topCandidates = ranked.slice(0, 5);

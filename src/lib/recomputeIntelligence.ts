@@ -69,6 +69,11 @@ export interface IntelligenceInput {
   geoMarketData?: any | null;
   regulatoryData?: any | null;
   lensConfig?: import("@/lib/reconfiguration/structuralProfile").DiagnosisLensConfig | null;
+  /**
+   * DiagnosticContext — the canonical mode + lens contract.
+   * When present, engines adapt scoring to the active mode and lens.
+   */
+  diagnosticContext?: import("@/lib/diagnosticContext").DiagnosticContext | null;
 }
 
 export interface IntelligenceOutput {
@@ -123,6 +128,7 @@ function buildEngineInput(
     geoMarketData: input.geoMarketData,
     regulatoryData: input.regulatoryData,
     lensConfig: input.lensConfig,
+    diagnosticContext: input.diagnosticContext ?? null,
   };
 }
 

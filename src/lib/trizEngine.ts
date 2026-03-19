@@ -7,6 +7,8 @@
  * innovation archetypes.
  */
 
+import type { DiagnosticContext } from "@/lib/diagnosticContext";
+
 export interface TrizSeed {
   principleId: number;       // 1-40 (Altshuller's original numbering)
   principleName: string;     // e.g. "Segmentation"
@@ -430,6 +432,20 @@ function buildApplicationHint(principleId: number, constraintText: string, entit
   return `${entityName}: apply ${p?.name ?? `Principle #${principleId}`} — ${p?.description ?? "see TRIZ reference"} — to dissolve "${shorten(constraintText)}".`;
 }
 
+// ─── Mode-Specific Principle Boost ────────────────────────────────────────────
+// Lists the TRIZ principle IDs that are most relevant for each analysis mode.
+// These are used to reorder principles when a DiagnosticContext is active.
+import type { DiagnosticMode } from "@/lib/diagnosticContext";
+
+const MODE_TRIZ_PRINCIPLE_BOOST: Record<DiagnosticMode, number[]> = {
+  // Product: innovation, design differentiation, cost-efficiency
+  product: [6, 25, 13, 27, 35, 1, 3],
+  // Service: automation, feedback loops, self-service, segmentation
+  service: [25, 23, 15, 1, 6, 9, 21],
+  // Business model: revenue flipping, compositing, parameter changes
+  business_model: [13, 40, 35, 16, 27, 2, 5],
+};
+
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
 /**
@@ -444,6 +460,8 @@ function buildApplicationHint(principleId: number, constraintText: string, entit
  * @param bindingConstraint  The single highest-severity constraint
  * @param entityName  Business name (e.g. "Acme Plumbing")
  * @param evidenceText  Optional flattened evidence text for two-axis detection
+ * @param ctx         Optional DiagnosticContext — when provided, principle
+ *                    selection is biased toward mode-relevant contradiction shapes
  * @returns  2-3 TrizSeed objects, or [] if no contradiction detected
  */
 export function deriveTrizSeeds(
@@ -451,6 +469,7 @@ export function deriveTrizSeeds(
   bindingConstraint: { label: string; reasoning: string } | null,
   entityName: string,
   evidenceText = "",
+  ctx?: DiagnosticContext,
 ): TrizSeed[] {
   if (constraints.length === 0) return [];
 
@@ -478,8 +497,23 @@ export function deriveTrizSeeds(
   if (!shape) return [];
 
   const cluster = CONTRADICTION_PRINCIPLES[shape];
+
+  // Apply mode-specific principle ordering when DiagnosticContext is provided.
+  // Modes bias which TRIZ principles are most actionable.
+  const BOOSTED = 1;
+  const NOT_BOOSTED = 0;
+  let orderedPrinciples = [...cluster.principles];
+  if (ctx) {
+    const modeBoost = MODE_TRIZ_PRINCIPLE_BOOST[ctx.mode];
+    orderedPrinciples = orderedPrinciples.sort((a, b) => {
+      const aBoost = modeBoost.includes(a) ? BOOSTED : NOT_BOOSTED;
+      const bBoost = modeBoost.includes(b) ? BOOSTED : NOT_BOOSTED;
+      return bBoost - aBoost;
+    });
+  }
+
   // Take top MAX_TRIZ_SEEDS principle IDs; skip any that have no entry in PRINCIPLES
-  const principleIds = cluster.principles.filter(id => PRINCIPLES[id]).slice(0, MAX_TRIZ_SEEDS);
+  const principleIds = orderedPrinciples.filter(id => PRINCIPLES[id]).slice(0, MAX_TRIZ_SEEDS);
 
   // Attempt two-axis contradiction detection (PR #20 upgrade)
   // Only attach when both axes are evidenced — not inferred

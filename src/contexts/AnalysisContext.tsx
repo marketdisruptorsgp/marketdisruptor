@@ -15,6 +15,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { getResumeRoute } from "@/utils/analysisSteps";
+import { buildDiagnosticContext, type DiagnosticContext } from "@/lib/diagnosticContext";
 
 /** Lightweight summary of a concept variant for cross-page transfer */
 export interface ConceptVariantSummary {
@@ -59,6 +60,9 @@ interface AnalysisContextType {
   setMainTab: (t: "custom" | "service" | "business") => void;
   activeMode: AnalysisMode;
   setActiveMode: (m: AnalysisMode) => void;
+
+  // DiagnosticContext — canonical mode + lens contract for all engines
+  diagnosticContext: DiagnosticContext;
 
   // Loading
   elapsedSeconds: number;
@@ -247,7 +251,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState<AnalysisStep>("idle");
   const [isHydrating, setIsHydrating] = useState(false);
   const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
-  const [activeMode, setActiveMode] = useState<AnalysisMode>("custom");
+  const [activeMode, setActiveModeState] = useState<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -294,6 +298,19 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, []);
+
+  // ── Mode setter — marks downstream steps as outdated on mode change ──
+  // Redesign, stress-test, and pitch-deck outputs are all shaped by the
+  // active analysis mode (product / service / business). When the mode
+  // changes, those outputs were produced under a different DiagnosticContext
+  // and are therefore stale — they must be re-run before being trusted.
+  // This mirrors the existing setActiveLens behavior for lens changes.
+  const setActiveMode = useCallback((m: AnalysisMode) => {
+    setActiveModeState(m);
+    markStepOutdated("redesign");
+    markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
+  }, [markStepOutdated]);
 
   // ── System Layer: User Score Overrides ──
   const [userScores, setUserScores] = useState<Record<string, Record<string, number>>>({});
@@ -593,7 +610,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // ── Shared hydration setters object (used by clearAllState and hydrateFromRow) ──
   const hydrationSetters: HydrationSetters = useMemo(() => ({
     setAnalysisId, setProducts, setSelectedProduct, setAnalysisParams,
-    setMainTab, setActiveMode, setStep, setDetailTab, setLoadedFromSaved,
+    setMainTab, setActiveMode: setActiveModeState, setStep, setDetailTab, setLoadedFromSaved,
     setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData, setConceptsData,
     setGovernedData, setBusinessAnalysisData, setBusinessModelInput,
     setBusinessStressTestData,
@@ -1520,6 +1537,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       step, setStep, products, setProducts, selectedProduct, setSelectedProduct,
       analysisParams, setAnalysisParams, errorMsg, setErrorMsg,
       mainTab, setMainTab, activeMode, setActiveMode,
+      diagnosticContext: buildDiagnosticContext(
+        activeMode,
+        activeLens?.id ?? null,
+        activeLens?.name ?? null,
+        activeLens ?? null,
+      ),
       elapsedSeconds, loadingLog, stepMessage,
       detailTab, setDetailTab, visitedDetailTabs, setVisitedDetailTabs,
       decompositionData, setDecompositionData,

@@ -18,6 +18,8 @@
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { StrategicInsight, StrategicSignal } from "@/lib/strategicEngine";
 import { applyPatterns, detectInteractions, type VectorOrigin, type VectorInteraction } from "@/lib/strategicPatternLibrary";
+import type { DiagnosticContext } from "@/lib/diagnosticContext";
+import { getDimensionPriorityWeight } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -929,12 +931,20 @@ export interface MorphologicalSearchResult {
  *   6. Merge all vectors
  *   7. Qualification gates (uniform)
  *   8. Cluster into zones
+ *
+ * @param flatEvidence    Flat evidence array
+ * @param constraints     Active constraints
+ * @param leveragePoints  Leverage point insights
+ * @param aiAlternatives  AI-generated dimension alternatives
+ * @param ctx             Optional DiagnosticContext — when provided, dimension
+ *                        activation is biased toward mode-relevant categories.
  */
 export function runMorphologicalSearch(
   flatEvidence: Evidence[],
   constraints: StrategicInsight[],
   leveragePoints: StrategicInsight[],
   aiAlternatives: DimensionAlternative[],
+  ctx?: DiagnosticContext,
 ): MorphologicalSearchResult {
   resetCounters();
 
@@ -943,6 +953,20 @@ export function runMorphologicalSearch(
 
   // Stage 2: Identify active dimensions
   const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints);
+
+  // Apply mode-specific dimension boosting when DiagnosticContext is provided.
+  // Dimensions in categories that the active mode prioritizes are promoted to
+  // "hot" if they are currently "warm" and their mode-weight is above 1.2.
+  if (ctx) {
+    for (const [dimId, dim] of Object.entries(baseline)) {
+      if (dim.status === "warm") {
+        const weight = getDimensionPriorityWeight(ctx, dim.category);
+        if (weight >= 1.2) {
+          baseline[dimId] = { ...dim, status: "hot" as const };
+        }
+      }
+    }
+  }
 
   const hotDims = getDimensionsByStatus(baseline, "hot");
   const warmDims = getDimensionsByStatus(baseline, "warm");

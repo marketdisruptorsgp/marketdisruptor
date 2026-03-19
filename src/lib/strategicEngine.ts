@@ -48,6 +48,7 @@ import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
 import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
+import type { DiagnosticContext } from "@/lib/diagnosticContext";
 
 /** Get a pattern-specific business narrative that references real company precedents */
 function patternToBusinessNarrative(patternId: string, contrarianBelief: string): string {
@@ -176,6 +177,12 @@ export interface StrategicAnalysisInput {
   lensConfig?: DiagnosisLensConfig | null;
   /** Full structured BI extraction from uploaded documents (CIMs, etc.) */
   biExtraction?: Record<string, unknown> | null;
+  /**
+   * DiagnosticContext — the canonical mode + lens contract.
+   * When present, engines adapt their scoring and ranking to reflect
+   * the active mode (product/service/business_model) and lens type.
+   */
+  diagnosticContext?: DiagnosticContext | null;
 }
 
 export interface StrategicAnalysisOutput {
@@ -510,7 +517,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
   if (evCount >= minEvidenceThreshold) {
     const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () =>
-      detectConstraintHypotheses(facetedEvidence)
+      detectConstraintHypotheses(facetedEvidence, input.diagnosticContext ?? undefined)
     );
     stages.push(s3);
     constraintHypotheses = hypotheses;
@@ -817,7 +824,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
   if (evCount >= minEvidenceThreshold) {
-    const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () => detectConstraintHypotheses(facetedEvidence));
+    const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () => detectConstraintHypotheses(facetedEvidence, input.diagnosticContext ?? undefined));
     stages.push(s3);
     constraintHypotheses = hypotheses;
     events.push(`${hypotheses.hypotheses.length} constraint hypotheses detected`);

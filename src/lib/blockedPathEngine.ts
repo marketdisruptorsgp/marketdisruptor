@@ -19,6 +19,7 @@
 import type { StrategicInsight } from "@/lib/strategicEngine";
 import type { BusinessDimension, EvidenceCategory } from "@/lib/opportunityDesignEngine";
 import type { Evidence } from "@/lib/evidenceEngine";
+import type { DiagnosticContext } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -247,6 +248,19 @@ const BLOCKED_PATH_TEMPLATES: BlockedPathTemplate[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════
+//  MODE-SPECIFIC GATE RELEVANCE
+//  Maps DiagnosticMode to the gate types that matter most for surfacing.
+// ═══════════════════════════════════════════════════════════════
+
+import type { DiagnosticMode } from "@/lib/diagnosticContext";
+
+const MODE_GATE_PRIORITY: Record<DiagnosticMode, BlockedPathGateType[]> = {
+  product:        ["technical", "regulatory", "behavioral", "capital"],
+  service:        ["behavioral", "network_effect", "regulatory", "trust_deficit"],
+  business_model: ["capital", "economic", "incumbent_moat", "network_effect"],
+};
+
+// ═══════════════════════════════════════════════════════════════
 //  MAIN ENGINE
 // ═══════════════════════════════════════════════════════════════
 
@@ -256,11 +270,19 @@ function nextPathId() { return `bp-${++pathIdSeq}`; }
 /**
  * Surface blocked innovation paths given the current constraint/evidence profile.
  * Each blocked path includes a gating reason and "What would need to be true?" prompt.
+ *
+ * @param constraints    Active strategic constraints
+ * @param activeBaseline Current business dimension baseline
+ * @param flatEvidence   Flattened evidence array
+ * @param ctx            Optional DiagnosticContext — when provided, blocked paths
+ *                       whose gateType matches the mode's priority list are ranked
+ *                       higher so the most actionable blockers surface first.
  */
 export function surfaceBlockedPaths(
   constraints: StrategicInsight[],
   activeBaseline: Record<string, BusinessDimension>,
   flatEvidence: Evidence[],
+  ctx?: DiagnosticContext,
 ): BlockedPathSurface {
   pathIdSeq = 0;
 
@@ -318,6 +340,22 @@ export function surfaceBlockedPaths(
   blockedPaths.sort((a, b) =>
     (b.unlockedValueScore * b.gatingConfidence) - (a.unlockedValueScore * a.gatingConfidence)
   );
+
+  // Apply mode-aware gate prioritisation when DiagnosticContext is active.
+  // Paths whose gateType ranks in the top half of the mode's priority list
+  // receive a slight bonus so the most relevant blockers surface first.
+  if (ctx) {
+    const modePriority = MODE_GATE_PRIORITY[ctx.mode];
+    const getGatePriority = (gateType: BlockedPathGateType): number => {
+      const rank = modePriority.indexOf(gateType);
+      return rank === -1 ? modePriority.length : rank;
+    };
+    blockedPaths.sort((a, b) => {
+      const priorityDiff = getGatePriority(a.gateType) - getGatePriority(b.gateType);
+      if (priorityDiff !== 0) return priorityDiff;
+      return (b.unlockedValueScore * b.gatingConfidence) - (a.unlockedValueScore * a.gatingConfidence);
+    });
+  }
 
   // Slice to top 6 for surfacing
   const surfaced = blockedPaths.slice(0, 6);
