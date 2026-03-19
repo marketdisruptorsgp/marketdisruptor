@@ -8,10 +8,18 @@
  * These are replaced/refined when Phase 1 (decomposition) and Phase 2
  * (synthesis) complete. They exist to ensure sub-5-second time-to-insight
  * after scraping finishes.
+ *
+ * PR #20 upgrades:
+ *  - System-mapping layer: value creation mechanism, binding coupling,
+ *    rate limiter (constraint that, if changed, unlocks the system)
+ *  - Evidence-backed contrarian pairs: only surface when a data point
+ *    from the scraped product directly supports the claim
+ *  - JTBD integration: primaryUnderservedJob extracted alongside insights
  */
 
 import { classifyDisruptionArchetype } from "./disruptionArchetypeClassifier";
 import { deriveTrizSeeds, type TrizSeed } from "./trizEngine";
+import { extractJtbdProfile, type JtbdProfile } from "./jtbdEngine";
 
 export interface InstantAssumption {
   assumption: string;
@@ -39,6 +47,56 @@ export interface InstantContrarianPair {
   evidenceSuggests: string;
   soWhat: string;
   source: string; // which heuristic produced this
+  /**
+   * PR #20 upgrade: the specific data point from scraped product that supports
+   * evidenceSuggests. Only present when the pair is evidence-backed.
+   * Null means the pair is heuristic-inferred and should be labeled as such.
+   */
+  evidenceDataPoint: string | null;
+  isEvidenceBacked: boolean;
+}
+
+/**
+ * PR #20 — System Mapping Layer
+ *
+ * Replaces heuristic-based assumption triggers with explicit value mechanism,
+ * binding coupling, and rate limiter analysis. Maps the system at three layers:
+ *
+ * 1. Value mechanism: How value is created (not just what the business does)
+ * 2. Binding coupling: What locks the current system in place (the mechanism
+ *    that makes the constraint self-reinforcing)
+ * 3. Rate limiter: The single constraint that, if changed, would unlock
+ *    disproportionate improvement — the highest-leverage intervention point
+ */
+export interface SystemMapping {
+  valueMechanism: {
+    description: string;
+    /** The core activity that creates value */
+    coreActivity: string;
+    /** Who captures the value created and how */
+    valueCaptureRoute: string;
+    /** What prevents value from leaking to competitors or substitutes */
+    defensibilitySignal: string | null;
+  };
+  bindingCoupling: {
+    description: string;
+    /** The mechanism that makes the primary constraint self-reinforcing */
+    couplingMechanism: string;
+    /** What would have to break for this coupling to dissolve */
+    dissolutionCondition: string;
+    /** Evidence from product data supporting this coupling assessment */
+    evidenceSource: string;
+  };
+  rateLimiter: {
+    /** The single constraint whose removal unlocks the most value */
+    constraint: string;
+    /** How removing this constraint propagates through the system */
+    unlockMechanism: string;
+    /** Estimated value unlock score 1-10 if this constraint is removed */
+    unlockScore: number;
+    /** What type of intervention is required */
+    interventionType: "technology" | "pricing" | "process" | "distribution" | "capital" | "behavior";
+  };
 }
 
 export interface InstantInsights {
@@ -63,11 +121,27 @@ export interface InstantInsights {
   disruptionVulnerability: import("./disruptionArchetypeClassifier").DisruptionArchetype | null;
   /** TRIZ invention seeds — 2-3 historically-proven principles for resolving the binding constraint */
   trizSeeds: TrizSeed[];
+  /**
+   * PR #20 upgrade — System Mapping Layer:
+   * Explicit value mechanism, binding coupling, and rate limiter analysis.
+   * Null if insufficient product data to construct a meaningful map.
+   */
+  systemMapping: SystemMapping | null;
+  /**
+   * PR #20 upgrade — JTBD Profile:
+   * Extracted functional, emotional, and social customer jobs.
+   */
+  jtbdProfile: JtbdProfile | null;
 }
 
 /**
  * Deterministically extract instant insights from scraped product data.
  * No AI calls — pure heuristic extraction from structured fields.
+ *
+ * PR #20 upgrades:
+ * - Builds SystemMapping layer (value mechanism, binding coupling, rate limiter)
+ * - Upgrades contrarian pair to require evidence-backed data points
+ * - Extracts JTBD profile (functional, emotional, social jobs)
  */
 export function computeInstantInsights(product: any): InstantInsights | null {
   if (!product) return null;
@@ -306,14 +380,18 @@ export function computeInstantInsights(product: any): InstantInsights | null {
     leverageScore: sorted[0].severity === "high" ? 8.5 : sorted[0].severity === "medium" ? 6 : 4,
   } : null;
 
+  // ═══ PR #20 — SYSTEM MAPPING LAYER ═══
+  // Replace heuristic assumptions with explicit value mechanism + binding coupling + rate limiter
+  const systemMapping = buildSystemMapping(product, sorted, leveragePoints, name, isService);
+
   // ═══ SUMMARY ═══
   const topLeverage = [...leveragePoints].sort((a, b) => b.score - a.score)[0];
   const summary = topLeverage
     ? `Initial scan reveals ${assumptions.length} hidden assumptions and ${leveragePoints.length} leverage points. Highest-impact opportunity: ${topLeverage.label.toLowerCase()}.`
     : `Initial scan of ${name} detected ${assumptions.length} structural assumptions to challenge.`;
 
-  // ═══ CONTRARIAN PAIR (deterministic "aha" moment) ═══
-  const contrarianPair = deriveContrarianPair(assumptions, constraints, leveragePoints, name);
+  // ═══ CONTRARIAN PAIR — PR #20 upgrade: require evidence-backed data point ═══
+  const contrarianPair = deriveContrarianPair(assumptions, constraints, leveragePoints, name, product);
 
   const computeTimeMs = Math.round(performance.now() - startTime);
 
@@ -328,7 +406,17 @@ export function computeInstantInsights(product: any): InstantInsights | null {
 
   const disruptionVulnerability = classifyDisruptionArchetype(product);
 
-  const trizSeeds = deriveTrizSeeds(sorted, bindingConstraint, name);
+  // Build evidence text for TRIZ two-axis detection (PR #20)
+  const evidenceTextForTriz = [
+    product?.description || "",
+    sorted.map((c) => c.reasoning).join(" "),
+    leveragePoints.map((l) => l.description).join(" "),
+  ].join(" ");
+
+  const trizSeeds = deriveTrizSeeds(sorted, bindingConstraint, name, evidenceTextForTriz);
+
+  // ═══ PR #20 — JTBD PROFILE ═══
+  const jtbdProfile = extractJtbdProfile(product);
 
   return {
     assumptions: assumptions.slice(0, 8),
@@ -343,18 +431,24 @@ export function computeInstantInsights(product: any): InstantInsights | null {
     highestLeverage,
     disruptionVulnerability,
     trizSeeds,
+    systemMapping,
+    jtbdProfile,
   };
 }
 
 /**
- * Derive a contrarian "Everyone Assumes / Evidence Suggests" pair
- * from deterministic heuristics. No AI needed — instant "aha".
+ * Derive a contrarian "Everyone Assumes / Evidence Suggests" pair.
+ *
+ * PR #20 upgrade: require that "evidenceSuggests" references an actual
+ * business-specific data point from the scraped product. Suppress the
+ * isEvidenceBacked flag when no such data point is found.
  */
 function deriveContrarianPair(
   assumptions: InstantAssumption[],
   constraints: InstantConstraint[],
   leveragePoints: InstantLeveragePoint[],
   entityName: string,
+  product: any,
 ): InstantContrarianPair | null {
   // Pick the highest-leverage assumption
   const sorted = [...assumptions].sort((a, b) => b.leverageEstimate - a.leverageEstimate);
@@ -371,11 +465,201 @@ function deriveContrarianPair(
     ? `${entityName} could unlock ${topLeverage.type === "cost" ? "margin expansion" : topLeverage.type === "friction" ? "customer satisfaction" : topLeverage.type === "bottleneck" ? "capacity growth" : "competitive advantage"} by challenging this assumption`
     : `${entityName} has structural leverage that competitors aren't exploiting`;
 
+  // PR #20: find a specific data point from product that backs evidenceSuggests
+  const evidenceDataPoint = findEvidenceDataPoint(top, product);
+
   return {
     everyoneAssumes,
     evidenceSuggests,
     soWhat,
     source: top.source,
+    evidenceDataPoint,
+    isEvidenceBacked: evidenceDataPoint !== null,
+  };
+}
+
+/**
+ * Find a specific scraped data point that supports an assumption's challengeHint.
+ * PR #20: contrarian pairs must cite actual business data, not generic claims.
+ * Returns null if no supporting data point is found in the product object.
+ */
+function findEvidenceDataPoint(assumption: InstantAssumption, product: any): string | null {
+  if (!product) return null;
+
+  // Pricing evidence — use actual margin or price data
+  if (assumption.source === "pricingIntel" || assumption.reason === "pricing_default") {
+    const pi = product.pricingIntel;
+    if (pi) {
+      if (pi.margins?.gross != null) return `Gross margin: ${pi.margins.gross}% (source: pricing intel)`;
+      if (pi.currentMarketPrice) return `Current market price: ${pi.currentMarketPrice} (source: pricing intel)`;
+      if (pi.priceDirection) return `Price direction: ${pi.priceDirection} (source: pricing intel)`;
+    }
+  }
+
+  // Community complaint evidence — use top complaint as data point
+  if (assumption.source.includes("communityInsights") || assumption.reason === "industry_norm") {
+    const ci = product.communityInsights;
+    if (ci?.topComplaints?.[0]) {
+      return `Top community complaint: "${truncate(ci.topComplaints[0], 80)}" (source: community insights)`;
+    }
+    if (ci?.improvementRequests?.[0]) {
+      return `Top improvement request: "${truncate(ci.improvementRequests[0], 80)}" (source: community insights)`;
+    }
+  }
+
+  // Supply chain evidence
+  if (assumption.source === "supplyChain" || assumption.reason === "supply_chain") {
+    const sc = product.supplyChain;
+    if (sc?.suppliers?.length > 0) {
+      return `${sc.suppliers.length} supplier(s) detected: ${sc.suppliers.slice(0, 2).join(", ")} (source: supply chain)`;
+    }
+  }
+
+  // Competitor evidence
+  if (assumption.source.includes("competitor") || assumption.reason === "distribution") {
+    const ca = product.competitorAnalysis;
+    if (ca?.marketLeader) return `Market leader identified: ${ca.marketLeader} (source: competitor analysis)`;
+    if (ca?.gaps?.[0]) return `Competitive gap: "${truncate(ca.gaps[0], 80)}" (source: competitor analysis)`;
+  }
+
+  // Service mode evidence — use category as the backing data
+  if (assumption.source === "service_mode" || assumption.reason === "labor") {
+    const category = product.category;
+    if (category) return `Business category "${category}" confirms service delivery model (source: product category)`;
+  }
+
+  // Universal assumptions — cannot be evidence-backed deterministically
+  return null;
+}
+
+/**
+ * PR #20 — Build the System Mapping Layer.
+ *
+ * Analyzes the scraped product data to extract:
+ * 1. Value mechanism (how value is created, captured, defended)
+ * 2. Binding coupling (the self-reinforcing mechanism that locks constraints in)
+ * 3. Rate limiter (the single constraint whose removal unlocks the most value)
+ *
+ * This replaces heuristic-based assumption triggers with explicit structural
+ * reasoning, following the First Principles Decomposition requirements.
+ */
+function buildSystemMapping(
+  product: any,
+  sortedConstraints: InstantConstraint[],
+  leveragePoints: InstantLeveragePoint[],
+  name: string,
+  isService: boolean,
+): SystemMapping | null {
+  // Require at minimum: constraints + leverage points to build a meaningful map
+  if (sortedConstraints.length === 0 && leveragePoints.length === 0) return null;
+
+  const desc = (product?.description || "").toLowerCase();
+  const category = (product?.category || "").toLowerCase();
+  const pi = product?.pricingIntel;
+  const ca = product?.competitorAnalysis;
+  const sc = product?.supplyChain;
+  const ci = product?.communityInsights;
+
+  // ── 1. Value Mechanism ──────────────────────────────────────────────────────
+  const coreActivity = isService
+    ? `Labor-delivered ${category || "service"} — skilled technicians/specialists create value through in-person expertise`
+    : `Physical product or digital platform — value created through ${desc.slice(0, 60) || "functional delivery"}`;
+
+  const valueCaptureRoute = pi?.priceDirection === "declining"
+    ? `Transaction-based pricing under margin pressure — value captured per unit but rate is eroding`
+    : pi?.currentMarketPrice
+      ? `Per-unit transaction pricing at ~${pi.currentMarketPrice} — value capture is transactional`
+      : "Transaction-based pricing — each job/sale is a discrete capture event";
+
+  const defensibilitySignal = ca?.competitiveAdvantages?.[0] || ca?.marketLeader
+    ? ca.competitiveAdvantages?.[0] ?? `Market leadership context: ${ca.marketLeader}`
+    : null;
+
+  // ── 2. Binding Coupling ─────────────────────────────────────────────────────
+  // The binding coupling is the mechanism that makes the primary constraint self-reinforcing
+  const primaryConstraint = sortedConstraints[0];
+  let couplingMechanism: string;
+  let dissolutionCondition: string;
+  let evidenceSource: string;
+
+  if (isService && /labor|headcount|manual|person/.test(primaryConstraint?.reasoning || "")) {
+    couplingMechanism = "Labor-to-revenue coupling: each incremental unit of revenue requires proportional labor — hiring is the only growth lever, which itself creates capacity constraints and margin dilution";
+    dissolutionCondition = "Coupling dissolves when technology (remote delivery, AI triage, or self-service) or productization decouples revenue from headcount";
+    evidenceSource = `Service category "${category}" confirms labor-based delivery model`;
+  } else if (pi?.margins?.gross != null && pi.margins.gross < 30) {
+    couplingMechanism = `Margin-cost coupling: compressed ${pi.margins.gross}% gross margins limit reinvestment capacity — low margins constrain marketing, talent acquisition, and technology adoption simultaneously`;
+    dissolutionCondition = "Coupling dissolves when pricing model shifts (subscription, outcome-based, or premium tier) OR cost structure is restructured through vertical integration";
+    evidenceSource = `Gross margin data: ${pi.margins.gross}% (source: pricing intel)`;
+  } else if (sc?.suppliers?.length <= 1) {
+    couplingMechanism = "Single-source dependency coupling: supply chain concentrated in ≤1 supplier — any disruption cascades to all delivery, making resilience impossible at current configuration";
+    dissolutionCondition = "Coupling dissolves when supply base is diversified to ≥3 suppliers or direct manufacturing relationship is established";
+    evidenceSource = `${sc.suppliers?.length || 0} supplier(s) detected (source: supply chain data)`;
+  } else if (ci?.topComplaints?.length > 0) {
+    couplingMechanism = `Customer complaint coupling: "${truncate(ci.topComplaints[0], 60)}" is driving negative sentiment which limits organic growth — NPS depression creates a ceiling on referral-led acquisition`;
+    dissolutionCondition = "Coupling dissolves when the root cause of the top complaint is systematically removed from the customer journey";
+    evidenceSource = `Top complaint: "${truncate(ci.topComplaints[0], 80)}" (source: community insights)`;
+  } else {
+    couplingMechanism = "Distribution-reach coupling: current channel structure limits addressable market — growth requires proportionally more distribution effort per new customer";
+    dissolutionCondition = "Coupling dissolves when network effects, platform leverage, or embedded distribution reduce per-customer acquisition cost";
+    evidenceSource = "Inferred from market structure analysis";
+  }
+
+  // ── 3. Rate Limiter ─────────────────────────────────────────────────────────
+  // The rate limiter is the single constraint whose removal unlocks the most value
+  const topLeverage = [...leveragePoints].sort((a, b) => b.score - a.score)[0];
+  const highestSeverityConstraint = sortedConstraints[0];
+
+  let rateConstraint: string;
+  let unlockMechanism: string;
+  let unlockScore: number;
+  let interventionType: SystemMapping["rateLimiter"]["interventionType"];
+
+  if (topLeverage?.type === "bottleneck" || (isService && sortedConstraints.some(c => /labor|linear|headcount/.test(c.reasoning)))) {
+    rateConstraint = "Labor-bound capacity ceiling — revenue cannot grow faster than headcount";
+    unlockMechanism = "Removing this constraint requires decoupling delivery from labor: technology-assisted service, productized offering, or self-service layer that scales without proportional hiring";
+    unlockScore = 9;
+    interventionType = "technology";
+  } else if (topLeverage?.type === "cost" || (pi?.margins?.gross != null && pi.margins.gross < 30)) {
+    rateConstraint = `Margin compression (${pi?.margins?.gross != null ? `~${pi.margins.gross}%` : "below 30%"}) — constrains reinvestment and growth capital`;
+    unlockMechanism = "Removing this constraint requires a pricing model shift (subscription/outcome-based) or structural cost reduction (vertical integration, automation) that breaks the margin ceiling";
+    unlockScore = 8;
+    interventionType = "pricing";
+  } else if (topLeverage?.type === "friction" && ci?.topComplaints?.length > 0) {
+    rateConstraint = `Customer friction: "${truncate(ci.topComplaints[0], 60)}" — depressing NPS and limiting organic growth`;
+    unlockMechanism = "Removing this constraint requires solving the root cause identified in community data — unlocks referral growth and reduces CAC through improved NPS";
+    unlockScore = 8;
+    interventionType = "process";
+  } else if (topLeverage?.type === "distribution") {
+    rateConstraint = "Distribution constraint — current channel limits addressable market";
+    unlockMechanism = "Removing this constraint requires adding a digital, self-serve, or embedded distribution channel that reaches customers at point of need";
+    unlockScore = 7;
+    interventionType = "distribution";
+  } else {
+    rateConstraint = highestSeverityConstraint?.constraint || "Primary structural constraint limiting growth";
+    unlockMechanism = highestSeverityConstraint?.reasoning || "Systematic removal requires identifying and targeting the binding mechanism";
+    unlockScore = 7;
+    interventionType = "process";
+  }
+
+  return {
+    valueMechanism: {
+      description: `${name} creates value through ${coreActivity.toLowerCase()}. Value is captured via ${valueCaptureRoute.toLowerCase()}.`,
+      coreActivity,
+      valueCaptureRoute,
+      defensibilitySignal,
+    },
+    bindingCoupling: {
+      description: `The primary constraint at ${name} is self-reinforcing via: ${couplingMechanism}`,
+      couplingMechanism,
+      dissolutionCondition,
+      evidenceSource,
+    },
+    rateLimiter: {
+      constraint: rateConstraint,
+      unlockMechanism,
+      unlockScore,
+      interventionType,
+    },
   };
 }
 

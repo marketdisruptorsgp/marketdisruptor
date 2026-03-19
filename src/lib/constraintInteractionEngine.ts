@@ -7,16 +7,23 @@
  * Output: ConstraintInteraction objects that feed downstream
  * pattern matching and opportunity generation with multi-constraint
  * resolution patterns.
+ *
+ * PR #20 upgrade:
+ * - Dimension-dimension constraint matrix: a structural profile interaction
+ *   table that maps EVERY pair of active dimensions and surfaces the binding
+ *   constraint logic via pairwise interaction, not just dimension value lookup.
  */
 
 import type { StrategicInsight } from "@/lib/strategicEngine";
 import type { ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
+import type { BusinessDimension, EvidenceCategory } from "@/lib/opportunityDesignEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
 // ═══════════════════════════════════════════════════════════════
 
 export type InteractionType = "reinforcing" | "causal" | "limiting";
+
 
 export interface ConstraintInteraction {
   /** IDs of the two interacting constraints */
@@ -292,5 +299,247 @@ export function discoverConstraintInteractions(
     interactions,
     pairsEvaluated,
     hasReinforcingLoops: interactions.some(i => i.interactionType === "reinforcing"),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PR #20 — DIMENSION-DIMENSION CONSTRAINT MATRIX
+//
+//  Builds a structural profile interaction table: a square matrix
+//  where each cell represents how two morphological dimensions interact
+//  at the constraint level.
+//
+//  This surfaces actual BINDING CONSTRAINT LOGIC via pairwise analysis,
+//  not just dimension value lookup. Each cell answers:
+//  "When dimension A is constrained AND dimension B is constrained,
+//   what is the combined effect on the system?"
+// ═══════════════════════════════════════════════════════════════
+
+export type DimensionBindingType =
+  | "amplifying"     // Both constraints worsen each other (super-additive)
+  | "neutralizing"   // Resolving one reduces the other's severity
+  | "sequential"     // One must be resolved before the other (dependency)
+  | "independent"    // Constraints exist independently, no interaction
+  | "competing";     // Resolving one makes the other harder to resolve
+
+export interface DimensionPairInteraction {
+  /** First dimension in the pair */
+  dimA: { id: string; name: string; category: EvidenceCategory };
+  /** Second dimension in the pair */
+  dimB: { id: string; name: string; category: EvidenceCategory };
+  /** How these dimension-level constraints interact */
+  bindingType: DimensionBindingType;
+  /** Combined binding strength when both are active (0-1) */
+  combinedBindingStrength: number;
+  /** Explanation of the combined constraint effect */
+  combinedEffectExplanation: string;
+  /**
+   * Which constraint should be addressed first?
+   * null = either can be addressed independently
+   */
+  resolutionPriority: "dimA_first" | "dimB_first" | "simultaneous" | null;
+  /** Evidence-backed: is this interaction observed in the data? */
+  isEvidenceBacked: boolean;
+}
+
+export interface DimensionConstraintMatrix {
+  /** All pairwise dimension interactions */
+  pairs: DimensionPairInteraction[];
+  /** The pair with the highest combined binding strength (the true bottleneck) */
+  bindingPair: DimensionPairInteraction | null;
+  /** Total dimension pairs evaluated */
+  totalPairs: number;
+  /** Amplifying pairs — indicate super-additive constraint pressure */
+  amplifyingPairs: DimensionPairInteraction[];
+  /** Neutralizing pairs — resolving one eases the other */
+  neutralizingPairs: DimensionPairInteraction[];
+}
+
+// ─── Category Interaction Rules for Dimension Matrix ─────────────────────────
+
+interface DimensionInteractionRule {
+  catA: EvidenceCategory;
+  catB: EvidenceCategory;
+  bindingType: DimensionBindingType;
+  combinedEffectExplanation: string;
+  resolutionPriority: "dimA_first" | "dimB_first" | "simultaneous" | null;
+  baseStrengthMultiplier: number; // applied to average constraint strength
+}
+
+const DIMENSION_INTERACTION_RULES: DimensionInteractionRule[] = [
+  // Amplifying pairs — super-additive constraint pressure
+  {
+    catA: "cost_structure",
+    catB: "pricing_model",
+    bindingType: "amplifying",
+    combinedEffectExplanation: "High cost structure constrains pricing power, while pricing pressure prevents the margin headroom needed to reduce costs — a self-reinforcing trap that deepens without a structural break",
+    resolutionPriority: "simultaneous",
+    baseStrengthMultiplier: 1.5,
+  },
+  {
+    catA: "operational_dependency",
+    catB: "demand_signal",
+    bindingType: "amplifying",
+    combinedEffectExplanation: "Operational constraints limit delivery capacity while demand signals show unmet need — the system cannot capture available demand because operations are the bottleneck",
+    resolutionPriority: "dimA_first",
+    baseStrengthMultiplier: 1.4,
+  },
+  {
+    catA: "distribution_channel",
+    catB: "customer_behavior",
+    bindingType: "amplifying",
+    combinedEffectExplanation: "Channel constraints limit reach while customer behavior shows reluctance to switch or discover — acquisition is doubly constrained by both supply-side channel and demand-side inertia",
+    resolutionPriority: "simultaneous",
+    baseStrengthMultiplier: 1.3,
+  },
+  {
+    catA: "technology_dependency",
+    catB: "operational_dependency",
+    bindingType: "amplifying",
+    combinedEffectExplanation: "Legacy technology forces manual operational workarounds, which entrench the technology dependency further — each prevents the other from being resolved",
+    resolutionPriority: "dimA_first",
+    baseStrengthMultiplier: 1.4,
+  },
+
+  // Neutralizing pairs — resolving one eases the other
+  {
+    catA: "pricing_model",
+    catB: "customer_behavior",
+    bindingType: "neutralizing",
+    combinedEffectExplanation: "Improving the pricing model (e.g., shifting to subscription or outcome-based) directly reduces the customer behavior barrier — customers adopt more readily when pricing aligns with their usage patterns",
+    resolutionPriority: "dimA_first",
+    baseStrengthMultiplier: 0.8,
+  },
+  {
+    catA: "technology_dependency",
+    catB: "distribution_channel",
+    bindingType: "neutralizing",
+    combinedEffectExplanation: "Resolving technology constraints enables new digital distribution channels — technology and distribution are linked, so tech improvement unlocks channel expansion",
+    resolutionPriority: "dimA_first",
+    baseStrengthMultiplier: 0.85,
+  },
+  {
+    catA: "demand_signal",
+    catB: "competitive_pressure",
+    bindingType: "neutralizing",
+    combinedEffectExplanation: "Strong demand signals offset competitive pressure — when demand is clearly evidenced, competitive intensity matters less because the market is growing, not zero-sum",
+    resolutionPriority: "simultaneous",
+    baseStrengthMultiplier: 0.7,
+  },
+
+  // Sequential pairs — dependency ordering
+  {
+    catA: "operational_dependency",
+    catB: "distribution_channel",
+    bindingType: "sequential",
+    combinedEffectExplanation: "Operational capacity must be resolved before distribution expansion can succeed — expanding channels before operations are scalable creates fulfillment failures that damage brand and customer retention",
+    resolutionPriority: "dimA_first",
+    baseStrengthMultiplier: 1.1,
+  },
+  {
+    catA: "technology_dependency",
+    catB: "competitive_pressure",
+    bindingType: "sequential",
+    combinedEffectExplanation: "Technology gaps must be closed before competitive repositioning can succeed — competing without closing the technology gap creates a defensibility problem that undermines new positioning",
+    resolutionPriority: "dimA_first",
+    baseStrengthMultiplier: 1.0,
+  },
+
+  // Competing pairs — resolving one makes the other harder
+  {
+    catA: "cost_structure",
+    catB: "customer_behavior",
+    bindingType: "competing",
+    combinedEffectExplanation: "Reducing costs often requires operational standardization that reduces the flexibility customers expect — cost efficiency and customer behavior customization are structurally competing priorities",
+    resolutionPriority: null,
+    baseStrengthMultiplier: 1.2,
+  },
+  {
+    catA: "pricing_model",
+    catB: "competitive_pressure",
+    bindingType: "competing",
+    combinedEffectExplanation: "Raising prices to improve margins intensifies competitive pressure as price-sensitive customers defect — price increases and competitive positioning must be sequenced carefully",
+    resolutionPriority: "simultaneous",
+    baseStrengthMultiplier: 1.1,
+  },
+];
+
+/**
+ * Build the dimension-dimension constraint matrix for a structural profile.
+ *
+ * PR #20 requirement: surfaces actual binding constraint logic via pairwise
+ * interaction, not just dimension value lookup.
+ *
+ * @param activeDimensions  All active dimensions from the morphological baseline
+ * @param constraints       Active constraints from the strategic engine
+ * @returns Full dimension-dimension interaction matrix
+ */
+export function buildDimensionConstraintMatrix(
+  activeDimensions: BusinessDimension[],
+  constraints: StrategicInsight[],
+): DimensionConstraintMatrix {
+  const pairs: DimensionPairInteraction[] = [];
+
+  // Build constraint strength map per evidence ID
+  const evidenceConstraintMap = new Map<string, number>();
+  for (const c of constraints) {
+    const strength = c.impact * (c.confidenceScore ?? (typeof c.confidence === "number" ? c.confidence : 0.5));
+    for (const eid of c.evidenceIds) {
+      evidenceConstraintMap.set(eid, Math.max(evidenceConstraintMap.get(eid) ?? 0, strength));
+    }
+  }
+
+  // Evaluate all dimension pairs
+  for (let i = 0; i < activeDimensions.length; i++) {
+    for (let j = i + 1; j < activeDimensions.length; j++) {
+      const dimA = activeDimensions[i];
+      const dimB = activeDimensions[j];
+
+      // Find the average constraint strength for each dimension
+      const aStrength = dimA.evidenceIds.reduce((s, eid) => s + (evidenceConstraintMap.get(eid) ?? 0), 0) / Math.max(1, dimA.evidenceIds.length);
+      const bStrength = dimB.evidenceIds.reduce((s, eid) => s + (evidenceConstraintMap.get(eid) ?? 0), 0) / Math.max(1, dimB.evidenceIds.length);
+      const baseStrength = (aStrength + bStrength) / 2;
+
+      // Find applicable interaction rule
+      const rule = DIMENSION_INTERACTION_RULES.find(r =>
+        (r.catA === dimA.category && r.catB === dimB.category) ||
+        (r.catA === dimB.category && r.catB === dimA.category)
+      );
+
+      const bindingType: DimensionBindingType = rule?.bindingType ?? "independent";
+      const multiplier = rule?.baseStrengthMultiplier ?? 1.0;
+      const combinedBindingStrength = Math.min(1, baseStrength * multiplier);
+      const explanation = rule?.combinedEffectExplanation ??
+        `${dimA.name} and ${dimB.name} operate independently — resolving either does not directly affect the other`;
+
+      // Determine if evidence-backed (both dims have constraint-linked evidence)
+      const isEvidenceBacked = (dimA.hasConstraint || dimA.hasLeverage) &&
+        (dimB.hasConstraint || dimB.hasLeverage);
+
+      pairs.push({
+        dimA: { id: dimA.id, name: dimA.name, category: dimA.category },
+        dimB: { id: dimB.id, name: dimB.name, category: dimB.category },
+        bindingType,
+        combinedBindingStrength,
+        combinedEffectExplanation: explanation,
+        resolutionPriority: rule?.resolutionPriority ?? null,
+        isEvidenceBacked,
+      });
+    }
+  }
+
+  // Sort by combined binding strength descending
+  pairs.sort((a, b) => b.combinedBindingStrength - a.combinedBindingStrength);
+
+  const bindingPair = pairs.length > 0 ? pairs[0] : null;
+  const amplifyingPairs = pairs.filter(p => p.bindingType === "amplifying");
+  const neutralizingPairs = pairs.filter(p => p.bindingType === "neutralizing");
+
+  return {
+    pairs,
+    bindingPair,
+    totalPairs: pairs.length,
+    amplifyingPairs,
+    neutralizingPairs,
   };
 }

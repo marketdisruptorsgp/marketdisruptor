@@ -119,6 +119,287 @@ export interface AIAlternativesResponse {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  ZWICKY BOX — Full combinatorial innovation space (PR #20)
+//
+//  Fritz Zwicky's morphological analysis generates a complete matrix
+//  of ALL dimension × alternative combinations, not just 1-2 variable
+//  shifts. This includes:
+//   - Viable combinations (qualified through standard gates)
+//   - Disqualified / impossible combinations with explicit reasoning
+//   - "What would need to be true?" prompts for disqualified cells
+//
+//  References: Zwicky (1969) "Discovery, Invention, Research Through
+//  the Morphological Approach"; DARPA problem-space enumeration practice
+// ═══════════════════════════════════════════════════════════════
+
+export type ZwickyCellStatus = "viable" | "disqualified" | "requires_investigation";
+
+export interface ZwickyBoxCell {
+  /** Row dimension */
+  rowDimensionId: string;
+  rowDimensionName: string;
+  rowValue: string;
+  /** Column dimension */
+  colDimensionId: string;
+  colDimensionName: string;
+  colValue: string;
+  /** Whether this combination is viable, disqualified, or needs investigation */
+  status: ZwickyCellStatus;
+  /** If disqualified: why this combination cannot coexist */
+  disqualificationReason: string | null;
+  /**
+   * PR #20 requirement: for disqualified cells, surface the condition
+   * under which the combination could become viable.
+   */
+  whatWouldNeedToBeTrue: string | null;
+  /** Novelty/disruption signal for viable cells */
+  noveltyScore: number; // 0-10
+  /** Brief rationale for the assessment */
+  rationale: string;
+}
+
+export interface ZwickyBox {
+  /** All cells in the matrix (viable + disqualified) */
+  cells: ZwickyBoxCell[];
+  /** Only viable cells */
+  viableCells: ZwickyBoxCell[];
+  /** Only disqualified/impossible cells — surfaced for red-team review */
+  disqualifiedCells: ZwickyBoxCell[];
+  /** Cells that need more investigation before qualification */
+  investigationCells: ZwickyBoxCell[];
+  /** Dimensions represented in rows */
+  rowDimensions: BusinessDimension[];
+  /** Dimensions represented in columns */
+  colDimensions: BusinessDimension[];
+  /** Total combinations evaluated */
+  totalCombinations: number;
+  /** Disqualification rate (0-1) — high rate signals a tightly constrained system */
+  disqualificationRate: number;
+}
+
+// ─── Disqualification Rules ────────────────────────────────────────────────────
+
+interface DisqualificationRule {
+  /** Pattern in row dimension value that triggers this rule */
+  rowPattern: RegExp;
+  /** Pattern in column dimension value that triggers this rule */
+  colPattern: RegExp;
+  /** Optional: only apply if these categories are involved */
+  applicableCategories?: [EvidenceCategory, EvidenceCategory];
+  reason: string;
+  whatWouldNeedToBeTrue: string;
+}
+
+const DISQUALIFICATION_RULES: DisqualificationRule[] = [
+  {
+    rowPattern: /freemium|free.tier|zero.cost/i,
+    colPattern: /premium|high.price|luxury|enterprise/i,
+    reason: "A freemium/zero-cost positioning cannot coexist with premium pricing in the same offering — they signal contradictory value positions to the same customer segment",
+    whatWouldNeedToBeTrue: "Separate the two tiers into distinct products with clearly differentiated branding and target segments (e.g., Canva Free vs. Canva Pro), OR commit fully to one pricing strategy",
+  },
+  {
+    rowPattern: /mass.market|broad.access|commodity/i,
+    colPattern: /bespoke|custom|artisan|handcrafted|specialist/i,
+    reason: "Mass-market distribution requires standardization that is incompatible with bespoke/custom delivery — operational economics cannot simultaneously support both",
+    whatWouldNeedToBeTrue: "Create a digital 'configurator' layer that makes customization feel bespoke while delivering standardized outputs (e.g., Custom Ink using templates for apparent custom apparel)",
+  },
+  {
+    rowPattern: /high.frequency|daily|recurring|continuous/i,
+    colPattern: /high.cost|premium.price|luxury/i,
+    applicableCategories: ["pricing_model", "customer_behavior"],
+    reason: "High-frequency usage with premium pricing faces affordability ceiling — customers rationalize high price for infrequent purchases but resist it for daily-frequency products",
+    whatWouldNeedToBeTrue: "Justify daily premium pricing by demonstrating demonstrably superior daily outcomes (e.g., daily luxury coffee at $7 works because of ritual value), OR shift to a subscription that amortizes the per-use cost",
+  },
+  {
+    rowPattern: /direct.to.consumer|dtc|self.serve/i,
+    colPattern: /complex|expert.only|specialist|technical/i,
+    reason: "DTC self-service delivery requires low complexity — highly technical or expert-only products cannot be sold DTC without expert intermediaries or significant customer education investment",
+    whatWouldNeedToBeTrue: "Invest in guided-selling tools, in-app expert support, or certification programs that make expert-level complexity accessible to non-experts (e.g., LegalZoom making legal forms DTC)",
+  },
+  {
+    rowPattern: /low.margin|commodity.pric|race.to.bottom/i,
+    colPattern: /high.service|white.glove|concierge|premium.support/i,
+    reason: "Commodity pricing is structurally incompatible with white-glove service — the cost structure required for premium service cannot be absorbed at commodity margins",
+    whatWouldNeedToBeTrue: "Prove premium service can drive sufficient ACV uplift to justify the cost (typically 3-5× price premium required), OR automate the premium service layer to reduce its cost below commodity margin threshold",
+  },
+  {
+    rowPattern: /asset.light|marketplace|platform/i,
+    colPattern: /own.inventory|vertical.integrat|direct.manufactur/i,
+    reason: "Asset-light marketplace model is structurally incompatible with owned inventory or vertical integration — they require opposite capital allocation strategies",
+    whatWouldNeedToBeTrue: "Adopt a hybrid 'managed marketplace' model where some inventory is owned as quality anchor while the majority remains asset-light (e.g., Uber Eats with partner restaurants but branded delivery)",
+  },
+  {
+    rowPattern: /open.source|free|community/i,
+    colPattern: /proprietary|closed|IP.protected|patent/i,
+    reason: "Open-source/community model is philosophically and legally incompatible with proprietary/closed IP protection in the same product layer",
+    whatWouldNeedToBeTrue: "Separate open and proprietary layers explicitly: open-core model where the core is open but enterprise features are proprietary (e.g., HashiCorp, Elastic, GitLab)",
+  },
+  {
+    rowPattern: /real.time|instant|live|synchronous/i,
+    colPattern: /async|batch|offline|delayed/i,
+    applicableCategories: ["technology_dependency", "operational_dependency"],
+    reason: "Real-time delivery and async/batch processing cannot coexist in the same user experience layer — they require different infrastructure and create contradictory user expectations",
+    whatWouldNeedToBeTrue: "Architect a dual-mode system: real-time for user-facing interactions, async for backend processing (e.g., Shopify real-time checkout with batch inventory reconciliation)",
+  },
+];
+
+// ─── Novelty Scoring ──────────────────────────────────────────────────────────
+
+/** Score how novel/disruptive a dimension × dimension combination is */
+function scoreNovelty(
+  rowDim: BusinessDimension,
+  rowAlt: string,
+  colDim: BusinessDimension,
+  colAlt: string,
+): number {
+  let score = 5; // baseline
+
+  // Boost: cross-category combinations are more novel
+  if (rowDim.category !== colDim.category) score += 1;
+
+  // Boost: constraint-linked dimensions signal higher disruption potential
+  if (rowDim.hasConstraint || colDim.hasConstraint) score += 1;
+  if (rowDim.hasConstraint && colDim.hasConstraint) score += 1;
+
+  // Boost: combinations involving pricing + delivery are often transformational
+  const pricingInvolved = rowDim.category === "pricing_model" || colDim.category === "pricing_model";
+  const distributionInvolved = rowDim.category === "distribution_channel" || colDim.category === "distribution_channel";
+  if (pricingInvolved && distributionInvolved) score += 1;
+
+  // Penalty: same-category combinations are often incremental
+  if (rowDim.category === colDim.category) score -= 1;
+
+  // Boost: "hot" dimensions (constraint-linked)
+  if (rowDim.status === "hot" && colDim.status === "hot") score += 1;
+
+  return Math.max(1, Math.min(10, score));
+}
+
+/**
+ * Generate a full Zwicky Box (combinatorial morphological matrix) from
+ * the active baseline and AI-generated alternatives.
+ *
+ * PR #20: Systematically includes and surfaces disqualified/impossible
+ * combinations with explicit "What would need to be true?" reasoning.
+ *
+ * @param baseline    Active business dimensions (hot + warm)
+ * @param alternatives AI-generated alternative values per dimension
+ * @returns Full Zwicky Box with viable + disqualified cells
+ */
+export function buildZwickyBox(
+  baseline: BusinessBaseline,
+  alternatives: DimensionAlternative[],
+): ZwickyBox {
+  const dims = Object.values(baseline).filter(d => d.status !== "inactive");
+
+  // Build alternative value lookup
+  const altsByDim: Record<string, string[]> = {};
+  for (const alt of alternatives) {
+    const normalizedId = alt.dimensionId.startsWith("dim-") ? alt.dimensionId : `dim-${alt.dimensionId}`;
+    if (!altsByDim[normalizedId]) altsByDim[normalizedId] = [];
+    altsByDim[normalizedId].push(alt.value);
+  }
+
+  const cells: ZwickyBoxCell[] = [];
+
+  // Generate all dimension × dimension pairs (upper triangle only to avoid duplicates)
+  for (let i = 0; i < dims.length; i++) {
+    for (let j = i + 1; j < dims.length; j++) {
+      const rowDim = dims[i];
+      const colDim = dims[j];
+
+      const rowAlts = [rowDim.currentValue, ...(altsByDim[rowDim.id] || [])];
+      const colAlts = [colDim.currentValue, ...(altsByDim[colDim.id] || [])];
+
+      // Cap at 3 alternatives per dimension to control matrix size
+      const rowValues = rowAlts.slice(0, 3);
+      const colValues = colAlts.slice(0, 3);
+
+      for (const rowVal of rowValues) {
+        for (const colVal of colValues) {
+          // Skip baseline × baseline (current state)
+          if (rowVal === rowDim.currentValue && colVal === colDim.currentValue) continue;
+
+          // Check for disqualification
+          let disqualified = false;
+          let disqualificationReason: string | null = null;
+          let whatWouldNeedToBeTrue: string | null = null;
+
+          for (const rule of DISQUALIFICATION_RULES) {
+            const rowMatch = rule.rowPattern.test(rowVal) || rule.rowPattern.test(rowDim.name);
+            const colMatch = rule.colPattern.test(colVal) || rule.colPattern.test(colDim.name);
+
+            if (!rowMatch || !colMatch) continue;
+
+            // Optional category filter
+            if (rule.applicableCategories) {
+              const [catA, catB] = rule.applicableCategories;
+              const catMatch =
+                (rowDim.category === catA && colDim.category === catB) ||
+                (rowDim.category === catB && colDim.category === catA);
+              if (!catMatch) continue;
+            }
+
+            disqualified = true;
+            disqualificationReason = rule.reason;
+            whatWouldNeedToBeTrue = rule.whatWouldNeedToBeTrue;
+            break;
+          }
+
+          // Determine status
+          let status: ZwickyCellStatus;
+          if (disqualified) {
+            status = "disqualified";
+          } else {
+            // Mark cross-constraint combinations that lack strong evidence as needing investigation
+            const bothHot = rowDim.status === "hot" && colDim.status === "hot";
+            const lowEvidence = rowDim.evidenceCount < 3 || colDim.evidenceCount < 3;
+            status = bothHot && lowEvidence ? "requires_investigation" : "viable";
+          }
+
+          const noveltyScore = status === "viable" || status === "requires_investigation"
+            ? scoreNovelty(rowDim, rowVal, colDim, colVal)
+            : 0;
+
+          const rationale = disqualified
+            ? `DISQUALIFIED: ${disqualificationReason}`
+            : `Viable combination: ${rowDim.name} → "${rowVal}" paired with ${colDim.name} → "${colVal}"`;
+
+          cells.push({
+            rowDimensionId: rowDim.id,
+            rowDimensionName: rowDim.name,
+            rowValue: rowVal,
+            colDimensionId: colDim.id,
+            colDimensionName: colDim.name,
+            colValue: colVal,
+            status,
+            disqualificationReason,
+            whatWouldNeedToBeTrue,
+            noveltyScore,
+            rationale,
+          });
+        }
+      }
+    }
+  }
+
+  const viableCells = cells.filter(c => c.status === "viable");
+  const disqualifiedCells = cells.filter(c => c.status === "disqualified");
+  const investigationCells = cells.filter(c => c.status === "requires_investigation");
+
+  return {
+    cells,
+    viableCells,
+    disqualifiedCells,
+    investigationCells,
+    rowDimensions: dims,
+    colDimensions: dims,
+    totalCombinations: cells.length,
+    disqualificationRate: cells.length > 0 ? disqualifiedCells.length / cells.length : 0,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════════
 
@@ -627,6 +908,12 @@ export interface MorphologicalSearchResult {
   patternVectorCount: number;
   /** Diagnostic report for the search process */
   diagnostics: MorphologicalSearchDiagnostics;
+  /**
+   * PR #20 — Full Zwicky Box:
+   * Complete combinatorial matrix including viable AND disqualified combinations.
+   * Disqualified cells surface "What would need to be true?" prompts.
+   */
+  zwickyBox: ZwickyBox | null;
 }
 
 /**
@@ -735,6 +1022,7 @@ export function runMorphologicalSearch(
     vectorInteractions,
     patternVectorCount: patternVectors.length,
     diagnostics,
+    zwickyBox: (hotDims.length + warmDims.length) > 0 ? buildZwickyBox(baseline, aiAlternatives) : null,
   };
 }
 
