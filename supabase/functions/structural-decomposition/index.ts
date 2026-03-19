@@ -307,6 +307,20 @@ serve(async (req) => {
     if (adaptiveContext?.problemStatement) contextBlock += `\nProblem: ${adaptiveContext.problemStatement}`;
     if (steeringText) contextBlock += `\n\nUSER STEERING GUIDANCE: "${steeringText}" — Incorporate this direction into your decomposition focus, early assumptions, and flipped logic. Prioritize structural primitives and leverage points relevant to this guidance.`;
 
+    // ── Edge case: inject fallback assumptions when input is shallow ──
+    // These are passed from the analyze-problem function when inputClarity < 40.
+    // We read from adaptiveContext first (typed), then check the raw product object
+    // for the _fallbackAssumptions field using a type-safe string-array guard.
+    const rawProductFallback = Array.isArray((product as Record<string, unknown>)?._fallbackAssumptions)
+      ? (product as Record<string, unknown>)._fallbackAssumptions as string[]
+      : [];
+    const fallbackAssumptions: string[] = adaptiveContext?.fallbackAssumptions?.length
+      ? adaptiveContext.fallbackAssumptions
+      : rawProductFallback;
+    if (fallbackAssumptions.length > 0) {
+      contextBlock += `\n\nFALLBACK CONTEXT (input was shallow — enrich decomposition with these likely assumptions):\n${fallbackAssumptions.map((a: string) => `- ${a}`).join("\n")}`;
+    }
+
     // Include upstream scraped intelligence for grounding
     if (upstreamIntel) {
       const intelParts: string[] = [];
@@ -412,6 +426,9 @@ Generate "_earlyAssumptions" — 5 hidden assumptions this industry takes for gr
 - challengeIdea: How to challenge it (1 sentence)
 - leverageScore: 1-10 (calibrated: 5-6 default, ≥8 requires structural evidence from your decomposition)
 - urgencySignal: eroding|stable|emerging
+- isRootCause: boolean — true if this assumption is a fundamental structural driver (root cause), false if it is a downstream symptom of a deeper assumption
+- symptomOf: string | null — if isRootCause is false, name the deeper root-cause assumption this is a symptom of (e.g. "Pricing is set by legacy cost-plus convention"); null if this is itself a root cause
+- constraintCategory: "pricing"|"operational"|"market"|"structural"|"technical" — the primary constraint domain this assumption belongs to
 
 Generate "_earlyFlippedLogic" — 4 bold structural inversions. For each:
 - originalAssumption: The assumption being flipped
@@ -421,6 +438,7 @@ Generate "_earlyFlippedLogic" — 4 bold structural inversions. For each:
 
 CRITICAL: Ground these in the leverage primitives, bottlenecks, and control points you identified above.
 Target the highest-leverage primitives first. These must be SPECIFIC to this exact ${modeLabel.toLowerCase()}, not generic.
+For root cause classification: start from the leverage primitives with the highest bindingStrength — these are almost always root causes. Downstream symptoms show up as bottlenecks or failure modes that reference the same primitive.
 
 Respond ONLY with a single valid JSON object matching this schema (with added _earlyAssumptions and _earlyFlippedLogic arrays at the top level):
 ${schema}`;

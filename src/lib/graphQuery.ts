@@ -181,3 +181,77 @@ export function getGraphStats(graph: InsightGraph | null): GraphStats {
     scenarioCount: getScenarioNodes(graph).length,
   };
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  OPPORTUNITY CLASSIFICATION — Safe vs Moonshot
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Classify an opportunity node as "safe" (incremental improvement) or
+ * "moonshot" (high-risk, high-reward disruptive play).
+ *
+ * Moonshot criteria:
+ * - Node type is flipped_idea or opportunity_vector (structural inversions / radical remixes)
+ * - OR leverageScore >= 70 (top-quartile disruption potential)
+ *
+ * Safe criteria:
+ * - Incremental outcome or concept nodes with leverageScore < 70
+ */
+export type OpportunityRisk = "safe" | "moonshot";
+
+export function classifyOpportunity(node: InsightGraphNode): OpportunityRisk {
+  // Structural inversions and morphological vectors are inherently moonshot
+  if (node.type === "flipped_idea" || node.type === "opportunity_vector") return "moonshot";
+  // High leverage score signals disruptive potential regardless of type
+  if (node.leverageScore >= 70) return "moonshot";
+  return "safe";
+}
+
+/** Separate opportunities into safe and moonshot buckets */
+export function partitionOpportunities(nodes: InsightGraphNode[]): {
+  safe: InsightGraphNode[];
+  moonshot: InsightGraphNode[];
+} {
+  const safe: InsightGraphNode[] = [];
+  const moonshot: InsightGraphNode[] = [];
+  for (const n of nodes) {
+    if (classifyOpportunity(n) === "moonshot") moonshot.push(n);
+    else safe.push(n);
+  }
+  return { safe, moonshot };
+}
+
+/**
+ * Estimate the downstream cascade impact of removing or adjusting a constraint node.
+ * Returns the IDs of all nodes that would be directly or indirectly affected.
+ */
+export function simulateConstraintRemoval(
+  graph: InsightGraph | null,
+  constraintNodeId: string,
+): { affectedIds: Set<string>; opportunitiesUnlocked: InsightGraphNode[] } {
+  if (!graph) return { affectedIds: new Set(), opportunitiesUnlocked: [] };
+
+  const affectedIds = new Set<string>();
+  const queue = [constraintNodeId];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (affectedIds.has(current)) continue;
+    affectedIds.add(current);
+    // Walk downstream: nodes that this node enables/causes
+    const downstream = getDownstreamNodes(graph, current);
+    for (const d of downstream) queue.push(d.id);
+  }
+
+  // Remove the constraint itself from affected (it's the thing being removed)
+  affectedIds.delete(constraintNodeId);
+
+  const OPPORTUNITY_TYPES: Set<InsightNodeType> = new Set([
+    "outcome", "flipped_idea", "concept", "opportunity_vector",
+  ]);
+  const opportunitiesUnlocked = graph.nodes.filter(
+    n => affectedIds.has(n.id) && OPPORTUNITY_TYPES.has(n.type)
+  );
+
+  return { affectedIds, opportunitiesUnlocked };
+}

@@ -38,6 +38,16 @@ export interface AdaptiveContext {
   summary?: string;
   /** User's ongoing guidance from 'Guide the AI' inputs */
   userGuidance?: string;
+  /** Detected industry archetype (saas | logistics | ecommerce | restaurant | healthcare | manufacturing | other) */
+  industryArchetype?: string;
+  /** Input clarity score 0-100 — lower means more vague */
+  inputClarity?: number;
+  /** Edge case classification from analyze-problem */
+  edgeCaseType?: "shallow" | "overly_specific" | "clear";
+  /** Fallback assumption strings injected when input is shallow */
+  fallbackAssumptions?: string[];
+  /** Clarification prompts for vague inputs — surfaced to user */
+  clarificationPrompts?: string[];
 }
 
 /**
@@ -82,6 +92,20 @@ export function buildAdaptiveContextPrompt(ctx?: AdaptiveContext | null): string
     }
     parts.push("\nCRITICAL: Your analysis MUST contain specific, actionable responses to each focus area above.");
     parts.push("Do NOT produce generic analysis that ignores the user's stated strategic questions.");
+  }
+
+  if (ctx.clarificationPrompts && ctx.clarificationPrompts.length > 0) {
+    parts.push(`\nINPUT CLARITY NOTE: The user's input was shallow (clarity: ${ctx.inputClarity ?? "??"}/100). Enrich your analysis using these clarification dimensions:`);
+    ctx.clarificationPrompts.forEach(q => parts.push(`  → ${q}`));
+  }
+
+  if (ctx.industryArchetype) {
+    parts.push(`\nINDUSTRY ARCHETYPE: "${ctx.industryArchetype}" — apply domain-specific structural patterns and constraint categories for this archetype.`);
+  }
+
+  if (ctx.fallbackAssumptions && ctx.fallbackAssumptions.length > 0) {
+    parts.push(`\nFALLBACK ASSUMPTIONS (use to enrich shallow input context):`);
+    ctx.fallbackAssumptions.forEach(a => parts.push(`  • ${a}`));
   }
 
   if (ctx.userGuidance) {
