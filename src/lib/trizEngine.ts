@@ -14,7 +14,123 @@ export interface TrizSeed {
   applicationHint: string;   // How this principle applies to THIS business
   historicExample: string;   // Real product/company that used this principle
   inventiveScore: number;    // 1-10 — how transformative this principle tends to be
+  /**
+   * Two-axis contradiction mapping (PR #20 upgrade).
+   * Present only when both axes are evidenced from the data — not inferred.
+   */
+  twoAxisContradiction?: TrizTwoAxisContradiction;
 }
+
+// ─── Two-Axis Contradiction (PR #20 upgrade) ─────────────────────────────────
+
+/**
+ * TRIZ two-axis parameter model.
+ *
+ * Altshuller's original matrix maps an improving parameter × a worsening
+ * parameter to a set of inventive principles. This interface captures both
+ * axes explicitly so users can see WHY a principle was selected, not just
+ * which one was chosen.
+ *
+ * Per PR #20: only emit this when BOTH axes have evidence-backed signals.
+ * Suppress if either axis is inferred with < MIN_AXIS_CONFIDENCE confidence.
+ */
+export interface TrizTwoAxisContradiction {
+  /** The parameter you are trying to improve */
+  improvingParameter: TrizParameter;
+  improvingParameterLabel: string;
+  /** The parameter that worsens as a result of improving the other */
+  worseningParameter: TrizParameter;
+  worseningParameterLabel: string;
+  /** Evidence-backed signal that confirmed the improving axis */
+  improvingAxisEvidence: string;
+  /** Evidence-backed signal that confirmed the worsening axis */
+  worseningAxisEvidence: string;
+  /** Confidence that both axes are correctly identified (0-1) */
+  axisConfidence: number;
+}
+
+/**
+ * Business-domain TRIZ parameters (mapped from Altshuller's 39 technical
+ * parameters to the 9 business contradiction axes used in this platform).
+ */
+export type TrizParameter =
+  | "throughput_capacity"      // Speed/volume of value delivery (#9, #21)
+  | "cost_structure"           // Unit cost, margins, capital efficiency (#27, #16)
+  | "reliability_quality"      // Consistency, first-time-fix, NPS (#11, #23)
+  | "adaptability_flexibility" // Responsiveness to change (#15, #35)
+  | "distribution_reach"       // Customer coverage, channel breadth (#14, #1)
+  | "trust_transparency"       // Credibility, evidence, social proof (#22, #24)
+  | "automation_complexity"    // Operational leverage, manual burden (#25, #6)
+  | "price_accessibility"      // Customer willingness to pay, barrier (#13, #16)
+  | "differentiation_identity";// Brand moat, positioning (#4, #40)
+
+// ─── Parameter Detection Signals ──────────────────────────────────────────────
+
+interface ParameterSignal {
+  parameter: TrizParameter;
+  label: string;
+  /** Keywords that indicate this parameter is being IMPROVED */
+  improvingKeywords: string[];
+  /** Keywords that indicate this parameter is the WORSENING trade-off */
+  worseningKeywords: string[];
+}
+
+const PARAMETER_SIGNALS: ParameterSignal[] = [
+  {
+    parameter: "throughput_capacity",
+    label: "Throughput & Capacity",
+    improvingKeywords: ["scale", "throughput", "capacity", "faster", "more jobs", "volume", "automat", "speed"],
+    worseningKeywords: ["overwhelm", "quality drop", "rushed", "backlog", "wait time", "bottleneck"],
+  },
+  {
+    parameter: "cost_structure",
+    label: "Cost Structure",
+    improvingKeywords: ["margin", "cost reduction", "cheaper", "efficient", "lean", "overhead", "savings"],
+    worseningKeywords: ["price drop", "underprice", "race to bottom", "commodit", "erode"],
+  },
+  {
+    parameter: "reliability_quality",
+    label: "Reliability & Quality",
+    improvingKeywords: ["quality", "consistent", "reliable", "first-time fix", "guarantee", "error-free"],
+    worseningKeywords: ["slower", "expensive", "manual", "labor intensive", "cost of quality"],
+  },
+  {
+    parameter: "adaptability_flexibility",
+    label: "Adaptability & Flexibility",
+    improvingKeywords: ["flexible", "adapt", "custom", "responsive", "agile", "dynamic", "variable"],
+    worseningKeywords: ["inconsistent", "unpredictable", "cost", "training", "complexity"],
+  },
+  {
+    parameter: "distribution_reach",
+    label: "Distribution & Reach",
+    improvingKeywords: ["reach", "access", "distribut", "channel", "market share", "geographic", "coverage"],
+    worseningKeywords: ["margin", "control", "quality", "intermediary", "dependency"],
+  },
+  {
+    parameter: "trust_transparency",
+    label: "Trust & Transparency",
+    improvingKeywords: ["trust", "transparent", "review", "verified", "credential", "background", "social proof"],
+    worseningKeywords: ["cost", "privacy", "competitive", "margin", "time"],
+  },
+  {
+    parameter: "automation_complexity",
+    label: "Automation & Operational Simplicity",
+    improvingKeywords: ["automat", "digital", "self-service", "efficient", "streamline", "platform", "tech"],
+    worseningKeywords: ["complexity", "fragil", "technical debt", "integration", "maintenance"],
+  },
+  {
+    parameter: "price_accessibility",
+    label: "Price & Accessibility",
+    improvingKeywords: ["access", "affordable", "lower price", "freemium", "mass market", "broad market"],
+    worseningKeywords: ["margin", "revenue", "premium", "profit", "position"],
+  },
+  {
+    parameter: "differentiation_identity",
+    label: "Differentiation & Brand Identity",
+    improvingKeywords: ["differentiat", "brand", "premium", "unique", "position", "moat", "identity"],
+    worseningKeywords: ["niche", "limited market", "cost", "scale", "volume"],
+  },
+];
 
 // ─── 40 Inventive Principles (Altshuller) ────────────────────────────────────
 const PRINCIPLES: Record<number, { name: string; description: string; inventiveScore: number; historicExample: string }> = {
@@ -199,9 +315,86 @@ const APPLICATION_HINTS: Record<number, (entityName: string, constraintText: str
 // ─── Detection Constants ──────────────────────────────────────────────────────
 const MAX_TRIZ_SEEDS = 3;
 const MIN_KEYWORD_MATCHES = 1;
+/** Minimum axis confidence to emit a two-axis contradiction (PR #20 requirement) */
+const MIN_AXIS_CONFIDENCE = 0.4;
 
 function shorten(s: string, max = 60): string {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
+}
+
+// ─── Two-Axis Parameter Detection ────────────────────────────────────────────
+
+interface AxisMatch {
+  parameter: TrizParameter;
+  label: string;
+  matchedKeywords: string[];
+  confidence: number;
+  evidenceSnippet: string;
+}
+
+function detectParameter(
+  haystack: string,
+  role: "improving" | "worsening",
+): AxisMatch | null {
+  const keywords = role === "improving"
+    ? "improvingKeywords" as const
+    : "worseningKeywords" as const;
+
+  let bestMatch: AxisMatch | null = null;
+  let bestScore = 0;
+
+  for (const sig of PARAMETER_SIGNALS) {
+    const matched = sig[keywords].filter(kw => haystack.includes(kw.toLowerCase()));
+    if (matched.length > bestScore) {
+      bestScore = matched.length;
+      const confidence = Math.min(0.95, 0.25 + matched.length * 0.2);
+      bestMatch = {
+        parameter: sig.parameter,
+        label: sig.label,
+        matchedKeywords: matched,
+        confidence,
+        evidenceSnippet: matched.slice(0, 3).join(", "),
+      };
+    }
+  }
+
+  return bestScore >= 1 ? bestMatch : null;
+}
+
+/**
+ * Detect a two-axis TRIZ contradiction from evidence text.
+ *
+ * Per PR #20: only emit when BOTH axes have evidence-backed signals.
+ * Suppresses output when axis confidence < MIN_AXIS_CONFIDENCE.
+ */
+function detectTwoAxisContradiction(
+  constraintText: string,
+  evidenceText: string,
+): TrizTwoAxisContradiction | null {
+  const haystack = `${constraintText} ${evidenceText}`.toLowerCase();
+
+  const improving = detectParameter(haystack, "improving");
+  const worsening = detectParameter(haystack, "worsening");
+
+  if (!improving || !worsening) return null;
+
+  // Require that the two axes are different parameters
+  if (improving.parameter === worsening.parameter) return null;
+
+  // Require minimum confidence on both axes (PR #20: evidence-backed only)
+  if (improving.confidence < MIN_AXIS_CONFIDENCE || worsening.confidence < MIN_AXIS_CONFIDENCE) return null;
+
+  const axisConfidence = (improving.confidence + worsening.confidence) / 2;
+
+  return {
+    improvingParameter: improving.parameter,
+    improvingParameterLabel: improving.label,
+    worseningParameter: worsening.parameter,
+    worseningParameterLabel: worsening.label,
+    improvingAxisEvidence: improving.evidenceSnippet,
+    worseningAxisEvidence: worsening.evidenceSnippet,
+    axisConfidence,
+  };
 }
 
 // ─── Core Detection Logic ─────────────────────────────────────────────────────
@@ -242,15 +435,22 @@ function buildApplicationHint(principleId: number, constraintText: string, entit
 /**
  * Derive 2-3 TRIZ invention seeds from detected constraint patterns.
  *
+ * Upgrade (PR #20): When BOTH a improving and a worsening parameter axis are
+ * evidenced from the data, attach a `twoAxisContradiction` to each seed.
+ * This makes the principle selection transparent — users can see exactly
+ * which parameter trade-off drove the recommendation.
+ *
  * @param constraints  All detected constraints (from computeInstantInsights)
  * @param bindingConstraint  The single highest-severity constraint
  * @param entityName  Business name (e.g. "Acme Plumbing")
+ * @param evidenceText  Optional flattened evidence text for two-axis detection
  * @returns  2-3 TrizSeed objects, or [] if no contradiction detected
  */
 export function deriveTrizSeeds(
   constraints: Array<{ constraint: string; reasoning: string; severity: string }>,
   bindingConstraint: { label: string; reasoning: string } | null,
   entityName: string,
+  evidenceText = "",
 ): TrizSeed[] {
   if (constraints.length === 0) return [];
 
@@ -281,9 +481,13 @@ export function deriveTrizSeeds(
   // Take top MAX_TRIZ_SEEDS principle IDs; skip any that have no entry in PRINCIPLES
   const principleIds = cluster.principles.filter(id => PRINCIPLES[id]).slice(0, MAX_TRIZ_SEEDS);
 
+  // Attempt two-axis contradiction detection (PR #20 upgrade)
+  // Only attach when both axes are evidenced — not inferred
+  const twoAxis = detectTwoAxisContradiction(primaryText, evidenceText);
+
   return principleIds.map(id => {
     const p = PRINCIPLES[id];
-    return {
+    const seed: TrizSeed = {
       principleId: id,
       principleName: p.name,
       contradictionType: cluster.label,
@@ -291,5 +495,9 @@ export function deriveTrizSeeds(
       historicExample: p.historicExample,
       inventiveScore: p.inventiveScore,
     };
+    if (twoAxis) {
+      seed.twoAxisContradiction = twoAxis;
+    }
+    return seed;
   });
 }
