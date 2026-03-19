@@ -1,5 +1,5 @@
 import React from "react";
-import { ShieldCheck, BookOpen } from "lucide-react";
+import { ShieldCheck, BookOpen, Lightbulb } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export const AppFooter = React.forwardRef<HTMLElement>(function AppFooter(_props, ref) {
@@ -18,6 +18,14 @@ export const AppFooter = React.forwardRef<HTMLElement>(function AppFooter(_props
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <a href="/methodology" className="font-semibold text-muted-foreground hover:text-foreground hover:underline py-1 flex items-center gap-1">
+            <Lightbulb size={11} /> Methodology
+          </a>
+          <span>·</span>
+          <a href="/about" className="font-semibold text-muted-foreground hover:text-foreground hover:underline py-1">
+            About
+          </a>
+          <span>·</span>
           <a href="/pricing" className="font-semibold text-primary hover:underline py-1">
             Enterprise & Teams
           </a>
