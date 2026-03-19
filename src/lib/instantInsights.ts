@@ -20,6 +20,7 @@
 import { classifyDisruptionArchetype } from "./disruptionArchetypeClassifier";
 import { deriveTrizSeeds, type TrizSeed } from "./trizEngine";
 import { extractJtbdProfile, type JtbdProfile } from "./jtbdEngine";
+import { type DiagnosticContext } from "./diagnosticContext";
 
 export interface InstantAssumption {
   assumption: string;
@@ -143,7 +144,7 @@ export interface InstantInsights {
  * - Upgrades contrarian pair to require evidence-backed data points
  * - Extracts JTBD profile (functional, emotional, social jobs)
  */
-export function computeInstantInsights(product: any): InstantInsights | null {
+export function computeInstantInsights(product: any, context?: DiagnosticContext): InstantInsights | null {
   if (!product) return null;
   const startTime = performance.now();
 
@@ -413,7 +414,7 @@ export function computeInstantInsights(product: any): InstantInsights | null {
     leveragePoints.map((l) => l.description).join(" "),
   ].join(" ");
 
-  const trizSeeds = deriveTrizSeeds(sorted, bindingConstraint, name, evidenceTextForTriz);
+  const trizSeeds = deriveTrizSeeds(sorted, bindingConstraint, name, evidenceTextForTriz, context);
 
   // ═══ PR #20 — JTBD PROFILE ═══
   const jtbdProfile = extractJtbdProfile(product);

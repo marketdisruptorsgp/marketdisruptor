@@ -36,6 +36,7 @@ import {
   runMorphologicalSearch,
   type DimensionAlternative,
 } from "@/lib/opportunityDesignEngine";
+import { buildDiagnosticContext, extractLensConfig } from "@/lib/diagnosticContext";
 import {
   extractAllEvidence,
   flattenEvidence,
@@ -190,12 +191,15 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
     return asyncOutput;
   }
 
+  // Build diagnostic context for mode-aware morphological search
+  const morphContext = buildDiagnosticContext(input.analysisType, extractLensConfig(input.lensConfig as Record<string, unknown> | null));
+
   // Run morphological search deterministically — no AI cost, <100ms
   let morphologicalZones: import("@/lib/opportunityDesignEngine").OpportunityZone[] = [];
   let morphologicalVectors: import("@/lib/opportunityDesignEngine").OpportunityVector[] = [];
   try {
     // Pass empty aiAlternatives — morphological search is purely deterministic (no AI cost)
-    const morphResult = runMorphologicalSearch(flat, constraints, leveragePoints, []);
+    const morphResult = runMorphologicalSearch(flat, constraints, leveragePoints, [], morphContext);
     morphologicalZones = morphResult.zones;
     morphologicalVectors = morphResult.vectors;
     console.log(`[Morphological] Auto-ran: ${morphResult.vectors.length} vectors, ${morphResult.zones.length} zones`);
@@ -208,7 +212,7 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
   try {
     // Build baseline from Pass 1 results (with real constraints/leverage)
     const rawBaseline = extractBaseline(flat, constraints, leveragePoints);
-    const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints);
+    const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints, morphContext);
 
     const hotDims = getDimensionsByStatus(baseline, "hot");
     const warmDims = getDimensionsByStatus(baseline, "warm");

@@ -44,6 +44,7 @@ import {
   type DiagnosisLensConfig,
 } from "@/lib/reconfiguration";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
+import { buildDiagnosticContext, extractLensConfig, type DiagnosticContext } from "@/lib/diagnosticContext";
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
@@ -479,6 +480,14 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   const events: string[] = [];
   const stages: PipelineStageResult[] = [];
 
+  // ── Build DiagnosticContext from analysisType + lensConfig ──
+  // This context flows downstream to constraint detection, morphological search,
+  // blocked-path surfacing, and TRIZ seeding so all engines adapt to the same mode/lens.
+  const diagnosticContext: DiagnosticContext = buildDiagnosticContext(
+    input.analysisType,
+    extractLensConfig(input.lensConfig as Record<string, unknown> | null),
+  );
+
   // ── Stage 1: Collect Evidence ──
   const { result: evidenceResult, stage: s1 } = traceStage("Evidence Collection", 1, () =>
     collectEvidence(input)
@@ -510,7 +519,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
   if (evCount >= minEvidenceThreshold) {
     const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () =>
-      detectConstraintHypotheses(facetedEvidence)
+      detectConstraintHypotheses(facetedEvidence, diagnosticContext)
     );
     stages.push(s3);
     constraintHypotheses = hypotheses;
@@ -797,6 +806,12 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   const events: string[] = [];
   const stages: PipelineStageResult[] = [];
 
+  // ── Build DiagnosticContext from analysisType + lensConfig ──
+  const diagnosticContext: DiagnosticContext = buildDiagnosticContext(
+    input.analysisType,
+    extractLensConfig(input.lensConfig as Record<string, unknown> | null),
+  );
+
   // ── Stages 1-5: Same as sync ──
   const { result: evidenceResult, stage: s1 } = traceStage("Evidence Collection", 1, () => collectEvidence(input));
   stages.push(s1);
@@ -817,7 +832,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
   if (evCount >= minEvidenceThreshold) {
-    const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () => detectConstraintHypotheses(facetedEvidence));
+    const { result: hypotheses, stage: s3 } = traceStage("Constraint Detection", facetedEvidence.length, () => detectConstraintHypotheses(facetedEvidence, diagnosticContext));
     stages.push(s3);
     constraintHypotheses = hypotheses;
     events.push(`${hypotheses.hypotheses.length} constraint hypotheses detected`);

@@ -18,6 +18,7 @@
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { StrategicInsight, StrategicSignal } from "@/lib/strategicEngine";
 import { applyPatterns, detectInteractions, type VectorOrigin, type VectorInteraction } from "@/lib/strategicPatternLibrary";
+import { type DiagnosticContext, getDimensionPriority } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -541,6 +542,7 @@ export function identifyActiveDimensions(
   baseline: BusinessBaseline,
   constraints: StrategicInsight[],
   leveragePoints: StrategicInsight[],
+  context?: DiagnosticContext,
 ): BusinessBaseline {
   const updated = { ...baseline };
 
@@ -553,6 +555,17 @@ export function identifyActiveDimensions(
       newDim.status = "warm";
     } else {
       newDim.status = "inactive";
+    }
+
+    // Mode-specific promotion: dimensions the active mode foregrounds become hot
+    // even if they only have moderate evidence density.
+    if (context && newDim.status !== "hot") {
+      const modePriority = getDimensionPriority(newDim.category, context);
+      if (modePriority >= 1.3 && newDim.evidenceCount >= 1) {
+        newDim.status = "hot";
+      } else if (modePriority >= 1.1 && newDim.status === "inactive" && newDim.evidenceCount >= 1) {
+        newDim.status = "warm";
+      }
     }
 
     updated[key] = newDim;
@@ -935,14 +948,15 @@ export function runMorphologicalSearch(
   constraints: StrategicInsight[],
   leveragePoints: StrategicInsight[],
   aiAlternatives: DimensionAlternative[],
+  context?: DiagnosticContext,
 ): MorphologicalSearchResult {
   resetCounters();
 
   // Stage 1: Extract baseline
   const rawBaseline = extractBaseline(flatEvidence, constraints, leveragePoints);
 
-  // Stage 2: Identify active dimensions
-  const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints);
+  // Stage 2: Identify active dimensions — pass context for mode-aware promotion
+  const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints, context);
 
   const hotDims = getDimensionsByStatus(baseline, "hot");
   const warmDims = getDimensionsByStatus(baseline, "warm");
