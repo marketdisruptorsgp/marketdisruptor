@@ -7,6 +7,8 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
+import { useAnalysisTimeout } from "@/hooks/useAnalysisTimeout";
+import { AnalysisTimeoutEscape } from "@/components/analysis/AnalysisTimeoutEscape";
 import { PitchDeck } from "@/components/PitchDeck";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { StepNavBar } from "@/components/SectionNav";
@@ -18,6 +20,8 @@ import {
   AnalysisStepHeader,
   AnalysisActionToolbar,
   AnalysisLoadingSpinner,
+  AnalysisLoadingCard,
+  AnalysisPipelineErrorCard,
 } from "@/components/analysis/AnalysisPageShell";
 
 export default function PitchPage() {
@@ -28,6 +32,7 @@ export default function PitchPage() {
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
+  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, !!analysis.pitchDeckData);
 
   const { selectedProduct: rawSelectedProduct, analysisId } = analysis;
 
@@ -41,6 +46,7 @@ export default function PitchPage() {
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
     if (shouldRedirectHome) return null;
+    if (analysis.step === "error") return <AnalysisPipelineErrorCard onRetry={analysis.retryAnalysis} />;
     return <AnalysisLoadingSpinner />;
   }
 
@@ -81,6 +87,17 @@ export default function PitchPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
+      {/* Timeout escape */}
+      {analysisLoading && loadingTimedOut && (
+        <AnalysisLoadingCard>
+          <AnalysisTimeoutEscape
+            analysisId={analysisId}
+            onRetry={() => { clearTimeoutState(); setRunTrigger(t => t + 1); }}
+            backPath={`/analysis/${analysisId}/stress-test`}
+            backLabel="Back to Strategy"
+          />
+        </AnalysisLoadingCard>
+      )}
 
       {/* Content — always mounted so loading lifecycle completes */}
       <PitchDeck

@@ -8,7 +8,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
-import { runPipelineStateMachine } from "./pipeline/runPipelineStateMachine";
+import { runPipelineStateMachine, type PipelineResult } from "./pipeline/runPipelineStateMachine";
 import { acquireKeepAlive, releaseKeepAlive } from "./pipeline/keepAlive";
 import { runDecompose } from "./pipeline/stepDecompose";
 import { runStrategicSynthesis } from "./pipeline/stepSynthesis";
@@ -29,6 +29,8 @@ export interface PipelineProgress {
   runAllSteps: () => void;
   pipelineStartedAt: number | null;
   stepTimings: Record<string, StepTiming>;
+  /** Last pipeline error — persists until next successful run */
+  pipelineError: string | null;
 }
 
 export function usePipelineOrchestrator(
@@ -60,6 +62,7 @@ export function usePipelineOrchestrator(
   const [isRunning, setIsRunning] = useState(false);
   const [pipelineStartedAt, setPipelineStartedAt] = useState<number | null>(null);
   const [stepTimings, setStepTimings] = useState<Record<string, StepTiming>>({});
+  const [pipelineError, setPipelineError] = useState<string | null>(null);
 
   // Warn user on navigate-away during active pipeline
   useEffect(() => {
@@ -138,6 +141,7 @@ export function usePipelineOrchestrator(
     runningRef.current = true;
     setIsRunning(true);
     setPipelineStartedAt(Date.now());
+    setPipelineError(null);
     acquireKeepAlive();
     setStepTimings({});
 
@@ -145,8 +149,9 @@ export function usePipelineOrchestrator(
     const cb = buildCb();
     const store = buildStore();
 
+    let result: PipelineResult = { success: false, error: "Unknown error" };
     try {
-      await runPipelineStateMachine(ctx, cb, store, {
+      result = await runPipelineStateMachine(ctx, cb, store, {
         runAll: runAllRef.current,
         existingDecomp: decompositionData,
         existingDisrupt: disruptData,
@@ -156,6 +161,7 @@ export function usePipelineOrchestrator(
       });
     } catch (err) {
       console.error("[Pipeline] Unexpected pipeline error:", err);
+      result = { success: false, error: String(err) };
     } finally {
       setCurrentStep(null);
       setIsRunning(false);
@@ -163,12 +169,16 @@ export function usePipelineOrchestrator(
       runAllRef.current = false;
       releaseKeepAlive();
 
+      if (!result.success) {
+        setPipelineError(result.error || "Pipeline failed");
+      }
+
       setStepStatuses(prev => {
         const coreSteps = ["decompose", "synthesis", "concepts"];
         const coreErrors = coreSteps.filter(k => prev[k] === "error").length;
         if (coreErrors > 0) {
           toast.warning(`Pipeline complete with ${coreErrors} step${coreErrors > 1 ? "s" : ""} needing attention.`);
-        } else {
+        } else if (result.success) {
           toast.success("Analysis ready — explore your strategic intelligence.");
         }
         return prev;
@@ -242,5 +252,6 @@ export function usePipelineOrchestrator(
     completedCount: steps.filter(s => s.status === "done").length,
     totalCount: steps.length,
     retryStep, runAllSteps, pipelineStartedAt, stepTimings,
+    pipelineError,
   };
 }

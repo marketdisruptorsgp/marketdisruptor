@@ -10,6 +10,8 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
+import { useAnalysisTimeout } from "@/hooks/useAnalysisTimeout";
+import { AnalysisTimeoutEscape } from "@/components/analysis/AnalysisTimeoutEscape";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
@@ -41,6 +43,7 @@ import {
   AnalysisContentCard,
   AnalysisLoadingCard,
   AnalysisLoadingSpinner,
+  AnalysisPipelineErrorCard,
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
@@ -62,6 +65,7 @@ export default function StressTestPage() {
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
+  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, !!analysis.stressTestData || !!analysis.disruptData);
 
   const { selectedProduct: rawSelectedProduct, analysisId } = analysis;
 
@@ -75,6 +79,7 @@ export default function StressTestPage() {
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
     if (shouldRedirectHome) return null;
+    if (analysis.step === "error") return <AnalysisPipelineErrorCard onRetry={analysis.retryAnalysis} />;
     return <AnalysisLoadingSpinner />;
   }
 
@@ -191,15 +196,24 @@ export default function StressTestPage() {
         </div>
       )}
 
-      {/* Loading Tracker */}
+      {/* Loading Tracker with timeout escape */}
       {analysisLoading && (
         <AnalysisLoadingCard>
-          <StepLoadingTracker
-            title="Running Strategy Development"
-            tasks={STRESS_TEST_TASKS}
-            estimatedSeconds={30}
-            accentColor="hsl(350 80% 55%)"
-          />
+          {loadingTimedOut ? (
+            <AnalysisTimeoutEscape
+              analysisId={analysisId}
+              onRetry={() => { clearTimeoutState(); setRunTrigger(t => t + 1); }}
+              backPath={`/analysis/${analysisId}/redesign`}
+              backLabel="Back to Redesign"
+            />
+          ) : (
+            <StepLoadingTracker
+              title="Running Strategy Development"
+              tasks={STRESS_TEST_TASKS}
+              estimatedSeconds={30}
+              accentColor="hsl(350 80% 55%)"
+            />
+          )}
         </AnalysisLoadingCard>
       )}
 
