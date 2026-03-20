@@ -118,7 +118,7 @@ export function PipelineProgressBar({
               ) : isDone ? (
                 <CheckCircle2 size={14} style={{ color }} />
               ) : (
-                <Circle size={14} style={{ color, opacity: isCurrent ? 1 : 0.4 }} />
+                <Circle size={14} style={{ color, opacity: isCurrent ? 1 : isLazy ? 0.25 : 0.4 }} />
               )}
               <span className="text-[9px] font-bold uppercase tracking-wider"
                 style={{ color, opacity: isCurrent ? 1 : isDone ? 0.8 : 0.4 }}>
