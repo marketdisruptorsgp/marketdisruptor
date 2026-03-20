@@ -1,4 +1,5 @@
 import React, { useMemo, forwardRef } from "react";
+import { parseFlippedLogicFromBusiness } from "@/lib/businessAnalysisFallback";
 import { useCompetitiveResearch } from "@/hooks/useCompetitiveResearch";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -436,7 +437,15 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
   onLoadingChange,
   viewMode = "all",
 }, ref) {
-  const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || (analysis.businessAnalysisData as any)?.hiddenAssumptions || [];
+  const rawAssumptions = (analysis.disruptData as any)?.hiddenAssumptions || (analysis.businessAnalysisData as any)?.hiddenAssumptions || [];
+  // Normalize: ensure every assumption has confidence + leverage defaults (business_model data may omit them)
+  const assumptions = rawAssumptions.map((a: any, i: number) => ({
+    ...a,
+    id: a.id || `assumption-${i}`,
+    confidence: a.confidence ?? 0.6,
+    leverage: a.leverage ?? a.leverageScore ?? 0.7,
+    leverageScore: a.leverageScore ?? a.leverage ?? 0.7,
+  }));
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
 
@@ -517,8 +526,15 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
 
       {/* ── System Intelligence Layer ── */}
       {(() => {
-        const disruptData = (analysis.disruptData || (analysis.businessAnalysisData ? { hiddenAssumptions: (analysis.businessAnalysisData as any)?.hiddenAssumptions || [], flippedLogic: [], _businessFallback: true } : null)) as Record<string, unknown> | null;
-        const businessData = analysis.businessAnalysisData as Record<string, unknown> | null;
+        const biz = analysis.businessAnalysisData as Record<string, any> | null;
+        const disruptData = (analysis.disruptData || (biz ? {
+          hiddenAssumptions: assumptions,
+          flippedLogic: parseFlippedLogicFromBusiness(biz),
+          vulnerabilities: biz?.disruptionAnalysis?.vulnerabilities || [],
+          defenseMoves: biz?.disruptionAnalysis?.defenseMoves || [],
+          _businessFallback: true,
+        } : null)) as Record<string, unknown> | null;
+        const businessData = biz as Record<string, unknown> | null;
         const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
         const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
 
