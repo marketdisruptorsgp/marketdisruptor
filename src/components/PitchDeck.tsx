@@ -313,6 +313,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   }
 
   if (!data) {
+    const missingDisrupt = !disruptData;
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
         <div className="w-20 h-20 rounded-md flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
@@ -324,12 +325,30 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             Full investor-ready brief for <strong className="text-foreground">{product.name}</strong> — 10 structured sections.
           </p>
         </div>
-        <button onClick={runAnalysis} disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 rounded-md font-bold text-sm transition-colors"
-          style={{ background: accentColor, color: "white", opacity: loading ? 0.7 : 1 }}>
-          <Presentation size={15} /> Generate Full Pitch Deck
-        </button>
-        <p className="typo-card-meta text-muted-foreground">Uses Gemini 2.5 Flash · ~20–40 seconds</p>
+        {missingDisrupt ? (
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium" style={{ background: "hsl(var(--destructive)/0.1)", color: "hsl(var(--destructive))" }}>
+              <AlertTriangle size={15} />
+              <span>Structural Analysis (Disrupt) must be completed before generating a pitch deck.</span>
+            </div>
+            <button
+              onClick={() => navigate(`/analysis/${analysisId}/disrupt`)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-md font-bold text-sm transition-colors"
+              style={{ background: accentColor, color: "white" }}
+            >
+              <ArrowRight size={14} /> Go to Structural Analysis
+            </button>
+          </div>
+        ) : (
+          <>
+            <button onClick={runAnalysis} disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 rounded-md font-bold text-sm transition-colors"
+              style={{ background: accentColor, color: "white", opacity: loading ? 0.7 : 1 }}>
+              <Presentation size={15} /> Generate Full Pitch Deck
+            </button>
+            <p className="typo-card-meta text-muted-foreground">Uses Gemini 2.5 Flash · ~20–40 seconds</p>
+          </>
+        )}
       </div>
     );
   }

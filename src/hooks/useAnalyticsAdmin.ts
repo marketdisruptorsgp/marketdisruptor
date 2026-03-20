@@ -69,10 +69,21 @@ export function useAnalyticsAdmin() {
       const data = await apiFetch(action, days, extra);
       return data;
     } catch (e: any) {
-      setError(e.message);
-      if (e.message === "Invalid token" || e.message === "Unauthorized") {
+      const msg: string = e.message ?? "Unknown error";
+      setError(msg);
+      // Automatically deauthenticate on any token-level rejection
+      if (
+        msg === "Invalid token" ||
+        msg === "Token expired" ||
+        msg === "Unauthorized" ||
+        msg.startsWith("HTTP 401") ||
+        msg.startsWith("HTTP 403")
+      ) {
+        console.warn("[AnalyticsAdmin] Token rejected — clearing session:", msg);
         setAuthenticated(false);
         sessionStorage.removeItem(TOKEN_KEY);
+      } else {
+        console.error("[AnalyticsAdmin] fetchData error for action '%s':", action, msg);
       }
       return null;
     } finally {
