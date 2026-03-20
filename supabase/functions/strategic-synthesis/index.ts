@@ -668,6 +668,17 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     }
 
     const validationResult = validateOutput(mode, analysis);
+    
+    // ── Business mode drift detection ──
+    if (isBusiness) {
+      const driftIssues = detectBusinessModeDrift(analysis, product);
+      if (driftIssues.length > 0) {
+        console.warn(`[StrategicSynthesis] BUSINESS MODE DRIFT DETECTED: ${driftIssues.join("; ")}`);
+        // Scrub drifted hypotheses rather than failing the whole request
+        scrubDriftedContent(analysis, driftIssues);
+      }
+    }
+
     const trace = buildTrace(mode, filterResult, validationResult);
 
     return new Response(JSON.stringify({ success: true, analysis, _modeTrace: trace, _governedValidation: governedValidation }), {
