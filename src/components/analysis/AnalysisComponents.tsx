@@ -531,9 +531,10 @@ interface MetricCardProps {
   accentColor?: string;
   subtext?: string;
   className?: string;
+  tooltip?: string;
 }
 
-export function MetricCard({ label, value, trend, accentColor, subtext, className }: MetricCardProps) {
+export function MetricCard({ label, value, trend, accentColor, subtext, className, tooltip }: MetricCardProps) {
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
   return (
