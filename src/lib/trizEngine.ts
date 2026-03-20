@@ -7,6 +7,8 @@
  * innovation archetypes.
  */
 
+import { type DiagnosticContext } from "@/lib/diagnosticContext";
+
 export interface TrizSeed {
   principleId: number;       // 1-40 (Altshuller's original numbering)
   principleName: string;     // e.g. "Segmentation"
@@ -451,6 +453,7 @@ export function deriveTrizSeeds(
   bindingConstraint: { label: string; reasoning: string } | null,
   entityName: string,
   evidenceText = "",
+  context?: DiagnosticContext,
 ): TrizSeed[] {
   if (constraints.length === 0) return [];
 
@@ -473,6 +476,18 @@ export function deriveTrizSeeds(
   for (const text of textsToTry) {
     shape = detectContradictionShape(text, "");
     if (shape) break;
+  }
+
+  // When a mode context is provided and no shape was detected from text,
+  // fall back to the mode's most representative contradiction shape.
+  if (!shape && context) {
+    const modeFallbacks: Record<string, ContradictionShape> = {
+      product:        "cost_vs_quality",
+      service:        "labor_vs_scale",
+      business_model: "access_vs_margin",
+      object_reinvention: "dependency_vs_resilience",
+    };
+    shape = modeFallbacks[context.mode] ?? null;
   }
 
   if (!shape) return [];

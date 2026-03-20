@@ -60,6 +60,8 @@ interface AnalysisContextType {
   setMainTab: (t: "custom" | "service" | "business") => void;
   activeMode: AnalysisMode;
   setActiveMode: (m: AnalysisMode) => void;
+  /** Computed DiagnosticContext (mode + lens) that flows to all diagnostic engines */
+  diagnosticContext: DiagnosticContext;
 
   // Loading
   elapsedSeconds: number;
@@ -170,9 +172,6 @@ interface AnalysisContextType {
   activeLens: UserLens | null;
   setActiveLens: (lens: UserLens | null) => void;
 
-  // Diagnostic Context — derived from activeMode + activeLens
-  diagnosticContext: DiagnosticContext;
-
   // Governed data (reasoning synopsis, constraint maps, etc.)
   governedData: Record<string, unknown> | null;
   setGovernedData: (data: Record<string, unknown> | null) => void;
@@ -251,7 +250,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState<AnalysisStep>("idle");
   const [isHydrating, setIsHydrating] = useState(false);
   const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
-  const [activeMode, setActiveMode] = useState<AnalysisMode>("custom");
+  const [activeMode, setActiveModeState] = useState<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -431,11 +430,21 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
 
-  // ── Diagnostic Context — derived from activeMode + activeLens ──
-  const diagnosticContext = useMemo(
-    () => buildDiagnosticContext(activeMode, activeLens),
-    [activeMode, activeLens],
-  );
+  // Wrapped setActiveMode: mode changes, like lens changes, invalidate
+  // diagnostic-dependent downstream steps so they are re-run with the new mode context.
+  const setActiveMode = useCallback((m: AnalysisMode) => {
+    setActiveModeState(m);
+    markStepOutdated("redesign");
+    markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
+  }, [markStepOutdated]);
+
+  // ── Computed DiagnosticContext ──
+  // Combines active mode + lens into the unified contract used by all engines.
+  // Re-computed whenever mode or lens changes.
+  const diagnosticContext = useMemo((): DiagnosticContext =>
+    buildDiagnosticContext(activeMode, activeLens),
+  [activeMode, activeLens]);
 
   // ── Geo Market Data ──
   const [geoData, setGeoData] = useState<unknown>(null);
@@ -724,7 +733,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             communitySentiment: scrapeData.stats.complaintSignals > 3 ? "frustrated" : "neutral",
           } : undefined,
         };
-        const earlyInsights = computeInstantInsights(earlyProduct);
+        const earlyInsights = computeInstantInsights(earlyProduct, diagnosticContext);
         if (earlyInsights) {
           setInstantInsights(earlyInsights);
           console.log(`[InstantInsights] Early pre-compute during scraping: ${earlyInsights.assumptions.length} assumptions`);
@@ -828,7 +837,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
       // ── INSTANT INSIGHTS: Pre-compute structural hypotheses from scraped data (~0ms) ──
       try {
-        const instant = computeInstantInsights(liveProducts[0]);
+        const instant = computeInstantInsights(liveProducts[0], diagnosticContext);
         if (instant) {
           setInstantInsights(instant);
           console.log(`[InstantInsights] Pre-computed: ${instant.assumptions.length} assumptions, ${instant.leveragePoints.length} leverage points, ${instant.constraints.length} constraints`);
@@ -1529,7 +1538,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     <AnalysisContext.Provider value={{
       step, setStep, products, setProducts, selectedProduct, setSelectedProduct,
       analysisParams, setAnalysisParams, errorMsg, setErrorMsg,
-      mainTab, setMainTab, activeMode, setActiveMode,
+      mainTab, setMainTab, activeMode, setActiveMode, diagnosticContext,
       elapsedSeconds, loadingLog, stepMessage,
       detailTab, setDetailTab, visitedDetailTabs, setVisitedDetailTabs,
       decompositionData, setDecompositionData,
@@ -1555,7 +1564,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
       pitchDeckExclusions, togglePitchDeckExclusion,
       activeLens, setActiveLens,
-      diagnosticContext,
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       scoutedCompetitors, setScoutedCompetitors,
