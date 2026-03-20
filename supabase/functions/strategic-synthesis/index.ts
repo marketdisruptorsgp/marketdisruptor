@@ -367,10 +367,10 @@ ${product.biExtraction.ownerDependency ? `  Owner Dependency: ${JSON.stringify(p
 ` : ""}
 
 KNOWN ISSUES:
-${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => \`• \${r.text}\`).join("\\n") || "General business model friction"}
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => "• " + r.text).join("\n") || "General business model friction"}
 
 EXISTING ASSUMPTIONS:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => \`• \${a.assumption} → \${a.challenge}\`).join("\\n") || "None pre-identified"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => "• " + a.assumption + " → " + a.challenge).join("\n") || "None pre-identified"}
 
 CRITICAL INSTRUCTIONS:
 1. Every hiddenAssumption must reference THIS business's actual revenue model, cost structure, or operations
