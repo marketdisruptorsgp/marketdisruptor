@@ -111,6 +111,9 @@ export interface RegulatoryProfile {
   firecrawlInsights: FirecrawlInsight[];
   risks: string[];
   stateVariance: string[];
+  targetStateLegalStatus?: "legal" | "restricted" | "prohibited" | "pending" | "not_applicable";
+  stateSpecificRules?: { rule: string; source: string }[];
+  stateComplianceNotes?: string;
   timestamp: string;
 }
 
@@ -242,10 +245,12 @@ export async function fetchFirecrawlRegulatory(
 /**
  * Build the full regulatory profile for a given category.
  * Returns { regulatoryRelevance: "none" } for non-regulated categories.
+ * When targetState is provided, also fetches state-specific legal status and rules.
  */
 export async function buildRegulatoryProfile(
   category: string,
-  productName?: string
+  productName?: string,
+  targetState?: string
 ): Promise<RegulatoryProfile> {
   const match = detectRegulatoryDomain(category, productName);
 
@@ -263,14 +268,22 @@ export async function buildRegulatoryProfile(
   }
 
   const { domain, categoryName } = match;
-  console.log(`[Regulatory] Detected domain: ${categoryName} — fetching regulatory data`);
+  console.log(`[Regulatory] Detected domain: ${categoryName} — fetching regulatory data${targetState ? ` for ${targetState}` : ""}`);
 
   const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
+  const currentYear = new Date().getFullYear();
 
-  // Fetch Federal Register + Firecrawl in parallel
-  const [rulemaking, firecrawlInsights] = await Promise.all([
+  // Build state-specific queries if targetState is provided
+  const stateQueries: string[] = targetState ? [
+    `"${categoryName.toLowerCase()} laws" "${targetState}" ${currentYear}`,
+    `"${categoryName.toLowerCase()} regulations" "${targetState}" ${currentYear}`,
+  ] : [];
+
+  // Fetch Federal Register + Firecrawl in parallel (+ state-specific queries if applicable)
+  const [rulemaking, firecrawlInsights, stateInsights] = await Promise.all([
     fetchFederalRegister(domain.federalRegisterTerms),
     fetchFirecrawlRegulatory(domain.firecrawlQueries, firecrawlKey),
+    stateQueries.length > 0 ? fetchFirecrawlRegulatory(stateQueries, firecrawlKey) : Promise.resolve([]),
   ]);
 
   // Determine relevance level based on data richness
@@ -296,6 +309,38 @@ export async function buildRegulatoryProfile(
     }
   }
 
+  // Build state-specific rules from state-targeted Firecrawl results
+  const stateSpecificRules: { rule: string; source: string }[] = stateInsights.slice(0, 5).map(insight => ({
+    rule: insight.snippet.slice(0, 300),
+    source: insight.url || insight.title,
+  }));
+
+  // Infer legal status for target state based on snippet content
+  let targetStateLegalStatus: "legal" | "restricted" | "prohibited" | "pending" | "not_applicable" = "not_applicable";
+  let stateComplianceNotes = "";
+  if (targetState && stateInsights.length > 0) {
+    const combinedText = stateInsights.map(i => i.snippet).join(" ").toLowerCase();
+    const stateLower = targetState.toLowerCase();
+    if (combinedText.includes(`${stateLower}`) || combinedText.includes("legal in")) {
+      if (combinedText.includes("illegal") || combinedText.includes("prohibited") || combinedText.includes("banned") || combinedText.includes("not legal")) {
+        targetStateLegalStatus = "prohibited";
+      } else if (combinedText.includes("restricted") || combinedText.includes("limited") || combinedText.includes("certain conditions")) {
+        targetStateLegalStatus = "restricted";
+      } else if (combinedText.includes("legal") || combinedText.includes("permitted") || combinedText.includes("allowed")) {
+        targetStateLegalStatus = "legal";
+      } else if (combinedText.includes("pending") || combinedText.includes("proposed") || combinedText.includes("bill")) {
+        targetStateLegalStatus = "pending";
+      } else {
+        targetStateLegalStatus = "restricted";
+      }
+    } else {
+      targetStateLegalStatus = "restricted";
+    }
+    stateComplianceNotes = `${categoryName} in ${targetState}: ${targetStateLegalStatus}. Requires compliance with ${domain.agencies.join(", ")}. Consult ${targetState} state regulatory board for current requirements.`;
+  } else if (targetState) {
+    stateComplianceNotes = `No state-specific data found for ${targetState}. Consult ${targetState} state regulatory board and ${domain.agencies.join(", ")} for requirements.`;
+  }
+
   return {
     regulatoryRelevance: relevance,
     matchedCategory: categoryName,
@@ -304,6 +349,11 @@ export async function buildRegulatoryProfile(
     firecrawlInsights,
     risks,
     stateVariance: stateVariance.slice(0, 5),
+    ...(targetState ? {
+      targetStateLegalStatus,
+      stateSpecificRules,
+      stateComplianceNotes,
+    } : {}),
     timestamp: new Date().toISOString(),
   };
 }

@@ -33,6 +33,8 @@ serve(async (req) => {
       product, lens, upstreamIntel, structuralDecomposition, activeBranch,
       adaptiveContext: rawAdaptiveCtx, extractedContext: rawExtractedCtx,
       preContext, strategyContext,
+      // Territory context
+      focusTerritory,
       // Curation context from user
       insightPreferences, userScores, steeringText,
     } = await req.json();
@@ -84,7 +86,21 @@ serve(async (req) => {
     const OS_PREAMBLE = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFrameworkLite()}
 ${modeGuard}${branchPrompt}${adaptivePrompt}
+${focusTerritory ? `
+FOCUS TERRITORY: ${focusTerritory.name}
+${focusTerritory.census ? `- Population: ${focusTerritory.census.population?.toLocaleString()}
+- Median Income: $${focusTerritory.census.medianIncome?.toLocaleString()}
+- Median Age: ${focusTerritory.census.medianAge}
+- Education (bachelor's+): ${focusTerritory.census.educationRate}%
+- Labor Force Participation: ${focusTerritory.census.laborForceParticipation}%` : ""}
+${focusTerritory.business ? `- Business Establishments: ${focusTerritory.business.establishments?.toLocaleString()}
+- Opportunity Score: ${focusTerritory.business.opportunityScore}/100 (National Rank: #${focusTerritory.business.nationalRank})` : ""}
+${focusTerritory.regulatory ? `- Legal Status for this product: ${focusTerritory.regulatory.legalStatus}
+- Key regulatory requirements: ${(focusTerritory.regulatory.keyRules || []).join(", ") || "None identified"}
+- State-specific compliance: ${focusTerritory.regulatory.complianceNotes || "N/A"}` : ""}
 
+IMPORTANT: All market sizing, distribution strategy, pricing, and go-to-market recommendations MUST be grounded in ${focusTerritory.name} realities. Reference actual state regulations and census demographics — not national averages.
+` : ""}
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth

@@ -17,6 +17,61 @@ const ACS_DATASET = "acs/acs5";
 // B15003_022E = bachelor's degree+, B23025_002E = labor force
 const CENSUS_VARS = "B01003_001E,B19013_001E,B01002_001E,B25010_001E,B15003_022E,B23025_002E,NAME";
 
+// ── US State name → FIPS code map ──
+const STATE_FIPS: Record<string, string> = {
+  "Alabama": "01", "Alaska": "02", "Arizona": "04", "Arkansas": "05",
+  "California": "06", "Colorado": "08", "Connecticut": "09", "Delaware": "10",
+  "Florida": "12", "Georgia": "13", "Hawaii": "15", "Idaho": "16",
+  "Illinois": "17", "Indiana": "18", "Iowa": "19", "Kansas": "20",
+  "Kentucky": "21", "Louisiana": "22", "Maine": "23", "Maryland": "24",
+  "Massachusetts": "25", "Michigan": "26", "Minnesota": "27", "Mississippi": "28",
+  "Missouri": "29", "Montana": "30", "Nebraska": "31", "Nevada": "32",
+  "New Hampshire": "33", "New Jersey": "34", "New Mexico": "35", "New York": "36",
+  "North Carolina": "37", "North Dakota": "38", "Ohio": "39", "Oklahoma": "40",
+  "Oregon": "41", "Pennsylvania": "42", "Rhode Island": "44", "South Carolina": "45",
+  "South Dakota": "46", "Tennessee": "47", "Texas": "48", "Utah": "49",
+  "Vermont": "50", "Virginia": "51", "Washington": "53", "West Virginia": "54",
+  "Wisconsin": "55", "Wyoming": "56", "District of Columbia": "11",
+};
+
+// Abbreviation → full name
+const STATE_ABBR: Record<string, string> = {
+  "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+  "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+  "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+  "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+  "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+  "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+  "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+  "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+  "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+  "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+  "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+  "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+  "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia",
+};
+
+/**
+ * Detect a US state from a geography string.
+ * Returns { stateName, fipsCode } or null.
+ */
+function detectUSState(geography: string): { stateName: string; fipsCode: string } | null {
+  const geo = geography.trim();
+  // Try abbreviation (2-letter, exact match)
+  const upper = geo.toUpperCase();
+  if (STATE_ABBR[upper]) {
+    const name = STATE_ABBR[upper];
+    return { stateName: name, fipsCode: STATE_FIPS[name] };
+  }
+  // Try full name (case-insensitive)
+  for (const [name, fips] of Object.entries(STATE_FIPS)) {
+    if (geo.toLowerCase().includes(name.toLowerCase())) {
+      return { stateName: name, fipsCode: fips };
+    }
+  }
+  return null;
+}
+
 async function fetchCensusStateData(): Promise<any[]> {
   try {
     const url = `${CENSUS_BASE}/${ACS_YEAR}/${ACS_DATASET}?get=${CENSUS_VARS}&for=state:*`;
@@ -153,6 +208,7 @@ function categoryToNaics(category: string): string {
     "Pets": "453",
     "Food & Beverage": "445",
     "Food": "445",
+    "Cannabis": "445",
     "Fitness Tech": "713",
     "Fitness": "713",
     "Beauty": "446",
@@ -181,7 +237,6 @@ function scoreOpportunity(
   if (!states.length) return [];
 
   // Merge business data with state demographics
-  const stateMap = new Map(states.map(s => [s.name, s]));
   const bizMap = new Map(businessData.map(b => [b.state, b]));
 
   const scored = states.map(state => {
@@ -226,6 +281,78 @@ function scoreGlobalOpportunity(countries: any[]): any[] {
   }).sort((a, b) => b.opportunityScore - a.opportunityScore);
 }
 
+/**
+ * Build the focusTerritory object for a detected US state.
+ */
+function buildFocusTerritory(
+  stateName: string,
+  fipsCode: string,
+  stateData: any[],
+  businessData: any[],
+  scored: any[],
+  regulatoryProfile: any
+): any {
+  const state = stateData.find(s => s.name === stateName || s.stateCode === fipsCode);
+  if (!state) return null;
+
+  const biz = businessData.find(b => b.state === stateName);
+  const scoredState = scored.find(s => s.name === stateName);
+  const nationalRank = scored.findIndex(s => s.name === stateName) + 1;
+
+  const bizPerCapita = biz && state.population > 0
+    ? Math.round((biz.establishments / state.population) * 100_000 * 10) / 10
+    : 0;
+
+  const educationRate = state.population > 0
+    ? Math.round((state.bachelorsDegreeHolders / state.population) * 100 * 10) / 10
+    : 0;
+
+  const laborForceParticipation = state.population > 0
+    ? Math.round((state.laborForce / state.population) * 100 * 10) / 10
+    : 0;
+
+  // Extract regulatory intelligence for this territory
+  const hasRegData = regulatoryProfile && regulatoryProfile.regulatoryRelevance !== "none";
+  const legalStatus = hasRegData
+    ? (regulatoryProfile.targetStateLegalStatus || "not_applicable")
+    : "not_applicable";
+  const keyRules: string[] = hasRegData ? (regulatoryProfile.risks || []).slice(0, 3) : [];
+  const agencies: string[] = hasRegData ? (regulatoryProfile.agencies || []) : [];
+  const stateSpecificRules: { rule: string; source: string }[] = hasRegData
+    ? (regulatoryProfile.stateSpecificRules || [])
+    : [];
+  const complianceNotes = hasRegData
+    ? (regulatoryProfile.stateComplianceNotes || `Compliance required with ${agencies.join(", ")}`)
+    : "No specific regulatory requirements detected for this category";
+
+  return {
+    name: stateName,
+    type: "us_state",
+    census: {
+      population: state.population,
+      medianIncome: state.medianIncome,
+      medianAge: state.medianAge,
+      educationRate,
+      laborForceParticipation,
+      avgHouseholdSize: state.avgHouseholdSize,
+    },
+    business: {
+      establishments: biz?.establishments || 0,
+      employees: biz?.employees || 0,
+      bizPerCapita,
+      opportunityScore: scoredState?.opportunityScore || 0,
+      nationalRank,
+    },
+    regulatory: {
+      legalStatus,
+      keyRules,
+      agencies,
+      stateSpecificRules,
+      complianceNotes,
+    },
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -235,12 +362,18 @@ serve(async (req) => {
 
     console.log(`[GeoData] Category: ${category}, NAICS: ${naicsCode}, Geography: ${geography || "all"}`);
 
+    // Detect US state from geography string
+    const detectedState = geography ? detectUSState(geography) : null;
+    if (detectedState) {
+      console.log(`[GeoData] Detected US state: ${detectedState.stateName} (FIPS: ${detectedState.fipsCode})`);
+    }
+
     // Fetch all data sources in parallel (including adaptive regulatory data)
     const [stateData, businessData, globalData, regulatoryProfile] = await Promise.all([
       fetchCensusStateData(),
       fetchBusinessPatterns(naicsCode),
       fetchWorldBankData(),
-      buildRegulatoryProfile(category || "", productName),
+      buildRegulatoryProfile(category || "", productName, detectedState?.stateName),
     ]);
 
     console.log(`[GeoData] Regulatory relevance: ${regulatoryProfile.regulatoryRelevance} (${regulatoryProfile.matchedCategory || "none"})`);
@@ -250,6 +383,71 @@ serve(async (req) => {
     // Score opportunities
     const usOpportunities = scoreOpportunity(stateData, businessData, category);
     const globalOpportunities = scoreGlobalOpportunity(globalData);
+
+    // Build focusTerritory if a US state was detected
+    let focusTerritory: any = null;
+    if (detectedState) {
+      focusTerritory = buildFocusTerritory(
+        detectedState.stateName,
+        detectedState.fipsCode,
+        stateData,
+        businessData,
+        usOpportunities,
+        regulatoryProfile
+      );
+      if (focusTerritory) {
+        console.log(`[GeoData] Built focusTerritory for ${detectedState.stateName}: pop=${focusTerritory.census.population}, rank=${focusTerritory.business.nationalRank}`);
+      }
+    } else if (geography && !detectedState) {
+      // Non-US territory — surface as a named region using World Bank data
+      const geoLower = geography.toLowerCase();
+      const matchedCountry = globalOpportunities.find(c =>
+        c.name?.toLowerCase().includes(geoLower) ||
+        c.countryCode?.toLowerCase() === geoLower.slice(0, 3)
+      );
+      if (matchedCountry) {
+        focusTerritory = {
+          name: matchedCountry.name,
+          type: "country",
+          census: {
+            population: matchedCountry.population || 0,
+            medianIncome: matchedCountry.gdpPerCapita || 0,
+            medianAge: null,
+            educationRate: null,
+            laborForceParticipation: null,
+          },
+          business: {
+            establishments: null,
+            employees: null,
+            bizPerCapita: null,
+            opportunityScore: matchedCountry.opportunityScore || 0,
+            nationalRank: globalOpportunities.indexOf(matchedCountry) + 1,
+          },
+          regulatory: {
+            legalStatus: "not_applicable",
+            keyRules: [],
+            agencies: [],
+            stateSpecificRules: [],
+            complianceNotes: "International regulatory data not available — consult local legal counsel",
+          },
+        };
+      } else {
+        // Named region (Southeast Asia, EU, etc.)
+        focusTerritory = {
+          name: geography.trim(),
+          type: "region",
+          census: null,
+          business: null,
+          regulatory: {
+            legalStatus: "not_applicable",
+            keyRules: [],
+            agencies: [],
+            stateSpecificRules: [],
+            complianceNotes: "Regional regulatory data not available — consult local legal counsel",
+          },
+        };
+      }
+    }
 
     // Compute national aggregates
     const totalUSPop = stateData.reduce((s, d) => s + d.population, 0);
@@ -262,6 +460,8 @@ serve(async (req) => {
     const result = {
       category,
       naicsCode,
+      geography: geography || null,
+      focusTerritory,
       dataSources: {
         census: stateData.length > 0 ? "US Census ACS 2022 (5-Year Estimates)" : "unavailable",
         businessPatterns: businessData.length > 0 ? "US Census County Business Patterns 2021" : "unavailable",

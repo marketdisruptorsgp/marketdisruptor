@@ -10,7 +10,8 @@
  *   5. Opportunities (exactly 3 with badges)
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
@@ -38,6 +39,8 @@ import {
   ShieldAlert, Target, HelpCircle, Lock,
   Lightbulb, Crosshair, AlertCircle, Grid3X3,
   FlipHorizontal2, Unlock, Clock, Search,
+  MapPin, Building2, ShieldCheck, ShieldOff, Shield,
+  ChevronDown, ChevronUp,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -127,6 +130,13 @@ export default function OverviewPage() {
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Strategic Briefing</p>
       </motion.div>
+
+      {/* ═══ Territory Intelligence (when focusTerritory is available) ═══ */}
+      {(analysis.geoData as any)?.focusTerritory && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.03 }}>
+          <TerritoryIntelligenceCard territory={(analysis.geoData as any).focusTerritory} />
+        </motion.div>
+      )}
 
       {/* ═══ -1. INSTANT INSIGHTS (from scraped data — shows in ~0s after scraping) ═══ */}
       {showInstantInsights && (
@@ -947,6 +957,143 @@ function CompetitiveGapsCard({ data }: { data: import("@/lib/negativeSpaceEngine
             <p className="text-xs text-muted-foreground leading-snug">{gap.gapDescription}</p>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Territory Intelligence Card ── */
+function TerritoryIntelligenceCard({ territory }: { territory: any }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const legalStatusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+    legal: { label: "Legal", color: "text-green-600", icon: ShieldCheck },
+    restricted: { label: "Restricted", color: "text-yellow-600", icon: ShieldAlert },
+    prohibited: { label: "Prohibited", color: "text-red-600", icon: ShieldOff },
+    pending: { label: "Pending", color: "text-blue-600", icon: Shield },
+    not_applicable: { label: "N/A", color: "text-muted-foreground", icon: Shield },
+  };
+
+  const status = territory.regulatory?.legalStatus || "not_applicable";
+  const statusConfig = legalStatusConfig[status] || legalStatusConfig.not_applicable;
+  const StatusIcon = statusConfig.icon;
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="px-4 py-3 flex items-center justify-between bg-primary/5 border-b border-border">
+        <div className="flex items-center gap-2">
+          <MapPin size={14} className="text-primary" />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
+            Territory Intelligence
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-foreground">{territory.name}</span>
+          {territory.type && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary capitalize">
+              {territory.type.replace("_", " ")}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="px-4 py-3 space-y-3">
+        {territory.census && (
+          <div className="grid grid-cols-3 gap-2">
+            {territory.census.population > 0 && (
+              <div className="rounded-lg bg-muted/50 px-3 py-2 text-center">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Population</p>
+                <p className="text-sm font-extrabold text-foreground">
+                  {territory.census.population >= 1_000_000
+                    ? `${(territory.census.population / 1_000_000).toFixed(1)}M`
+                    : territory.census.population.toLocaleString()}
+                </p>
+              </div>
+            )}
+            {territory.census.medianIncome > 0 && (
+              <div className="rounded-lg bg-muted/50 px-3 py-2 text-center">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Median Income</p>
+                <p className="text-sm font-extrabold text-foreground">
+                  ${(territory.census.medianIncome / 1000).toFixed(0)}k
+                </p>
+              </div>
+            )}
+            {territory.census.medianAge > 0 && (
+              <div className="rounded-lg bg-muted/50 px-3 py-2 text-center">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Median Age</p>
+                <p className="text-sm font-extrabold text-foreground">{territory.census.medianAge}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {territory.business && territory.business.establishments > 0 && (
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/30">
+            <Building2 size={13} className="text-muted-foreground flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-foreground font-semibold">
+                {territory.business.establishments.toLocaleString()} establishments
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {territory.business.employees?.toLocaleString()} employees · Rank #{territory.business.nationalRank} nationally
+              </p>
+            </div>
+            {territory.business.opportunityScore > 0 && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex-shrink-0">
+                {territory.business.opportunityScore}/100
+              </span>
+            )}
+          </div>
+        )}
+
+        {territory.regulatory && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <StatusIcon size={13} className={statusConfig.color} />
+              <span className={`text-xs font-bold ${statusConfig.color}`}>
+                {statusConfig.label}
+              </span>
+              <span className="text-xs text-muted-foreground">regulatory status</span>
+            </div>
+            {territory.regulatory.keyRules && territory.regulatory.keyRules.length > 0 && (
+              <ul className="space-y-1">
+                {territory.regulatory.keyRules.slice(0, 3).map((rule: string, i: number) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-primary mt-0.5 flex-shrink-0">·</span>
+                    <p className="text-xs text-muted-foreground leading-snug">{rule}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {territory.regulatory?.stateSpecificRules && territory.regulatory.stateSpecificRules.length > 0 && (
+          <div>
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:opacity-80 transition-opacity"
+            >
+              {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              {expanded ? "Hide" : "View"} full regulatory profile
+            </button>
+            {expanded && (
+              <div className="mt-2 space-y-2 border-t border-border pt-2">
+                {territory.regulatory.complianceNotes && (
+                  <p className="text-xs text-muted-foreground leading-relaxed">{territory.regulatory.complianceNotes}</p>
+                )}
+                {territory.regulatory.stateSpecificRules.map((rule: { rule: string; source: string }, i: number) => (
+                  <div key={i} className="px-3 py-2 rounded-lg bg-muted/40">
+                    <p className="text-xs text-foreground leading-snug">{rule.rule}</p>
+                    {rule.source && (
+                      <p className="text-[10px] text-muted-foreground mt-1">Source: {rule.source}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

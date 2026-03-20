@@ -20,6 +20,7 @@ interface AnalysisFormProps {
     era: string;
     batchSize: number;
     customProducts?: CustomProductInput[];
+    territory?: string;
   }) => void;
   onBusinessAnalysis?: (data: unknown) => void;
   isLoading: boolean;
@@ -115,6 +116,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   const [customImages, setCustomImages] = useState<{ file: File; dataUrl: string }[]>([]);
   const [customName, setCustomName] = useState("");
   const [customNotes, setCustomNotes] = useState("");
+  const [customTerritory, setCustomTerritory] = useState("");
   const [businessInput, setBusinessInput] = useState<BusinessInput>({
     type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "",
   });
@@ -217,16 +219,17 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "custom" || mode === "service") {
+      const territoryNote = customTerritory.trim() ? `\n\n--- TARGET TERRITORY: ${customTerritory.trim()} ---` : "";
       const filled: CustomProductInput[] = [{
         productName: customName,
-        notes: mode === "service" ? `[SERVICE ANALYSIS] ${customNotes}` : customNotes,
+        notes: mode === "service" ? `[SERVICE ANALYSIS] ${customNotes}${territoryNote}` : `${customNotes}${territoryNote}`,
         urls: customUrls.filter(u => u.trim()),
         images: customImages,
         productUrl: customUrls.find(u => u.trim()) || "",
         imageDataUrl: customImages[0]?.dataUrl,
         imageFile: customImages[0]?.file,
       }];
-      onAnalyze({ category: mode === "service" ? "Service" : "Custom", era: "All Eras / Current", batchSize: 1, customProducts: filled });
+      onAnalyze({ category: mode === "service" ? "Service" : "Custom", era: "All Eras / Current", batchSize: 1, customProducts: filled, territory: customTerritory.trim() || undefined });
     }
   };
 
@@ -390,6 +393,20 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 placeholder={mode === "service" ? "e.g. Acme Consulting" : "e.g. Vintage Camera"}
                 className={inputClassName}
               />
+            </div>
+
+            {/* Territory */}
+            <div className="space-y-1.5">
+              <label className="typo-card-eyebrow">
+                Target market / territory
+              </label>
+              <input
+                value={customTerritory}
+                onChange={(e) => setCustomTerritory(e.target.value)}
+                placeholder="e.g. Missouri, California, UK, Southeast Asia"
+                className={inputClassName}
+              />
+              <p className="typo-card-meta text-muted-foreground">We'll pull census data and regulatory requirements specific to your market</p>
             </div>
 
             {/* Image uploads — up to 5 */}

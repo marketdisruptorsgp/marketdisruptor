@@ -20,6 +20,7 @@ export interface StepRunnerContext {
   insightPreferences?: any;
   userScores?: any;
   analysisData?: any;
+  focusTerritory?: any;
 }
 
 export interface StepRunnerCallbacks {
