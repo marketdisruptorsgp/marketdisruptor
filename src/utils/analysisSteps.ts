@@ -36,6 +36,9 @@ export function getCompletedSteps(
  * Determines the route for the next incomplete step.
  * If all steps are done, returns the last step (pitch).
  * Products always start at "report" since intel is derived from products.
+ *
+ * Guards against corrupted or non-object analysisData by normalising it to null
+ * before processing, so callers always receive a valid route.
  */
 export function getResumeRoute(
   analysisData: Record<string, unknown> | null | undefined,
@@ -45,7 +48,16 @@ export function getResumeRoute(
     return { route: "report", label: "Intelligence Report" };
   }
 
-  const steps = getCompletedSteps(analysisData);
+  // Treat non-plain-object values as absent data to avoid runtime errors
+  const safeData =
+    analysisData !== null &&
+    analysisData !== undefined &&
+    typeof analysisData === "object" &&
+    !Array.isArray(analysisData)
+      ? analysisData
+      : null;
+
+  const steps = getCompletedSteps(safeData);
 
   // Find the first incomplete step (gap-aware resume)
   const firstIncomplete = steps.find((s) => !s.completed);

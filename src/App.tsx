@@ -55,8 +55,24 @@ const ThesisAuditPage = lazy(() => import("./pages/ThesisAuditPage"));
 const queryClient = new QueryClient();
 
 const RouteFallback = () => (
-  <div className="min-h-screen bg-background" />
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
+  </div>
 );
+
+// Preload the most critical analysis pages so they are ready on first visit
+function usePreloadCriticalRoutes() {
+  useEffect(() => {
+    // Defer preloading until after initial paint
+    const id = setTimeout(() => {
+      import("./pages/WorkspacePage");
+      import("./pages/DisruptPage");
+      import("./pages/PitchPage");
+      import("./pages/ReportPage");
+    }, 2000);
+    return () => clearTimeout(id);
+  }, []);
+}
 
 // ── ErrorBoundary to prevent white screens from render crashes ──
 class RouteErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -130,6 +146,7 @@ function CommandDeckRedirect() {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  usePreloadCriticalRoutes();
 
   useEffect(() => {
     import("@/lib/analyticsTracker").then(({ initAnalyticsTracker }) => initAnalyticsTracker());
