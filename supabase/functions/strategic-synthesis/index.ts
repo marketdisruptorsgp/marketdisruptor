@@ -101,6 +101,35 @@ ${focusTerritory.regulatory ? `- Legal Status for this product: ${focusTerritory
 
 IMPORTANT: All market sizing, distribution strategy, pricing, and go-to-market recommendations MUST be grounded in ${focusTerritory.name} realities. Reference actual state regulations and census demographics — not national averages.
 ` : ""}
+
+═══ INSIGHT QUALITY MANDATE ═══
+Your output will be read by a business owner deciding whether this tool is worth paying for.
+Every insight must pass the "Monday Morning Test": could the reader act on this TOMORROW?
+
+BANNED GENERIC PATTERNS (if you write any of these, the output is worthless):
+- "Consider diversifying revenue streams" — HOW? Which streams? What's the math?
+- "Explore digital transformation" — WHAT specifically? A booking system? A configurator? Be concrete.
+- "Leverage existing customer base" — Everyone knows this. What SPECIFIC mechanism?
+- "Optimize pricing strategy" — What price? What structure? What evidence supports the change?
+- "Build strategic partnerships" — With WHOM? For what purpose? What's the value exchange?
+- Any sentence that could apply to ANY business is a failure. Delete it and write something specific.
+
+REQUIRED SPECIFICITY:
+- Every hiddenAssumption must reference a SPECIFIC practice, cost, or behavior of THIS business
+- Every flippedLogic entry must describe a concrete alternative with a mechanism, not just "do the opposite"
+- Every opportunity must include: what to build/change, approximate cost/effort, expected outcome with numbers
+- If you don't have real data, say "We estimate..." or "Based on [industry/analog]..." — never state guesses as facts
+- Reference actual companies, pricing, or market data when available in the upstream intelligence
+
+OPPORTUNITY DIVERSITY MANDATE:
+Generate at least 3-5 DISTINCT strategic directions, not variations of the same idea.
+Each must attack the constraint from a DIFFERENT angle:
+  1. A revenue model change (pricing, packaging, subscription)
+  2. An operational restructuring (process, supply chain, labor model)  
+  3. A market repositioning (different customer, different use case, different channel)
+  4. A capability extension (new offering built on existing skills/assets)
+  5. A defensive moat (what makes this hard to copy once implemented)
+
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth
