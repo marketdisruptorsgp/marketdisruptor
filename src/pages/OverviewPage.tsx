@@ -217,12 +217,34 @@ export default function OverviewPage() {
       )}
 
       {/* ═══ 2. ASSUMPTION BANNER ═══ */}
-      {(loading || assumptionBanner) && (
+      {(loading || assumptionBanner || earlyAssumptionBanner) && (
         <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
-          {loading ? (
+          {loading && !earlyAssumptionBanner ? (
             <Skeleton className="h-24 w-full" />
           ) : assumptionBanner ? (
             <AssumptionBannerCard banner={assumptionBanner} />
+          ) : earlyAssumptionBanner ? (
+            <div
+              className="rounded-xl p-4 space-y-2"
+              style={{ background: "hsl(38 92% 50% / 0.06)", border: "1.5px solid hsl(38 92% 50% / 0.2)" }}
+            >
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(38 92% 50%)" }}>
+                  Dangerous Assumption Detected
+                </p>
+                {isComputing && (
+                  <span className="text-[9px] font-bold text-muted-foreground px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--muted))" }}>
+                    Refining…
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-bold text-foreground leading-snug">
+                "{earlyAssumptionBanner.assumption}"
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {earlyAssumptionBanner.challenge}
+              </p>
+            </div>
           ) : null}
         </motion.div>
       )}
