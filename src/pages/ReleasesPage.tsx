@@ -196,7 +196,7 @@ const RELEASES: ReleaseEntry[] = [
     description: "Established the core platform architecture: five-step analytical journey (Understand, Deconstruct, Reimagine, Stress Test, Pitch), persistent workspace navigation, and the analysis context system for state management across all pipeline steps.",
     valueToUser: "A structured, guided workflow that takes you from initial market understanding through strategic deconstruction, reimagination, adversarial testing, and finally pitch-ready synthesis. Every step builds on the last.",
     location: "The workspace sidebar shows the five numbered steps. Analysis header provides navigation between Summary (Command Deck) and Insight Graph views. All analysis state persists across sessions.",
-    dataSources: "Analysis Context (AnalysisContext.tsx) manages state. Data persistence via Lovable Cloud with row-level security. Step data saved via merge_analysis_step database function.",
+    dataSources: "Analysis Context (AnalysisContext.tsx) manages state. Data persistence via managed cloud storage with row-level security. Step data saved via merge_analysis_step database function.",
     tag: "infrastructure",
   },
 ];
