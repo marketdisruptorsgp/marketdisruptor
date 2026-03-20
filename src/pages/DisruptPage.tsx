@@ -178,7 +178,7 @@ export default function DisruptPage() {
           />
         }
       >
-      <div style={{ display: analysisLoading || !hasDisruptData ? "none" : undefined }} className="min-h-[400px]">
+      <div style={{ display: analysisLoading && !hasDisruptData ? "none" : undefined }} className="min-h-[400px]">
         {effectiveTab === "assumptions" && (
           <StructureTab
             selectedProduct={selectedProduct}
