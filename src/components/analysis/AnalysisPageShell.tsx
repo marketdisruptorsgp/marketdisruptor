@@ -18,7 +18,7 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw, GitBranch, MoreHorizontal, LayoutDashboard } from "lucide-react";
+import { FileDown, Save, RefreshCw, GitBranch, MoreHorizontal, LayoutDashboard, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import type { TierKey } from "@/hooks/useSubscription";
 import { scrollToTop } from "@/utils/scrollToTop";
@@ -428,6 +428,49 @@ export function AnalysisLoadingSpinner({ message }: { message?: string }) {
       <div className="flex flex-col items-center gap-4">
         <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-primary" />
         {message && <p className="text-sm text-muted-foreground">{message}</p>}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   11. PIPELINE ERROR CARD — shown when analysis pipeline fails
+   ═══════════════════════════════════════════════════════════ */
+
+interface AnalysisPipelineErrorCardProps {
+  onRetry?: () => void;
+}
+
+export function AnalysisPipelineErrorCard({ onRetry }: AnalysisPipelineErrorCardProps) {
+  const navigate = useNavigate();
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="max-w-md w-full rounded-2xl border border-destructive/30 bg-destructive/5 p-8 flex flex-col items-center gap-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center">
+          <AlertTriangle size={28} className="text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-lg font-bold text-foreground">Analysis hit a snag</p>
+          <p className="text-sm text-muted-foreground">
+            The AI pipeline returned an incomplete response. This is usually temporary.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 w-full">
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="w-full px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Retry Analysis
+            </button>
+          )}
+          <button
+            onClick={() => navigate("/")}
+            className="w-full px-5 py-2.5 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Start Over
+          </button>
+        </div>
       </div>
     </div>
   );

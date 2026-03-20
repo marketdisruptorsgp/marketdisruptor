@@ -120,6 +120,7 @@ interface AnalysisContextType {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
   }) => Promise<void>;
+  retryAnalysis: () => void;
   handleRegenerateIdeas: (product: Product, userContext?: string, rejectedIdeas?: string[]) => Promise<void>;
   handleManualSave: () => Promise<void>;
   handleLoadSaved: (analysis: any) => void;
@@ -938,9 +939,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setErrorMsg(msg);
       setStep("error");
       stopLoadingTimer();
-      toast.error("Analysis failed: " + msg);
+      toast.error("Analysis failed — tap Retry to try again");
     }
   }, [canAnalyze, startLoadingTimer, stopLoadingTimer, pushLog, user?.id, checkSubscription, saveAnalysis, navigate, analysisId, adaptiveContext]);
+
+  const retryAnalysis = useCallback(() => {
+    if (!analysisParams) return;
+    handleAnalyze(analysisParams);
+  }, [analysisParams, handleAnalyze]);
 
   const handleRegenerateIdeas = useCallback(async (product: Product, userContext?: string, rejectedIdeas?: string[]) => {
     if (!analysisParams) return;
@@ -1553,7 +1559,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs,
       generatingIdeasFor, savedRefreshTrigger, setSavedRefreshTrigger,
       loadedFromSaved, setLoadedFromSaved,
-      handleAnalyze, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis, createAnalysis, saveStepData,
+      handleAnalyze, retryAnalysis, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis, createAnalysis, saveStepData,
       analysisId, setAnalysisId,
       outdatedSteps, markStepOutdated, clearStepOutdated,
       userScores, setUserScore,

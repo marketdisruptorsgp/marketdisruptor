@@ -51,6 +51,7 @@ import {
   AnalysisContextBanner,
   AnalysisSectionCard,
   AnalysisLoadingSpinner,
+  AnalysisPipelineErrorCard,
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
@@ -201,6 +202,10 @@ export default function ReportPage() {
   const hasData = !!selectedProduct || !!analysis.businessAnalysisData;
   if (analysis.step !== "done" || (!hasData && products.length === 0)) {
     if (shouldRedirectHome) return null;
+    // Pipeline error — replace spinner with recoverable error card
+    if (analysis.step === "error") {
+      return <AnalysisPipelineErrorCard onRetry={analysis.retryAnalysis} />;
+    }
     // Show meaningful empty state instead of infinite spinner
     if (analysis.step === "done" && !hasData) {
       return (
