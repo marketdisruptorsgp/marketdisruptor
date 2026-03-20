@@ -86,7 +86,7 @@ export function PipelineProgressBar({
       <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: "hsl(var(--border))" }}>
         <div
           className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, background: pct === 100 ? "hsl(142 70% 45%)" : accentColor }}
+          style={{ width: `${pct}%`, background: (coreDone || pct === 100) ? "hsl(142 70% 45%)" : accentColor }}
         />
       </div>
 
