@@ -101,7 +101,7 @@ function AssumptionFragilityChart({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.05 }}
             className="rounded-xl overflow-hidden"
-            style={{ border: `1px solid ${borderColor}`, background: bgColor }}
+            style={{ border: `1px solid ${borderColor}`, background: bgColor, opacity: a._synthetic ? 0.6 : 1 }}
           >
             {/* Bar row — tap to expand */}
             <button
