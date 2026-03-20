@@ -576,6 +576,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
           competitiveBlindSpot: "Incumbents are optimized around legacy delivery assumptions.",
           urgencySignal: "emerging",
           urgencyReason: "User complaints and market behavior indicate this friction is becoming less acceptable.",
+          _synthetic: true,
         });
       }
       const existingFlips = Array.isArray(next.flippedLogic)
