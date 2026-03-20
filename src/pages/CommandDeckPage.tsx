@@ -380,6 +380,11 @@ export default function CommandDeckPage() {
           </div>
         </motion.div>
 
+        {/* Thin data / early synthesis warning */}
+        {!!(disruptData as any)?._thinDataFallback && (
+          <ThinDataBanner />
+        )}
+
         {/* ═══ Zone 1: What we found ═══ */}
         <SituationReport
           narrative={narrative}
