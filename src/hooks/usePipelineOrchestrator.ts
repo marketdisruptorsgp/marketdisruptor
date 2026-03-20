@@ -8,7 +8,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
-import { runPipelineStateMachine } from "./pipeline/runPipelineStateMachine";
+import { runPipelineStateMachine, type PipelineResult } from "./pipeline/runPipelineStateMachine";
 import { acquireKeepAlive, releaseKeepAlive } from "./pipeline/keepAlive";
 import { runDecompose } from "./pipeline/stepDecompose";
 import { runStrategicSynthesis } from "./pipeline/stepSynthesis";
