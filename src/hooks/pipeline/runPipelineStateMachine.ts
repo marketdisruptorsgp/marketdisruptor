@@ -3,6 +3,7 @@
  * Pure async function, no React dependencies.
  */
 import { profileFromDecomposition } from "@/lib/strategySearch/profileAdapter";
+import { hasUsableBusinessSynthesisData } from "./compressPayload";
 import { runStrategySearch } from "@/lib/strategySearch";
 import { runDecompose } from "./stepDecompose";
 import { runStrategicSynthesis } from "./stepSynthesis";
