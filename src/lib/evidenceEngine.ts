@@ -199,6 +199,47 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business model: reinventedModel phases → strategic pathway opportunities ──
+  const biz = input.businessAnalysisData;
+  if (biz?.reinventedModel) {
+    const rm = biz.reinventedModel;
+    const phases = safeArr(rm.phases || rm.transformationPhases || rm.steps);
+    phases.forEach((phase: any, i: number) => {
+      const label = phase.name || phase.title || phase.phase || `Transformation Phase ${i + 1}`;
+      const desc = phase.description || phase.rationale || (Array.isArray(phase.actions) ? phase.actions.join("; ") : undefined);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("opp-bm-phase"),
+          type: "opportunity",
+          label,
+          description: desc,
+          pipelineStep: "redesign",
+          tier: autoTier(label, desc, "structural"),
+          impact: phase.impact || 7,
+          category: "strategic_pathway",
+          mode,
+          sourceEngine: "pipeline",
+        });
+      }
+    });
+    // Reinvented model summary as top-level opportunity
+    const modelSummary = rm.summary || rm.model || rm.description;
+    if (typeof modelSummary === "string" && modelSummary.length > 10) {
+      items.push({
+        id: makeId("opp-bm-reinvented"),
+        type: "opportunity",
+        label: modelSummary.slice(0, 100) + (modelSummary.length > 100 ? "…" : ""),
+        description: modelSummary,
+        pipelineStep: "redesign",
+        tier: "structural",
+        impact: 8,
+        category: "strategic_pathway",
+        mode,
+        sourceEngine: "pipeline",
+      });
+    }
+  }
+
   const product = input.selectedProduct;
   if (product) {
     const ci = product.communityInsights || product.customerSentiment || {};
