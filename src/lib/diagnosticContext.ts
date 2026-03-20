@@ -197,15 +197,6 @@ export const MODE_CONSTRAINT_CATEGORY_BOOSTS: Record<
     technology_information: 0.9,
     demand: 1.1,
   },
-  object_reinvention: {
-    technology_information: 1.3,
-    supply_distribution: 1.2,
-    labor_operations: 1.1,
-    market_adoption: 1.1,
-    revenue_pricing: 1.0,
-    structural_economic: 1.0,
-    demand: 1.0,
-  },
 };
 
 /**
