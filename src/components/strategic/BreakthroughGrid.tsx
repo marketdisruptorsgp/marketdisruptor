@@ -22,16 +22,16 @@ export interface OpportunityGridItem {
 
 const CATEGORY_COLORS: Record<OpportunityGridItem["category"], string> = {
   paradigm:     "hsl(var(--primary))",
-  optimization: "hsl(var(--success, 142 70% 35%))",
+  optimization: "hsl(142 70% 35%)",
   flanking:     "hsl(38 92% 42%)",
   unlock:       "hsl(263 70% 60%)",
 };
 
 const CATEGORY_LABELS: Record<OpportunityGridItem["category"], string> = {
-  paradigm:     "Paradigm Shift",
-  optimization: "Optimization Play",
-  flanking:     "Flanking Move",
-  unlock:       "Adjacent Opportunity",
+  paradigm:     "Strategic Shift",
+  optimization: "Quick Win",
+  flanking:     "Market Opening",
+  unlock:       "New Revenue",
 };
 
 interface BreakthroughGridProps {
