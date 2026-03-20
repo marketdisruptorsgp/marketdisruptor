@@ -29,8 +29,15 @@ export async function runPipelineStateMachine(
   opts: PipelineOptions,
 ): Promise<void> {
   // ═══ PHASE 1: Structural Decomposition (~20s) ═══
+  // Skip decomposition entirely if businessAnalysisData already provides rich synthesis
+  // (this prevents a redundant, expensive edge function call that often times out)
+  const canSkipDecomp = hasUsableBusinessSynthesisData(store.businessAnalysisData);
   let decompResult = opts.existingDecomp;
-  if (!decompResult) {
+  if (!decompResult && canSkipDecomp) {
+    console.log("[Pipeline] Skipping decomposition — businessAnalysisData has usable synthesis");
+    cb.updateStatus("decompose", "done");
+    decompResult = store.businessAnalysisData; // Use biz data as a proxy
+  } else if (!decompResult) {
     decompResult = await runDecompose(ctx, cb, store);
     if (!decompResult) {
       console.log("[Pipeline] Decomposition failed, retrying once...");
