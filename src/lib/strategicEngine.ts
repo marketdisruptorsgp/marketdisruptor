@@ -177,6 +177,8 @@ export interface StrategicAnalysisInput {
   lensConfig?: DiagnosisLensConfig | null;
   /** Full structured BI extraction from uploaded documents (CIMs, etc.) */
   biExtraction?: Record<string, unknown> | null;
+  /** When true, skip AI deepening (deepen-thesis edge function) to avoid rate-limit contention during pipeline */
+  suppressAIDeepening?: boolean;
 }
 
 export interface StrategicAnalysisOutput {
