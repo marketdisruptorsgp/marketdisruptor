@@ -146,27 +146,14 @@ export default function DisruptPage() {
 
 
       {/* ── Loading Tracker with timeout escape ── */}
-      {(analysisLoading || (!hasDisruptData)) && (
+      {(analysisLoading && !hasDisruptData) && (
         <AnalysisLoadingCard>
           {loadingTimedOut ? (
-            <div className="text-center space-y-3 py-6">
-              <p className="text-sm font-semibold text-foreground">Analysis is taking longer than expected.</p>
-              <p className="text-xs text-muted-foreground">The pipeline may have encountered an issue. You can retry or continue exploring other sections.</p>
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => { setLoadingTimedOut(false); setRunTrigger(t => t + 1); }}
-                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
-                >
-                  Retry Analysis
-                </button>
-                <button
-                  onClick={() => navigate(`/analysis/${analysisId}/report`)}
-                  className="px-4 py-2 rounded-lg bg-muted text-foreground text-xs font-semibold hover:bg-muted/80 transition-colors border border-border"
-                >
-                  Back to Report
-                </button>
-              </div>
-            </div>
+            <AnalysisTimeoutEscape
+              analysisId={analysisId}
+              onRetry={() => { clearTimeoutState(); setRunTrigger(t => t + 1); }}
+              backPath={`/analysis/${analysisId}/report`}
+            />
           ) : (
             <StepLoadingTracker
               title="Building Structural Analysis"
