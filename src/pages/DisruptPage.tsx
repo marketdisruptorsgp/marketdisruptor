@@ -12,6 +12,8 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
+import { useAnalysisTimeout } from "@/hooks/useAnalysisTimeout";
+import { AnalysisTimeoutEscape } from "@/components/analysis/AnalysisTimeoutEscape";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
