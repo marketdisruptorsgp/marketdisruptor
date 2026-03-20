@@ -10,6 +10,7 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
 import { runPipelineStateMachine, type PipelineResult } from "./pipeline/runPipelineStateMachine";
 import { acquireKeepAlive, releaseKeepAlive } from "./pipeline/keepAlive";
+import { setPipelineRunning } from "@/lib/pipelineSignal";
 import { runDecompose } from "./pipeline/stepDecompose";
 import { runStrategicSynthesis } from "./pipeline/stepSynthesis";
 import { runConceptSynthesis } from "./pipeline/stepConcepts";
