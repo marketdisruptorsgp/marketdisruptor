@@ -290,7 +290,7 @@ export default function CommandDeckPage() {
                 className="space-y-1.5"
               >
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                  Assumptions Being Challenged
+                  Assumptions We're Testing
                 </p>
                 {instantInsights.assumptions.slice(0, 3).map((a, i) => (
                   <div
