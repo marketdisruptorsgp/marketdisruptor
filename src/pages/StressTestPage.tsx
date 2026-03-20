@@ -17,6 +17,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { Swords, XCircle, BarChart3, Crosshair, LayoutDashboard, Boxes, X } from "lucide-react";
+import { ThinDataBanner } from "@/components/SyntheticBadge";
 import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
 import { CompetitiveMoatRadar } from "@/components/command-deck/CompetitiveMoatRadar";
 import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
@@ -141,6 +142,11 @@ export default function StressTestPage() {
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
       />
+
+      {/* Thin data warning */}
+      {!!(disruptData as any)?._thinDataFallback && (
+        <ThinDataBanner />
+      )}
 
       {/* Tab navigation — always visible */}
       {!analysisLoading && (

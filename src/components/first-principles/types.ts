@@ -66,6 +66,7 @@ export interface HiddenAssumption {
   competitiveBlindSpot?: string;
   urgencySignal?: "eroding" | "stable" | "emerging";
   urgencyReason?: string;
+  _synthetic?: boolean;
 }
 
 export interface FlippedLogicItem {
@@ -78,6 +79,7 @@ export interface FlippedLogicItem {
   certifications?: string[];
   bomEstimate?: string;
   productPrecedent?: string;
+  _synthetic?: boolean;
 }
 
 export interface BomLineItem {

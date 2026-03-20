@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Wrench, Beaker, Shield, DollarSign, Lightbulb } from "lucide-react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { InsightRating } from "@/components/InsightRating";
+import { SyntheticBadge } from "@/components/SyntheticBadge";
 import {
   StepCanvas, InsightCard, MetricCard, VisualGrid, SignalCard,
 } from "@/components/analysis/AnalysisComponents";
@@ -24,26 +25,27 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
           const hasEngineering = item.physicalPrinciple || item.manufacturingMethod || item.bomEstimate || item.certifications?.length;
 
           return (
-            <InsightCard
-              key={i}
-              headline={item.boldAlternative}
-              subtext={item.rationale}
-              accentColor="hsl(var(--primary))"
-              badge={`was: ${item.originalAssumption}`}
-              badgeColor="hsl(var(--muted-foreground))"
-              action={
-                <div className="flex items-center gap-2">
-                  {leverageScore != null && (
-                    <span className="text-xs font-bold tabular-nums" style={{
-                      color: leverageScore >= 8 ? "hsl(var(--primary))" : leverageScore >= 6 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
-                    }}>
-                      {leverageScore}/10
-                    </span>
-                  )}
-                  <InsightRating sectionId={`flip-${i}`} compact />
-                  <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Pitch" />
-                </div>
-              }
+            <div key={i} style={{ opacity: item._synthetic ? 0.6 : 1 }}>
+              <InsightCard
+                headline={item.boldAlternative}
+                subtext={item.rationale}
+                accentColor="hsl(var(--primary))"
+                badge={`was: ${item.originalAssumption}`}
+                badgeColor="hsl(var(--muted-foreground))"
+                action={
+                  <div className="flex items-center gap-2">
+                    {item._synthetic && <SyntheticBadge />}
+                    {leverageScore != null && (
+                      <span className="text-xs font-bold tabular-nums" style={{
+                        color: leverageScore >= 8 ? "hsl(var(--primary))" : leverageScore >= 6 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
+                      }}>
+                        {leverageScore}/10
+                      </span>
+                    )}
+                    <InsightRating sectionId={`flip-${i}`} compact />
+                    <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Pitch" />
+                  </div>
+                }
               detail={
                 <div className="space-y-3">
                   <VisualGrid columns={2}>
@@ -110,6 +112,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
                 </div>
               }
             />
+            </div>
           );
         })}
       </div>

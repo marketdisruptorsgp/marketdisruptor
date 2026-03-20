@@ -5,6 +5,7 @@ import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 import { StructuralDiagnosisPanel } from "@/components/StructuralDiagnosisPanel";
+import { SyntheticBadge } from "@/components/SyntheticBadge";
 import {
   StepCanvas, MetricCard, VisualGrid, ExpandableDetail,
 } from "@/components/analysis/AnalysisComponents";
@@ -100,7 +101,7 @@ function AssumptionFragilityChart({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.05 }}
             className="rounded-xl overflow-hidden"
-            style={{ border: `1px solid ${borderColor}`, background: bgColor }}
+            style={{ border: `1px solid ${borderColor}`, background: bgColor, opacity: a._synthetic ? 0.6 : 1 }}
           >
             {/* Bar row — tap to expand */}
             <button
@@ -152,6 +153,7 @@ function AssumptionFragilityChart({
 
                   {/* Reason tag + badges */}
                   <div className="flex items-center gap-2 flex-wrap">
+                    {a._synthetic && <SyntheticBadge />}
                     <span
                       className="text-xs font-semibold px-2 py-0.5 rounded-full"
                       style={{
