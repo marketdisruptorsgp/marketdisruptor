@@ -675,6 +675,7 @@ function enforceMinimumArtifacts(
       boldAlternative: String(assumption.challengeIdea || "Invert the operating model"),
       rationale: "This inversion removes a proven friction cluster and unlocks scalable value delivery.",
       physicalMechanism: "Implement with a constrained pilot, instrument outcomes, then scale.",
+      _synthetic: true,
     });
   }
   next.flippedLogic = existingFlips;
