@@ -53,22 +53,11 @@ export default function DisruptPage() {
   const [activeTab, setActiveTab] = useState<TabId>("assumptions");
   const [runTrigger, setRunTrigger] = useState(0);
   const [analysisLoading, setAnalysisLoading] = useState(false);
-  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
-
-  // Safety timeout — prevent infinite loading spinner
-  React.useEffect(() => {
-    if (!analysisLoading && analysis.disruptData) {
-      setLoadingTimedOut(false);
-      return;
-    }
-    const timer = setTimeout(() => setLoadingTimedOut(true), LOADING_TIMEOUT_MS);
-    return () => clearTimeout(timer);
-  }, [analysisLoading, analysis.disruptData]);
 
   const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
 
