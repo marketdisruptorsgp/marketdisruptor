@@ -460,8 +460,13 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
             </div>
             <div>
               <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>
-                {viewMode === "assumptions" ? "Assumptions & Constraints" : "Structural Decomposition"}
+                {viewMode === "assumptions" ? "Assumptions & Constraints" : "Deep Structure Analysis"}
               </h3>
+              {viewMode !== "assumptions" && (
+                <p className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  Breaking down how this business actually works
+                </p>
+              )}
             </div>
           </div>
           <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>

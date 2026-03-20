@@ -19,6 +19,7 @@ import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile, DEFAULT_PROFILES } from "@/lib/strategicOS";
 import { Target, Atom, Lightbulb, GitBranch, Brain, Shield, Sparkles } from "lucide-react";
+import { PreliminaryBadge } from "@/components/PreliminaryBadge";
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
@@ -86,6 +87,7 @@ export default function DisruptPage() {
   const governedData = analysis.governedData;
   const synopsisData = governedData?.reasoning_synopsis ?? null;
   const hasDisruptData = !!analysis.disruptData;
+  const isEarlyData = !!(analysis.disruptData as any)?._earlyInsights || !!(analysis.disruptData as any)?._thinDataFallback;
   const cm = governedData?.constraint_map as Record<string, unknown> | undefined;
   const rawHypotheses = (cm?.root_hypotheses || governedData?.root_hypotheses) as StrategicHypothesis[] | undefined;
   const hasHypotheses = hasDisruptData && rawHypotheses && rawHypotheses.length > 0;
@@ -135,6 +137,14 @@ export default function DisruptPage() {
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
       />
+
+      {/* Preliminary data indicator */}
+      {isEarlyData && hasDisruptData && (
+        <div className="flex items-center gap-2 px-1">
+          <PreliminaryBadge />
+          <span className="text-[10px] text-muted-foreground">Full deep analysis running — results will update automatically</span>
+        </div>
+      )}
 
       {/* ── Tab Navigation (shared component) ── */}
       <AnalysisTabBar

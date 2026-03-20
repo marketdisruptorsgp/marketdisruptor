@@ -5,6 +5,7 @@ import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
 import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
+import { StepTimingWaterfall } from "@/components/analysis/StepTimingWaterfall";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { usePipelineOrchestrator } from "@/hooks/usePipelineOrchestrator";
 import { supabase } from "@/integrations/supabase/client";
@@ -565,6 +566,12 @@ export default function ReportPage() {
         currentStep="report"
         accentColor={modeAccent}
         stepTimings={pipelineProgress.stepTimings}
+      />
+
+      {/* Step Timing Waterfall — shows how long each AI step took */}
+      <StepTimingWaterfall
+        stepTimings={pipelineProgress.stepTimings}
+        pipelineStartedAt={pipelineProgress.pipelineStartedAt}
       />
 
       <NextStepButton

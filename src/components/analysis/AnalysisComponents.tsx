@@ -531,14 +531,16 @@ interface MetricCardProps {
   accentColor?: string;
   subtext?: string;
   className?: string;
+  tooltip?: string;
 }
 
-export function MetricCard({ label, value, trend, accentColor, subtext, className }: MetricCardProps) {
+export function MetricCard({ label, value, trend, accentColor, subtext, className, tooltip }: MetricCardProps) {
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
   return (
     <motion.div
-      className={cn("rounded-xl p-4 bg-card border border-border", className)}
+      className={cn("rounded-xl p-4 bg-card border border-border", tooltip && "cursor-help", className)}
+      title={tooltip}
       initial="rest"
       whileHover="hover"
       variants={{ rest: { scale: 1 }, hover: { scale: 1.02, transition: { duration: 0.15 } } }}

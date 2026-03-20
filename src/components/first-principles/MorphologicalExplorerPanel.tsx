@@ -388,7 +388,7 @@ export function MorphologicalExplorerPanel({
             <Grid3X3 size={16} style={{ color: "hsl(var(--primary))" }} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-foreground">Morphological Design Space</p>
+            <p className="text-sm font-bold text-foreground">Concept Explorer</p>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
               Systematically explore alternative business configurations by shifting 1–2 dimensions at a time.
               These are structural possibilities — some may be unviable, but they can spark unexpected directions.

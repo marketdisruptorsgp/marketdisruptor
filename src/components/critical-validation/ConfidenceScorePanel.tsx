@@ -9,10 +9,10 @@ interface ConfidenceScorePanelProps {
   scores: Record<string, ConfidenceScore>;
 }
 
-function qualLabel(score: number): { label: string; color: string } {
-  if (score >= 7) return { label: "Strong", color: "hsl(142 70% 45%)" };
-  if (score >= 5) return { label: "Moderate", color: "hsl(38 92% 50%)" };
-  return { label: "Limited", color: "hsl(var(--destructive))" };
+function qualLabel(score: number): { label: string; color: string; tooltip: string } {
+  if (score >= 7) return { label: "Strong", color: "hsl(142 70% 45%)", tooltip: `${score}/10 — Well-supported by evidence. High confidence this holds up under scrutiny.` };
+  if (score >= 5) return { label: "Moderate", color: "hsl(38 92% 50%)", tooltip: `${score}/10 — Some supporting evidence, but gaps remain. Worth validating before committing.` };
+  return { label: "Limited", color: "hsl(var(--destructive))", tooltip: `${score}/10 — Weak evidence base. Treat as a hypothesis to test, not a conclusion.` };
 }
 
 export function ConfidenceScorePanel({ scores }: ConfidenceScorePanelProps) {
@@ -33,6 +33,7 @@ export function ConfidenceScorePanel({ scores }: ConfidenceScorePanelProps) {
               value={qual.label}
               accentColor={qual.color}
               subtext={val.reasoning}
+              tooltip={qual.tooltip}
             />
           );
         })}
@@ -50,6 +51,7 @@ export function ConfidenceScorePanel({ scores }: ConfidenceScorePanelProps) {
                   value={qual.label}
                   accentColor={qual.color}
                   subtext={val.reasoning}
+                  tooltip={qual.tooltip}
                 />
               );
             })}
