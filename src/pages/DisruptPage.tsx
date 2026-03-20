@@ -17,7 +17,7 @@ import { AnalysisTimeoutEscape } from "@/components/analysis/AnalysisTimeoutEsca
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
-import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
+import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile, DEFAULT_PROFILES } from "@/lib/strategicOS";
 import { Target, Atom, Lightbulb, GitBranch, Brain, Shield, Sparkles } from "lucide-react";
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
