@@ -141,6 +141,7 @@ export function usePipelineOrchestrator(
     if (runningRef.current) return;
     runningRef.current = true;
     setIsRunning(true);
+    setPipelineRunning(true);
     setPipelineStartedAt(Date.now());
     setPipelineError(null);
     acquireKeepAlive();
