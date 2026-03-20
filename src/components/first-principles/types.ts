@@ -79,6 +79,7 @@ export interface FlippedLogicItem {
   certifications?: string[];
   bomEstimate?: string;
   productPrecedent?: string;
+  _synthetic?: boolean;
 }
 
 export interface BomLineItem {
