@@ -133,6 +133,7 @@ export const MODE_DIMENSION_PRIORITIES: Record<
     operational_dependency: 0.9,
     technology_dependency: 0.8,
     regulatory_constraint: 1.0,
+  },
 };
 
 /**
