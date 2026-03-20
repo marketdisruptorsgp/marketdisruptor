@@ -566,7 +566,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     return () => clearTimeout(timer);
     // NOTE: isComputing intentionally excluded to prevent infinite recompute loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, runAnalysis]);
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, runAnalysis, isHydrating]);
 
   // Drain queued recompute when computing finishes
   useEffect(() => {
