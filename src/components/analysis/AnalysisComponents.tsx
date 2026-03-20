@@ -539,7 +539,8 @@ export function MetricCard({ label, value, trend, accentColor, subtext, classNam
 
   return (
     <motion.div
-      className={cn("rounded-xl p-4 bg-card border border-border", className)}
+      className={cn("rounded-xl p-4 bg-card border border-border", tooltip && "cursor-help", className)}
+      title={tooltip}
       initial="rest"
       whileHover="hover"
       variants={{ rest: { scale: 1 }, hover: { scale: 1.02, transition: { duration: 0.15 } } }}
