@@ -424,13 +424,13 @@ KEY INSIGHT: ${product.keyInsight || "None provided"}
 MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
 
 KNOWN USER COMPLAINTS:
-${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => \`• \${r.text}\`).join("\\n") || "General friction points"}
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => "• " + r.text).join("\n") || "General friction points"}
 
 EXISTING ASSUMPTIONS:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => \`• \${a.assumption} → \${a.challenge}\`).join("\\n") || "None pre-identified"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => "• " + a.assumption + " → " + a.challenge).join("\n") || "None pre-identified"}
 
 COMMUNITY PAIN POINTS:
-${(product as any).communityInsights?.topComplaints?.map((c: string) => \`• \${c}\`).join("\\n") || "See reviews above"}
+${(product as any).communityInsights?.topComplaints?.map((c: string) => "• " + c).join("\n") || "See reviews above"}
 
 CRITICAL INSTRUCTIONS:
 1. FRICTION: Identify PRIMARY friction dimension — do NOT default to physical/size
