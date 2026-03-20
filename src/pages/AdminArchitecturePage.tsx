@@ -16,7 +16,9 @@ Data: Supabase (saved_analyses, profiles, user_usage, market_intel, etc.)
 `;
 
 export default function AdminArchitecturePage() {
-  const { isAdmin, tokenInput, setTokenInput, handleLogin } = useAnalyticsAdmin(TOKEN_KEY);
+  const { authenticated: isAdmin, login, logout } = useAnalyticsAdmin();
+  const [tokenInput, setTokenInput] = useState("");
+  const handleLogin = () => login(tokenInput);
   const [expanded, setExpanded] = useState(true);
 
   if (!isAdmin) {
