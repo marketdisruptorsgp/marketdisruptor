@@ -574,7 +574,7 @@ export default function ReportPage() {
         pipelineStartedAt={pipelineProgress.pipelineStartedAt}
       />
 
-
+      <NextStepButton
         stepNumber={3}
         label="Disrupt"
         color={modeAccent}
