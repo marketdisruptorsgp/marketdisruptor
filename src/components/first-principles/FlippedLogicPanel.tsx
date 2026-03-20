@@ -114,6 +114,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
             />
             </div>
           );
+        })}
       </div>
       {flips.length > showLimit && (
         <button onClick={() => setShowAll(!showAll)} className="w-full py-3 rounded-xl text-xs font-bold transition-all"
