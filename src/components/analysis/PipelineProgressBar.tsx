@@ -121,7 +121,7 @@ export function PipelineProgressBar({
                 <Circle size={14} style={{ color, opacity: isCurrent ? 1 : isLazy ? 0.25 : 0.4 }} />
               )}
               <span className="text-[9px] font-bold uppercase tracking-wider"
-                style={{ color, opacity: isCurrent ? 1 : isDone ? 0.8 : 0.4 }}>
+                style={{ color, opacity: isCurrent ? 1 : isDone ? 0.8 : isLazy ? 0.3 : 0.4 }}>
                 <span className="hidden sm:inline">{step.label}</span>
                 <span className="sm:hidden">{step.short}</span>
               </span>
