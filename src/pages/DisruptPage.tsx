@@ -59,9 +59,32 @@ export default function DisruptPage() {
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
-  const { loadingTimedOut, forceCleared, clearTimeout: clearTimeoutState } = useAnalysisTimeout(rawAnalysisLoading, !!analysis.disruptData);
+  // ── Business-model fallback: synthesize disruptData from businessAnalysisData ──
+  const effectiveDisruptData = useMemo(() => {
+    if (analysis.disruptData) return analysis.disruptData;
+    const biz = analysis.businessAnalysisData;
+    if (!biz) return null;
+    // Build a disrupt-shaped object from businessAnalysisData fields
+    return {
+      _businessFallback: true,
+      hiddenAssumptions: (biz.hiddenAssumptions || []).map((a: any, i: number) => ({
+        ...a,
+        id: a.id || `biz-assumption-${i}`,
+        confidence: a.confidence ?? 0.6,
+        leverage: a.leverage ?? 0.7,
+      })),
+      flippedLogic: (biz.disruptionAnalysis?.attackMoves
+        ? [{ boldAlternative: biz.disruptionAnalysis.attackMoves, rationale: biz.disruptionAnalysis.disruptorProfile || "" }]
+        : []
+      ),
+      vulnerabilities: biz.disruptionAnalysis?.vulnerabilities || [],
+      defenseMoves: biz.disruptionAnalysis?.defenseMoves || [],
+    };
+  }, [analysis.disruptData, analysis.businessAnalysisData]);
+
+  const { loadingTimedOut, forceCleared, clearTimeout: clearTimeoutState } = useAnalysisTimeout(rawAnalysisLoading, !!effectiveDisruptData);
   // Sync: force-clear orphaned loading when data arrives or hard timeout fires
-  const analysisLoading = rawAnalysisLoading && !analysis.disruptData && !forceCleared;
+  const analysisLoading = rawAnalysisLoading && !effectiveDisruptData && !forceCleared;
 
   const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
 
@@ -86,8 +109,8 @@ export default function DisruptPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const governedData = analysis.governedData;
   const synopsisData = governedData?.reasoning_synopsis ?? null;
-  const hasDisruptData = !!analysis.disruptData;
-  const isEarlyData = !!(analysis.disruptData as any)?._earlyInsights || !!(analysis.disruptData as any)?._thinDataFallback;
+  const hasDisruptData = !!effectiveDisruptData;
+  const isEarlyData = !!(effectiveDisruptData as any)?._earlyInsights || !!(effectiveDisruptData as any)?._thinDataFallback;
   const cm = governedData?.constraint_map as Record<string, unknown> | undefined;
   const rawHypotheses = (cm?.root_hypotheses || governedData?.root_hypotheses) as StrategicHypothesis[] | undefined;
   const hasHypotheses = hasDisruptData && rawHypotheses && rawHypotheses.length > 0;
