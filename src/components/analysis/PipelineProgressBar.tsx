@@ -96,9 +96,11 @@ export function PipelineProgressBar({
           const isDone = completedSteps.has(step.key);
           const isOutdated = outdatedSteps?.has(step.key);
           const isCurrent = currentStep === step.key;
+          const isLazy = step.lazy;
           const color = isCurrent ? accentColor
             : isOutdated ? "hsl(38 92% 50%)"
             : isDone ? "hsl(142 70% 45%)"
+            : isLazy ? "hsl(var(--muted-foreground))"
             : "hsl(var(--muted-foreground))";
 
           // Map step keys to orchestrator step keys for timing lookup
