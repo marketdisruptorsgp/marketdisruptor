@@ -80,7 +80,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
     geoData, regulatoryData, activeLens,
-    saveStepData,
+    saveStepData, isHydrating,
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
@@ -165,6 +165,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const runAnalysis = useCallback(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
     if (!analysisId || !hasComputableData) return;
+    // H4 fix: don't run strategic engine while hydration is still populating state
+    if (isHydrating) return;
 
     // Deduplicate: increment run counter, capture this run's ID
     const thisRunId = ++runIdRef.current;
@@ -437,7 +439,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   }, [
     analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
-    geoData, regulatoryData, activeLens,
+    geoData, regulatoryData, activeLens, isHydrating,
   ]);
 
   // ── Hydrate strategic engine from persisted state on reload ──
@@ -537,6 +539,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
     if (!analysisId || !hasComputableData) return;
 
+    // H4 fix: suppress recompute while hydration is in progress to prevent
+    // firing with partial state (e.g., decomposition set but governed not yet)
+    if (isHydrating) return;
+
     const hash = [
       completedSteps.size,
       !!disruptData ? "d" : "",
@@ -562,7 +568,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     return () => clearTimeout(timer);
     // NOTE: isComputing intentionally excluded to prevent infinite recompute loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, runAnalysis]);
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, runAnalysis, isHydrating]);
 
   // Drain queued recompute when computing finishes
   useEffect(() => {
