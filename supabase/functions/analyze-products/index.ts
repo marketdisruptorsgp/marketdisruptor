@@ -586,7 +586,22 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
       throw new Error(`AI gateway error ${response.status}: ${txt}`);
     }
 
-    const aiData = await response.json();
+    // Use text() instead of json() to handle truncated responses gracefully
+    const responseText = await response.text();
+    let aiData: any;
+    try {
+      aiData = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error("AI gateway response JSON parse failed, length:", responseText.length, "preview:", responseText.slice(0, 200));
+      // Try to extract content from partial SSE or truncated JSON
+      const contentMatch = responseText.match(/"content"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if (contentMatch) {
+        aiData = { choices: [{ message: { content: contentMatch[1].replace(/\\n/g, "\n").replace(/\\"/g, '"') } }] };
+        console.log("Recovered content from partial response");
+      } else {
+        throw new Error("AI returned truncated response. Please retry the analysis.");
+      }
+    }
     const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
     // Strip markdown code fences
