@@ -15,6 +15,7 @@
 
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { EvidenceFacets, BusinessFacets, ObjectFacets, DemandFacets, MarketFacets } from "@/lib/evidenceFacets";
+import { type DiagnosticContext, getConstraintCategoryBoost } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  CONSTRAINT TAXONOMY — Stable IDs
@@ -611,17 +612,30 @@ function countMatches(text: string, pattern: RegExp): number {
 /**
  * Rank constraint candidates by system-limiting impact.
  * Uses archetype priors to bias ranking when evidence is ambiguous.
+ * When a DiagnosticContext is provided, mode-specific category boosts
+ * are applied so the active mode surfaces the most relevant constraints first.
  */
 export function rankConstraintCandidates(
   candidates: ConstraintCandidate[],
-  evidence?: { label: string; description?: string }[]
+  evidence?: { label: string; description?: string }[],
+  context?: DiagnosticContext,
 ): ConstraintCandidate[] {
   const archetype = evidence ? inferArchetype(evidence) : null;
   const priors = archetype ? ARCHETYPE_PRIORS[archetype] : null;
 
   return [...candidates].sort((a, b) => {
     // Priority 1: Tier (lower tier = more structural = higher priority)
-    if (a.tier !== b.tier) return a.tier - b.tier;
+    // Apply mode-specific category boost to the effective tier comparison
+    const aBoost = context ? getConstraintCategoryBoost(
+      CONSTRAINT_BY_NAME.get(a.constraintName)?.category ?? "", context
+    ) : 1;
+    const bBoost = context ? getConstraintCategoryBoost(
+      CONSTRAINT_BY_NAME.get(b.constraintName)?.category ?? "", context
+    ) : 1;
+    // Effective tier is lowered (i.e. prioritised) when the boost is high
+    const aTier = a.tier / aBoost;
+    const bTier = b.tier / bBoost;
+    if (Math.abs(aTier - bTier) > 0.01) return aTier - bTier;
 
     // Priority 2: Confidence
     const confOrder = { strong: 0, moderate: 1, limited: 2 };
@@ -779,12 +793,15 @@ function computeCounterfactualImpact(
  * Returns a ranked set of 2-3 constraint hypotheses with full
  * evidence chains and counterfactual impact scores.
  */
-export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): ConstraintHypothesisSet {
+export function detectConstraintHypotheses(
+  evidence: EvidenceWithFacets[],
+  context?: DiagnosticContext,
+): ConstraintHypothesisSet {
   // Layer 1: Detect candidates
   const candidates = detectCandidateConstraints(evidence);
 
-  // Layer 2: Rank candidates
-  const ranked = rankConstraintCandidates(candidates, evidence);
+  // Layer 2: Rank candidates — pass context for mode-specific category boosts
+  const ranked = rankConstraintCandidates(candidates, evidence, context);
 
   // Layer 3: Counterfactual validation + probabilistic stack on top candidates
   const topCandidates = ranked.slice(0, 5);

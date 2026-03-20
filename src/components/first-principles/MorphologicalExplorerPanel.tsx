@@ -122,6 +122,7 @@ export function MorphologicalExplorerPanel({
         constraints,
         leveragePoints,
         [], // No AI alternatives — deterministic only
+        analysis.diagnosticContext, // Mode + lens context for dimension prioritization
       );
 
       setResult(searchResult);
