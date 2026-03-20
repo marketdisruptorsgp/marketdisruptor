@@ -22,23 +22,30 @@ function trimUpstream(data: unknown, keys: string[]): Record<string, unknown> | 
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
-/** Attempt to complete truncated JSON by sending it back */
-async function completeTruncatedJSON(apiKey: string, truncatedText: string): Promise<string> {
+/** Retry pitch deck generation with reduced token count on truncation */
+async function retryWithReducedTokens(
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string,
+  originalMaxTokens: number,
+): Promise<string> {
+  const reducedTokens = Math.floor(originalMaxTokens * 0.7);
+  console.log(`[PitchDeck] Retrying with reduced max_tokens: ${reducedTokens}`);
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
       messages: [
-        { role: "system", content: "You are a JSON completion assistant. The user will give you a truncated JSON object. Complete it with reasonable values maintaining the same structure and style. Return ONLY the complete valid JSON object." },
-        { role: "user", content: `Complete this truncated JSON object. Return ONLY the full valid JSON:\n\n${truncatedText}` },
+        { role: "system", content: systemPrompt + "\n\nIMPORTANT: Keep your response concise. Prioritize completing all sections over detail depth. Every section must be present even if brief." },
+        { role: "user", content: userPrompt },
       ],
-      temperature: 0.3,
-      max_tokens: 8000,
+      temperature: 0.5,
+      max_tokens: reducedTokens,
       response_format: { type: "json_object" },
     }),
   });
-  if (!resp.ok) throw new Error("Completion request failed");
+  if (!resp.ok) throw new Error(`Retry request failed with status ${resp.status}`);
   const d = await resp.json();
   return d.choices?.[0]?.message?.content ?? "";
 }
