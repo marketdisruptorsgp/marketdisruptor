@@ -27,6 +27,7 @@ import {
   AnalysisContentCard,
   AnalysisLoadingCard,
   AnalysisLoadingSpinner,
+  AnalysisPipelineErrorCard,
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
@@ -67,6 +68,7 @@ export default function RedesignPage() {
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
     if (shouldRedirectHome) return null;
+    if (analysis.step === "error") return <AnalysisPipelineErrorCard onRetry={analysis.retryAnalysis} />;
     return <AnalysisLoadingSpinner />;
   }
 

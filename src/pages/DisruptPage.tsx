@@ -34,6 +34,7 @@ import {
   AnalysisLoadingCard,
   AnalysisContentCard,
   AnalysisLoadingSpinner,
+  AnalysisPipelineErrorCard,
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
@@ -72,6 +73,7 @@ export default function DisruptPage() {
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
     if (shouldRedirectHome) return null;
+    if (analysis.step === "error") return <AnalysisPipelineErrorCard onRetry={analysis.retryAnalysis} />;
     return <AnalysisLoadingSpinner />;
   }
 
