@@ -16,13 +16,15 @@ interface PipelineProgressBarProps {
   stepTimings?: Record<string, StepTiming>;
 }
 
-const PIPELINE = [
-  { key: "report", label: "Report", short: "Rep", activeText: "Building intelligence report…" },
-  { key: "disrupt", label: "Disrupt", short: "Dis", activeText: "Generating disruption strategies…" },
-  { key: "redesign", label: "Redesign", short: "Red", activeText: "Synthesizing redesign concepts…" },
-  { key: "stress-test", label: "Stress Test", short: "Str", activeText: "Stress-testing assumptions…" },
-  { key: "pitch", label: "Pitch", short: "Pit", activeText: "Assembling investor pitch…" },
+const CORE_PIPELINE = [
+  { key: "report", label: "Report", short: "Rep", activeText: "Building intelligence report…", lazy: false },
+  { key: "disrupt", label: "Disrupt", short: "Dis", activeText: "Generating disruption strategies…", lazy: false },
+  { key: "redesign", label: "Redesign", short: "Red", activeText: "Synthesizing redesign concepts…", lazy: false },
+  { key: "stress-test", label: "Stress Test", short: "Str", activeText: "Stress-testing assumptions…", lazy: true },
+  { key: "pitch", label: "Pitch", short: "Pit", activeText: "Assembling investor pitch…", lazy: true },
 ];
+
+const CORE_STEPS = CORE_PIPELINE.filter(s => !s.lazy);
 
 function formatSec(ms: number): string {
   const s = Math.round(ms / 1000);
