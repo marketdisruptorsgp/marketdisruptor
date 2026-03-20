@@ -110,7 +110,7 @@ function buildOpportunityGrid(
   }
 
   // Rank by confidence, cap at 4 cards
-  return result.sort((a, b) => b.confidence - a.confidence).slice(0, 4);
+  return result.sort((a, b) => b.confidence - a.confidence).slice(0, 5);
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────

@@ -122,7 +122,7 @@ export function BreakthroughGrid({ opportunities, modeAccent }: BreakthroughGrid
           className="text-[10px] font-extrabold uppercase tracking-widest"
           style={{ color: `${modeAccent}cc` }}
         >
-          Breakthrough Vectors
+          What You Could Do
         </span>
 
         {/* 2×2 grid — top card spans full width on mobile, grid on sm+ */}
