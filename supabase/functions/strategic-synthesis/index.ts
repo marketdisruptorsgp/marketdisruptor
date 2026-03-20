@@ -659,6 +659,7 @@ function enforceMinimumArtifacts(
       competitiveBlindSpot: "Incumbents are optimized around legacy delivery assumptions.",
       urgencySignal: "emerging",
       urgencyReason: "User complaints and market behavior indicate this friction is becoming less acceptable.",
+      _synthetic: true,
     });
   }
   next.hiddenAssumptions = existingAssumptions;
