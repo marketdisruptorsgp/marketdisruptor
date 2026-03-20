@@ -63,14 +63,15 @@ export function PipelineProgressBar({
           Pipeline Progress
         </p>
         <div className="flex items-center gap-2">
-          {totalMs > 0 && allDone && (
+          {totalMs > 0 && (coreDone || allDone) && (
             <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground">
               <Timer size={10} />
               {formatSec(totalMs)}
             </span>
           )}
           <span className="text-xs font-bold tabular-nums" style={{ color: accentColor }}>
-            {totalCompleted}/{PIPELINE.length}
+            {coreCompleted}/{CORE_STEPS.length}
+            {lazyCompleted > 0 && ` +${lazyCompleted}`}
           </span>
         </div>
       </div>
