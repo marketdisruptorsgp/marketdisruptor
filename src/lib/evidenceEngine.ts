@@ -348,6 +348,77 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business model: disruptionAnalysis.vulnerabilities → constraint evidence ──
+  const biz = input.businessAnalysisData;
+  if (biz?.disruptionAnalysis?.vulnerabilities) {
+    safeArr(biz.disruptionAnalysis.vulnerabilities).forEach((v: any, i: number) => {
+      const label = typeof v === "string" ? v : (v.name || v.label || v.vulnerability || v.description || `Vulnerability ${i + 1}`);
+      const desc = typeof v === "string" ? undefined : (v.description || v.impact || v.explanation);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-vuln"),
+          type: "constraint",
+          label,
+          description: desc,
+          pipelineStep: "disrupt",
+          tier: autoTier(label, desc, "structural"),
+          impact: v.severity || v.impact || 7,
+          category: "competitive_pressure",
+          mode,
+          sourceEngine: "pipeline",
+        });
+      }
+    });
+  }
+
+  // ── Business model: operationalAudit → operational friction/constraints ──
+  if (biz?.operationalAudit) {
+    const oa = biz.operationalAudit;
+    safeArr(oa.bottlenecks || oa.processBottlenecks).forEach((b: any, i: number) => {
+      const label = typeof b === "string" ? b : (b.name || b.label || b.process || `Process Bottleneck ${i + 1}`);
+      const desc = typeof b === "string" ? undefined : (b.description || b.impact);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-bottle"), type: "friction", label, description: desc,
+          pipelineStep: "report", tier: "structural", impact: b.severity || 7,
+          category: "operational_dependency", mode, sourceEngine: "pipeline",
+        });
+      }
+    });
+    safeArr(oa.capacityConstraints || oa.constraints).forEach((c: any, i: number) => {
+      const label = typeof c === "string" ? c : (c.name || c.label || c.constraint || `Capacity Constraint ${i + 1}`);
+      const desc = typeof c === "string" ? undefined : (c.description || c.impact);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-cap"), type: "constraint", label, description: desc,
+          pipelineStep: "report", tier: "system", impact: c.severity || 6,
+          category: "operational_dependency", mode, sourceEngine: "constraint_engine",
+        });
+      }
+    });
+    safeArr(oa.inefficiencies || oa.waste).forEach((w: any, i: number) => {
+      const label = typeof w === "string" ? w : (w.name || w.label || w.area || `Inefficiency ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-ineff"), type: "friction", label,
+          pipelineStep: "report", tier: "optimization", impact: 5,
+          category: "cost_structure", mode, sourceEngine: "pipeline",
+        });
+      }
+    });
+    if (oa.ownerDependency || oa.keyPersonRisk) {
+      const dep = oa.ownerDependency || oa.keyPersonRisk;
+      const label = typeof dep === "string" ? dep : (dep.description || dep.label || "Owner/key-person dependency");
+      items.push({
+        id: makeId("fric-bm-owner"), type: "constraint",
+        label: typeof label === "string" ? label : "Owner/key-person dependency",
+        description: typeof dep === "object" ? (dep.mitigation || dep.impact || undefined) : undefined,
+        pipelineStep: "report", tier: "structural", impact: 8,
+        category: "operational_dependency", mode, sourceEngine: "constraint_engine",
+      });
+    }
+  }
+
   return items;
 }
 
