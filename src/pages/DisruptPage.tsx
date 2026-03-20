@@ -86,6 +86,8 @@ export default function DisruptPage() {
   const governedData = analysis.governedData;
   const synopsisData = governedData?.reasoning_synopsis ?? null;
   const hasDisruptData = !!analysis.disruptData;
+  const isEarlyData = !!(analysis.disruptData as any)?._earlyInsights || !!(analysis.disruptData as any)?._thinDataFallback;
+  const hasDisruptData = !!analysis.disruptData;
   const cm = governedData?.constraint_map as Record<string, unknown> | undefined;
   const rawHypotheses = (cm?.root_hypotheses || governedData?.root_hypotheses) as StrategicHypothesis[] | undefined;
   const hasHypotheses = hasDisruptData && rawHypotheses && rawHypotheses.length > 0;
