@@ -270,7 +270,7 @@ export default function CommandDeckPage() {
                 }}
               >
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                  Binding Constraint Hypothesis
+                  The #1 Thing Holding This Business Back
                 </p>
                 <p className="text-sm font-bold text-foreground leading-snug">
                   {instantInsights.bindingConstraint.label}
