@@ -51,6 +51,7 @@ export function ConfidenceScorePanel({ scores }: ConfidenceScorePanelProps) {
                   value={qual.label}
                   accentColor={qual.color}
                   subtext={val.reasoning}
+                  tooltip={qual.tooltip}
                 />
               );
             })}
