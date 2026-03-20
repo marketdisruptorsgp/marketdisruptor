@@ -436,7 +436,7 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
   onLoadingChange,
   viewMode = "all",
 }, ref) {
-  const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || [];
+  const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || (analysis.businessAnalysisData as any)?.hiddenAssumptions || [];
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
 
@@ -517,7 +517,7 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
 
       {/* ── System Intelligence Layer ── */}
       {(() => {
-        const disruptData = analysis.disruptData as Record<string, unknown> | null;
+        const disruptData = (analysis.disruptData || (analysis.businessAnalysisData ? { hiddenAssumptions: (analysis.businessAnalysisData as any)?.hiddenAssumptions || [], flippedLogic: [], _businessFallback: true } : null)) as Record<string, unknown> | null;
         const businessData = analysis.businessAnalysisData as Record<string, unknown> | null;
         const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
         const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
