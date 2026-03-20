@@ -383,6 +383,12 @@ export default function CommandDeckPage() {
           modeAccent={modeAccent}
         />
 
+        {/* ═══ Zone 1.5: Reinvention Ideas — the core differentiator ═══ */}
+        <ReinventionIdeas
+          ideas={flippedIdeas}
+          modeAccent={modeAccent}
+        />
+
         {/* ═══ Zone 2: What you could do ═══ */}
         <BreakthroughGrid
           opportunities={opportunityGrid}
