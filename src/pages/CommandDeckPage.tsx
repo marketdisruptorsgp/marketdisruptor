@@ -21,6 +21,7 @@ import { ModeBadge } from "@/components/ModeBadge";
 import { SituationReport } from "@/components/strategic/SituationReport";
 import { BreakthroughGrid, type OpportunityGridItem } from "@/components/strategic/BreakthroughGrid";
 import { ActionDirective } from "@/components/strategic/ActionDirective";
+import { ReinventionIdeas, type FlippedIdeaItem } from "@/components/strategic/ReinventionIdeas";
 import { ActionPath } from "@/components/command-deck/ActionPath";
 import { ArrowRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -127,7 +128,7 @@ export default function CommandDeckPage() {
     autoAnalysis.runAnalysis,
   );
 
-  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput, instantInsights } =
+  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput, instantInsights, disruptData } =
     analysis;
 
   const urlAnalysisId = useMemo(() => {
@@ -147,6 +148,22 @@ export default function CommandDeckPage() {
     secondOrderUnlocks,
     completedSteps,
   } = autoAnalysis;
+
+  // ── Extract flipped ideas from disruptData (persisted in saved_analyses) ──
+  const flippedIdeas: FlippedIdeaItem[] = useMemo(() => {
+    if (!disruptData) return [];
+    const dd = disruptData as Record<string, unknown>;
+    const raw = dd.flippedLogic || dd.flippedIdeas;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((f: any) => f && (f.boldAlternative || f.alternative || f.idea || f.name))
+      .map((f: any) => ({
+        originalAssumption: f.originalAssumption || f.assumption || "",
+        boldAlternative: f.boldAlternative || f.alternative || f.idea || f.name || "",
+        rationale: f.rationale || f.reason || f.whyItWorks || "",
+        physicalMechanism: f.physicalMechanism || f.mechanism || "",
+      }));
+  }, [disruptData]);
 
   // Auto-trigger analysis when the page mounts with data but no run yet
   useEffect(() => {
@@ -363,6 +380,12 @@ export default function CommandDeckPage() {
         <SituationReport
           narrative={narrative}
           thesis={primaryThesis}
+          modeAccent={modeAccent}
+        />
+
+        {/* ═══ Zone 1.5: Reinvention Ideas — the core differentiator ═══ */}
+        <ReinventionIdeas
+          ideas={flippedIdeas}
           modeAccent={modeAccent}
         />
 
