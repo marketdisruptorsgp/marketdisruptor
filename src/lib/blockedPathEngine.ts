@@ -19,6 +19,7 @@
 import type { StrategicInsight } from "@/lib/strategicEngine";
 import type { BusinessDimension, EvidenceCategory } from "@/lib/opportunityDesignEngine";
 import type { Evidence } from "@/lib/evidenceEngine";
+import { type DiagnosticContext } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -257,10 +258,38 @@ function nextPathId() { return `bp-${++pathIdSeq}`; }
  * Surface blocked innovation paths given the current constraint/evidence profile.
  * Each blocked path includes a gating reason and "What would need to be true?" prompt.
  */
+/** Gate types that each mode foregrounds (higher boost value = stronger preference) */
+const MODE_GATE_BOOSTS: Record<string, Partial<Record<BlockedPathGateType, number>>> = {
+  product: {
+    technical:      1.4,
+    capital:        1.2,
+    network_effect: 0.9,
+    behavioral:     0.8,
+    regulatory:     1.0,
+  },
+  service: {
+    behavioral:     1.4,
+    network_effect: 1.3,
+    trust_deficit:  1.2,
+    technical:      1.0,
+    capital:        0.9,
+    regulatory:     0.9,
+  },
+  business_model: {
+    capital:        1.4,
+    incumbent_moat: 1.3,
+    regulatory:     1.2,
+    network_effect: 1.1,
+    behavioral:     1.0,
+    technical:      0.9,
+  },
+};
+
 export function surfaceBlockedPaths(
   constraints: StrategicInsight[],
   activeBaseline: Record<string, BusinessDimension>,
   flatEvidence: Evidence[],
+  context?: DiagnosticContext,
 ): BlockedPathSurface {
   pathIdSeq = 0;
 
@@ -314,10 +343,14 @@ export function surfaceBlockedPaths(
     });
   }
 
-  // Sort by unlocked value × confidence
-  blockedPaths.sort((a, b) =>
-    (b.unlockedValueScore * b.gatingConfidence) - (a.unlockedValueScore * a.gatingConfidence)
-  );
+  // Sort by unlocked value × confidence, boosted by mode gate affinity
+  const gateBoosts = context ? (MODE_GATE_BOOSTS[context.mode] ?? {}) : {};
+  blockedPaths.sort((a, b) => {
+    const aBoost = gateBoosts[a.gateType] ?? 1.0;
+    const bBoost = gateBoosts[b.gateType] ?? 1.0;
+    return (b.unlockedValueScore * b.gatingConfidence * bBoost) -
+           (a.unlockedValueScore * a.gatingConfidence * aBoost);
+  });
 
   // Slice to top 6 for surfacing
   const surfaced = blockedPaths.slice(0, 6);

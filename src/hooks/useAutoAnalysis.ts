@@ -40,6 +40,7 @@ import {
   identifyActiveDimensions,
   getDimensionsByStatus,
 } from "@/lib/opportunityDesignEngine";
+import { buildDiagnosticContext } from "@/lib/diagnosticContext";
 import { extractConstraintShapes } from "@/lib/analogEngine";
 import { generateInversions, type ConstraintInversion } from "@/lib/constraintInverter";
 import { generateSecondOrderUnlocks, type SecondOrderUnlock } from "@/lib/secondOrderEngine";
@@ -248,9 +249,11 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       const activeConstraints = result.activeConstraints ?? [];
       const leveragePoints = (result.insights ?? []).filter(i => i.insightType === "leverage_point");
       if (activeConstraints.length >= 1 && result.flatEvidence.length >= 18) {
+        // Build diagnostic context from current mode + lens for mode-aware engines
+        const morphDiagnosticContext = buildDiagnosticContext(analysisMode, activeLens);
         try {
           // Pass empty array for aiAlternatives — morphological search is purely deterministic
-          const morphResult = runMorphologicalSearch(result.flatEvidence, activeConstraints, leveragePoints, []);
+          const morphResult = runMorphologicalSearch(result.flatEvidence, activeConstraints, leveragePoints, [], morphDiagnosticContext);
           setMorphologicalZones(morphResult.zones);
           setMorphologicalVectors(morphResult.vectors);
           console.log(`[Morphological] Auto-ran: ${morphResult.vectors.length} vectors, ${morphResult.zones.length} zones`);
@@ -262,7 +265,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           // Run deterministic idea-generation engines — no AI cost, <100ms each
           const constraintShapes = extractConstraintShapes(activeConstraints, result.flatEvidence);
           const rawBaseline = extractBaseline(result.flatEvidence, activeConstraints, leveragePoints);
-          const baseline = identifyActiveDimensions(rawBaseline, activeConstraints, leveragePoints);
+          const baseline = identifyActiveDimensions(rawBaseline, activeConstraints, leveragePoints, morphDiagnosticContext);
           const hotDims = getDimensionsByStatus(baseline, "hot");
           const warmDims = getDimensionsByStatus(baseline, "warm");
           const activeDims = [...hotDims, ...warmDims];

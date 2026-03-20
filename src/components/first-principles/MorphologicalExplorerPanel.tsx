@@ -6,10 +6,15 @@
  * against the current evidence + constraints. Results appear as
  * explorable opportunity vectors that can be selected, rejected,
  * and steered — flowing into downstream redesign/stress test.
+ *
+ * Two tabs:
+ *   1. Opportunity Vectors — clustered zone view (original behaviour)
+ *   2. Zwicky Box — full morphological chart showing current values,
+ *      qualified alternatives, and blocked combinations with reasons
  */
 
 import { useState, useCallback, useMemo } from "react";
-import { Grid3X3, Sparkles, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Lightbulb, X } from "lucide-react";
+import { Grid3X3, Sparkles, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Lightbulb, X, Table2, Lock, CheckCircle } from "lucide-react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   runMorphologicalSearch,
@@ -20,6 +25,8 @@ import {
   type OpportunityVector,
   type OpportunityZone,
   type BusinessBaseline,
+  type ZwickyBoxRow,
+  type BlockedVector,
 } from "@/lib/opportunityDesignEngine";
 import { extractAllEvidence, flattenEvidence } from "@/lib/evidenceEngine";
 import type { StrategicInsight } from "@/lib/strategicEngine";
@@ -29,6 +36,172 @@ interface MorphologicalExplorerPanelProps {
   steeringContext?: string;
   /** Callback when user selects vectors to include in redesign */
   onVectorsSelected?: (vectors: OpportunityVector[]) => void;
+}
+
+// ── Gate badge colours ────────────────────────────────────────────────────────
+const GATE_COLOURS: Record<string, string> = {
+  evidence: "hsl(38 92% 50%)",
+  constraint_linkage: "hsl(229 89% 63%)",
+  feasibility: "hsl(0 72% 50%)",
+  redundancy: "hsl(var(--muted-foreground))",
+};
+
+const GATE_LABELS: Record<string, string> = {
+  evidence: "Insufficient evidence",
+  constraint_linkage: "No constraint link",
+  feasibility: "Feasibility conflict",
+  redundancy: "Redundant",
+};
+
+const CELL_TRUNCATE_LENGTH = 40;
+const CELL_TRUNCATE_SHORT = 35;
+
+// ── Zwicky Box sub-component ──────────────────────────────────────────────────
+
+function ZwickyBoxView({ rows }: { rows: ZwickyBoxRow[] }) {
+  const [expandedBlocked, setExpandedBlocked] = useState<Set<string>>(new Set());
+
+  if (rows.length === 0) {
+    return (
+      <div className="text-center py-6 text-xs text-muted-foreground">
+        No active dimensions to display.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] text-muted-foreground leading-relaxed">
+        Each row is a business dimension. Green cells are qualified alternative configurations;
+        red cells are blocked combinations with "What needs to change?" reasoning.
+      </p>
+
+      {rows.map(row => {
+        const totalAlts = row.qualifiedAlternatives.length + row.blockedAlternatives.length;
+        return (
+          <div
+            key={row.dimensionId}
+            className="rounded-lg overflow-hidden"
+            style={{ border: "1px solid hsl(var(--border))" }}
+          >
+            {/* Row header */}
+            <div
+              className="px-3 py-2 flex items-center gap-2"
+              style={{ background: "hsl(var(--muted) / 0.5)" }}
+            >
+              <span
+                className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase"
+                style={{
+                  background: row.status === "hot"
+                    ? "hsl(0 72% 50% / 0.1)"
+                    : "hsl(229 89% 63% / 0.1)",
+                  color: row.status === "hot"
+                    ? "hsl(0 72% 50%)"
+                    : "hsl(229 89% 63%)",
+                }}
+              >
+                {row.status}
+              </span>
+              <span className="text-xs font-semibold text-foreground flex-1">{row.dimensionName}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {row.evidenceCount} evidence · {totalAlts} alternative{totalAlts !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {/* Cells */}
+            <div className="px-3 py-2 flex flex-wrap gap-1.5">
+              {/* Current/baseline value */}
+              <div
+                className="rounded px-2 py-1 text-[10px] font-semibold"
+                style={{
+                  background: "hsl(var(--primary) / 0.12)",
+                  border: "1.5px solid hsl(var(--primary) / 0.4)",
+                  color: "hsl(var(--primary))",
+                }}
+                title="Current baseline value"
+              >
+                ★ {row.currentValue.length > CELL_TRUNCATE_LENGTH ? row.currentValue.slice(0, CELL_TRUNCATE_LENGTH - 2) + "…" : row.currentValue}
+              </div>
+
+              {/* Qualified alternatives */}
+              {row.qualifiedAlternatives.map((alt, i) => (
+                <div
+                  key={`q-${i}`}
+                  className="rounded px-2 py-1 text-[10px] flex items-center gap-1"
+                  style={{
+                    background: "hsl(152 60% 44% / 0.08)",
+                    border: "1px solid hsl(152 60% 44% / 0.3)",
+                    color: "hsl(152 60% 44%)",
+                  }}
+                  title="Qualified alternative"
+                >
+                  <CheckCircle size={9} />
+                  {alt.length > CELL_TRUNCATE_LENGTH ? alt.slice(0, CELL_TRUNCATE_LENGTH - 2) + "…" : alt}
+                </div>
+              ))}
+
+              {/* Blocked alternatives */}
+              {row.blockedAlternatives.map((bv, i) => {
+                const altValue = bv.vector.changedDimensions.find(s => s.dimension === row.dimensionName)?.to ?? "";
+                const key = `b-${i}-${altValue}`;
+                const isExpanded = expandedBlocked.has(key);
+                return (
+                  <div key={key} className="relative">
+                    <button
+                      onClick={() => setExpandedBlocked(prev => {
+                        const next = new Set(prev);
+                        if (next.has(key)) next.delete(key); else next.add(key);
+                        return next;
+                      })}
+                      className="rounded px-2 py-1 text-[10px] flex items-center gap-1 transition-opacity hover:opacity-80"
+                      style={{
+                        background: "hsl(0 72% 50% / 0.07)",
+                        border: "1px solid hsl(0 72% 50% / 0.3)",
+                        color: "hsl(0 72% 50%)",
+                      }}
+                      title={`Blocked: ${bv.blockReason}`}
+                    >
+                      <Lock size={9} />
+                      {altValue.length > CELL_TRUNCATE_SHORT ? altValue.slice(0, CELL_TRUNCATE_SHORT - 2) + "…" : altValue}
+                      {isExpanded ? <ChevronUp size={9} /> : <ChevronDown size={9} />}
+                    </button>
+
+                    {isExpanded && (
+                      <div
+                        className="absolute z-10 left-0 mt-1 w-64 rounded-lg p-2.5 shadow-lg space-y-1.5"
+                        style={{
+                          background: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          top: "100%",
+                        }}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span
+                            className="text-[9px] font-bold px-1 py-0.5 rounded uppercase"
+                            style={{
+                              background: `${GATE_COLOURS[bv.blockedByGate] ?? "hsl(var(--muted))"}22`,
+                              color: GATE_COLOURS[bv.blockedByGate] ?? "hsl(var(--muted-foreground))",
+                            }}
+                          >
+                            {GATE_LABELS[bv.blockedByGate] ?? bv.blockedByGate}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">{bv.blockReason}</p>
+                        <div>
+                          <p className="text-[9px] font-semibold text-foreground mb-0.5">What needs to change?</p>
+                          <p className="text-[10px] text-foreground leading-relaxed">{bv.whatNeedsToChange}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function MorphologicalExplorerPanel({
@@ -42,6 +215,7 @@ export function MorphologicalExplorerPanel({
   const [expandedZones, setExpandedZones] = useState<Set<string>>(new Set());
   const [selectedVectorIds, setSelectedVectorIds] = useState<Set<string>>(new Set());
   const [dismissedVectorIds, setDismissedVectorIds] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<"vectors" | "zwicky">("vectors");
 
   const runExploration = useCallback(async () => {
     setIsRunning(true);
@@ -122,6 +296,7 @@ export function MorphologicalExplorerPanel({
         constraints,
         leveragePoints,
         [], // No AI alternatives — deterministic only
+        analysis.diagnosticContext, // Mode + lens context for dimension prioritization
       );
 
       setResult(searchResult);
@@ -132,6 +307,8 @@ export function MorphologicalExplorerPanel({
         vectorCount: searchResult.vectors.length,
         hotDimensions: searchResult.hotCount,
         warmDimensions: searchResult.warmCount,
+        blockedCount: searchResult.blockedVectors.length,
+        zwickyRowCount: searchResult.zwickyBoxRows.length,
         steeringContext: steeringContext || null,
         generatedAt: new Date().toISOString(),
       });
@@ -265,6 +442,8 @@ export function MorphologicalExplorerPanel({
   // ── Results ──
   const totalVectors = result?.vectors.length || 0;
   const visibleVectorCount = visibleZones.reduce((s, z) => s + z.vectors.length, 0);
+  const blockedCount = result?.blockedVectors.length ?? 0;
+  const zwickyRows = result?.zwickyBoxRows ?? [];
 
   return (
     <div className="mt-4 space-y-3">
@@ -282,6 +461,7 @@ export function MorphologicalExplorerPanel({
             <p className="text-[10px] text-muted-foreground">
               {result?.hotCount || 0} constraint-linked dimensions · {result?.warmCount || 0} adjacency dimensions
               {dismissedVectorIds.size > 0 && ` · ${dismissedVectorIds.size} dismissed`}
+              {blockedCount > 0 && ` · ${blockedCount} blocked`}
             </p>
           </div>
         </div>
@@ -308,123 +488,174 @@ export function MorphologicalExplorerPanel({
         </div>
       </div>
 
-      {/* Disclaimer */}
-      <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--accent) / 0.3)" }}>
-        <Lightbulb size={12} className="shrink-0 mt-0.5" style={{ color: "hsl(var(--accent-foreground))" }} />
-        <p className="text-[10px] text-muted-foreground leading-relaxed">
-          These are structural possibilities, not validated ideas. Select promising vectors to feed into the Redesign step, or dismiss ones that don't fit your direction.
-        </p>
+      {/* Tab bar */}
+      <div className="flex items-center gap-1 border-b" style={{ borderColor: "hsl(var(--border))" }}>
+        <button
+          onClick={() => setActiveTab("vectors")}
+          className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold transition-colors"
+          style={{
+            color: activeTab === "vectors" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+            borderBottom: activeTab === "vectors" ? "2px solid hsl(var(--primary))" : "2px solid transparent",
+          }}
+        >
+          <Sparkles size={11} />
+          Opportunity Vectors
+          {visibleVectorCount > 0 && (
+            <span
+              className="text-[9px] px-1 py-0.5 rounded-full"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
+            >
+              {visibleVectorCount}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("zwicky")}
+          className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold transition-colors"
+          style={{
+            color: activeTab === "zwicky" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+            borderBottom: activeTab === "zwicky" ? "2px solid hsl(var(--primary))" : "2px solid transparent",
+          }}
+        >
+          <Table2 size={11} />
+          Zwicky Box
+          {blockedCount > 0 && (
+            <span
+              className="text-[9px] px-1 py-0.5 rounded-full"
+              style={{ background: "hsl(0 72% 50% / 0.12)", color: "hsl(0 72% 50%)" }}
+            >
+              {blockedCount} blocked
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Zones */}
-      {visibleZones.map(zone => (
-        <div
-          key={zone.id}
-          className="rounded-lg overflow-hidden"
-          style={{ border: "1px solid hsl(var(--border))" }}
-        >
-          <button
-            onClick={() => toggleZone(zone.id)}
-            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/50 transition-colors"
-            style={{ background: "hsl(var(--card))" }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-foreground">{zone.theme}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-                {zone.vectors.length} vectors
-              </span>
-            </div>
-            {expandedZones.has(zone.id) ? (
-              <ChevronUp size={12} className="text-muted-foreground" />
-            ) : (
-              <ChevronDown size={12} className="text-muted-foreground" />
-            )}
-          </button>
+      {/* Tab content */}
+      {activeTab === "vectors" && (
+        <>
+          {/* Disclaimer */}
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--accent) / 0.3)" }}>
+            <Lightbulb size={12} className="shrink-0 mt-0.5" style={{ color: "hsl(var(--accent-foreground))" }} />
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              These are structural possibilities, not validated ideas. Select promising vectors to feed into the Redesign step, or dismiss ones that don't fit your direction.
+            </p>
+          </div>
 
-          {expandedZones.has(zone.id) && (
-            <div className="px-3 pb-3 space-y-2">
-              {zone.vectors.map(vector => {
-                const isSelected = selectedVectorIds.has(vector.id);
-                return (
-                  <div
-                    key={vector.id}
-                    className="rounded-lg px-3 py-2.5 transition-all cursor-pointer"
-                    style={{
-                      background: isSelected ? "hsl(var(--primary) / 0.08)" : "hsl(var(--muted) / 0.5)",
-                      border: isSelected
-                        ? "1.5px solid hsl(var(--primary) / 0.4)"
-                        : "1px solid hsl(var(--border) / 0.5)",
-                    }}
-                    onClick={() => toggleVectorSelection(vector.id)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        {/* Dimension shifts */}
-                        <div className="flex flex-wrap gap-1.5 mb-1.5">
-                          {vector.changedDimensions.map((shift, i) => (
-                            <span
-                              key={i}
-                              className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded"
-                              style={{
-                                background: "hsl(var(--secondary))",
-                                color: "hsl(var(--secondary-foreground))",
-                              }}
+          {/* Zones */}
+          {visibleZones.map(zone => (
+            <div
+              key={zone.id}
+              className="rounded-lg overflow-hidden"
+              style={{ border: "1px solid hsl(var(--border))" }}
+            >
+              <button
+                onClick={() => toggleZone(zone.id)}
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/50 transition-colors"
+                style={{ background: "hsl(var(--card))" }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-foreground">{zone.theme}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                    {zone.vectors.length} vectors
+                  </span>
+                </div>
+                {expandedZones.has(zone.id) ? (
+                  <ChevronUp size={12} className="text-muted-foreground" />
+                ) : (
+                  <ChevronDown size={12} className="text-muted-foreground" />
+                )}
+              </button>
+
+              {expandedZones.has(zone.id) && (
+                <div className="px-3 pb-3 space-y-2">
+                  {zone.vectors.map(vector => {
+                    const isSelected = selectedVectorIds.has(vector.id);
+                    return (
+                      <div
+                        key={vector.id}
+                        className="rounded-lg px-3 py-2.5 transition-all cursor-pointer"
+                        style={{
+                          background: isSelected ? "hsl(var(--primary) / 0.08)" : "hsl(var(--muted) / 0.5)",
+                          border: isSelected
+                            ? "1.5px solid hsl(var(--primary) / 0.4)"
+                            : "1px solid hsl(var(--border) / 0.5)",
+                        }}
+                        onClick={() => toggleVectorSelection(vector.id)}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            {/* Dimension shifts */}
+                            <div className="flex flex-wrap gap-1.5 mb-1.5">
+                              {vector.changedDimensions.map((shift, i) => (
+                                <span
+                                  key={i}
+                                  className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded"
+                                  style={{
+                                    background: "hsl(var(--secondary))",
+                                    color: "hsl(var(--secondary-foreground))",
+                                  }}
+                                >
+                                  <span className="line-through opacity-60">{truncate(shift.from, 20)}</span>
+                                  <ArrowRight size={8} />
+                                  <span className="font-semibold">{truncate(shift.to, 25)}</span>
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">
+                              {vector.rationale}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span
+                                className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                                style={{
+                                  background: vector.explorationMode === "constraint"
+                                    ? "hsl(var(--destructive) / 0.1)"
+                                    : "hsl(var(--primary) / 0.1)",
+                                  color: vector.explorationMode === "constraint"
+                                    ? "hsl(var(--destructive))"
+                                    : "hsl(var(--primary))",
+                                }}
+                              >
+                                {vector.explorationMode === "constraint" ? "Constraint-driven" : "Adjacency"}
+                              </span>
+                              <span className="text-[9px] text-muted-foreground">
+                                {vector.explorationType.replace(/_/g, " ")}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {isSelected && (
+                              <span className="text-[9px] font-bold" style={{ color: "hsl(var(--primary))" }}>
+                                ✓ Selected
+                              </span>
+                            )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); dismissVector(vector.id); }}
+                              className="p-1 rounded hover:bg-muted transition-colors"
+                              title="Dismiss this vector"
                             >
-                              <span className="line-through opacity-60">{truncate(shift.from, 20)}</span>
-                              <ArrowRight size={8} />
-                              <span className="font-semibold">{truncate(shift.to, 25)}</span>
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed">
-                          {vector.rationale}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span
-                            className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                            style={{
-                              background: vector.explorationMode === "constraint"
-                                ? "hsl(var(--destructive) / 0.1)"
-                                : "hsl(var(--primary) / 0.1)",
-                              color: vector.explorationMode === "constraint"
-                                ? "hsl(var(--destructive))"
-                                : "hsl(var(--primary))",
-                            }}
-                          >
-                            {vector.explorationMode === "constraint" ? "Constraint-driven" : "Adjacency"}
-                          </span>
-                          <span className="text-[9px] text-muted-foreground">
-                            {vector.explorationType.replace(/_/g, " ")}
-                          </span>
+                              <X size={11} className="text-muted-foreground" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {isSelected && (
-                          <span className="text-[9px] font-bold" style={{ color: "hsl(var(--primary))" }}>
-                            ✓ Selected
-                          </span>
-                        )}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); dismissVector(vector.id); }}
-                          className="p-1 rounded hover:bg-muted transition-colors"
-                          title="Dismiss this vector"
-                        >
-                          <X size={11} className="text-muted-foreground" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {visibleZones.length === 0 && totalVectors > 0 && (
+            <div className="text-center py-4 text-xs text-muted-foreground">
+              All vectors dismissed. Click "Re-explore" to generate new ones.
             </div>
           )}
-        </div>
-      ))}
+        </>
+      )}
 
-      {visibleZones.length === 0 && totalVectors > 0 && (
-        <div className="text-center py-4 text-xs text-muted-foreground">
-          All vectors dismissed. Click "Re-explore" to generate new ones.
-        </div>
+      {activeTab === "zwicky" && (
+        <ZwickyBoxView rows={zwickyRows} />
       )}
     </div>
   );

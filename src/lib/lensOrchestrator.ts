@@ -9,6 +9,7 @@
 import type { LensType, LeverageNode } from "@/lib/multiLensEngine";
 import type { ConstraintNode, OpportunityNode } from "@/lib/systemIntelligence";
 import { detectConvergenceZones, type ConvergenceZone } from "@/lib/convergenceEngine";
+import { type DiagnosticContext } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -99,7 +100,7 @@ export function extractLensOutput(
 //  MERGE — combines multiple lens outputs
 // ═══════════════════════════════════════════════════════════════
 
-export function mergeLensOutputs(outputs: LensOutput[]): MergedLensOutput {
+export function mergeLensOutputs(outputs: LensOutput[], context?: DiagnosticContext): MergedLensOutput {
   // Track per-lens contributions
   const lensContributions = {} as Record<LensType, { constraints: number; leverage: number; opportunities: number }>;
   for (const out of outputs) {
@@ -120,7 +121,7 @@ export function mergeLensOutputs(outputs: LensOutput[]): MergedLensOutput {
   const opportunities = deduplicateNodes(allOpportunities);
 
   // Detect convergence
-  const convergenceZones = detectConvergenceZones(outputs);
+  const convergenceZones = detectConvergenceZones(outputs, context);
 
   return {
     constraints,
@@ -138,7 +139,8 @@ export function mergeLensOutputs(outputs: LensOutput[]): MergedLensOutput {
 export function orchestrateLenses(
   selectedLenses: LensType[],
   allNodes: LeverageNode[],
+  context?: DiagnosticContext,
 ): MergedLensOutput {
   const outputs = selectedLenses.map(lens => extractLensOutput(lens, allNodes));
-  return mergeLensOutputs(outputs);
+  return mergeLensOutputs(outputs, context);
 }
