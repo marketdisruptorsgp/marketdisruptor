@@ -22,16 +22,16 @@ export interface OpportunityGridItem {
 
 const CATEGORY_COLORS: Record<OpportunityGridItem["category"], string> = {
   paradigm:     "hsl(var(--primary))",
-  optimization: "hsl(var(--success, 142 70% 35%))",
+  optimization: "hsl(142 70% 35%)",
   flanking:     "hsl(38 92% 42%)",
   unlock:       "hsl(263 70% 60%)",
 };
 
 const CATEGORY_LABELS: Record<OpportunityGridItem["category"], string> = {
-  paradigm:     "Paradigm Shift",
-  optimization: "Optimization Play",
-  flanking:     "Flanking Move",
-  unlock:       "Adjacent Opportunity",
+  paradigm:     "Strategic Shift",
+  optimization: "Quick Win",
+  flanking:     "Market Opening",
+  unlock:       "New Revenue",
 };
 
 interface BreakthroughGridProps {
@@ -85,7 +85,7 @@ function OpportunityCard({
           </p>
         )}
 
-        {/* Contrarian belief badge */}
+        {/* Key insight badge */}
         {item.contrarianBelief && (
           <div
             className="rounded-lg px-2.5 py-1.5 mt-1"
@@ -95,7 +95,7 @@ function OpportunityCard({
             }}
           >
             <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-0.5">
-              Contrarian Bet
+              The Insight
             </p>
             <p className="text-[11px] font-semibold text-foreground/80 leading-snug italic">
               "{item.contrarianBelief}"
@@ -122,7 +122,7 @@ export function BreakthroughGrid({ opportunities, modeAccent }: BreakthroughGrid
           className="text-[10px] font-extrabold uppercase tracking-widest"
           style={{ color: `${modeAccent}cc` }}
         >
-          Breakthrough Vectors
+          What You Could Do
         </span>
 
         {/* 2×2 grid — top card spans full width on mobile, grid on sm+ */}

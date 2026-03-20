@@ -110,7 +110,7 @@ function buildOpportunityGrid(
   }
 
   // Rank by confidence, cap at 4 cards
-  return result.sort((a, b) => b.confidence - a.confidence).slice(0, 4);
+  return result.sort((a, b) => b.confidence - a.confidence).slice(0, 5);
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -270,7 +270,7 @@ export default function CommandDeckPage() {
                 }}
               >
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-                  Binding Constraint Hypothesis
+                  The #1 Thing Holding This Business Back
                 </p>
                 <p className="text-sm font-bold text-foreground leading-snug">
                   {instantInsights.bindingConstraint.label}
@@ -290,7 +290,7 @@ export default function CommandDeckPage() {
                 className="space-y-1.5"
               >
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                  Assumptions Being Challenged
+                  Assumptions We're Testing
                 </p>
                 {instantInsights.assumptions.slice(0, 3).map((a, i) => (
                   <div
