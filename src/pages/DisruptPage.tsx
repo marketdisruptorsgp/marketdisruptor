@@ -430,11 +430,11 @@ export default function DisruptPage() {
         )}
 
         {/* Innovation Opportunities — shown inside assumptions tab */}
-        {effectiveTab === "assumptions" && analysis.disruptData && (
+        {effectiveTab === "assumptions" && effectiveDisruptData && (
           <AnalysisContentCard>
             <InnovationOpportunitiesPanel
               governedData={governedData as Record<string, unknown> | null}
-              analysisData={analysis.disruptData as Record<string, unknown> | null}
+              analysisData={effectiveDisruptData as Record<string, unknown> | null}
               stressTestData={analysis.stressTestData as Record<string, unknown> | null}
             />
           </AnalysisContentCard>
