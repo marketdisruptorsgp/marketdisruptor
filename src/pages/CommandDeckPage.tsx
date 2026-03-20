@@ -21,6 +21,7 @@ import { ModeBadge } from "@/components/ModeBadge";
 import { SituationReport } from "@/components/strategic/SituationReport";
 import { BreakthroughGrid, type OpportunityGridItem } from "@/components/strategic/BreakthroughGrid";
 import { ActionDirective } from "@/components/strategic/ActionDirective";
+import { ReinventionIdeas, type FlippedIdeaItem } from "@/components/strategic/ReinventionIdeas";
 import { ActionPath } from "@/components/command-deck/ActionPath";
 import { ArrowRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
