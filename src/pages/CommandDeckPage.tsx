@@ -165,6 +165,17 @@ export default function CommandDeckPage() {
       }));
   }, [disruptData]);
 
+  const opportunityGrid = useMemo(
+    () =>
+      buildOpportunityGrid(
+        deepenedOpportunities,
+        morphologicalZones,
+        constraintInversions,
+        secondOrderUnlocks,
+      ),
+    [deepenedOpportunities, morphologicalZones, constraintInversions, secondOrderUnlocks],
+  );
+
   // Auto-trigger analysis when the page mounts with data but no run yet
   useEffect(() => {
     if (!hasRun && completedSteps.size === 0 && (selectedProduct || businessAnalysisData)) {
@@ -344,16 +355,8 @@ export default function CommandDeckPage() {
       ? "service"
       : "product";
 
-  const opportunityGrid = useMemo(
-    () =>
-      buildOpportunityGrid(
-        deepenedOpportunities,
-        morphologicalZones,
-        constraintInversions,
-        secondOrderUnlocks,
-      ),
-    [deepenedOpportunities, morphologicalZones, constraintInversions, secondOrderUnlocks],
-  );
+
+
 
   return (
     <div className="flex-1 bg-background overflow-y-auto">
