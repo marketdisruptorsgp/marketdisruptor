@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Wrench, Beaker, Shield, DollarSign, Lightbulb } from "lucide-react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { InsightRating } from "@/components/InsightRating";
+import { SyntheticBadge } from "@/components/SyntheticBadge";
 import {
   StepCanvas, InsightCard, MetricCard, VisualGrid, SignalCard,
 } from "@/components/analysis/AnalysisComponents";
