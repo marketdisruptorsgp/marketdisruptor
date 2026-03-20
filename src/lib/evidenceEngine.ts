@@ -199,6 +199,47 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business model: reinventedModel phases → strategic pathway opportunities ──
+  const biz = input.businessAnalysisData;
+  if (biz?.reinventedModel) {
+    const rm = biz.reinventedModel;
+    const phases = safeArr(rm.phases || rm.transformationPhases || rm.steps);
+    phases.forEach((phase: any, i: number) => {
+      const label = phase.name || phase.title || phase.phase || `Transformation Phase ${i + 1}`;
+      const desc = phase.description || phase.rationale || (Array.isArray(phase.actions) ? phase.actions.join("; ") : undefined);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("opp-bm-phase"),
+          type: "opportunity",
+          label,
+          description: desc,
+          pipelineStep: "redesign",
+          tier: autoTier(label, desc, "structural"),
+          impact: phase.impact || 7,
+          category: "strategic_pathway",
+          mode,
+          sourceEngine: "pipeline",
+        });
+      }
+    });
+    // Reinvented model summary as top-level opportunity
+    const modelSummary = rm.summary || rm.model || rm.description;
+    if (typeof modelSummary === "string" && modelSummary.length > 10) {
+      items.push({
+        id: makeId("opp-bm-reinvented"),
+        type: "opportunity",
+        label: modelSummary.slice(0, 100) + (modelSummary.length > 100 ? "…" : ""),
+        description: modelSummary,
+        pipelineStep: "redesign",
+        tier: "structural",
+        impact: 8,
+        category: "strategic_pathway",
+        mode,
+        sourceEngine: "pipeline",
+      });
+    }
+  }
+
   const product = input.selectedProduct;
   if (product) {
     const ci = product.communityInsights || product.customerSentiment || {};
@@ -305,6 +346,77 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
         pipelineStep: "report", tier: "optimization", impact: 3, mode, sourceEngine: "pipeline",
       });
     });
+  }
+
+  // ── Business model: disruptionAnalysis.vulnerabilities → constraint evidence ──
+  const biz = input.businessAnalysisData;
+  if (biz?.disruptionAnalysis?.vulnerabilities) {
+    safeArr(biz.disruptionAnalysis.vulnerabilities).forEach((v: any, i: number) => {
+      const label = typeof v === "string" ? v : (v.name || v.label || v.vulnerability || v.description || `Vulnerability ${i + 1}`);
+      const desc = typeof v === "string" ? undefined : (v.description || v.impact || v.explanation);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-vuln"),
+          type: "constraint",
+          label,
+          description: desc,
+          pipelineStep: "disrupt",
+          tier: autoTier(label, desc, "structural"),
+          impact: v.severity || v.impact || 7,
+          category: "competitive_pressure",
+          mode,
+          sourceEngine: "pipeline",
+        });
+      }
+    });
+  }
+
+  // ── Business model: operationalAudit → operational friction/constraints ──
+  if (biz?.operationalAudit) {
+    const oa = biz.operationalAudit;
+    safeArr(oa.bottlenecks || oa.processBottlenecks).forEach((b: any, i: number) => {
+      const label = typeof b === "string" ? b : (b.name || b.label || b.process || `Process Bottleneck ${i + 1}`);
+      const desc = typeof b === "string" ? undefined : (b.description || b.impact);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-bottle"), type: "friction", label, description: desc,
+          pipelineStep: "report", tier: "structural", impact: b.severity || 7,
+          category: "operational_dependency", mode, sourceEngine: "pipeline",
+        });
+      }
+    });
+    safeArr(oa.capacityConstraints || oa.constraints).forEach((c: any, i: number) => {
+      const label = typeof c === "string" ? c : (c.name || c.label || c.constraint || `Capacity Constraint ${i + 1}`);
+      const desc = typeof c === "string" ? undefined : (c.description || c.impact);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-cap"), type: "constraint", label, description: desc,
+          pipelineStep: "report", tier: "system", impact: c.severity || 6,
+          category: "operational_dependency", mode, sourceEngine: "constraint_engine",
+        });
+      }
+    });
+    safeArr(oa.inefficiencies || oa.waste).forEach((w: any, i: number) => {
+      const label = typeof w === "string" ? w : (w.name || w.label || w.area || `Inefficiency ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("fric-bm-ineff"), type: "friction", label,
+          pipelineStep: "report", tier: "optimization", impact: 5,
+          category: "cost_structure", mode, sourceEngine: "pipeline",
+        });
+      }
+    });
+    if (oa.ownerDependency || oa.keyPersonRisk) {
+      const dep = oa.ownerDependency || oa.keyPersonRisk;
+      const label = typeof dep === "string" ? dep : (dep.description || dep.label || "Owner/key-person dependency");
+      items.push({
+        id: makeId("fric-bm-owner"), type: "constraint",
+        label: typeof label === "string" ? label : "Owner/key-person dependency",
+        description: typeof dep === "object" ? (dep.mitigation || dep.impact || undefined) : undefined,
+        pipelineStep: "report", tier: "structural", impact: 8,
+        category: "operational_dependency", mode, sourceEngine: "constraint_engine",
+      });
+    }
   }
 
   return items;
@@ -476,9 +588,32 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // Legacy flat business model fields
+  // ── Business model: hiddenAssumptions → assumption evidence (P0 mapping) ──
   const biz = input.businessAnalysisData;
   if (biz && mode === "business_model") {
+    safeArr(biz.hiddenAssumptions).forEach((a: any, i: number) => {
+      const label = typeof a === "string" ? a : (a.assumption || a.text || a.label || a.name || `Hidden Assumption ${i + 1}`);
+      const desc = typeof a === "string" ? undefined : (a.impact || a.why || a.description || a.rationale);
+      const rawConf = a.confidence ?? a.leverageScore ?? 0.6;
+      const confidence = typeof rawConf === "number" && rawConf <= 1 ? rawConf : rawConf / 10;
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("con-bm-ha"),
+          type: "assumption",
+          label,
+          description: desc,
+          pipelineStep: "disrupt",
+          tier: autoTier(label, desc, "structural"),
+          impact: Math.round((a.leverageScore || a.leverage || 0.7) * 10),
+          confidenceScore: confidence,
+          category: a.category || "hidden_assumption",
+          mode,
+          sourceEngine: "pipeline",
+        });
+      }
+    });
+
+    // Legacy flat fields
     safeArr(biz.revenueRisks || biz.revenueModelAssumptions).forEach((r: any, i: number) => {
       const label = typeof r === "string" ? r : (r.label || r.name || `Revenue Assumption ${i + 1}`);
       if (!items.some(e => e.label === label)) {
