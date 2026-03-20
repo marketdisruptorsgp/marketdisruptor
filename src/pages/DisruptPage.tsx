@@ -19,6 +19,7 @@ import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile, DEFAULT_PROFILES } from "@/lib/strategicOS";
 import { Target, Atom, Lightbulb, GitBranch, Brain, Shield, Sparkles } from "lucide-react";
+import { PreliminaryBadge } from "@/components/PreliminaryBadge";
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
