@@ -29,7 +29,7 @@ export async function runConceptSynthesis(
       morphologicalVectors,
       steeringText: ctx.steeringText || undefined,
     },
-  }, 180_000);
+  }, 150_000);
 
   if (error || !result?.success) {
     const msg = result?.error || error?.message || "Concept synthesis failed";

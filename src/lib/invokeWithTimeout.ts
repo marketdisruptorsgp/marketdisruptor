@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 export async function invokeWithTimeout<T = any>(
   functionName: string,
   options: { body?: any },
-  timeoutMs = 180_000, // 3 minutes default — generous but prevents infinite hang
+  timeoutMs = 150_000, // 2.5 minutes — aligns with pipeline hard budget, prevents infinite hang
   retries = 0, // Number of automatic retries on transient failures
 ): Promise<{ data: T | null; error: any }> {
   let lastError: any = null;
