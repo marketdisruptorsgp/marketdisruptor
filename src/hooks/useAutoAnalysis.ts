@@ -537,6 +537,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
     if (!analysisId || !hasComputableData) return;
 
+    // H4 fix: suppress recompute while hydration is in progress to prevent
+    // firing with partial state (e.g., decomposition set but governed not yet)
+    if (isHydrating) return;
+
     const hash = [
       completedSteps.size,
       !!disruptData ? "d" : "",
