@@ -17,6 +17,11 @@ import { useNavigate } from "react-router-dom";
 import { getResumeRoute } from "@/utils/analysisSteps";
 import { buildDiagnosticContext, extractLensConfig, type DiagnosticContext } from "@/lib/diagnosticContext";
 
+// Extracted hooks
+import { useLoadingTimer } from "@/hooks/useLoadingTimer";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useAutoPersistEffects } from "@/hooks/useAutoPersistEffects";
+
 /** Lightweight summary of a concept variant for cross-page transfer */
 export interface ConceptVariantSummary {
   id: string;
@@ -51,7 +56,8 @@ interface AnalysisContextType {
   selectedProduct: Product | null;
   setSelectedProduct: (p: Product | null) => void;
   analysisParams: { category: string; era: string; batchSize: number } | null;
-  setAnalysisParams: (p: { category: string; era: string; batchSize: number } | null) => void;  errorMsg: string;
+  setAnalysisParams: (p: { category: string; era: string; batchSize: number } | null) => void;
+  errorMsg: string;
   setErrorMsg: (msg: string) => void;
 
   // Mode
@@ -225,7 +231,7 @@ export interface AdaptiveContextData {
   problemStatement?: string;
   entity?: { name: string; type: string };
   detectedModes?: { mode: string; confidence: number; reason: string }[];
-  activeModes?: string[]; // User-selected active modes (e.g., ["product", "service", "business"])
+  activeModes?: string[];
   selectedChallenges?: { id: string; question: string; context: string; priority: string; related_mode: string }[];
   summary?: string;
   userGuidance?: string;
@@ -248,6 +254,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const { canAnalyze, checkSubscription } = useSubscription();
   const navigate = useNavigate();
 
+  // ── Core State ──
   const [step, setStep] = useState<AnalysisStep>("idle");
   const [isHydrating, setIsHydrating] = useState(false);
   const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
@@ -278,16 +285,18 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [activeBranchId, setActiveBranchIdState] = useState<string | null>(null);
   const [strategicProfile, setStrategicProfileState] = useState<StrategicProfile>(DEFAULT_PROFILES.operator);
 
-  // ── System Layer: Outdated Step Tracking ──
-  const [outdatedSteps, setOutdatedSteps] = useState<Set<string>>(new Set());
+  // Declare these before the stepDataRef useEffect that references them
+  const [redesignData, setRedesignData] = useState<unknown>(null);
+  const [conceptsData, setConceptsData] = useState<unknown>(null);
 
-  // Step-data lookup so we can guard against marking empty steps outdated
-  // We use a ref updated via effect (after all state vars are declared) to avoid declaration-order issues
+  // ── Loading Timer (extracted) ──
+  const { elapsedSeconds, loadingLog, pushLog, startLoadingTimer, stopLoadingTimer } = useLoadingTimer();
+
+  // ── Outdated Step Tracking ──
+  const [outdatedSteps, setOutdatedSteps] = useState<Set<string>>(new Set());
   const stepDataRef = useRef<Record<string, unknown>>({});
 
   const markStepOutdated = useCallback((step: string) => {
-    // Only mark a step outdated if it already has data — prevents
-    // upstream changes from flagging downstream steps that don't exist yet
     if (!stepDataRef.current[step]) return;
     setOutdatedSteps(prev => new Set([...prev, step]));
   }, []);
@@ -299,49 +308,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // ── System Layer: User Score Overrides ──
-  const [userScores, setUserScores] = useState<Record<string, Record<string, number>>>({});
-  const pendingScoreSaveRef = useRef<Record<string, Record<string, number>> | null>(null);
-  const setUserScore = useCallback((ideaId: string, scoreKey: string, value: number) => {
-    setUserScores(prev => {
-      const next = {
-        ...prev,
-        [ideaId]: { ...(prev[ideaId] || {}), [scoreKey]: value },
-      };
-      pendingScoreSaveRef.current = next;
-      return next;
-    });
-    // Mark all downstream steps as outdated
-    markStepOutdated("redesign");
-    markStepOutdated("stressTest");
-    markStepOutdated("pitchDeck");
-  }, [markStepOutdated]);
-
-  // ── Redesign Data (isolated from Disrupt) ──
-  // ── Multi-Hypothesis Branch Selection ──
-  const pendingBranchSaveRef = useRef<string | null | undefined>(undefined);
-  const setActiveBranchId = useCallback((id: string | null) => {
-    setActiveBranchIdState(id);
-    // "combined" or null means all hypotheses — only mark outdated when switching to/from isolated
-    // Branch changes invalidate downstream steps — but NOT the current Disrupt step itself
-    markStepOutdated("redesign");
-    markStepOutdated("stressTest");
-    markStepOutdated("pitchDeck");
-    pendingBranchSaveRef.current = id;
-  }, [markStepOutdated]);
-  const pendingProfileSaveRef = useRef<StrategicProfile | undefined>(undefined);
-  const setStrategicProfile = useCallback((p: StrategicProfile) => {
-    setStrategicProfileState(p);
-    pendingProfileSaveRef.current = p;
-    // Re-ranking with new profile changes downstream — not Disrupt itself
-    markStepOutdated("redesign");
-    markStepOutdated("stressTest");
-    markStepOutdated("pitchDeck");
-  }, [markStepOutdated]);
-  const [redesignData, setRedesignData] = useState<unknown>(null);
-  const [conceptsData, setConceptsData] = useState<unknown>(null);
-
-  // Keep stepDataRef in sync so markStepOutdated can guard empty steps
+  // Keep stepDataRef in sync
   useEffect(() => {
     stepDataRef.current = {
       decompose: decompositionData,
@@ -353,86 +320,38 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     };
   }, [decompositionData, disruptData, stressTestData, pitchDeckData, redesignData, conceptsData]);
 
-  // ── Insight Preferences (liked/dismissed) ──
-  const [insightPreferences, setInsightPreferences] = useState<Record<string, "liked" | "dismissed" | "neutral">>({});
-  const pendingPrefSaveRef = useRef<Record<string, "liked" | "dismissed" | "neutral"> | null>(null);
-  const setInsightPreference = useCallback((id: string, status: "liked" | "dismissed" | "neutral") => {
-    setInsightPreferences(prev => {
-      const next = { ...prev };
-      if (status === "neutral") {
-        delete next[id];
-      } else {
-        next[id] = status;
-      }
-      pendingPrefSaveRef.current = next;
-      return next;
-    });
-  }, []);
-  const getLikedInsights = useCallback(() => {
-    return Object.entries(insightPreferences).filter(([, s]) => s === "liked").map(([id]) => id);
-  }, [insightPreferences]);
-  const getDismissedInsights = useCallback(() => {
-    return Object.entries(insightPreferences).filter(([, s]) => s === "dismissed").map(([id]) => id);
-  }, [insightPreferences]);
+  // ── User Preferences (extracted) ──
+  const prefs = useUserPreferences(markStepOutdated);
 
-  // ── Steering Text ──
-  const [steeringText, setSteeringText] = useState<string>("");
-  const saveSteeringText = useCallback((text: string) => {
-    setSteeringText(text);
-    // Update adaptive context with ongoing user guidance
-    setAdaptiveContextState(prev => prev ? { ...prev, userGuidance: text || undefined } : null);
-    if (analysisId) {
-      saveStepData("steeringText", text);
-    }
-  }, [analysisId]);
-
-  // ── Pitch Deck Images (up to 2 selected from flipped ideas) ──
-  const [pitchDeckImages, setPitchDeckImages] = useState<{ url: string; ideaName: string }[]>([]);
-  const pendingPitchImagesSaveRef = useRef<{ url: string; ideaName: string }[] | null>(null);
-  const setPitchDeckImage = useCallback((url: string, ideaName: string) => {
-    setPitchDeckImages(prev => {
-      // Already selected? Skip
-      if (prev.some(img => img.url === url)) return prev;
-      // Max 2 — replace oldest if full
-      const next = prev.length >= 2 ? [...prev.slice(1), { url, ideaName }] : [...prev, { url, ideaName }];
-      pendingPitchImagesSaveRef.current = next;
-      return next;
-    });
-  }, []);
-  const removePitchDeckImage = useCallback((url: string) => {
-    setPitchDeckImages(prev => {
-      const next = prev.filter(img => img.url !== url);
-      pendingPitchImagesSaveRef.current = next;
-      return next;
-    });
-  }, []);
-
-  // ── Pitch Deck Content Exclusions ──
-  const [pitchDeckExclusions, setPitchDeckExclusions] = useState<Set<string>>(new Set());
-  const pendingExclusionsSaveRef = useRef<string[] | null>(null);
-
-  // ── Analysis Lens ──
-  const [activeLens, setActiveLensState] = useState<UserLens | null>(null);
-  // ── Mode Routing ──
-  const [modeRouting, setModeRouting] = useState<RoutingResult | null>(null);
-  // ── Adaptive Context ──
-  const [adaptiveContext, setAdaptiveContextState] = useState<AdaptiveContextData | null>(null);
-  const pendingAdaptiveCtxSaveRef = useRef<AdaptiveContextData | null | undefined>(undefined);
-  const setAdaptiveContext = useCallback((ctx: AdaptiveContextData | null) => {
-    setAdaptiveContextState(ctx);
-  }, []);
-  const pendingLensSaveRef = useRef<string | null | undefined>(undefined);
-  const setActiveLens = useCallback((lens: UserLens | null) => {
-    setActiveLensState(lens);
-    pendingLensSaveRef.current = lens?.id ?? null;
-    // Mark all downstream steps as outdated
+  // ── Branch & Profile ──
+  const pendingBranchSaveRef = useRef<string | null | undefined>(undefined);
+  const setActiveBranchId = useCallback((id: string | null) => {
+    setActiveBranchIdState(id);
+    markStepOutdated("redesign");
+    markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
+    pendingBranchSaveRef.current = id;
+  }, [markStepOutdated]);
+  const pendingProfileSaveRef = useRef<StrategicProfile | undefined>(undefined);
+  const setStrategicProfile = useCallback((p: StrategicProfile) => {
+    setStrategicProfileState(p);
+    pendingProfileSaveRef.current = p;
     markStepOutdated("redesign");
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
 
-  // Wrapped setActiveMode: mode changes, like lens changes, invalidate
-  // diagnostic-dependent downstream steps so they are re-run with the new mode context.
+  // ── Lens ──
+  const [activeLens, setActiveLensState] = useState<UserLens | null>(null);
+  const pendingLensSaveRef = useRef<string | null | undefined>(undefined);
+  const setActiveLens = useCallback((lens: UserLens | null) => {
+    setActiveLensState(lens);
+    pendingLensSaveRef.current = lens?.id ?? null;
+    markStepOutdated("redesign");
+    markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
+  }, [markStepOutdated]);
+
   const setActiveMode = useCallback((m: AnalysisMode) => {
     setActiveModeState(m);
     markStepOutdated("redesign");
@@ -440,25 +359,23 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
 
-  // ── Computed DiagnosticContext ──
-  // Combines active mode + lens into the unified contract used by all engines.
-  // Re-computed whenever mode or lens changes.
   const diagnosticContext = useMemo((): DiagnosticContext =>
     buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null)),
   [activeMode, activeLens]);
 
-  // ── Geo Market Data ──
+  // ── Additional State ──
   const [geoData, setGeoData] = useState<unknown>(null);
-  // ── Regulatory Data (adaptive) ──
   const [regulatoryData, setRegulatoryData] = useState<unknown>(null);
-  // ── Scouted Competitors (from Disrupt → Stress Test) ──
   const [scoutedCompetitors, setScoutedCompetitors] = useState<unknown[]>([]);
-  // ── Persisted rejected ideas ──
   const [rejectedIdeasPersisted, setRejectedIdeasPersisted] = useState<string[]>([]);
-  // ── Concept Variants for Stress Test (from Insight Graph) ──
   const [conceptVariantsForStressTest, setConceptVariantsForStressTest] = useState<ConceptVariantSummary[]>([]);
-  // ── Instant Insights (deterministic pre-computation) ──
   const [instantInsights, setInstantInsights] = useState<InstantInsights | null>(null);
+  const [modeRouting, setModeRouting] = useState<RoutingResult | null>(null);
+  const [adaptiveContext, setAdaptiveContextState] = useState<AdaptiveContextData | null>(null);
+  const pendingAdaptiveCtxSaveRef = useRef<AdaptiveContextData | null | undefined>(undefined);
+  const setAdaptiveContext = useCallback((ctx: AdaptiveContextData | null) => {
+    setAdaptiveContextState(ctx);
+  }, []);
 
   const fetchGeoData = useCallback(async (category: string, productName?: string, geography?: string) => {
     try {
@@ -471,7 +388,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       setGeoData(result.geoData);
-      // Extract regulatory profile if present
       if (result.geoData?.regulatoryProfile && result.geoData.regulatoryProfile.regulatoryRelevance !== "none") {
         setRegulatoryData(result.geoData.regulatoryProfile);
         console.log("[GeoData] Regulatory data loaded:", result.geoData.regulatoryProfile.matchedCategory);
@@ -484,56 +400,32 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const togglePitchDeckExclusion = useCallback((key: string) => {
-    setPitchDeckExclusions(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      pendingExclusionsSaveRef.current = Array.from(next);
-      return next;
-    });
-  }, []);
+  // ── Shared hydration setters ──
+  const hydrationSetters: HydrationSetters = useMemo(() => ({
+    setAnalysisId, setProducts, setSelectedProduct, setAnalysisParams,
+    setMainTab, setActiveMode, setStep, setDetailTab, setLoadedFromSaved,
+    setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData, setConceptsData,
+    setGovernedData, setBusinessAnalysisData, setBusinessModelInput,
+    setBusinessStressTestData,
+    setActiveBranchIdState, setStrategicProfileState,
+    setUserScores: prefs.setUserScores, setOutdatedSteps,
+    setInsightPreferences: prefs.setInsightPreferences,
+    setSteeringText: prefs.setSteeringText,
+    setPitchDeckImages: prefs.setPitchDeckImages,
+    setPitchDeckExclusions: prefs.setPitchDeckExclusions,
+    setScoutedCompetitors,
+    setAdaptiveContext: setAdaptiveContextState, setGeoData, setRegulatoryData,
+    setActiveLensState,
+    setRejectedIdeasPersisted,
+  }), []);
 
-  // Loading
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [loadingLog, setLoadingLog] = useState<{ text: string; ts: number }[]>([]);
-  const loadingStartRef = useRef<number>(0);
-  const logTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const pushLog = useCallback((text: string) => {
-    setLoadingLog(prev => [...prev.slice(-12), { text, ts: Date.now() }]);
-  }, []);
-
-  const startLoadingTimer = useCallback(() => {
-    loadingStartRef.current = Date.now();
-    setElapsedSeconds(0);
-    setLoadingLog([]);
-    if (logTimerRef.current) clearInterval(logTimerRef.current);
-    logTimerRef.current = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - loadingStartRef.current) / 1000));
-    }, 1000);
-  }, []);
-
-  const stopLoadingTimer = useCallback(() => {
-    if (logTimerRef.current) {
-      clearInterval(logTimerRef.current);
-      logTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => stopLoadingTimer();
-  }, [stopLoadingTimer]);
-
+  // ── Save Analysis ──
   const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }, customProductName?: string) => {
     try {
       const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
-      // Use the user's custom name if provided, otherwise use first product name
       const baseName = customProductName?.trim() || liveProducts[0]?.name || "Analysis";
 
-      // Check for duplicate titles and append version
       let title = baseName;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: existing } = await (supabase.from("saved_analyses") as any)
         .select("title")
         .eq("user_id", user?.id)
@@ -547,7 +439,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         title = `${baseName} v${nextVersion}`;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: insertedData } = await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
         title,
@@ -573,9 +464,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const createAnalysis = useCallback(async (title: string, analysisType: string, extraFields?: Record<string, unknown>): Promise<string> => {
     if (!user?.id) throw new Error("User not authenticated");
 
-    // Check for duplicate titles and append version
     let finalTitle = title;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: existing } = await (supabase.from("saved_analyses") as any)
       .select("title")
       .eq("user_id", user.id)
@@ -589,7 +478,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       finalTitle = `${title} v${nextVersion}`;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from("saved_analyses") as any).insert({
       user_id: user.id,
       title: finalTitle,
@@ -610,21 +498,203 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     return data.id;
   }, [user?.id]);
 
-  // ── Shared hydration setters object (used by clearAllState and hydrateFromRow) ──
-  const hydrationSetters: HydrationSetters = useMemo(() => ({
-    setAnalysisId, setProducts, setSelectedProduct, setAnalysisParams,
-    setMainTab, setActiveMode, setStep, setDetailTab, setLoadedFromSaved,
-    setDecompositionData, setDisruptData, setStressTestData, setPitchDeckData, setRedesignData, setConceptsData,
-    setGovernedData, setBusinessAnalysisData, setBusinessModelInput,
-    setBusinessStressTestData,
-    setActiveBranchIdState, setStrategicProfileState: setStrategicProfileState,
-    setUserScores, setOutdatedSteps, setInsightPreferences, setSteeringText,
-    setPitchDeckImages, setPitchDeckExclusions, setScoutedCompetitors,
-    setAdaptiveContext: setAdaptiveContextState, setGeoData, setRegulatoryData,
-    setActiveLensState,
-    setRejectedIdeasPersisted,
-  }), []);
+  // ── Save Step Data (persistence engine) ──
+  const saveStepData = useCallback(async (stepKey: string, data: unknown, targetAnalysisId?: string) => {
+    const resolvedAnalysisId = targetAnalysisId || analysisId;
+    if (!resolvedAnalysisId) return;
 
+    const capturedId = resolvedAnalysisId;
+
+    const { validateStepData, logStepExecution } = await import("@/utils/pipelineValidation");
+    const validation = validateStepData(stepKey, data);
+    logStepExecution(stepKey, "save", { analysisId: capturedId, valid: validation.valid });
+
+    if (!validation.valid) {
+      console.error("[Pipeline] Validation failed for step:", stepKey, validation.errors);
+      return;
+    }
+
+    const { validateBeforePersistence, enforceDependencyIntegrity } = await import("@/utils/checkpointGate");
+    const governedCheck = validateBeforePersistence(stepKey, data);
+    if (!governedCheck.allowed) {
+      console.error(`[Governed] PERSISTENCE BLOCKED for "${stepKey}": ${governedCheck.reason}`);
+      toast.error(`Checkpoint gate blocked: ${governedCheck.reason}`);
+      return;
+    }
+
+    if (governedCheck.invalidatedSteps.length > 0) {
+      console.log(`[Governed] Invalidating downstream steps: ${governedCheck.invalidatedSteps.join(", ")}`);
+      for (const depStep of governedCheck.invalidatedSteps) {
+        markStepOutdated(depStep);
+      }
+    }
+
+    if (!targetAnalysisId && analysisId !== capturedId) {
+      console.warn(`[saveStepData] Context switched during save (${capturedId} → ${analysisId}). Aborting.`);
+      return;
+    }
+
+    try {
+      const { extractGovernedArtifacts, mergeGovernedIntoAnalysisData, checkRetroactiveInvalidation, applyRetroactiveInvalidation } = await import("@/lib/governedPersistence");
+      const extraction = extractGovernedArtifacts(stepKey, data);
+      const hasGovernedWork = extraction.hasGoverned && extraction.valid;
+      const depIntegrity = enforceDependencyIntegrity(stepKey, data, {});
+      const needsComplexMerge = hasGovernedWork || depIntegrity.purgeSteps.length > 0;
+
+      if (!needsComplexMerge) {
+        try {
+          const { error: rpcError } = await (supabase.rpc as any)("merge_analysis_step", {
+            p_analysis_id: capturedId,
+            p_step_key: stepKey,
+            p_step_payload: data,
+          });
+          if (rpcError) {
+            console.error("Atomic merge_analysis_step failed:", rpcError);
+          } else {
+            logStepExecution(stepKey, "save", { analysisId: capturedId, success: true, atomic: true });
+            return;
+          }
+        } catch (rpcErr) {
+          console.warn("[saveStepData] Atomic RPC failed, falling back to legacy merge:", rpcErr);
+        }
+      }
+
+      // Legacy complex path: read-merge-write for governed artifacts
+      const { data: existing } = await (supabase.from("saved_analyses") as any)
+        .select("analysis_data")
+        .eq("id", capturedId)
+        .single();
+
+      if (!targetAnalysisId && analysisId !== capturedId) {
+        console.warn(`[saveStepData] Context switched during DB read. Aborting.`);
+        return;
+      }
+
+      const prev = (existing?.analysis_data as Record<string, unknown>) || {};
+
+      const previousSnapshot = (prev.previousSnapshot as Record<string, unknown>) || {};
+      if (prev[stepKey] && JSON.stringify(prev[stepKey]) !== JSON.stringify(data)) {
+        previousSnapshot[stepKey] = prev[stepKey];
+      }
+
+      const governedHashes = (prev.governedHashes as Record<string, string>) || {};
+      const depIntegrityFull = enforceDependencyIntegrity(stepKey, data, governedHashes);
+      governedHashes[stepKey] = depIntegrityFull.newHash;
+
+      const { buildEvidenceRegistry } = await import("@/lib/evidenceRegistry");
+      const { applyLensAdaptation } = await import("@/lib/lensAdaptationEngine");
+      
+      const MAX_SNAPSHOT_KEYS = 6;
+      const snapshotKeys = Object.keys(previousSnapshot);
+      if (snapshotKeys.length > MAX_SNAPSHOT_KEYS) {
+        for (const oldKey of snapshotKeys.slice(0, snapshotKeys.length - MAX_SNAPSHOT_KEYS)) {
+          delete previousSnapshot[oldKey];
+        }
+      }
+
+      let merged: Record<string, unknown> = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
+      
+      if (hasGovernedWork) {
+        merged = mergeGovernedIntoAnalysisData(merged, extraction);
+        console.log(`[GovernedPersistence] Merged ${extraction.presentArtifacts.length} artifacts (${extraction.governedByteSize} bytes) into analysis_data.governed`);
+        
+        const registry = buildEvidenceRegistry(merged);
+        merged._evidenceRegistry = registry;
+
+        const governedForLens = merged.governed as Record<string, unknown> | undefined;
+        if (governedForLens) {
+          const activeLensVal = (merged as any)._activeLens || null;
+          const lensResult = applyLensAdaptation(governedForLens, activeLensVal);
+          if (lensResult) {
+            merged._lensAdaptation = lensResult;
+          }
+        }
+        
+        const governedObj = merged.governed as Record<string, unknown>;
+        const invalidation = checkRetroactiveInvalidation(governedObj);
+        if (invalidation.shouldInvalidate) {
+          merged.governed = applyRetroactiveInvalidation(governedObj, invalidation);
+          console.warn(`[RetroactiveInvalidation] Applied: confidence downgraded by ${invalidation.confidenceDowngrade}`);
+          for (const affected of invalidation.affectedArtifacts) {
+            markStepOutdated(affected);
+          }
+        }
+      } else if (extraction.hasGoverned && !extraction.valid) {
+        console.warn(`[GovernedPersistence] Governed data INVALID. Rejecting.`);
+      }
+
+      const allPurgeSteps = [...new Set([...governedCheck.invalidatedSteps, ...depIntegrityFull.purgeSteps])];
+      if (allPurgeSteps.length > 0) {
+        for (const depStep of allPurgeSteps) {
+          markStepOutdated(depStep);
+          const gd = merged.governed as Record<string, unknown> | undefined;
+          if (gd && gd[depStep]) {
+            delete gd[depStep];
+            delete governedHashes[depStep];
+          }
+        }
+      }
+
+      // Size guard
+      const mergedStr = JSON.stringify(merged);
+      const payloadBytes = new TextEncoder().encode(mergedStr).length;
+      const MAX_PAYLOAD_BYTES = 4_000_000;
+      if (payloadBytes > MAX_PAYLOAD_BYTES) {
+        console.warn(`[Pipeline] Payload too large (${(payloadBytes / 1_000_000).toFixed(1)}MB), stripping data`);
+        delete merged.previousSnapshot;
+        if (merged.pitchDeckImages && Array.isArray(merged.pitchDeckImages)) {
+          merged.pitchDeckImages = (merged.pitchDeckImages as any[]).map(img => ({
+            ...img,
+            url: typeof img.url === "string" && img.url.startsWith("data:") ? "" : img.url,
+          }));
+        }
+      }
+
+      if (!targetAnalysisId && analysisId !== capturedId) {
+        console.warn(`[saveStepData] Context switched before final write. Aborting.`);
+        return;
+      }
+
+      const { error: updateError } = await (supabase.from("saved_analyses") as any)
+        .update({ analysis_data: merged, updated_at: new Date().toISOString() })
+        .eq("id", capturedId);
+      if (updateError) {
+        console.error("saveStepData update failed:", updateError, "analysisId:", capturedId, "stepKey:", stepKey);
+      } else {
+        logStepExecution(stepKey, "save", { analysisId: capturedId, success: true, governedByteSize: extraction.governedByteSize });
+        if (merged.governed) {
+          setGovernedData(merged.governed as Record<string, unknown>);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to persist step data:", err);
+    }
+  }, [analysisId, markStepOutdated]);
+
+  // ── Steering Text save (declared after saveStepData) ──
+  const saveSteeringText = useCallback((text: string) => {
+    prefs.setSteeringText(text);
+    setAdaptiveContextState(prev => prev ? { ...prev, userGuidance: text || undefined } : null);
+    if (analysisId) {
+      saveStepData("steeringText", text);
+    }
+  }, [analysisId, saveStepData]);
+
+  // ── Auto-persist effects (extracted) ──
+  useAutoPersistEffects({
+    analysisId, saveStepData,
+    userScores: prefs.userScores, pendingScoreSaveRef: prefs.pendingScoreSaveRef,
+    outdatedSteps,
+    insightPreferences: prefs.insightPreferences, pendingPrefSaveRef: prefs.pendingPrefSaveRef,
+    pitchDeckImages: prefs.pitchDeckImages, pendingPitchImagesSaveRef: prefs.pendingPitchImagesSaveRef,
+    pitchDeckExclusions: prefs.pitchDeckExclusions, pendingExclusionsSaveRef: prefs.pendingExclusionsSaveRef,
+    activeLens, pendingLensSaveRef,
+    activeBranchId: activeBranchId, pendingBranchSaveRef,
+    strategicProfile, pendingProfileSaveRef,
+    adaptiveContext, pendingAdaptiveCtxSaveRef,
+  });
+
+  // ── Pipeline: handleAnalyze ──
   const handleAnalyze = useCallback(async (params: {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
@@ -645,17 +715,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setStep("scraping");
     setErrorMsg("");
 
-    // Clear all step state to prevent cross-analysis contamination
     clearAllState(hydrationSetters);
-    // Keep activeLens — user may want to run analysis with their lens
-
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
 
-    // ── DATABASE-FIRST ID: Create the DB row BEFORE navigating ──
-    // This eliminates the dual-ID race condition where a client UUID
-    // could differ from the DB-assigned ID.
     const isServiceMode = params.category === "Service";
     const isBusinessMode = mainTab === "business" || activeMode === "business";
     const analysisType = isBusinessMode ? "business_model" : isServiceMode ? "service" : "product";
@@ -676,10 +740,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
     setAnalysisId(dbId);
 
-    // Navigate to Command Deck — primary strategic briefing surface
     navigate(`/analysis/${dbId}/command-deck`);
-
-    // isServiceMode already declared above
 
     pushLog(hasCustom
       ? `Starting analysis pipeline for your custom ${isServiceMode ? "service" : "products"}...`
@@ -712,7 +773,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const { data: scrapeData, error: scrapeError } = await invokeWithTimeout(
         "scrape-products",
         { body: { ...baseParams, customProducts } },
-        180_000, // 3 min — scraping can be slow
+        180_000,
       );
       if (scrapeError || !scrapeData?.success) {
         throw new Error(scrapeData?.error || scrapeError?.message || "Scraping failed");
@@ -724,7 +785,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
 
-      // ── EARLY INSTANT INSIGHTS: Generate from scrape metadata before full analysis ──
+      // Early instant insights from scrape metadata
       try {
         const earlyProduct: any = {
           name: customProducts?.find(cp => cp.productName)?.productName || params.category,
@@ -751,26 +812,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       );
 
       await new Promise(r => setTimeout(r, 400));
-      pushLog(isServiceMode
-        ? "Parsing service data & customer sentiment..."
-        : "Parsing product data & community sentiment..."
-      );
+      pushLog(isServiceMode ? "Parsing service data & customer sentiment..." : "Parsing product data & community sentiment...");
       await new Promise(r => setTimeout(r, 800));
       pushLog("Building pricing intelligence from real market data...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog(isServiceMode
-        ? "Mapping customer journey friction & operational bottlenecks..."
-        : "Mapping supply chain: suppliers, manufacturers, distributors..."
-      );
+      pushLog(isServiceMode ? "Mapping customer journey friction & operational bottlenecks..." : "Mapping supply chain: suppliers, manufacturers, distributors...");
       await new Promise(r => setTimeout(r, 800));
       pushLog("Generating flipped ideas from community pain points...");
       await new Promise(r => setTimeout(r, 800));
       pushLog("Scoring potential & building action plans...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog(isServiceMode
-        ? "Analyzing competitive landscape & differentiation opportunities..."
-        : "Searching for real product images across data sources..."
-      );
+      pushLog(isServiceMode ? "Analyzing competitive landscape & differentiation opportunities..." : "Searching for real product images across data sources...");
 
       const { data: analyzeData, error: analyzeError } = await invokeWithTimeout(
         "analyze-products",
@@ -791,11 +843,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             })),
           },
         },
-        180_000, // 3 min
+        180_000,
       );
 
       if (analyzeError || !analyzeData?.success) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const context = (analyzeError as any)?.context;
         let detailedMsg = analyzeData?.error || analyzeError?.message || "Analysis failed";
         if (context) {
@@ -810,7 +861,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       let liveProducts: Product[] = analyzeData.products;
       if (!liveProducts?.length) throw new Error("No results returned from analysis.");
 
-      // Restore user-uploaded images onto matching products
       if (customProducts?.length) {
         liveProducts = liveProducts.map((p) => {
           const match = customProducts.find(
@@ -826,18 +876,16 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pushLog(`Analysis complete — ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with full intelligence reports ready.`);
       stopLoadingTimer();
 
-      // Fetch geo market data + regulatory intelligence in background (non-blocking)
       const productNameForGeo = customProducts?.find(cp => cp.productName)?.productName || liveProducts[0]?.name;
       fetchGeoData(params.category, productNameForGeo, territory).then(() => {
         console.log("[Pipeline] Geo market data + regulatory intel fetched for", params.category);
-      }).catch(() => { /* best effort */ });
+      }).catch(() => {});
 
       setProducts(liveProducts);
       setSelectedProduct(liveProducts[0]);
       setDetailTab("overview");
       setStep("done");
 
-      // ── INSTANT INSIGHTS: Pre-compute structural hypotheses from scraped data (~0ms) ──
       try {
         const instant = computeInstantInsights(liveProducts[0], diagnosticContext);
         if (instant) {
@@ -847,7 +895,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {
         console.warn("[InstantInsights] Pre-computation failed (non-blocking):", e);
       }
-      // Defer toast to let React reconcile the DOM tree swap first
       setTimeout(() => {
         toast.success(`Found ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with deep intelligence reports!`);
       }, 100);
@@ -855,45 +902,40 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       try {
         await supabase.rpc("increment_usage", { p_user_id: user?.id });
         await checkSubscription();
-        // Streak tracking
         await (supabase.rpc as any)("upsert_user_streak", { p_user_id: user?.id });
-        // Milestone toasts
         const { data: usage } = await (supabase.from("user_usage") as any).select("analysis_count").eq("user_id", user?.id).single();
         const count = usage?.analysis_count || 0;
         if (count === 5) setTimeout(() => toast("🏆 Milestone: 5 analyses completed!", { description: "You're building real market intelligence." }), 200);
         else if (count === 10) setTimeout(() => toast("🔥 Milestone: 10 analyses!", { description: "You're a power user now." }), 200);
         else if (count === 25) setTimeout(() => toast("⭐ Milestone: 25 analyses!", { description: "Elite-level market intelligence." }), 200);
       } catch (_) { /* best effort */ }
-      const customName = customProducts?.find(cp => cp.productName)?.productName;
-      await saveAnalysis(liveProducts, baseParams, customName);
+      const finalCustomName = customProducts?.find(cp => cp.productName)?.productName;
+      await saveAnalysis(liveProducts, baseParams, finalCustomName);
 
-      // Persist adaptive context and biExtraction immediately (not deferred)
       if (adaptiveContext) {
         pendingAdaptiveCtxSaveRef.current = adaptiveContext;
-        // Also persist biExtraction directly if available in adaptive context
         if (adaptiveContext.biExtraction) {
           saveStepData("biExtraction", adaptiveContext.biExtraction, dbId).catch(() => {});
         }
         saveStepData("adaptiveContext", adaptiveContext, dbId).catch(() => {});
       }
 
-      // ── Background: Auto-run patent analysis for richer Command Deck data ──
+      // Background patent analysis
       const primaryProduct = liveProducts[0];
       if (primaryProduct && !isServiceMode) {
-        // Build industry context from the product data for grounded patent search
         const industryContext: Record<string, unknown> = {};
         const pp = primaryProduct as any;
         if (pp.category) industryContext.industry = pp.category;
         if (pp.description) industryContext.businessDescription = pp.description;
         if (pp.supplyChain) {
           const sc = pp.supplyChain;
-          const products: string[] = [];
+          const productsList: string[] = [];
           const processes: string[] = [];
           const materials: string[] = [];
           if (sc.manufacturers?.length) materials.push(...sc.manufacturers.map((m: any) => m.name || m).slice(0, 3));
           if (sc.distributors?.length) processes.push("distribution");
-          if (pp.name) products.push(pp.name);
-          if (products.length) industryContext.products = products;
+          if (pp.name) productsList.push(pp.name);
+          if (productsList.length) industryContext.products = productsList;
           if (processes.length) industryContext.processes = processes;
           if (materials.length) industryContext.materials = materials;
         }
@@ -909,14 +951,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             const enriched = { ...primaryProduct, patentData: patentResult.patentData } as Product;
             setProducts(prev => prev.map(p => p.name === primaryProduct.name ? enriched : p));
             setSelectedProduct(prev => prev?.name === primaryProduct.name ? enriched : prev);
-            // Persist patent data to the analysis
             saveStepData("products", liveProducts.map(p => p.name === primaryProduct.name ? enriched : p)).catch(() => {});
             console.log("[Pipeline] Patent intelligence auto-loaded for", primaryProduct.name);
           }
-        }).catch(() => { /* best effort */ });
+        }).catch(() => {});
       }
 
-      // Fire webhooks (best effort)
+      // Fire webhooks
       try {
         await supabase.functions.invoke("fire-webhook", {
           body: {
@@ -932,7 +973,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         });
       } catch (_) { /* best effort */ }
 
-      // Navigate to Command Deck
       navigate(`/analysis/${dbId}/command-deck`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -949,6 +989,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     handleAnalyze(analysisParams);
   }, [analysisParams, handleAnalyze]);
 
+  // ── Regenerate Ideas ──
   const handleRegenerateIdeas = useCallback(async (product: Product, userContext?: string, rejectedIdeas?: string[]) => {
     if (!analysisParams) return;
     setGeneratingIdeasFor(product.id);
@@ -956,13 +997,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     try {
       const baseContext = `Focus on ${analysisParams.category} market trends.`;
       const fullContext = userContext ? `${baseContext}\n\nUser's additional guidance: ${userContext}` : baseContext;
-      // Wire active branch for isolated flip generation
       let activeBranch: unknown = undefined;
       if (activeBranchId && governedData) {
         const { getBranchPayload } = await import("@/lib/branchContext");
         activeBranch = getBranchPayload(governedData, activeBranchId, strategicProfile);
       }
-      // Build upstream intel bundle
       const upstreamIntel: Record<string, unknown> = {};
       if (product.pricingIntel) upstreamIntel.pricingIntel = product.pricingIntel;
       if (product.supplyChain) upstreamIntel.supplyChain = {
@@ -994,7 +1033,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           gapAnalysis: product.patentData.gapAnalysis,
         };
       }
-      // Build disrupt context from saved disrupt data
       let disruptCtx: Record<string, unknown> | undefined;
       if (disruptData) {
         const dd = disruptData as Record<string, unknown>;
@@ -1003,7 +1041,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           flippedLogic: dd.flippedLogic || null,
         };
       }
-      // Extract governed reasoning for structural grounding
       let governedReasoningContext: Record<string, unknown> | undefined;
       if (governedData) {
         const gov = governedData as Record<string, unknown>;
@@ -1027,7 +1064,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             : null,
         };
       }
-      // Inject leverage primitives from structural decomposition
       if (decompositionData) {
         const decomp = decompositionData as Record<string, unknown>;
         const leverage = decomp.leverageAnalysis as Record<string, unknown> | undefined;
@@ -1050,8 +1086,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         body: {
           product,
           additionalContext: fullContext,
-          insightPreferences: Object.keys(insightPreferences).length > 0 ? insightPreferences : undefined,
-          steeringText: steeringText || undefined,
+          insightPreferences: Object.keys(prefs.insightPreferences).length > 0 ? prefs.insightPreferences : undefined,
+          steeringText: prefs.steeringText || undefined,
           activeBranch,
           adaptiveContext: adaptiveContext || undefined,
           upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
@@ -1088,285 +1124,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     await saveAnalysis(products, analysisParams);
   }, [analysisParams, products, saveAnalysis]);
 
-  // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
-  // ── HARDENED: Context switch guard + atomic RPC for simple steps ──
-  const saveStepData = useCallback(async (stepKey: string, data: unknown, targetAnalysisId?: string) => {
-    const resolvedAnalysisId = targetAnalysisId || analysisId;
-    if (!resolvedAnalysisId) return;
-
-    // ── CONTEXT SWITCH GUARD: Capture current analysisId in closure ──
-    const capturedId = resolvedAnalysisId;
-
-    // ── Pipeline Validation ──
-    const { validateStepData, logStepExecution } = await import("@/utils/pipelineValidation");
-    const validation = validateStepData(stepKey, data);
-    logStepExecution(stepKey, "save", { analysisId: capturedId, valid: validation.valid });
-
-    if (!validation.valid) {
-      console.error("[Pipeline] Validation failed for step:", stepKey, validation.errors);
-      return;
-    }
-
-    // ── GOVERNED: Checkpoint gate — validate governed artifacts before persistence ──
-    const { validateBeforePersistence, enforceDependencyIntegrity } = await import("@/utils/checkpointGate");
-    const governedCheck = validateBeforePersistence(stepKey, data);
-    if (!governedCheck.allowed) {
-      console.error(`[Governed] PERSISTENCE BLOCKED for "${stepKey}": ${governedCheck.reason}`);
-      toast.error(`Checkpoint gate blocked: ${governedCheck.reason}`);
-      return;
-    }
-
-    // ── GOVERNED: Invalidate dependent downstream steps ──
-    if (governedCheck.invalidatedSteps.length > 0) {
-      console.log(`[Governed] Invalidating downstream steps: ${governedCheck.invalidatedSteps.join(", ")}`);
-      for (const depStep of governedCheck.invalidatedSteps) {
-        markStepOutdated(depStep);
-      }
-    }
-
-    // ── CONTEXT SWITCH CHECK: Abort if user switched analyses during validation ──
-    if (!targetAnalysisId && analysisId !== capturedId) {
-      console.warn(`[saveStepData] Context switched during save (${capturedId} → ${analysisId}). Aborting.`);
-      return;
-    }
-
-    try {
-      // Check if this step requires the complex governed artifact extraction
-      const { extractGovernedArtifacts, mergeGovernedIntoAnalysisData, checkRetroactiveInvalidation, applyRetroactiveInvalidation } = await import("@/lib/governedPersistence");
-      const extraction = extractGovernedArtifacts(stepKey, data);
-      const hasGovernedWork = extraction.hasGoverned && extraction.valid;
-      const depIntegrity = enforceDependencyIntegrity(stepKey, data, {});
-      const needsComplexMerge = hasGovernedWork || depIntegrity.purgeSteps.length > 0;
-
-      if (!needsComplexMerge) {
-        // ── ATOMIC PATH: Use Postgres RPC for simple step saves ──
-        // This is concurrency-safe — no read-merge-write needed
-        try {
-          // Pass data directly — Supabase client handles JSON serialization.
-          // Using JSON.stringify here would cause double-serialization,
-          // storing the value as a JSON string instead of a JSON object.
-          const { error: rpcError } = await (supabase.rpc as any)("merge_analysis_step", {
-            p_analysis_id: capturedId,
-            p_step_key: stepKey,
-            p_step_payload: data,
-          });
-          if (rpcError) {
-            console.error("Atomic merge_analysis_step failed:", rpcError);
-            // Fall through to legacy path
-          } else {
-            logStepExecution(stepKey, "save", { analysisId: capturedId, success: true, atomic: true });
-            return; // Success — done
-          }
-        } catch (rpcErr) {
-          console.warn("[saveStepData] Atomic RPC failed, falling back to legacy merge:", rpcErr);
-        }
-      }
-
-      // ── LEGACY COMPLEX PATH: Read-merge-write for governed artifacts ──
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: existing } = await (supabase.from("saved_analyses") as any)
-        .select("analysis_data")
-        .eq("id", capturedId)
-        .single();
-
-      // ── CONTEXT SWITCH CHECK: Abort if user switched during DB read ──
-      if (!targetAnalysisId && analysisId !== capturedId) {
-        console.warn(`[saveStepData] Context switched during DB read. Aborting.`);
-        return;
-      }
-
-      const prev = (existing?.analysis_data as Record<string, unknown>) || {};
-
-      // Snapshot previous value for version comparison
-      const previousSnapshot = (prev.previousSnapshot as Record<string, unknown>) || {};
-      if (prev[stepKey] && JSON.stringify(prev[stepKey]) !== JSON.stringify(data)) {
-        previousSnapshot[stepKey] = prev[stepKey];
-      }
-
-      // ── GOVERNED: Artifact versioning + dependency integrity ──
-      const governedHashes = (prev.governedHashes as Record<string, string>) || {};
-      const depIntegrityFull = enforceDependencyIntegrity(stepKey, data, governedHashes);
-      governedHashes[stepKey] = depIntegrityFull.newHash;
-
-      const { buildEvidenceRegistry } = await import("@/lib/evidenceRegistry");
-      const { applyLensAdaptation } = await import("@/lib/lensAdaptationEngine");
-      
-      // ── PAYLOAD COMPACTION ──
-      const MAX_SNAPSHOT_KEYS = 6;
-      const snapshotKeys = Object.keys(previousSnapshot);
-      if (snapshotKeys.length > MAX_SNAPSHOT_KEYS) {
-        for (const oldKey of snapshotKeys.slice(0, snapshotKeys.length - MAX_SNAPSHOT_KEYS)) {
-          delete previousSnapshot[oldKey];
-        }
-      }
-
-      let merged: Record<string, unknown> = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
-      
-      // Merge governed artifacts into analysis_data.governed (top level)
-      if (hasGovernedWork) {
-        merged = mergeGovernedIntoAnalysisData(merged, extraction);
-        console.log(`[GovernedPersistence] Merged ${extraction.presentArtifacts.length} artifacts (${extraction.governedByteSize} bytes) into analysis_data.governed`);
-        
-        const registry = buildEvidenceRegistry(merged);
-        merged._evidenceRegistry = registry;
-
-        const governedForLens = merged.governed as Record<string, unknown> | undefined;
-        if (governedForLens) {
-          const activeLensVal = (merged as any)._activeLens || null;
-          const lensResult = applyLensAdaptation(governedForLens, activeLensVal);
-          if (lensResult) {
-            merged._lensAdaptation = lensResult;
-          }
-        }
-        
-        const governedObj = merged.governed as Record<string, unknown>;
-        const invalidation = checkRetroactiveInvalidation(governedObj);
-        if (invalidation.shouldInvalidate) {
-          merged.governed = applyRetroactiveInvalidation(governedObj, invalidation);
-          console.warn(`[RetroactiveInvalidation] Applied: confidence downgraded by ${invalidation.confidenceDowngrade}`);
-          for (const affected of invalidation.affectedArtifacts) {
-            markStepOutdated(affected);
-          }
-        }
-      } else if (extraction.hasGoverned && !extraction.valid) {
-        console.warn(`[GovernedPersistence] Governed data INVALID. Rejecting.`);
-      }
-
-      // ── GOVERNED: Purge invalidated downstream governed artifacts ──
-      const allPurgeSteps = [...new Set([...governedCheck.invalidatedSteps, ...depIntegrityFull.purgeSteps])];
-      if (allPurgeSteps.length > 0) {
-        for (const depStep of allPurgeSteps) {
-          markStepOutdated(depStep);
-          const gd = merged.governed as Record<string, unknown> | undefined;
-          if (gd && gd[depStep]) {
-            delete gd[depStep];
-            delete governedHashes[depStep];
-          }
-        }
-      }
-
-      // ── SIZE GUARD ──
-      const mergedStr = JSON.stringify(merged);
-      const payloadBytes = new TextEncoder().encode(mergedStr).length;
-      const MAX_PAYLOAD_BYTES = 4_000_000;
-      if (payloadBytes > MAX_PAYLOAD_BYTES) {
-        console.warn(`[Pipeline] Payload too large (${(payloadBytes / 1_000_000).toFixed(1)}MB), stripping data`);
-        delete merged.previousSnapshot;
-        if (merged.pitchDeckImages && Array.isArray(merged.pitchDeckImages)) {
-          merged.pitchDeckImages = (merged.pitchDeckImages as any[]).map(img => ({
-            ...img,
-            url: typeof img.url === "string" && img.url.startsWith("data:") ? "" : img.url,
-          }));
-        }
-      }
-
-      // ── FINAL CONTEXT SWITCH CHECK before write ──
-      if (!targetAnalysisId && analysisId !== capturedId) {
-        console.warn(`[saveStepData] Context switched before final write. Aborting.`);
-        return;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: updateError } = await (supabase.from("saved_analyses") as any)
-        .update({ analysis_data: merged, updated_at: new Date().toISOString() })
-        .eq("id", capturedId);
-      if (updateError) {
-        console.error("saveStepData update failed:", updateError, "analysisId:", capturedId, "stepKey:", stepKey);
-      } else {
-        logStepExecution(stepKey, "save", { analysisId: capturedId, success: true, governedByteSize: extraction.governedByteSize });
-        if (merged.governed) {
-          setGovernedData(merged.governed as Record<string, unknown>);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to persist step data:", err);
-    }
-  }, [analysisId, markStepOutdated]);
-
-  // Auto-persist userScores when changed
-  useEffect(() => {
-    if (pendingScoreSaveRef.current && analysisId) {
-      const scores = pendingScoreSaveRef.current;
-      pendingScoreSaveRef.current = null;
-      saveStepData("userScores", scores);
-    }
-  }, [userScores, analysisId, saveStepData]);
-
-  // Auto-persist outdated steps when changed
-  useEffect(() => {
-    if (analysisId) {
-      saveStepData("outdatedSteps", Array.from(outdatedSteps));
-    }
-  }, [outdatedSteps, analysisId, saveStepData]);
-
-  // Auto-persist insight preferences when changed
-  useEffect(() => {
-    if (pendingPrefSaveRef.current && analysisId) {
-      const prefs = pendingPrefSaveRef.current;
-      pendingPrefSaveRef.current = null;
-      saveStepData("insightPreferences", prefs);
-    }
-  }, [insightPreferences, analysisId, saveStepData]);
-
-  // Auto-persist pitch deck images when changed
-  useEffect(() => {
-    if (pendingPitchImagesSaveRef.current && analysisId) {
-      const imgs = pendingPitchImagesSaveRef.current;
-      pendingPitchImagesSaveRef.current = null;
-      saveStepData("pitchDeckImages", imgs);
-    }
-  }, [pitchDeckImages, analysisId, saveStepData]);
-
-  // Auto-persist pitch deck exclusions when changed
-  useEffect(() => {
-    if (pendingExclusionsSaveRef.current && analysisId) {
-      const excl = pendingExclusionsSaveRef.current;
-      pendingExclusionsSaveRef.current = null;
-      saveStepData("pitchDeckExclusions", excl);
-    }
-  }, [pitchDeckExclusions, analysisId, saveStepData]);
-
-  // Auto-persist active lens ID when changed
-  useEffect(() => {
-    if (pendingLensSaveRef.current !== undefined && analysisId) {
-      const lensId = pendingLensSaveRef.current;
-      pendingLensSaveRef.current = undefined;
-      saveStepData("activeLensId", lensId);
-    }
-  }, [activeLens, analysisId, saveStepData]);
-
-  // Auto-persist active branch ID when changed
-  useEffect(() => {
-    if (pendingBranchSaveRef.current !== undefined && analysisId) {
-      const branchId = pendingBranchSaveRef.current;
-      pendingBranchSaveRef.current = undefined;
-      saveStepData("activeBranchId", branchId);
-    }
-  }, [activeBranchId, analysisId, saveStepData]);
-
-  // Auto-persist strategic profile when changed
-  useEffect(() => {
-    if (pendingProfileSaveRef.current !== undefined && analysisId) {
-      const prof = pendingProfileSaveRef.current;
-      pendingProfileSaveRef.current = undefined;
-      saveStepData("strategicProfile", prof);
-    }
-  }, [strategicProfile, analysisId, saveStepData]);
-
-  // Auto-persist adaptive context when set after analysis
-  useEffect(() => {
-    if (pendingAdaptiveCtxSaveRef.current !== undefined && analysisId) {
-      const ctx = pendingAdaptiveCtxSaveRef.current;
-      pendingAdaptiveCtxSaveRef.current = undefined;
-      if (ctx) saveStepData("adaptiveContext", ctx);
-    }
-  }, [adaptiveContext, analysisId, saveStepData]);
-
+  // ── Load Saved Analysis ──
   const handleLoadSaved = useCallback(async (rawAnalysis: any) => {
-    // ── CLEAR ALL STATE using shared helper ──
     clearAllState(hydrationSetters);
 
-    // If analysis_data is missing, fetch the full record first
     let analysis = rawAnalysis;
     if (!analysis.analysis_data && analysis.id) {
       try {
@@ -1382,7 +1143,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // ── USE SHARED HYDRATION HELPER ──
     const { sanitizedProducts, analysisData: ad } = hydrateFromRow(analysis, hydrationSetters);
 
     // Auto-backfill governed data if missing
@@ -1435,7 +1195,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       toast.info("This analysis used an older framework — regenerate steps to get improved insights");
     }
 
-    // Always open at Command Deck across all modes
     if (analysis.analysis_type === "business_model") {
       toast.success("Business model analysis loaded!");
       navigate(`/analysis/${analysis.id}/command-deck`);
@@ -1452,32 +1211,26 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [navigate, hydrationSetters]);
 
-  // ── AUTO-HYDRATION: Load analysis from URL when context is empty ──
-  // This handles direct navigation (bookmarks, shared links, page refresh)
-  // Also re-triggers when the URL changes to a DIFFERENT analysis ID
+  // ── Auto-hydration from URL ──
   const autoHydratedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    // Extract analysis ID from URL path: /analysis/:id/... or /business/:id
     const match = window.location.pathname.match(/(?:\/analysis|\/business)\/([0-9a-f-]{36})/);
     if (!match) return;
     const urlAnalysisId = match[1];
     if (!urlAnalysisId || !user?.id) return;
 
-    // Skip if we already hydrated THIS specific analysis
     if (autoHydratedIdRef.current === urlAnalysisId) return;
-    // Skip if context already has the correct analysis loaded
     if (analysisId === urlAnalysisId && step === "done" && (products.length > 0 || !!businessAnalysisData)) {
       autoHydratedIdRef.current = urlAnalysisId;
       return;
     }
-    // Don't interrupt an active analysis pipeline (scraping/analyzing)
     if (step === "scraping" || step === "analyzing") return;
 
     autoHydratedIdRef.current = urlAnalysisId;
     setIsHydrating(true);
     console.log("[AutoHydrate] Loading analysis from URL:", urlAnalysisId);
 
-    // ── CLEAR ALL STATE using shared helper ──
     clearAllState(hydrationSetters);
 
     (async () => {
@@ -1492,7 +1245,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Verify ownership
         if (data.user_id !== user.id) {
           console.warn("[AutoHydrate] User does not own this analysis");
           return;
@@ -1504,11 +1256,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // ── USE SHARED HYDRATION HELPER ──
         hydrateFromRow(data, hydrationSetters);
 
-        // ── AUTO-REPAIR: Fix mismatched analysis_type ──
-        // If the analysis has business model data but is stored as "product", fix it
+        // Auto-repair mismatched analysis_type
         const ad = data.analysis_data as Record<string, unknown> | null;
         const hasBusinessData = !!ad?.businessAnalysis || data.analysis_type === "business_model";
         if (hasBusinessData && data.analysis_type !== "business_model") {
@@ -1517,19 +1267,16 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             .update({ analysis_type: "business_model", updated_at: new Date().toISOString() })
             .eq("id", urlAnalysisId)
             .then(() => {
-              // Re-set context mode to business
               hydrationSetters.setMainTab("business");
               hydrationSetters.setActiveMode("business");
             });
         }
 
-        // ── AUTO-REPAIR: Detect missing strategicEngine when step data exists ──
+        // Auto-repair: detect missing strategicEngine when step data exists
         const hasStepData = !!ad?.disrupt || !!ad?.stressTest || !!ad?.pitchDeck || !!ad?.businessAnalysis;
         const hasEngine = !!ad?.strategicEngine;
         if (hasStepData && !hasEngine) {
           console.warn("[AutoRepair] Step data exists but strategicEngine missing — will recompute on next auto-analysis cycle");
-          // The useAutoAnalysis hook will automatically recompute when it detects
-          // evidence data exists but no engine output — no explicit trigger needed
         }
 
         console.log("[AutoHydrate] Analysis loaded successfully:", data.title);
@@ -1563,13 +1310,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       handleAnalyze, retryAnalysis, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis, createAnalysis, saveStepData,
       analysisId, setAnalysisId,
       outdatedSteps, markStepOutdated, clearStepOutdated,
-      userScores, setUserScore,
+      userScores: prefs.userScores, setUserScore: prefs.setUserScore,
       redesignData, setRedesignData,
       conceptsData, setConceptsData,
-      insightPreferences, setInsightPreference, getLikedInsights, getDismissedInsights,
-      steeringText, setSteeringText, saveSteeringText,
-      pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
-      pitchDeckExclusions, togglePitchDeckExclusion,
+      insightPreferences: prefs.insightPreferences, setInsightPreference: prefs.setInsightPreference,
+      getLikedInsights: prefs.getLikedInsights, getDismissedInsights: prefs.getDismissedInsights,
+      steeringText: prefs.steeringText, setSteeringText: prefs.setSteeringText, saveSteeringText,
+      pitchDeckImages: prefs.pitchDeckImages, setPitchDeckImage: prefs.setPitchDeckImage, removePitchDeckImage: prefs.removePitchDeckImage,
+      pitchDeckExclusions: prefs.pitchDeckExclusions, togglePitchDeckExclusion: prefs.togglePitchDeckExclusion,
       activeLens, setActiveLens,
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
