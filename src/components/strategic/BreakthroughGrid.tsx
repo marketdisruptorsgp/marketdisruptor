@@ -85,7 +85,7 @@ function OpportunityCard({
           </p>
         )}
 
-        {/* Contrarian belief badge */}
+        {/* Key insight badge */}
         {item.contrarianBelief && (
           <div
             className="rounded-lg px-2.5 py-1.5 mt-1"
@@ -95,7 +95,7 @@ function OpportunityCard({
             }}
           >
             <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-0.5">
-              Contrarian Bet
+              The Insight
             </p>
             <p className="text-[11px] font-semibold text-foreground/80 leading-snug italic">
               "{item.contrarianBelief}"
