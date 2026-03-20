@@ -143,6 +143,11 @@ export default function StressTestPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
+      {/* Thin data warning */}
+      {!!(disruptData as any)?._thinDataFallback && (
+        <ThinDataBanner />
+      )}
+
       {/* Tab navigation — always visible */}
       {!analysisLoading && (
         <AnalysisTabBar
