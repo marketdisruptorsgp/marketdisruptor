@@ -133,19 +133,6 @@ export const MODE_DIMENSION_PRIORITIES: Record<
     operational_dependency: 0.9,
     technology_dependency: 0.8,
     regulatory_constraint: 1.0,
-  },
-  // object_reinvention treated same as product for dimension priorities
-  object_reinvention: {
-    cost_structure: 1.3,
-    technology_dependency: 1.3,
-    operational_dependency: 1.1,
-    demand_signal: 1.0,
-    competitive_pressure: 1.0,
-    distribution_channel: 0.9,
-    regulatory_constraint: 0.9,
-    pricing_model: 0.8,
-    customer_behavior: 1.0,
-  },
 };
 
 /**
