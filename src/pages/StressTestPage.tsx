@@ -10,6 +10,8 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
+import { useAnalysisTimeout } from "@/hooks/useAnalysisTimeout";
+import { AnalysisTimeoutEscape } from "@/components/analysis/AnalysisTimeoutEscape";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
@@ -41,6 +43,7 @@ import {
   AnalysisContentCard,
   AnalysisLoadingCard,
   AnalysisLoadingSpinner,
+  AnalysisPipelineErrorCard,
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
@@ -62,6 +65,7 @@ export default function StressTestPage() {
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
+  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, !!analysis.stressTestData || !!analysis.disruptData);
 
   const { selectedProduct: rawSelectedProduct, analysisId } = analysis;
 
