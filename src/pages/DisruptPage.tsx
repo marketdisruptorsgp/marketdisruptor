@@ -71,12 +71,10 @@ export default function DisruptPage() {
         ...a,
         id: a.id || `biz-assumption-${i}`,
         confidence: a.confidence ?? 0.6,
-        leverage: a.leverage ?? 0.7,
+        leverage: a.leverage ?? a.leverageScore ?? 0.7,
+        leverageScore: a.leverageScore ?? a.leverage ?? 0.7,
       })),
-      flippedLogic: (biz.disruptionAnalysis?.attackMoves
-        ? [{ boldAlternative: biz.disruptionAnalysis.attackMoves, rationale: biz.disruptionAnalysis.disruptorProfile || "" }]
-        : []
-      ),
+      flippedLogic: parseFlippedLogicFromBusiness(biz),
       vulnerabilities: biz.disruptionAnalysis?.vulnerabilities || [],
       defenseMoves: biz.disruptionAnalysis?.defenseMoves || [],
     };

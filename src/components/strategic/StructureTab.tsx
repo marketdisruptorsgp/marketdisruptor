@@ -525,8 +525,15 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
 
       {/* ── System Intelligence Layer ── */}
       {(() => {
-        const disruptData = (analysis.disruptData || (analysis.businessAnalysisData ? { hiddenAssumptions: (analysis.businessAnalysisData as any)?.hiddenAssumptions || [], flippedLogic: [], _businessFallback: true } : null)) as Record<string, unknown> | null;
-        const businessData = analysis.businessAnalysisData as Record<string, unknown> | null;
+        const biz = analysis.businessAnalysisData as Record<string, any> | null;
+        const disruptData = (analysis.disruptData || (biz ? {
+          hiddenAssumptions: assumptions,
+          flippedLogic: parseFlippedLogicFromBusiness(biz),
+          vulnerabilities: biz?.disruptionAnalysis?.vulnerabilities || [],
+          defenseMoves: biz?.disruptionAnalysis?.defenseMoves || [],
+          _businessFallback: true,
+        } : null)) as Record<string, unknown> | null;
+        const businessData = biz as Record<string, unknown> | null;
         const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
         const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
 
