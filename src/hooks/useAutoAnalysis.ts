@@ -13,6 +13,7 @@ import { useRef, useCallback, useMemo, useState } from "react";
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import { useAnalysis } from "@/contexts/AnalysisContext";
+import { isPipelineRunning } from "@/lib/pipelineSignal";
 import {
   runStrategicAnalysis,
   runStrategicAnalysisAsync,
@@ -159,6 +160,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       intelligence: newIntelligence, analysisType: analysisMode,
       analysisId, completedSteps,
       geoMarketData: geoData, regulatoryData, lensConfig, biExtraction,
+      suppressAIDeepening: isPipelineRunning(),
     };
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {

@@ -447,8 +447,10 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       { role: "user", content: userPrompt + upstreamPrompt },
     ];
 
+    // Use Pro directly — Flash consistently fails with complex tool-calling schemas,
+    // wasting 60-90s before the inevitable Pro retry. Matches first-principles-analysis pattern.
     const body: Record<string, unknown> = {
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-pro",
       messages: aiMessages,
       temperature: 0.5,
       max_tokens: 7500,
