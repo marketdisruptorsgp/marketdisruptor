@@ -165,6 +165,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const runAnalysis = useCallback(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
     if (!analysisId || !hasComputableData) return;
+    // H4 fix: don't run strategic engine while hydration is still populating state
+    if (isHydrating) return;
 
     // Deduplicate: increment run counter, capture this run's ID
     const thisRunId = ++runIdRef.current;
