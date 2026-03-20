@@ -8,6 +8,8 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
+import { useAnalysisTimeout } from "@/hooks/useAnalysisTimeout";
+import { AnalysisTimeoutEscape } from "@/components/analysis/AnalysisTimeoutEscape";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { RedesignVisualGenerator } from "@/components/RedesignVisualGenerator";
 import { StepLoadingTracker, REDESIGN_TASKS } from "@/components/StepLoadingTracker";
@@ -57,6 +59,9 @@ export default function RedesignPage() {
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
 
+  const hasData = !!analysis.redesignData || !!analysis.disruptData;
+  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, hasData);
+
   const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
   const autoAnalysis = useAutoAnalysis();
 
@@ -75,7 +80,6 @@ export default function RedesignPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("redesign");
   const shouldAutoTrigger = isOutdated || !analysis.redesignData;
-  const hasData = !!analysis.redesignData || !!analysis.disruptData;
 
   return (
     <AnalysisPageShell tier={tier}>
@@ -138,15 +142,24 @@ export default function RedesignPage() {
         );
       })()}
 
-      {/* Loading Tracker */}
+      {/* Loading Tracker with timeout escape */}
       {analysisLoading && (
         <AnalysisLoadingCard>
-          <StepLoadingTracker
-            title="Generating Redesign Concept"
-            tasks={REDESIGN_TASKS}
-            estimatedSeconds={50}
-            accentColor="hsl(38 92% 50%)"
-          />
+          {loadingTimedOut ? (
+            <AnalysisTimeoutEscape
+              analysisId={analysisId}
+              onRetry={() => { clearTimeoutState(); setRunTrigger(t => t + 1); }}
+              backPath={`/analysis/${analysisId}/disrupt`}
+              backLabel="Back to Deconstruct"
+            />
+          ) : (
+            <StepLoadingTracker
+              title="Generating Redesign Concept"
+              tasks={REDESIGN_TASKS}
+              estimatedSeconds={50}
+              accentColor="hsl(38 92% 50%)"
+            />
+          )}
         </AnalysisLoadingCard>
       )}
 
