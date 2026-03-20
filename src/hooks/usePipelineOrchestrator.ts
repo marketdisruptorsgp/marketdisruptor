@@ -62,6 +62,7 @@ export function usePipelineOrchestrator(
   const [isRunning, setIsRunning] = useState(false);
   const [pipelineStartedAt, setPipelineStartedAt] = useState<number | null>(null);
   const [stepTimings, setStepTimings] = useState<Record<string, StepTiming>>({});
+  const [pipelineError, setPipelineError] = useState<string | null>(null);
 
   // Warn user on navigate-away during active pipeline
   useEffect(() => {
