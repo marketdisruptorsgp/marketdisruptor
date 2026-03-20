@@ -153,6 +153,7 @@ function AssumptionFragilityChart({
 
                   {/* Reason tag + badges */}
                   <div className="flex items-center gap-2 flex-wrap">
+                    {a._synthetic && <SyntheticBadge />}
                     <span
                       className="text-xs font-semibold px-2 py-0.5 rounded-full"
                       style={{
