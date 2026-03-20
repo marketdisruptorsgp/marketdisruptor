@@ -113,6 +113,24 @@ export default function OverviewPage() {
   const criticalQuestion = useMemo(() => extractCriticalQuestion(narrative, deepOpps), [narrative, deepOpps]);
   const opportunities = useMemo(() => extractOpportunitiesWithBadges(topOpps, deepOpps), [topOpps, deepOpps]);
 
+  // ── Early assumption banner from decomposition data (before synthesis) ──
+  const earlyAssumptionBanner = useMemo(() => {
+    if (assumptionBanner) return null; // full banner available
+    const dd = analysis.disruptData as Record<string, unknown> | null;
+    if (!dd?._earlyInsights) return null;
+    const assumptions = dd.hiddenAssumptions as any[] | undefined;
+    if (!assumptions || assumptions.length === 0) return null;
+    const top = assumptions
+      .filter((a: any) => a.isChallengeable)
+      .sort((a: any, b: any) => (b.leverageScore || 0) - (a.leverageScore || 0))[0];
+    if (!top) return null;
+    return {
+      assumption: top.assumption as string,
+      challenge: top.challengeIdea || top.impactScenario || "This assumption may be worth questioning.",
+      isPreliminary: true,
+    };
+  }, [assumptionBanner, analysis.disruptData]);
+
   const hasData = !!narrative || topOpps.length > 0;
   const loading = isComputing && !hasData;
 
