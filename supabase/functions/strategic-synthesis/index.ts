@@ -350,7 +350,41 @@ The JSON must follow this EXACT structure:
 ${analysisSchema}`;
 
     // ── User prompt ──
-    const userPrompt = isService
+    const userPrompt = isBusiness
+      ? `Apply radical first-principles deconstruction AND concept generation to this BUSINESS MODEL.
+
+BUSINESS: ${product.name}
+CATEGORY: ${product.category}
+DESCRIPTION: ${product.description}
+KEY INSIGHT: ${product.keyInsight || "None provided"}
+MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
+${product.biExtraction ? `
+BUSINESS INTELLIGENCE (from document analysis):
+${product.biExtraction.revenueEngine ? `  Revenue Model: ${JSON.stringify(product.biExtraction.revenueEngine).slice(0, 500)}` : ""}
+${product.biExtraction.operatingModel ? `  Operating Model: ${JSON.stringify(product.biExtraction.operatingModel).slice(0, 500)}` : ""}
+${product.biExtraction.financials ? `  Financials: ${JSON.stringify(product.biExtraction.financials).slice(0, 500)}` : ""}
+${product.biExtraction.ownerDependency ? `  Owner Dependency: ${JSON.stringify(product.biExtraction.ownerDependency).slice(0, 300)}` : ""}
+` : ""}
+
+KNOWN ISSUES:
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => \`• \${r.text}\`).join("\\n") || "General business model friction"}
+
+EXISTING ASSUMPTIONS:
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => \`• \${a.assumption} → \${a.challenge}\`).join("\\n") || "None pre-identified"}
+
+CRITICAL INSTRUCTIONS:
+1. Every hiddenAssumption must reference THIS business's actual revenue model, cost structure, or operations
+2. Generate at least 5 hiddenAssumptions and 4 flippedLogic items about the BUSINESS MODEL (not a hypothetical product)
+3. Generate 6-8 structuralTransformations targeting leverage primitives in the business architecture
+4. Group surviving transformations into 2-3 clusters
+5. Generate redesignedConcept as a restructured BUSINESS MODEL (not a consumer product)
+6. Generate quickValidation with top 3 threats and feasibility score
+7. Include unit economics, margin improvement math, and revenue impact estimates
+8. Reference real business model analogs (companies that solved similar structural problems)
+9. Do NOT suggest "web configurators", "DTC channels", or consumer product features unless this business actually sells to consumers
+
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}${curationPrompt}`
+      : isService
       ? `Apply radical first-principles deconstruction AND concept generation to this SERVICE.
 
 SERVICE: ${product.name}
@@ -360,13 +394,13 @@ KEY INSIGHT: ${product.keyInsight || "None provided"}
 MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
 
 KNOWN CUSTOMER COMPLAINTS:
-${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || "General friction points"}
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => \`• \${r.text}\`).join("\\n") || "General friction points"}
 
 EXISTING ASSUMPTIONS:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || "None pre-identified"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => \`• \${a.assumption} → \${a.challenge}\`).join("\\n") || "None pre-identified"}
 
 COMMUNITY PAIN POINTS:
-${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c}`).join("\n") || "See reviews above"}
+${(product as any).communityInsights?.topComplaints?.map((c: string) => \`• \${c}\`).join("\\n") || "See reviews above"}
 
 CRITICAL INSTRUCTIONS:
 1. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
@@ -390,13 +424,13 @@ KEY INSIGHT: ${product.keyInsight || "None provided"}
 MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
 
 KNOWN USER COMPLAINTS:
-${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || "General friction points"}
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => \`• \${r.text}\`).join("\\n") || "General friction points"}
 
 EXISTING ASSUMPTIONS:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || "None pre-identified"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => \`• \${a.assumption} → \${a.challenge}\`).join("\\n") || "None pre-identified"}
 
 COMMUNITY PAIN POINTS:
-${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c}`).join("\n") || "See reviews above"}
+${(product as any).communityInsights?.topComplaints?.map((c: string) => \`• \${c}\`).join("\\n") || "See reviews above"}
 
 CRITICAL INSTRUCTIONS:
 1. FRICTION: Identify PRIMARY friction dimension — do NOT default to physical/size
