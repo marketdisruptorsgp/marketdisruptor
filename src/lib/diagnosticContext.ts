@@ -134,18 +134,6 @@ export const MODE_DIMENSION_PRIORITIES: Record<
     technology_dependency: 0.8,
     regulatory_constraint: 1.0,
   },
-  // object_reinvention treated same as product for dimension priorities
-  object_reinvention: {
-    cost_structure: 1.3,
-    technology_dependency: 1.3,
-    operational_dependency: 1.1,
-    demand_signal: 1.0,
-    competitive_pressure: 1.0,
-    distribution_channel: 0.9,
-    regulatory_constraint: 0.9,
-    pricing_model: 0.8,
-    customer_behavior: 1.0,
-  },
 };
 
 /**
@@ -209,15 +197,6 @@ export const MODE_CONSTRAINT_CATEGORY_BOOSTS: Record<
     labor_operations: 0.9,
     technology_information: 0.9,
     demand: 1.1,
-  },
-  object_reinvention: {
-    technology_information: 1.3,
-    supply_distribution: 1.2,
-    labor_operations: 1.1,
-    market_adoption: 1.1,
-    revenue_pricing: 1.0,
-    structural_economic: 1.0,
-    demand: 1.0,
   },
 };
 
