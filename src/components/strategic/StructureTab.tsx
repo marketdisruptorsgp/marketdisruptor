@@ -436,7 +436,15 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
   onLoadingChange,
   viewMode = "all",
 }, ref) {
-  const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || (analysis.businessAnalysisData as any)?.hiddenAssumptions || [];
+  const rawAssumptions = (analysis.disruptData as any)?.hiddenAssumptions || (analysis.businessAnalysisData as any)?.hiddenAssumptions || [];
+  // Normalize: ensure every assumption has confidence + leverage defaults (business_model data may omit them)
+  const assumptions = rawAssumptions.map((a: any, i: number) => ({
+    ...a,
+    id: a.id || `assumption-${i}`,
+    confidence: a.confidence ?? 0.6,
+    leverage: a.leverage ?? a.leverageScore ?? 0.7,
+    leverageScore: a.leverageScore ?? a.leverage ?? 0.7,
+  }));
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
 
