@@ -672,13 +672,23 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [analysisId, markStepOutdated]);
 
   // ── Steering Text save (declared after saveStepData) ──
+  // When steering text changes, mark upstream pipeline steps as outdated
+  // so only affected steps rerun on next page visit (delta rerun strategy).
   const saveSteeringText = useCallback((text: string) => {
+    const prev = prefs.steeringText;
     prefs.setSteeringText(text);
-    setAdaptiveContextState(prev => prev ? { ...prev, userGuidance: text || undefined } : null);
+    setAdaptiveContextState(prevCtx => prevCtx ? { ...prevCtx, userGuidance: text || undefined } : null);
     if (analysisId) {
       saveStepData("steeringText", text);
     }
-  }, [analysisId, saveStepData]);
+    // Delta rerun: if steering actually changed and we have existing pipeline data, mark upstream steps outdated
+    if (text !== prev && (decompositionData || disruptData)) {
+      console.log("[Steering] Text changed — marking decompose/synthesis/concepts as outdated for delta rerun");
+      markStepOutdated("decompose");
+      markStepOutdated("synthesis");
+      markStepOutdated("concepts");
+    }
+  }, [analysisId, saveStepData, prefs, decompositionData, disruptData, markStepOutdated]);
 
   // ── Auto-persist effects (extracted) ──
   useAutoPersistEffects({
