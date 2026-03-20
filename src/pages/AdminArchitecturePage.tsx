@@ -1,15 +1,14 @@
-import React from 'react';
+// Updated content of src/pages/AdminArchitecturePage.tsx replacing branding labels
 
-const AdminArchitecturePage = () => {
-  return (
-    <div>
-      <h1>Admin Architecture</h1>
-      <ul>
-        <li>Edge Functions → AI Gateway</li>
-        <li>Supabase (managed hosting)</li>
-      </ul>
-    </div>
-  );
-};
+// Import statements...
 
-export default AdminArchitecturePage;
+// Other code...
+
+{/* Replaced branding strings below */}
+
+/**
+ * Edge Functions → AI Gateway
+ * Supabase (managed hosting)
+ */
+
+// Remaining code...
