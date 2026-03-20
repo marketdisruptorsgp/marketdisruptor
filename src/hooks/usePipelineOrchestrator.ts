@@ -110,6 +110,7 @@ export function usePipelineOrchestrator(
     insightPreferences: (analysis as any).insightPreferences || undefined,
     userScores: (analysis as any).userScores || undefined,
     analysisData: (analysis as any).analysisData || undefined,
+    focusTerritory: (analysis.geoData as any)?.focusTerritory || undefined,
   }), [analysisId, effectiveProduct, analysis]);
 
   const buildCb = useCallback((): StepRunnerCallbacks => ({

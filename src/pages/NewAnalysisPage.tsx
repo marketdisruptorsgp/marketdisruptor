@@ -123,6 +123,7 @@ export default function NewAnalysisPage() {
 
   // Inline clarifier state
   const [clarifierName, setClarifierName] = useState("");
+  const [clarifierTerritory, setClarifierTerritory] = useState("");
   const [clarifierUrls, setClarifierUrls] = useState<string[]>([""]);
   const [clarifierImages, setClarifierImages] = useState<{ file: File; dataUrl: string }[]>([]);
   const [clarifierDocs, setClarifierDocs] = useState<{ file: File; name: string }[]>([]);
@@ -544,7 +545,7 @@ export default function NewAnalysisPage() {
               description: challengeContext ? `${notes}\n\n--- FOCUS AREAS ---\n${challengeContext}` : notes,
               revenueModel: finalExtraction?.revenue_engine?.revenue_sources?.join(", ") || "",
               size: "",
-              geography: "",
+              geography: clarifierTerritory.trim() || "",
               painPoints: notes,
               notes: urls.length ? `Sources: ${urls.join(", ")}` : "",
             },
@@ -633,6 +634,7 @@ export default function NewAnalysisPage() {
           era: "All Eras / Current",
           batchSize: 1,
           customProducts,
+          territory: clarifierTerritory.trim() || undefined,
         });
       }
     } catch (err) {
@@ -1137,6 +1139,22 @@ export default function NewAnalysisPage() {
                 />
               </div>
 
+              {/* Territory */}
+              <div className="space-y-1.5">
+                <label className="typo-card-eyebrow text-xs">
+                  Target market or territory (optional)
+                </label>
+                <input
+                  value={clarifierTerritory}
+                  onChange={(e) => setClarifierTerritory(e.target.value)}
+                  placeholder="e.g. Missouri, Texas, EU, Southeast Asia, New York City"
+                  className="input-executive"
+                />
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  We'll pull census data, business density, and regulatory requirements specific to your market
+                </p>
+              </div>
+
               {/* URLs — multiple */}
               <div className="space-y-1.5">
                 <label className="typo-card-eyebrow text-xs flex items-center gap-2">
@@ -1526,6 +1544,20 @@ export default function NewAnalysisPage() {
                     placeholder="e.g. Acme CRM, My coffee shop, Nike Air Max…"
                     className="input-executive"
                   />
+                </div>
+
+                {/* Territory */}
+                <div className="space-y-1.5">
+                  <label className="typo-card-eyebrow text-xs">Target market or territory (optional)</label>
+                  <input
+                    value={clarifierTerritory}
+                    onChange={(e) => setClarifierTerritory(e.target.value)}
+                    placeholder="e.g. Missouri, California, UK, Southeast Asia"
+                    className="input-executive"
+                  />
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    We'll pull census data, business density, and regulatory requirements specific to your market
+                  </p>
                 </div>
 
                 {/* URLs */}

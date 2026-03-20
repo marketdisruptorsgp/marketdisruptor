@@ -50,6 +50,7 @@ export async function runStrategicSynthesis(
       insightPreferences: ctx.insightPreferences || undefined,
       userScores: ctx.userScores || undefined,
       steeringText: ctx.steeringText || undefined,
+      focusTerritory: ctx.focusTerritory || undefined,
     },
   }, 75_000);
 

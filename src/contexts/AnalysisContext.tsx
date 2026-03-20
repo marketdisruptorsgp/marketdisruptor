@@ -51,8 +51,7 @@ interface AnalysisContextType {
   selectedProduct: Product | null;
   setSelectedProduct: (p: Product | null) => void;
   analysisParams: { category: string; era: string; batchSize: number } | null;
-  setAnalysisParams: (p: { category: string; era: string; batchSize: number } | null) => void;
-  errorMsg: string;
+  setAnalysisParams: (p: { category: string; era: string; batchSize: number } | null) => void;  errorMsg: string;
   setErrorMsg: (msg: string) => void;
 
   // Mode
@@ -119,6 +118,7 @@ interface AnalysisContextType {
   handleAnalyze: (params: {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
+    territory?: string;
   }) => Promise<void>;
   retryAnalysis: () => void;
   handleRegenerateIdeas: (product: Product, userContext?: string, rejectedIdeas?: string[]) => Promise<void>;
@@ -188,7 +188,7 @@ interface AnalysisContextType {
   // Geo market data
   geoData: unknown;
   setGeoData: (d: unknown) => void;
-  fetchGeoData: (category: string, productName?: string) => Promise<void>;
+  fetchGeoData: (category: string, productName?: string, geography?: string) => Promise<void>;
 
   // Regulatory data (adaptive — only populated for regulated categories)
   regulatoryData: unknown;
@@ -460,11 +460,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // ── Instant Insights (deterministic pre-computation) ──
   const [instantInsights, setInstantInsights] = useState<InstantInsights | null>(null);
 
-  const fetchGeoData = useCallback(async (category: string, productName?: string) => {
+  const fetchGeoData = useCallback(async (category: string, productName?: string, geography?: string) => {
     try {
-      console.log("[GeoData] Fetching for category:", category);
+      console.log("[GeoData] Fetching for category:", category, geography ? `| territory: ${geography}` : "");
       const { data: result, error } = await supabase.functions.invoke("geo-market-data", {
-        body: { category, productName },
+        body: { category, productName, geography },
       });
       if (error || !result?.success) {
         console.warn("[GeoData] Fetch failed:", result?.error || error?.message);
@@ -628,6 +628,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const handleAnalyze = useCallback(async (params: {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
+    territory?: string;
   }) => {
     if (!canAnalyze()) {
       toast.error("You've reached your analysis limit. Upgrade your plan to continue.");
@@ -639,7 +640,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const { customProducts, ...baseParams } = params;
+    const { customProducts, territory, ...baseParams } = params;
     setAnalysisParams(baseParams);
     setStep("scraping");
     setErrorMsg("");
@@ -827,7 +828,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
       // Fetch geo market data + regulatory intelligence in background (non-blocking)
       const productNameForGeo = customProducts?.find(cp => cp.productName)?.productName || liveProducts[0]?.name;
-      fetchGeoData(params.category, productNameForGeo).then(() => {
+      fetchGeoData(params.category, productNameForGeo, territory).then(() => {
         console.log("[Pipeline] Geo market data + regulatory intel fetched for", params.category);
       }).catch(() => { /* best effort */ });
 
