@@ -588,9 +588,32 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // Legacy flat business model fields
+  // ── Business model: hiddenAssumptions → assumption evidence (P0 mapping) ──
   const biz = input.businessAnalysisData;
   if (biz && mode === "business_model") {
+    safeArr(biz.hiddenAssumptions).forEach((a: any, i: number) => {
+      const label = typeof a === "string" ? a : (a.assumption || a.text || a.label || a.name || `Hidden Assumption ${i + 1}`);
+      const desc = typeof a === "string" ? undefined : (a.impact || a.why || a.description || a.rationale);
+      const rawConf = a.confidence ?? a.leverageScore ?? 0.6;
+      const confidence = typeof rawConf === "number" && rawConf <= 1 ? rawConf : rawConf / 10;
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("con-bm-ha"),
+          type: "assumption",
+          label,
+          description: desc,
+          pipelineStep: "disrupt",
+          tier: autoTier(label, desc, "structural"),
+          impact: Math.round((a.leverageScore || a.leverage || 0.7) * 10),
+          confidenceScore: confidence,
+          category: a.category || "hidden_assumption",
+          mode,
+          sourceEngine: "pipeline",
+        });
+      }
+    });
+
+    // Legacy flat fields
     safeArr(biz.revenueRisks || biz.revenueModelAssumptions).forEach((r: any, i: number) => {
       const label = typeof r === "string" ? r : (r.label || r.name || `Revenue Assumption ${i + 1}`);
       if (!items.some(e => e.label === label)) {
