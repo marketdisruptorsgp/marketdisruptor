@@ -5,6 +5,7 @@ import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 import { StructuralDiagnosisPanel } from "@/components/StructuralDiagnosisPanel";
+import { SyntheticBadge } from "@/components/SyntheticBadge";
 import {
   StepCanvas, MetricCard, VisualGrid, ExpandableDetail,
 } from "@/components/analysis/AnalysisComponents";
