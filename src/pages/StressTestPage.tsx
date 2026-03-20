@@ -58,14 +58,16 @@ type StrategyTabId = "opportunities" | "strategy" | "debate" | "validate";
 
 export default function StressTestPage() {
   const [runTrigger, setRunTrigger] = React.useState(0);
-  const [analysisLoading, setAnalysisLoading] = React.useState(false);
+  const [rawAnalysisLoading, setAnalysisLoading] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<StrategyTabId>("opportunities");
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
-  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, !!analysis.stressTestData || !!analysis.disruptData);
+  const hasStressData = !!analysis.stressTestData || !!analysis.disruptData;
+  const { loadingTimedOut, forceCleared, clearTimeout: clearTimeoutState } = useAnalysisTimeout(rawAnalysisLoading, hasStressData);
+  const analysisLoading = rawAnalysisLoading && !hasStressData && !forceCleared;
 
   const { selectedProduct: rawSelectedProduct, analysisId } = analysis;
 
