@@ -55,8 +55,15 @@ function FragilityIndicator({ score }: { score: number }) {
   const color = score <= 3 ? "text-green-500" : score <= 6 ? "text-amber-500" : "text-red-500";
   const bg = score <= 3 ? "bg-green-500/10" : score <= 6 ? "bg-amber-500/10" : "bg-red-500/10";
   const label = score <= 3 ? "Resilient" : score <= 6 ? "Moderate" : "Fragile";
+  const tooltipText =
+    score <= 3
+      ? `${score}/10 — This hypothesis is well-supported by evidence and unlikely to fail under pressure.`
+      : score <= 6
+      ? `${score}/10 — Some structural weaknesses exist. Stress-test before committing resources.`
+      : `${score}/10 — High risk of being wrong. Key assumptions are untested or contradicted by evidence.`;
+
   return (
-    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${bg} ${color}`}>
+    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${bg} ${color} cursor-help`} title={tooltipText}>
       {label} {score}/10
     </span>
   );

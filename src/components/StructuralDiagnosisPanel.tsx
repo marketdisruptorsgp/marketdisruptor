@@ -60,9 +60,14 @@ export function StructuralDiagnosisPanel({ constraintMap }: { constraintMap?: Co
         <div className="rounded-xl p-4" style={{ background: "hsl(var(--foreground))", border: "none" }}>
           <div className="flex items-center gap-2 mb-2">
             <Zap size={13} style={{ color: "hsl(var(--background))" }} />
-            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.6)" }}>
-              Binding Constraint
-            </p>
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.6)" }}>
+                Binding Constraint
+              </p>
+              <p className="text-[9px] font-medium" style={{ color: "hsl(var(--background) / 0.4)" }}>
+                The single biggest thing holding this market back
+              </p>
+            </div>
           </div>
           <p className="text-sm font-bold leading-snug" style={{ color: "hsl(var(--background))" }}>
             {constraintMap.dominance_proof}
