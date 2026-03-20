@@ -842,3 +842,102 @@ function buildFallbackConcept(
     capitalRequired: "Medium",
   };
 }
+
+// ── Helper: build business entity context for mode anchoring ──
+function buildBusinessEntityContext(product: any): string {
+  const parts: string[] = [];
+  parts.push(`\n═══ ENTITY CONTEXT ANCHOR ═══`);
+  parts.push(`Business Name: ${product.name}`);
+  parts.push(`Category: ${product.category}`);
+  if (product.description) parts.push(`Description: ${product.description}`);
+  
+  // Extract entity type signals from biExtraction if available
+  const bi = product.biExtraction;
+  if (bi) {
+    if (bi.entityType) parts.push(`Entity Type: ${bi.entityType}`);
+    if (bi.customerType || bi.revenueEngine?.customerType) {
+      parts.push(`Customer Type: ${bi.customerType || bi.revenueEngine?.customerType}`);
+    }
+    if (bi.revenueEngine?.primaryRevenueStream) {
+      parts.push(`Primary Revenue: ${bi.revenueEngine.primaryRevenueStream}`);
+    }
+    if (bi.operatingModel?.deliveryMethod) {
+      parts.push(`Delivery: ${bi.operatingModel.deliveryMethod}`);
+    }
+    if (bi.industryVertical) parts.push(`Industry: ${bi.industryVertical}`);
+  }
+
+  // Detect B2B vs B2C from description/category
+  const descLower = (product.description || "").toLowerCase();
+  const isB2B = descLower.includes("b2b") || descLower.includes("commercial") || 
+    descLower.includes("contractor") || descLower.includes("fabricat") ||
+    descLower.includes("millwork") || descLower.includes("wholesale") ||
+    descLower.includes("enterprise") || descLower.includes("institutional");
+  const isB2C = descLower.includes("b2c") || descLower.includes("consumer") ||
+    descLower.includes("retail") || descLower.includes("dtc") || descLower.includes("direct-to-consumer");
+
+  if (isB2B && !isB2C) {
+    parts.push(`\nDETECTED: B2B business. Do NOT generate consumer/DTC/retail hypotheses.`);
+    parts.push(`All assumptions and opportunities must reference commercial/institutional customers, project-based sales, and B2B distribution channels.`);
+  } else if (isB2C && !isB2B) {
+    parts.push(`\nDETECTED: B2C business. Focus on consumer behavior, retail channels, and direct customer relationships.`);
+  }
+
+  return parts.join("\n");
+}
+
+// ── Helper: detect business mode drift in generated output ──
+const DRIFT_PATTERNS = [
+  { pattern: /customizable?\s+furniture/i, issue: "References 'customizable furniture' — likely template contamination" },
+  { pattern: /web[- ]based\s+configurator/i, issue: "References 'web-based configurator' for non-DTC business" },
+  { pattern: /direct[- ]to[- ]consumer\s+(channel|model|strategy)/i, issue: "References DTC for B2B business" },
+  { pattern: /e[- ]?commerce\s+(platform|store|shop)/i, issue: "References e-commerce for non-retail business" },
+  { pattern: /shopify|woocommerce|amazon\s+seller/i, issue: "References consumer retail platforms" },
+];
+
+function detectBusinessModeDrift(analysis: Record<string, unknown>, product: any): string[] {
+  const issues: string[] = [];
+  const descLower = (product.description || "").toLowerCase();
+  const isB2B = descLower.includes("b2b") || descLower.includes("commercial") || 
+    descLower.includes("contractor") || descLower.includes("fabricat") ||
+    descLower.includes("millwork") || descLower.includes("wholesale");
+  
+  if (!isB2B) return issues; // Only check B2B businesses for consumer drift
+
+  const text = JSON.stringify(analysis);
+  for (const { pattern, issue } of DRIFT_PATTERNS) {
+    if (pattern.test(text)) {
+      issues.push(issue);
+    }
+  }
+  return issues;
+}
+
+// ── Helper: scrub drifted content from analysis ──
+function scrubDriftedContent(analysis: Record<string, unknown>, driftIssues: string[]): void {
+  // Tag drifted hypotheses rather than removing them (preserve array structure)
+  const hypotheses = (analysis.governed as any)?.root_hypotheses || 
+    (analysis.governed as any)?.constraint_map?.root_hypotheses;
+  if (Array.isArray(hypotheses)) {
+    for (const h of hypotheses) {
+      const text = JSON.stringify(h).toLowerCase();
+      if (DRIFT_PATTERNS.some(({ pattern }) => pattern.test(text))) {
+        h._mode_drift_warning = "This hypothesis may contain consumer/DTC language inappropriate for B2B analysis";
+        h.confidence = Math.min(h.confidence || 50, 30); // Reduce confidence of drifted hypotheses
+        console.warn(`[StrategicSynthesis] Tagged drifted hypothesis: ${h.hypothesis_statement?.slice(0, 80)}`);
+      }
+    }
+  }
+
+  // Tag drifted hidden assumptions
+  const assumptions = analysis.hiddenAssumptions;
+  if (Array.isArray(assumptions)) {
+    for (const a of assumptions) {
+      const text = JSON.stringify(a).toLowerCase();
+      if (DRIFT_PATTERNS.some(({ pattern }) => pattern.test(text))) {
+        a._mode_drift_warning = "May contain consumer/DTC language inappropriate for this business type";
+        a.leverageScore = Math.min(a.leverageScore || 5, 3);
+      }
+    }
+  }
+}
