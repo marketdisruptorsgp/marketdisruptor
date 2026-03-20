@@ -45,6 +45,7 @@ export function usePipelineOrchestrator(
     setDecompositionData, setDisruptData, setRedesignData, setStressTestData, setPitchDeckData,
     setGovernedData, saveStepData, markStepOutdated, clearStepOutdated,
     conceptsData, setConceptsData,
+    loadedFromSaved,
   } = analysis;
 
   const businessAnalysisData = (analysis as any).businessAnalysisData;
