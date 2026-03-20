@@ -864,7 +864,8 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   let deepenedOpps: DeepenedOpportunity[] = [];
   const bindingConstraintCount = structuralProfile?.bindingConstraints.length ?? 0;
   // Lower AI threshold — strategic directions can fill gaps even with fewer qualified patterns
-  const meetsAIThreshold = evCount >= 6 && bindingConstraintCount >= 1 && structuralProfile != null;
+  const meetsAIThreshold = evCount >= 6 && bindingConstraintCount >= 1 && structuralProfile != null
+    && !input.suppressAIDeepening; // Skip AI deepening during active pipeline to prevent rate-limit contention
 
   if (structuralProfile) {
     if (meetsAIThreshold) {
