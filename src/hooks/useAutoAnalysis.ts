@@ -159,6 +159,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       intelligence: newIntelligence, analysisType: analysisMode,
       analysisId, completedSteps,
       geoMarketData: geoData, regulatoryData, lensConfig, biExtraction,
+      suppressAIDeepening: isPipelineRunning(),
     };
 
     const applyResult = (result: ReturnType<typeof runStrategicAnalysis>) => {

@@ -167,6 +167,7 @@ export function usePipelineOrchestrator(
     } finally {
       setCurrentStep(null);
       setIsRunning(false);
+      setPipelineRunning(false);
       runningRef.current = false;
       runAllRef.current = false;
       releaseKeepAlive();
