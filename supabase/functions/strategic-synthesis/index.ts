@@ -298,9 +298,10 @@ OUTPUT RULES:
     }
   ],
   ${redesignedConceptSchema},
-  ${quickValidationSchema},
-  "governed": { ... }
-}`;
+  ${quickValidationSchema}
+}
+
+${getGovernedSchemaPrompt(isBusiness ? "business-model-analysis" : "first-principles")}`;
 
     const systemPrompt = isBusiness
       ? OS_PREAMBLE + `You are a radical first-principles BUSINESS MODEL strategist combining:
