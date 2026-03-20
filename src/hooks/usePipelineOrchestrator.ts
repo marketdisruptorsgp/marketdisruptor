@@ -29,6 +29,8 @@ export interface PipelineProgress {
   runAllSteps: () => void;
   pipelineStartedAt: number | null;
   stepTimings: Record<string, StepTiming>;
+  /** Last pipeline error — persists until next successful run */
+  pipelineError: string | null;
 }
 
 export function usePipelineOrchestrator(
