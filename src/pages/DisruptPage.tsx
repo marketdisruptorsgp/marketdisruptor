@@ -236,8 +236,8 @@ export default function DisruptPage() {
           <>
             {/* ── Flipped Ideas / Reinvention Ideas — TOP of Deconstruct tab ── */}
             {hasDisruptData && (() => {
-              const disruptPayload = analysis.disruptData as Record<string, unknown> | null;
-              const flippedLogic = (disruptPayload?.flippedLogic as any[]) || [];
+               const disruptPayload = effectiveDisruptData as Record<string, unknown> | null;
+               const flippedLogic = (disruptPayload?.flippedLogic as any[]) || [];
               const productIdeas = selectedProduct?.flippedIdeas || [];
 
               // Derive ideas from deepenedOpportunities as additional fallback
