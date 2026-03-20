@@ -15,6 +15,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { getResumeRoute } from "@/utils/analysisSteps";
+import { buildDiagnosticContext, type DiagnosticContext } from "@/lib/diagnosticContext";
 
 /** Lightweight summary of a concept variant for cross-page transfer */
 export interface ConceptVariantSummary {
@@ -168,6 +169,9 @@ interface AnalysisContextType {
   // Analysis Lens
   activeLens: UserLens | null;
   setActiveLens: (lens: UserLens | null) => void;
+
+  // Diagnostic Context — derived from activeMode + activeLens
+  diagnosticContext: DiagnosticContext;
 
   // Governed data (reasoning synopsis, constraint maps, etc.)
   governedData: Record<string, unknown> | null;
@@ -426,6 +430,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
+
+  // ── Diagnostic Context — derived from activeMode + activeLens ──
+  const diagnosticContext = useMemo(
+    () => buildDiagnosticContext(activeMode, activeLens),
+    [activeMode, activeLens],
+  );
 
   // ── Geo Market Data ──
   const [geoData, setGeoData] = useState<unknown>(null);
@@ -1545,6 +1555,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
       pitchDeckExclusions, togglePitchDeckExclusion,
       activeLens, setActiveLens,
+      diagnosticContext,
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       scoutedCompetitors, setScoutedCompetitors,

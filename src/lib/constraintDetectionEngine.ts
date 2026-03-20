@@ -15,6 +15,7 @@
 
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { EvidenceFacets, BusinessFacets, ObjectFacets, DemandFacets, MarketFacets } from "@/lib/evidenceFacets";
+import { getModeCategoryWeight, type DiagnosticContext } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  CONSTRAINT TAXONOMY — Stable IDs
@@ -614,22 +615,34 @@ function countMatches(text: string, pattern: RegExp): number {
  */
 export function rankConstraintCandidates(
   candidates: ConstraintCandidate[],
-  evidence?: { label: string; description?: string }[]
+  evidence?: { label: string; description?: string }[],
+  diagnosticCtx?: DiagnosticContext | null,
 ): ConstraintCandidate[] {
   const archetype = evidence ? inferArchetype(evidence) : null;
   const priors = archetype ? ARCHETYPE_PRIORS[archetype] : null;
 
   return [...candidates].sort((a, b) => {
-    // Priority 1: Tier (lower tier = more structural = higher priority)
+    // Priority 1: Mode-aware composite score (tier adjusted by category weight)
+    // Dividing tier by category weight is intentional: higher weight → lower
+    // composite score → ranks higher in the ascending sort below. This correctly
+    // promotes mode-prioritized constraint categories without changing cross-tier
+    // ordering (e.g., tier 1 always beats tier 2 regardless of weight).
+    const aCatWeight = getModeCategoryWeight(a.definition?.category ?? "", diagnosticCtx);
+    const bCatWeight = getModeCategoryWeight(b.definition?.category ?? "", diagnosticCtx);
+    const aComposite = a.tier / aCatWeight;
+    const bComposite = b.tier / bCatWeight;
+    if (Math.abs(aComposite - bComposite) > 0.05) return aComposite - bComposite;
+
+    // Priority 2: Raw tier (lower tier = more structural = higher priority)
     if (a.tier !== b.tier) return a.tier - b.tier;
 
-    // Priority 2: Confidence
+    // Priority 3: Confidence
     const confOrder = { strong: 0, moderate: 1, limited: 2 };
     if (confOrder[a.confidence] !== confOrder[b.confidence]) {
       return confOrder[a.confidence] - confOrder[b.confidence];
     }
 
-    // Priority 3: Archetype prior bias (likely constraints rank higher)
+    // Priority 4: Archetype prior bias (likely constraints rank higher)
     if (priors) {
       const aLikely = priors.likelyConstraints.includes(a.constraintName) ? 1 : 0;
       const bLikely = priors.likelyConstraints.includes(b.constraintName) ? 1 : 0;
@@ -640,7 +653,7 @@ export function rankConstraintCandidates(
       if (aScore !== bScore) return bScore - aScore;
     }
 
-    // Priority 4: Evidence count (more evidence = stronger signal)
+    // Priority 5: Evidence count (more evidence = stronger signal)
     return b.evidenceIds.length - a.evidenceIds.length;
   });
 }
@@ -779,12 +792,15 @@ function computeCounterfactualImpact(
  * Returns a ranked set of 2-3 constraint hypotheses with full
  * evidence chains and counterfactual impact scores.
  */
-export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): ConstraintHypothesisSet {
+export function detectConstraintHypotheses(
+  evidence: EvidenceWithFacets[],
+  diagnosticCtx?: DiagnosticContext | null,
+): ConstraintHypothesisSet {
   // Layer 1: Detect candidates
   const candidates = detectCandidateConstraints(evidence);
 
-  // Layer 2: Rank candidates
-  const ranked = rankConstraintCandidates(candidates, evidence);
+  // Layer 2: Rank candidates (mode-aware when context is provided)
+  const ranked = rankConstraintCandidates(candidates, evidence, diagnosticCtx);
 
   // Layer 3: Counterfactual validation + probabilistic stack on top candidates
   const topCandidates = ranked.slice(0, 5);

@@ -18,6 +18,7 @@
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { StrategicInsight, StrategicSignal } from "@/lib/strategicEngine";
 import { applyPatterns, detectInteractions, type VectorOrigin, type VectorInteraction } from "@/lib/strategicPatternLibrary";
+import { getModePriorityDimensions, type DiagnosticContext } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -541,13 +542,16 @@ export function identifyActiveDimensions(
   baseline: BusinessBaseline,
   constraints: StrategicInsight[],
   leveragePoints: StrategicInsight[],
+  diagnosticCtx?: DiagnosticContext | null,
 ): BusinessBaseline {
   const updated = { ...baseline };
+  const priorityCategories = getModePriorityDimensions(diagnosticCtx);
 
   for (const [key, dim] of Object.entries(updated)) {
     const newDim = { ...dim };
 
-    if (newDim.hasConstraint || newDim.hasLeverage) {
+    if (newDim.hasConstraint || newDim.hasLeverage || priorityCategories.includes(newDim.category)) {
+      // hot: linked to a constraint/leverage point OR promoted by the active mode
       newDim.status = "hot";
     } else if (newDim.evidenceCount >= 2) {
       newDim.status = "warm";
@@ -935,14 +939,15 @@ export function runMorphologicalSearch(
   constraints: StrategicInsight[],
   leveragePoints: StrategicInsight[],
   aiAlternatives: DimensionAlternative[],
+  diagnosticCtx?: DiagnosticContext | null,
 ): MorphologicalSearchResult {
   resetCounters();
 
   // Stage 1: Extract baseline
   const rawBaseline = extractBaseline(flatEvidence, constraints, leveragePoints);
 
-  // Stage 2: Identify active dimensions
-  const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints);
+  // Stage 2: Identify active dimensions (mode-aware when context is provided)
+  const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints, diagnosticCtx);
 
   const hotDims = getDimensionsByStatus(baseline, "hot");
   const warmDims = getDimensionsByStatus(baseline, "warm");
