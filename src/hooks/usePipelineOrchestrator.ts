@@ -252,5 +252,6 @@ export function usePipelineOrchestrator(
     completedCount: steps.filter(s => s.status === "done").length,
     totalCount: steps.length,
     retryStep, runAllSteps, pipelineStartedAt, stepTimings,
+    pipelineError,
   };
 }
