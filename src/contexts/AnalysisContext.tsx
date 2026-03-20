@@ -443,7 +443,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // Combines active mode + lens into the unified contract used by all engines.
   // Re-computed whenever mode or lens changes.
   const diagnosticContext = useMemo((): DiagnosticContext =>
-    buildDiagnosticContext(activeMode, extractLensConfig(activeLens as Record<string, unknown> | null)),
+    buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null)),
   [activeMode, activeLens]);
 
   // ── Geo Market Data ──

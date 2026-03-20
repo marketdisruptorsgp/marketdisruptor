@@ -809,7 +809,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   // ── Build DiagnosticContext from analysisType + lensConfig ──
   const diagnosticContext: DiagnosticContext = buildDiagnosticContext(
     input.analysisType,
-    extractLensConfig(input.lensConfig as Record<string, unknown> | null),
+    extractLensConfig(input.lensConfig as unknown as Record<string, unknown> | null),
   );
 
   // ── Stages 1-5: Same as sync ──

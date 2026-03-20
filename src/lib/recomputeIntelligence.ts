@@ -192,7 +192,7 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
   }
 
   // Build diagnostic context for mode-aware morphological search
-  const morphContext = buildDiagnosticContext(input.analysisType, extractLensConfig(input.lensConfig as Record<string, unknown> | null));
+  const morphContext = buildDiagnosticContext(input.analysisType, extractLensConfig(input.lensConfig as unknown as Record<string, unknown> | null));
 
   // Run morphological search deterministically — no AI cost, <100ms
   let morphologicalZones: import("@/lib/opportunityDesignEngine").OpportunityZone[] = [];
