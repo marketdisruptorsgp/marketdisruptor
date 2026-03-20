@@ -49,8 +49,6 @@ const TABS: TabDef<"assumptions" | "deconstruct" | "reasoning" | "hypotheses">[]
 
 type TabId = "assumptions" | "deconstruct" | "reasoning" | "hypotheses";
 
-const LOADING_TIMEOUT_MS = 90_000; // 90s max loading before showing error escape
-
 export default function DisruptPage() {
   const [activeTab, setActiveTab] = useState<TabId>("assumptions");
   const [runTrigger, setRunTrigger] = useState(0);
@@ -60,6 +58,7 @@ export default function DisruptPage() {
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
+  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, !!analysis.disruptData);
 
   const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
 
