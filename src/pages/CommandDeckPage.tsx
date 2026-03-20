@@ -165,6 +165,17 @@ export default function CommandDeckPage() {
       }));
   }, [disruptData]);
 
+  const opportunityGrid = useMemo(
+    () =>
+      buildOpportunityGrid(
+        deepenedOpportunities,
+        morphologicalZones,
+        constraintInversions,
+        secondOrderUnlocks,
+      ),
+    [deepenedOpportunities, morphologicalZones, constraintInversions, secondOrderUnlocks],
+  );
+
   // Auto-trigger analysis when the page mounts with data but no run yet
   useEffect(() => {
     if (!hasRun && completedSteps.size === 0 && (selectedProduct || businessAnalysisData)) {
