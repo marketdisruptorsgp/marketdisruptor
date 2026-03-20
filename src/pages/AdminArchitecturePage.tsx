@@ -4,9 +4,10 @@ const AdminArchitecturePage = () => {
   return (
     <div>
       <h1>Admin Architecture</h1>
-      <p>Edge Functions → AI Gateway</p>
-      <p>Supabase (managed hosting)</p>
-      {/* Other content remains unchanged */}
+      <ul>
+        <li>Edge Functions → AI Gateway</li>
+        <li>Supabase (managed hosting)</li>
+      </ul>
     </div>
   );
 };
