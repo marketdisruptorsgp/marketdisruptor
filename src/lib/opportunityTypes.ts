@@ -1,0 +1,232 @@
+/**
+ * OPPORTUNITY TYPES — Canonical type contract for all opportunity generation engines
+ *
+ * This file defines the shared interfaces and union types that all innovation
+ * engines (SCAMPER, TRIZ, morphological analysis, JTBD, analogy, first_principles,
+ * contrarian) implement against. It is a pure type definition file — no runtime
+ * logic, no React imports, no engine dependencies.
+ *
+ * Every engine that surfaces opportunities should return its results in the shape
+ * of `OpportunityGenerationResult`, with individual opportunities typed as
+ * `OpportunityVector` and gated candidates typed as `BlockedPath`.
+ *
+ * This contract ensures all engines are interoperable and UX components can
+ * consume a predictable, consistent structure regardless of which engine produced
+ * the output.
+ */
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  UNION TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The set of supported innovation methods that can generate opportunities.
+ * Each method maps to a distinct reasoning strategy:
+ * - `scamper`          — Substitute / Combine / Adapt / Modify / Put-to-other-use / Eliminate / Reverse
+ * - `triz`             — Theory of Inventive Problem Solving (contradiction matrix)
+ * - `morphological`    — Zwicky box / morphological analysis across dimensions
+ * - `jtbd`             — Jobs-to-be-Done demand-side framing
+ * - `analogy`          — Cross-industry or cross-domain analogical transfer
+ * - `first_principles` — Break assumptions down to fundamentals and rebuild
+ * - `contrarian`       — Invert conventional wisdom to surface non-obvious paths
+ */
+export type InnovationMethod =
+  | "scamper"
+  | "triz"
+  | "morphological"
+  | "jtbd"
+  | "analogy"
+  | "first_principles"
+  | "contrarian";
+
+/**
+ * Tier classification for a surfaced opportunity, used for ranking and display:
+ * - `wow`         — Breakthrough-level opportunity with strong evidence and low friction
+ * - `viable`      — Solid opportunity worth pursuing with manageable constraints
+ * - `speculative` — Possible but dependent on uncertain conditions or future changes
+ * - `blocked`     — Currently gated; see `BlockedPath` for gate failure detail
+ */
+export type OpportunityTier = "wow" | "viable" | "speculative" | "blocked";
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  EVIDENCE ANCHOR
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A single piece of evidence supporting or contextualising an opportunity.
+ * Evidence anchors are aggregated on `OpportunityVector.evidence` to provide
+ * a transparent, auditable basis for the opportunity tier and framing.
+ */
+export interface EvidenceAnchor {
+  /** Short label for the evidence signal (e.g. "Unmet latent demand", "Regulatory tailwind") */
+  label: string;
+  /**
+   * The category of evidence:
+   * - `demand`     — Observable or inferred customer demand signal
+   * - `supply`     — Supply-side gap, cost curve, or capacity signal
+   * - `structural` — Industry structure, competitive dynamics, or barrier shift
+   * - `behavioral` — Observed or reported behavior change in users or buyers
+   * - `market`     — Market-level data: size, growth rate, penetration, timing
+   */
+  type: "demand" | "supply" | "structural" | "behavioral" | "market";
+  /** Confidence score in the range 0–1 (0 = no evidence, 1 = strong evidence) */
+  confidence: number;
+  /** Optional free-text explanation of why this signal is relevant */
+  rationale?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  HEILMEIER PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Full DARPA Heilmeier Catechism panel for a single opportunity.
+ * The Heilmeier Catechism is a set of questions used to evaluate the merit of
+ * a proposed research or innovation effort. Panels may be auto-generated by
+ * an engine or manually annotated by a user.
+ *
+ * @see https://www.darpa.mil/work-with-us/heilmeier-catechism
+ */
+export interface HeilmeierPanel {
+  /** What are you trying to do? Articulate your objectives using absolutely no jargon. */
+  objective: string;
+  /** How is it done today, and what are the limits of current practice? */
+  todaysLimit: string;
+  /** What is new in your approach and why do you think it will be successful? */
+  whatsNew: string;
+  /** Who cares? If you succeed, what difference will it make? */
+  whoCares: string;
+  /** What are the risks and the payoffs? */
+  risks: string;
+  /** How long will it take? */
+  timeline: string;
+  /** What are the midterm and final exams to check for success? */
+  successMetrics: string;
+  /** What is the total cost and how much will it cost to develop and deploy? */
+  cost: string;
+  /** What are the failure modes and how would you know if the effort has failed? */
+  failureModes: string;
+  /**
+   * Whether this panel was generated automatically by an engine (`auto`) or
+   * manually written or corrected by a user (`annotated`).
+   */
+  source: "auto" | "annotated";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  BLOCKED PATH
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A candidate opportunity that was generated but gated/disqualified before
+ * being surfaced as a viable `OpportunityVector`. Blocked paths are preserved
+ * so users can inspect what was considered and understand what conditions would
+ * need to change for the path to become viable.
+ */
+export interface BlockedPath {
+  /** Unique identifier for this blocked candidate */
+  id: string;
+  /** Human-readable label describing the blocked opportunity */
+  label: string;
+  /**
+   * The specific gate that caused the block:
+   * - `evidence`           — Insufficient or contradictory evidence to support the claim
+   * - `constraint_linkage` — The opportunity is downstream of an unresolved hard constraint
+   * - `feasibility`        — Technical, regulatory, or resource feasibility threshold not met
+   * - `redundancy`         — Substantially equivalent to an already-surfaced opportunity
+   */
+  gateFailure: "evidence" | "constraint_linkage" | "feasibility" | "redundancy";
+  /** A plain-language description of what conditions would need to be true for this to become viable */
+  whatWouldNeedToBeTrue: string;
+  /** The innovation method that originally generated this candidate */
+  method: InnovationMethod;
+  /** Optional Heilmeier panel — may be partial since the path was blocked before full elaboration */
+  heilmeier?: Partial<HeilmeierPanel>;
+  /** Optional user annotation providing additional context or reasoning about the block */
+  userAnnotation?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OPPORTUNITY VECTOR
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The primary output shape for any surfaced opportunity, regardless of which
+ * innovation engine produced it. All engines must return their results in this
+ * shape so UX components and downstream consumers can treat outputs uniformly.
+ *
+ * The `id` field should be deterministically derived from `method` + `label`
+ * (e.g. a stable hash or slug) so that the same logical opportunity produced
+ * by the same method always resolves to the same identifier across runs.
+ */
+export interface OpportunityVector {
+  /** Unique identifier — deterministic from method + label (e.g. a stable slug or hash) */
+  id: string;
+  /** Human-readable opportunity label (concise, noun-phrase preferred) */
+  label: string;
+  /** One-sentence summary of the opportunity and why it matters */
+  summary: string;
+  /** Tier classification: wow, viable, speculative, or blocked */
+  tier: OpportunityTier;
+  /** The innovation method that generated this opportunity */
+  method: InnovationMethod;
+  /** Demand-side anchor: the job-to-be-done this opportunity directly addresses */
+  jobToBeDone?: string;
+  /** The root constraint or friction this opportunity resolves or circumvents */
+  rootConstraint?: string;
+  /** Cross-industry analogy or historical precedent that validates the pattern */
+  analog?: string;
+  /** Evidence anchors that support this opportunity's tier and framing */
+  evidence: EvidenceAnchor[];
+  /** Full Heilmeier panel — auto-generated by the engine or manually annotated */
+  heilmeier?: HeilmeierPanel;
+  /**
+   * If the opportunity was originally blocked and later re-evaluated as viable
+   * or speculative, the original blocked path detail is preserved here for
+   * audit and transparency.
+   */
+  blockedPath?: BlockedPath;
+  /**
+   * Optional user annotation capturing a pursuit decision or freeform comment.
+   * - `status`  — `pursue` marks the opportunity for active follow-through;
+   *               `not_viable` records a deliberate decision to deprioritise.
+   * - `comment` — Any freeform text the user wishes to attach.
+   */
+  userAnnotation?: {
+    status?: "pursue" | "not_viable";
+    comment?: string;
+  };
+  /**
+   * The `DiagnosticContext.contextKey` value that was active when this
+   * opportunity was generated. Used for cache invalidation — if the context
+   * key changes (mode or lens shift), previously generated opportunities
+   * should be considered stale.
+   */
+  contextKey?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OPPORTUNITY GENERATION RESULT
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The top-level result object returned by any opportunity generation engine.
+ * All engines — SCAMPER, TRIZ, morphological, JTBD, analogy, first_principles,
+ * contrarian — must return this shape as their primary output.
+ *
+ * `opportunities` contains only surfaced (non-blocked) candidates, sorted by
+ * tier with `wow` first, then `viable`, then `speculative`.
+ * `blockedPaths` contains all candidates that were gated before surfacing.
+ */
+export interface OpportunityGenerationResult {
+  /** Top opportunities sorted by tier (wow → viable → speculative) */
+  opportunities: OpportunityVector[];
+  /** Explicitly blocked or gated candidates, preserved for transparency */
+  blockedPaths: BlockedPath[];
+  /** The `DiagnosticContext.contextKey` this result was generated under — for cache invalidation */
+  contextKey: string;
+  /** ISO-8601 timestamp of when this result was generated */
+  generatedAt: string;
+  /** Which innovation methods contributed opportunities to this result */
+  methodsUsed: InnovationMethod[];
+}
