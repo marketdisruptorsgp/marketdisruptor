@@ -355,16 +355,8 @@ export default function CommandDeckPage() {
       ? "service"
       : "product";
 
-  const opportunityGrid = useMemo(
-    () =>
-      buildOpportunityGrid(
-        deepenedOpportunities,
-        morphologicalZones,
-        constraintInversions,
-        secondOrderUnlocks,
-      ),
-    [deepenedOpportunities, morphologicalZones, constraintInversions, secondOrderUnlocks],
-  );
+
+
 
   return (
     <div className="flex-1 bg-background overflow-y-auto">
