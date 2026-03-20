@@ -1,4 +1,4 @@
-const CANONICAL_PUBLISHED_URL = "https://productideas.lovable.app";
+const CANONICAL_PUBLISHED_URL = "https://marketdisruptor.sgpcapital.com";
 
 const LEGACY_HOSTS = new Set([
   "marketdisruptor.sgpcapital.com",
