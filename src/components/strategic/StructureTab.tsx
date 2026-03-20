@@ -1,4 +1,5 @@
 import React, { useMemo, forwardRef } from "react";
+import { parseFlippedLogicFromBusiness } from "@/lib/businessAnalysisFallback";
 import { useCompetitiveResearch } from "@/hooks/useCompetitiveResearch";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
