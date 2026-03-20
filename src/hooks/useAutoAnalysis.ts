@@ -439,7 +439,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   }, [
     analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
-    geoData, regulatoryData, activeLens,
+    geoData, regulatoryData, activeLens, isHydrating,
   ]);
 
   // ── Hydrate strategic engine from persisted state on reload ──
