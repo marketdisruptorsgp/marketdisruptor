@@ -52,6 +52,7 @@ serve(async (req) => {
 
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
+    const isBusiness = mode === "business";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -59,6 +60,9 @@ serve(async (req) => {
     const filteredProduct = filterResult.filtered;
     console.log(`[StrategicSynthesis] ${mode} mode`);
     const modeGuard = getModeGuardPrompt(mode);
+
+    // ── Business entity context for mode anchoring ──
+    const entityContext = isBusiness ? buildBusinessEntityContext(product) : "";
 
     // ── Build curation prompt ──
     let curationPrompt = "";
@@ -298,7 +302,29 @@ OUTPUT RULES:
   "governed": { ... }
 }`;
 
-    const systemPrompt = isService
+    const systemPrompt = isBusiness
+      ? OS_PREAMBLE + `You are a radical first-principles BUSINESS MODEL strategist combining:
+- Clayton Christensen (disruptive innovation, jobs-to-be-done)
+- Hamilton Helmer (7 Powers — scale economies, network effects, switching costs, counter-positioning)
+- Warren Buffett (durable competitive advantage, economic moats)
+- Alex Hormozi (offer design, pricing leverage, operational efficiency)
+
+${entityContext}
+
+═══ BUSINESS MODEL ANTI-DRIFT MANDATE ═══
+CRITICAL: You are analyzing a BUSINESS MODEL — its revenue mechanics, cost structure, competitive moat, and growth constraints.
+• Do NOT generate hypotheses about consumer products, DTC e-commerce, web configurators, or customizable retail goods UNLESS the business actually sells those.
+• Do NOT reference "customizable furniture" or "web-based configurator" for a B2B fabrication/contracting business.
+• Every assumption, flip, and transformation must reference THIS business's actual operations, customers, and revenue model.
+• If you catch yourself writing something that could apply to any business, DELETE IT and write something specific to this entity.
+• Ground every insight in the entity's actual customer type (B2B vs B2C), delivery model, and revenue structure.
+
+Your mission: deconstruct a BUSINESS MODEL, uncover hidden assumptions in its value capture mechanics, and generate a structurally redesigned business concept.
+
+Respond ONLY with a single valid JSON object.
+The JSON must follow this EXACT structure:
+${analysisSchema}`
+      : isService
       ? OS_PREAMBLE + `You are a radical first-principles service strategist combining:
 - Clayton Christensen (jobs-to-be-done, disruptive innovation)
 - Elon Musk (first principles — strip away convention)
@@ -324,7 +350,41 @@ The JSON must follow this EXACT structure:
 ${analysisSchema}`;
 
     // ── User prompt ──
-    const userPrompt = isService
+    const userPrompt = isBusiness
+      ? `Apply radical first-principles deconstruction AND concept generation to this BUSINESS MODEL.
+
+BUSINESS: ${product.name}
+CATEGORY: ${product.category}
+DESCRIPTION: ${product.description}
+KEY INSIGHT: ${product.keyInsight || "None provided"}
+MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
+${product.biExtraction ? `
+BUSINESS INTELLIGENCE (from document analysis):
+${product.biExtraction.revenueEngine ? `  Revenue Model: ${JSON.stringify(product.biExtraction.revenueEngine).slice(0, 500)}` : ""}
+${product.biExtraction.operatingModel ? `  Operating Model: ${JSON.stringify(product.biExtraction.operatingModel).slice(0, 500)}` : ""}
+${product.biExtraction.financials ? `  Financials: ${JSON.stringify(product.biExtraction.financials).slice(0, 500)}` : ""}
+${product.biExtraction.ownerDependency ? `  Owner Dependency: ${JSON.stringify(product.biExtraction.ownerDependency).slice(0, 300)}` : ""}
+` : ""}
+
+KNOWN ISSUES:
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => "• " + r.text).join("\n") || "General business model friction"}
+
+EXISTING ASSUMPTIONS:
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => "• " + a.assumption + " → " + a.challenge).join("\n") || "None pre-identified"}
+
+CRITICAL INSTRUCTIONS:
+1. Every hiddenAssumption must reference THIS business's actual revenue model, cost structure, or operations
+2. Generate at least 5 hiddenAssumptions and 4 flippedLogic items about the BUSINESS MODEL (not a hypothetical product)
+3. Generate 6-8 structuralTransformations targeting leverage primitives in the business architecture
+4. Group surviving transformations into 2-3 clusters
+5. Generate redesignedConcept as a restructured BUSINESS MODEL (not a consumer product)
+6. Generate quickValidation with top 3 threats and feasibility score
+7. Include unit economics, margin improvement math, and revenue impact estimates
+8. Reference real business model analogs (companies that solved similar structural problems)
+9. Do NOT suggest "web configurators", "DTC channels", or consumer product features unless this business actually sells to consumers
+
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}${curationPrompt}`
+      : isService
       ? `Apply radical first-principles deconstruction AND concept generation to this SERVICE.
 
 SERVICE: ${product.name}
@@ -334,13 +394,13 @@ KEY INSIGHT: ${product.keyInsight || "None provided"}
 MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
 
 KNOWN CUSTOMER COMPLAINTS:
-${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || "General friction points"}
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => "• " + r.text).join("\n") || "General friction points"}
 
 EXISTING ASSUMPTIONS:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || "None pre-identified"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => "• " + a.assumption + " → " + a.challenge).join("\n") || "None pre-identified"}
 
 COMMUNITY PAIN POINTS:
-${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c}`).join("\n") || "See reviews above"}
+${(product as any).communityInsights?.topComplaints?.map((c: string) => "• " + c).join("\n") || "See reviews above"}
 
 CRITICAL INSTRUCTIONS:
 1. Generate at least 5 hiddenAssumptions and 4 flippedLogic items
@@ -364,13 +424,13 @@ KEY INSIGHT: ${product.keyInsight || "None provided"}
 MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
 
 KNOWN USER COMPLAINTS:
-${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || "General friction points"}
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => "• " + r.text).join("\n") || "General friction points"}
 
 EXISTING ASSUMPTIONS:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || "None pre-identified"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => "• " + a.assumption + " → " + a.challenge).join("\n") || "None pre-identified"}
 
 COMMUNITY PAIN POINTS:
-${(product as any).communityInsights?.topComplaints?.map((c: string) => `• ${c}`).join("\n") || "See reviews above"}
+${(product as any).communityInsights?.topComplaints?.map((c: string) => "• " + c).join("\n") || "See reviews above"}
 
 CRITICAL INSTRUCTIONS:
 1. FRICTION: Identify PRIMARY friction dimension — do NOT default to physical/size
@@ -608,6 +668,17 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     }
 
     const validationResult = validateOutput(mode, analysis);
+    
+    // ── Business mode drift detection ──
+    if (isBusiness) {
+      const driftIssues = detectBusinessModeDrift(analysis, product);
+      if (driftIssues.length > 0) {
+        console.warn(`[StrategicSynthesis] BUSINESS MODE DRIFT DETECTED: ${driftIssues.join("; ")}`);
+        // Scrub drifted hypotheses rather than failing the whole request
+        scrubDriftedContent(analysis, driftIssues);
+      }
+    }
+
     const trace = buildTrace(mode, filterResult, validationResult);
 
     return new Response(JSON.stringify({ success: true, analysis, _modeTrace: trace, _governedValidation: governedValidation }), {
@@ -770,4 +841,103 @@ function buildFallbackConcept(
     riskLevel: "Medium",
     capitalRequired: "Medium",
   };
+}
+
+// ── Helper: build business entity context for mode anchoring ──
+function buildBusinessEntityContext(product: any): string {
+  const parts: string[] = [];
+  parts.push(`\n═══ ENTITY CONTEXT ANCHOR ═══`);
+  parts.push(`Business Name: ${product.name}`);
+  parts.push(`Category: ${product.category}`);
+  if (product.description) parts.push(`Description: ${product.description}`);
+  
+  // Extract entity type signals from biExtraction if available
+  const bi = product.biExtraction;
+  if (bi) {
+    if (bi.entityType) parts.push(`Entity Type: ${bi.entityType}`);
+    if (bi.customerType || bi.revenueEngine?.customerType) {
+      parts.push(`Customer Type: ${bi.customerType || bi.revenueEngine?.customerType}`);
+    }
+    if (bi.revenueEngine?.primaryRevenueStream) {
+      parts.push(`Primary Revenue: ${bi.revenueEngine.primaryRevenueStream}`);
+    }
+    if (bi.operatingModel?.deliveryMethod) {
+      parts.push(`Delivery: ${bi.operatingModel.deliveryMethod}`);
+    }
+    if (bi.industryVertical) parts.push(`Industry: ${bi.industryVertical}`);
+  }
+
+  // Detect B2B vs B2C from description/category
+  const descLower = (product.description || "").toLowerCase();
+  const isB2B = descLower.includes("b2b") || descLower.includes("commercial") || 
+    descLower.includes("contractor") || descLower.includes("fabricat") ||
+    descLower.includes("millwork") || descLower.includes("wholesale") ||
+    descLower.includes("enterprise") || descLower.includes("institutional");
+  const isB2C = descLower.includes("b2c") || descLower.includes("consumer") ||
+    descLower.includes("retail") || descLower.includes("dtc") || descLower.includes("direct-to-consumer");
+
+  if (isB2B && !isB2C) {
+    parts.push(`\nDETECTED: B2B business. Do NOT generate consumer/DTC/retail hypotheses.`);
+    parts.push(`All assumptions and opportunities must reference commercial/institutional customers, project-based sales, and B2B distribution channels.`);
+  } else if (isB2C && !isB2B) {
+    parts.push(`\nDETECTED: B2C business. Focus on consumer behavior, retail channels, and direct customer relationships.`);
+  }
+
+  return parts.join("\n");
+}
+
+// ── Helper: detect business mode drift in generated output ──
+const DRIFT_PATTERNS = [
+  { pattern: /customizable?\s+furniture/i, issue: "References 'customizable furniture' — likely template contamination" },
+  { pattern: /web[- ]based\s+configurator/i, issue: "References 'web-based configurator' for non-DTC business" },
+  { pattern: /direct[- ]to[- ]consumer\s+(channel|model|strategy)/i, issue: "References DTC for B2B business" },
+  { pattern: /e[- ]?commerce\s+(platform|store|shop)/i, issue: "References e-commerce for non-retail business" },
+  { pattern: /shopify|woocommerce|amazon\s+seller/i, issue: "References consumer retail platforms" },
+];
+
+function detectBusinessModeDrift(analysis: Record<string, unknown>, product: any): string[] {
+  const issues: string[] = [];
+  const descLower = (product.description || "").toLowerCase();
+  const isB2B = descLower.includes("b2b") || descLower.includes("commercial") || 
+    descLower.includes("contractor") || descLower.includes("fabricat") ||
+    descLower.includes("millwork") || descLower.includes("wholesale");
+  
+  if (!isB2B) return issues; // Only check B2B businesses for consumer drift
+
+  const text = JSON.stringify(analysis);
+  for (const { pattern, issue } of DRIFT_PATTERNS) {
+    if (pattern.test(text)) {
+      issues.push(issue);
+    }
+  }
+  return issues;
+}
+
+// ── Helper: scrub drifted content from analysis ──
+function scrubDriftedContent(analysis: Record<string, unknown>, driftIssues: string[]): void {
+  // Tag drifted hypotheses rather than removing them (preserve array structure)
+  const hypotheses = (analysis.governed as any)?.root_hypotheses || 
+    (analysis.governed as any)?.constraint_map?.root_hypotheses;
+  if (Array.isArray(hypotheses)) {
+    for (const h of hypotheses) {
+      const text = JSON.stringify(h).toLowerCase();
+      if (DRIFT_PATTERNS.some(({ pattern }) => pattern.test(text))) {
+        h._mode_drift_warning = "This hypothesis may contain consumer/DTC language inappropriate for B2B analysis";
+        h.confidence = Math.min(h.confidence || 50, 30); // Reduce confidence of drifted hypotheses
+        console.warn(`[StrategicSynthesis] Tagged drifted hypothesis: ${h.hypothesis_statement?.slice(0, 80)}`);
+      }
+    }
+  }
+
+  // Tag drifted hidden assumptions
+  const assumptions = analysis.hiddenAssumptions;
+  if (Array.isArray(assumptions)) {
+    for (const a of assumptions) {
+      const text = JSON.stringify(a).toLowerCase();
+      if (DRIFT_PATTERNS.some(({ pattern }) => pattern.test(text))) {
+        a._mode_drift_warning = "May contain consumer/DTC language inappropriate for this business type";
+        a.leverageScore = Math.min(a.leverageScore || 5, 3);
+      }
+    }
+  }
 }
