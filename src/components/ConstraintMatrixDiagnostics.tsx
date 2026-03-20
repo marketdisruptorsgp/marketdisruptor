@@ -38,6 +38,11 @@ const INTERACTION_BG: Record<string, string> = {
   limiting: "hsl(38 92% 50% / 0.12)",
 };
 
+/** Max characters for column labels before truncation */
+const COL_LABEL_MAX = 18;
+/** Max characters for row labels before truncation */
+const ROW_LABEL_MAX = 22;
+
 function cellBackground(cell: ConstraintMatrixCell): string {
   if (cell.isDiagonal) return "hsl(var(--muted) / 0.4)";
   if (cell.interaction) return INTERACTION_BG[cell.interaction.interactionType] ?? "transparent";
@@ -245,7 +250,7 @@ export const ConstraintMatrixDiagnostics = memo(function ConstraintMatrixDiagnos
                 }}
                 title={c.label}
               >
-                {c.label.length > 18 ? c.label.slice(0, 17) + "…" : c.label}
+                {c.label.length > COL_LABEL_MAX ? c.label.slice(0, COL_LABEL_MAX - 1) + "…" : c.label}
               </span>
             </div>
           ))}
@@ -276,7 +281,7 @@ export const ConstraintMatrixDiagnostics = memo(function ConstraintMatrixDiagnos
                   }}
                   title={rowConstraint.label}
                 >
-                  {rowConstraint.label.length > 22 ? rowConstraint.label.slice(0, 21) + "…" : rowConstraint.label}
+                  {rowConstraint.label.length > ROW_LABEL_MAX ? rowConstraint.label.slice(0, ROW_LABEL_MAX - 1) + "…" : rowConstraint.label}
                 </span>
               </div>
 

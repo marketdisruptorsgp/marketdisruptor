@@ -21,6 +21,11 @@ import type { ConstraintHypothesisSet, ConstraintHypothesis } from "@/lib/constr
 import type { BusinessBaseline } from "@/lib/opportunityDesignEngine";
 import { identifyActiveDimensions, getDimensionsByStatus } from "@/lib/opportunityDesignEngine";
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function pct(value: number): string {
+  return `${(value * 100).toFixed(0)}%`;
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface WhatIfProjection {
@@ -253,7 +258,7 @@ export const WhatIfScenarioPanel = memo(function WhatIfScenarioPanel({
                   )}
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Confidence {(projection.confidencePoint * 100).toFixed(0)}%
+                  Confidence {pct(projection.confidencePoint)}%
                   · {projection.evidenceFreed} evidence item{projection.evidenceFreed !== 1 ? "s" : ""}
                 </p>
               </div>

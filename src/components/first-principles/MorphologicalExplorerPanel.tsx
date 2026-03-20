@@ -53,6 +53,9 @@ const GATE_LABELS: Record<string, string> = {
   redundancy: "Redundant",
 };
 
+const CELL_TRUNCATE_LENGTH = 40;
+const CELL_TRUNCATE_SHORT = 35;
+
 // ── Zwicky Box sub-component ──────────────────────────────────────────────────
 
 function ZwickyBoxView({ rows }: { rows: ZwickyBoxRow[] }) {
@@ -117,7 +120,7 @@ function ZwickyBoxView({ rows }: { rows: ZwickyBoxRow[] }) {
                 }}
                 title="Current baseline value"
               >
-                ★ {row.currentValue.length > 40 ? row.currentValue.slice(0, 38) + "…" : row.currentValue}
+                ★ {row.currentValue.length > CELL_TRUNCATE_LENGTH ? row.currentValue.slice(0, CELL_TRUNCATE_LENGTH - 2) + "…" : row.currentValue}
               </div>
 
               {/* Qualified alternatives */}
@@ -133,7 +136,7 @@ function ZwickyBoxView({ rows }: { rows: ZwickyBoxRow[] }) {
                   title="Qualified alternative"
                 >
                   <CheckCircle size={9} />
-                  {alt.length > 40 ? alt.slice(0, 38) + "…" : alt}
+                  {alt.length > CELL_TRUNCATE_LENGTH ? alt.slice(0, CELL_TRUNCATE_LENGTH - 2) + "…" : alt}
                 </div>
               ))}
 
@@ -159,7 +162,7 @@ function ZwickyBoxView({ rows }: { rows: ZwickyBoxRow[] }) {
                       title={`Blocked: ${bv.blockReason}`}
                     >
                       <Lock size={9} />
-                      {altValue.length > 35 ? altValue.slice(0, 33) + "…" : altValue}
+                      {altValue.length > CELL_TRUNCATE_SHORT ? altValue.slice(0, CELL_TRUNCATE_SHORT - 2) + "…" : altValue}
                       {isExpanded ? <ChevronUp size={9} /> : <ChevronDown size={9} />}
                     </button>
 
