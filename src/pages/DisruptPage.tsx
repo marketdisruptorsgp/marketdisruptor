@@ -374,13 +374,18 @@ export default function DisruptPage() {
                 onSelectBranch={(id: string) => {
                   const selected = rawHypotheses!.find((h: StrategicHypothesis) => h.id === id);
                   if (selected) {
+                    // H5 fix: reset to base archetype profile BEFORE applying branch-specific
+                    // drift. This prevents cumulative adaptation from switching between branches.
+                    const baseProfile = { ...DEFAULT_PROFILES[analysis.strategicProfile.archetype] };
                     const signals: { selected_high_capital?: boolean; selected_high_risk?: boolean; selected_long_horizon?: boolean } = {};
                     if (selected.estimated_capital_required && selected.estimated_capital_required > 500_000) signals.selected_high_capital = true;
                     if (selected.constraint_type === "risk" || selected.fragility_score > 6) signals.selected_high_risk = true;
-                    if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > analysis.strategicProfile.time_horizon_months) signals.selected_long_horizon = true;
+                    if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > baseProfile.time_horizon_months) signals.selected_long_horizon = true;
                     if (Object.keys(signals).length > 0) {
-                      const evolved = adaptStrategicProfile(analysis.strategicProfile, signals);
+                      const evolved = adaptStrategicProfile(baseProfile, signals);
                       analysis.setStrategicProfile(evolved);
+                    } else {
+                      analysis.setStrategicProfile(baseProfile);
                     }
                   }
                   analysis.setActiveBranchId(id);
