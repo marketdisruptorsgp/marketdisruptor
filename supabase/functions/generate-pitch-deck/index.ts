@@ -324,13 +324,13 @@ Return ONLY the JSON object.`;
     let deck: Record<string, unknown>;
 
     if (finishReason === "length" || finishReason === "MAX_TOKENS") {
-      console.warn(`[PitchDeck] Output truncated (finish_reason=${finishReason}). Attempting completion...`);
+      console.warn(`[PitchDeck] Output truncated (finish_reason=${finishReason}). Retrying with reduced tokens...`);
       try {
-        const completedText = await completeTruncatedJSON(LOVABLE_API_KEY, rawText);
-        deck = parseJSON(completedText);
-        console.log("Truncation recovery succeeded via completion request");
+        const retryText = await retryWithReducedTokens(LOVABLE_API_KEY, systemPrompt, userPrompt, 16000);
+        deck = parseJSON(retryText);
+        console.log("Truncation recovery succeeded via reduced-token retry");
       } catch {
-        console.warn("Completion request failed, attempting direct parse with repair");
+        console.warn("Retry failed, attempting direct parse with repair on original");
         deck = parseJSON(rawText);
       }
     } else {
