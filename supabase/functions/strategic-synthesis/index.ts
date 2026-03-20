@@ -52,6 +52,7 @@ serve(async (req) => {
 
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
+    const isBusiness = mode === "business";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -59,6 +60,9 @@ serve(async (req) => {
     const filteredProduct = filterResult.filtered;
     console.log(`[StrategicSynthesis] ${mode} mode`);
     const modeGuard = getModeGuardPrompt(mode);
+
+    // ── Business entity context for mode anchoring ──
+    const entityContext = isBusiness ? buildBusinessEntityContext(product) : "";
 
     // ── Build curation prompt ──
     let curationPrompt = "";
