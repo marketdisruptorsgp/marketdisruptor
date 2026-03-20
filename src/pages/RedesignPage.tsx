@@ -51,7 +51,7 @@ type RedesignTabId = "flip" | "ideas" | "concept";
 
 export default function RedesignPage() {
   const [runTrigger, setRunTrigger] = useState(0);
-  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [rawAnalysisLoading, setAnalysisLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<RedesignTabId>("flip");
   const analysis = useAnalysis();
   const navigate = useNavigate();
@@ -60,7 +60,8 @@ export default function RedesignPage() {
   const { shouldRedirectHome } = useHydrationGuard();
 
   const hasData = !!analysis.redesignData || !!analysis.disruptData;
-  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, hasData);
+  const { loadingTimedOut, forceCleared, clearTimeout: clearTimeoutState } = useAnalysisTimeout(rawAnalysisLoading, hasData);
+  const analysisLoading = rawAnalysisLoading && !hasData && !forceCleared;
 
   const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
   const autoAnalysis = useAutoAnalysis();

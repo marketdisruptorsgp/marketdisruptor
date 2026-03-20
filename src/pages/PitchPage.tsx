@@ -26,13 +26,14 @@ import {
 
 export default function PitchPage() {
   const [runTrigger, setRunTrigger] = React.useState(0);
-  const [analysisLoading, setAnalysisLoading] = React.useState(false);
+  const [rawAnalysisLoading, setAnalysisLoading] = React.useState(false);
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
-  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, !!analysis.pitchDeckData);
+  const { loadingTimedOut, forceCleared, clearTimeout: clearTimeoutState } = useAnalysisTimeout(rawAnalysisLoading, !!analysis.pitchDeckData);
+  const analysisLoading = rawAnalysisLoading && !analysis.pitchDeckData && !forceCleared;
 
   const { selectedProduct: rawSelectedProduct, analysisId } = analysis;
 

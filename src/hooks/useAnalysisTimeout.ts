@@ -1,32 +1,56 @@
 /**
- * Shared hook for analysis page loading timeout + error escape.
- * Ensures every analysis page has consistent timeout protection.
+ * Shared hook for analysis page loading timeout + orphan protection.
+ *
+ * TWO safety nets:
+ * 1. Soft timeout (90s) — shows escape UI (retry + back buttons).
+ * 2. Hard timeout (180s / 3 min) — force-clears loading to prevent permanent orphan spinners.
+ *    Pages should check `forceCleared` and treat it as "loading is done".
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
-const LOADING_TIMEOUT_MS = 90_000; // 90s max loading before showing error escape
+const LOADING_TIMEOUT_MS = 90_000;  // 90s — show escape hatch
+const HARD_TIMEOUT_MS = 180_000;    // 3 min — force-clear loading
 
 export function useAnalysisTimeout(
   isLoading: boolean,
   hasData: boolean,
 ) {
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-  const [pipelineError, setPipelineError] = useState<string | null>(null);
+  const [forceCleared, setForceCleared] = useState(false);
 
+  // Reset everything when data arrives or loading stops
   useEffect(() => {
-    if (!isLoading && hasData) {
+    if (!isLoading || hasData) {
       setLoadingTimedOut(false);
-      setPipelineError(null);
+      setForceCleared(false);
       return;
     }
-    const timer = setTimeout(() => setLoadingTimedOut(true), LOADING_TIMEOUT_MS);
-    return () => clearTimeout(timer);
+
+    // Soft timeout — show escape UI
+    const softTimer = setTimeout(() => setLoadingTimedOut(true), LOADING_TIMEOUT_MS);
+
+    // Hard timeout — force-clear to prevent permanent orphan
+    const hardTimer = setTimeout(() => {
+      console.warn("[AnalysisTimeout] Hard timeout (3min) — force-clearing orphaned loading state");
+      setForceCleared(true);
+      setLoadingTimedOut(true);
+    }, HARD_TIMEOUT_MS);
+
+    return () => {
+      clearTimeout(softTimer);
+      clearTimeout(hardTimer);
+    };
   }, [isLoading, hasData]);
 
-  const clearTimeout_ = () => {
+  const clearTimeout_ = useCallback(() => {
     setLoadingTimedOut(false);
-    setPipelineError(null);
-  };
+    setForceCleared(false);
+  }, []);
 
-  return { loadingTimedOut, pipelineError, setPipelineError, clearTimeout: clearTimeout_ };
+  return {
+    loadingTimedOut,
+    /** True when the hard 3-min timeout fired — page should treat loading as done */
+    forceCleared,
+    clearTimeout: clearTimeout_,
+  };
 }

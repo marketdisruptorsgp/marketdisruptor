@@ -52,13 +52,15 @@ type TabId = "assumptions" | "deconstruct" | "reasoning" | "hypotheses";
 export default function DisruptPage() {
   const [activeTab, setActiveTab] = useState<TabId>("assumptions");
   const [runTrigger, setRunTrigger] = useState(0);
-  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [rawAnalysisLoading, setAnalysisLoading] = useState(false);
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
-  const { loadingTimedOut, clearTimeout: clearTimeoutState } = useAnalysisTimeout(analysisLoading, !!analysis.disruptData);
+  const { loadingTimedOut, forceCleared, clearTimeout: clearTimeoutState } = useAnalysisTimeout(rawAnalysisLoading, !!analysis.disruptData);
+  // Sync: force-clear orphaned loading when data arrives or hard timeout fires
+  const analysisLoading = rawAnalysisLoading && !analysis.disruptData && !forceCleared;
 
   const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
 
