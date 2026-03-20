@@ -34,14 +34,20 @@ function formatSec(ms: number): string {
 export function PipelineProgressBar({
   completedSteps, outdatedSteps, currentStep, accentColor, stepTimings,
 }: PipelineProgressBarProps) {
-  const totalCompleted = completedSteps.size;
-  const pct = Math.round((totalCompleted / PIPELINE.length) * 100);
-  const allDone = totalCompleted === PIPELINE.length;
+  // Core completion: only count non-lazy steps for the progress percentage
+  const coreCompleted = CORE_STEPS.filter(s => completedSteps.has(s.key)).length;
+  const lazyCompleted = CORE_PIPELINE.filter(s => s.lazy && completedSteps.has(s.key)).length;
+  const totalCompleted = coreCompleted + lazyCompleted;
+  const coreDone = coreCompleted === CORE_STEPS.length;
+  const pct = coreDone
+    ? (lazyCompleted > 0 ? Math.round(((CORE_STEPS.length + lazyCompleted) / CORE_PIPELINE.length) * 100) : 100)
+    : Math.round((coreCompleted / CORE_STEPS.length) * 100);
+  const allDone = totalCompleted === CORE_PIPELINE.length;
 
-  // Find first incomplete step for dynamic status text
-  const activeStep = PIPELINE.find(s => !completedSteps.has(s.key));
-  const statusText = allDone
-    ? "Pipeline complete"
+  // Find first incomplete core step for dynamic status text
+  const activeStep = CORE_STEPS.find(s => !completedSteps.has(s.key));
+  const statusText = coreDone
+    ? (allDone ? "Pipeline complete" : "Core analysis complete — on-demand steps available")
     : activeStep?.activeText || "Processing…";
 
   // Total time from all completed step timings
