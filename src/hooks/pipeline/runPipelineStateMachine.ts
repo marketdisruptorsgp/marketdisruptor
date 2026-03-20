@@ -1,6 +1,8 @@
 /**
  * Pipeline State Machine — orchestrates the sequential step runners.
  * Pure async function, no React dependencies.
+ *
+ * MAX PIPELINE TIME BUDGET: 150s (2.5 min) to stay under 3-minute UX goal.
  */
 import { profileFromDecomposition } from "@/lib/strategySearch/profileAdapter";
 import { hasUsableBusinessSynthesisData } from "./compressPayload";
@@ -23,15 +25,25 @@ interface PipelineOptions {
   existingPitchDeck: unknown;
 }
 
+/** Result indicates whether core phases succeeded */
+export interface PipelineResult {
+  success: boolean;
+  error?: string;
+}
+
 export async function runPipelineStateMachine(
   ctx: StepRunnerContext,
   cb: StepRunnerCallbacks,
   store: StepDataStore,
   opts: PipelineOptions,
-): Promise<void> {
+): Promise<PipelineResult> {
+  const pipelineStart = Date.now();
+  const PIPELINE_BUDGET_MS = 150_000; // 2.5 min hard limit
+
+  const isOverBudget = () => (Date.now() - pipelineStart) > PIPELINE_BUDGET_MS;
+
   // ═══ PHASE 1: Structural Decomposition (~20s) ═══
   // Skip decomposition entirely if businessAnalysisData already provides rich synthesis
-  // (this prevents a redundant, expensive edge function call that often times out)
   const canSkipDecomp = hasUsableBusinessSynthesisData(store.businessAnalysisData);
   let decompResult = opts.existingDecomp;
   if (!decompResult && canSkipDecomp) {
@@ -41,16 +53,17 @@ export async function runPipelineStateMachine(
   } else if (!decompResult) {
     decompResult = await runDecompose(ctx, cb, store);
     if (!decompResult) {
-      console.log("[Pipeline] Decomposition failed, retrying once...");
-      decompResult = await runDecompose(ctx, cb, store);
-      if (!decompResult) {
-        toast.error("Structural decomposition failed after retry. Pipeline aborted.");
-        return;
-      }
+      toast.error("Structural decomposition failed. Try again or upload additional context.");
+      return { success: false, error: "Decomposition failed after retries" };
     }
   } else {
     console.log("[Pipeline] Reusing existing decomposition data");
     cb.updateStatus("decompose", "done");
+  }
+
+  if (isOverBudget()) {
+    console.warn("[Pipeline] Over time budget after decomposition — aborting");
+    return { success: false, error: "Pipeline exceeded time budget" };
   }
 
   // ═══ PHASE 1.5: Strategy Search (deterministic, ~50ms) ═══
@@ -105,6 +118,12 @@ export async function runPipelineStateMachine(
     cb.updateStatus("synthesis", "done");
   }
 
+  if (isOverBudget()) {
+    console.warn("[Pipeline] Over time budget after synthesis — skipping concepts");
+    cb.updateStatus("concepts", "skipped");
+    return { success: true }; // Core phases done, just skipping enrichment
+  }
+
   // ═══ Phase 2.5: Concept Synthesis (Product Mode only, NON-BLOCKING) ═══
   const isProductMode = ctx.activeMode === "custom" || ctx.activeMode === "product";
   if (isProductMode && !opts.existingConcepts && synthesisResult) {
@@ -118,10 +137,12 @@ export async function runPipelineStateMachine(
         }
         if (!conceptResult) {
           console.warn("[Pipeline] Concept synthesis failed after retry — continuing");
+          cb.updateStatus("concepts", "error", "Concept generation unavailable");
         }
         cb.onRecompute?.();
       } catch (err) {
         console.warn("[Pipeline] Concept synthesis background error:", err);
+        cb.updateStatus("concepts", "error", "Concept generation failed");
       }
     })();
   } else if (isProductMode && opts.existingConcepts) {
@@ -131,14 +152,14 @@ export async function runPipelineStateMachine(
     cb.updateStatus("concepts", "skipped");
   }
 
-  console.log("[Pipeline] Core phases complete. Stress Test & Pitch available on-demand.");
+  console.log(`[Pipeline] Core phases complete in ${Math.round((Date.now() - pipelineStart) / 1000)}s. Stress Test & Pitch available on-demand.`);
 
   // ═══ PHASE 3: Stress Test + Pitch (auto-run if runAll) ═══
   if (opts.existingStressTest) {
     cb.updateStatus("stressTest", "done");
-  } else if (opts.runAll && synthesisResult) {
+  } else if (opts.runAll && synthesisResult && !isOverBudget()) {
     const stressResult = await runStressTest(ctx, cb, store, synthesisResult, decompResult);
-    if (stressResult && !opts.existingPitchDeck) {
+    if (stressResult && !opts.existingPitchDeck && !isOverBudget()) {
       await runPitch(ctx, cb, store, synthesisResult, stressResult);
     }
   }
@@ -146,4 +167,6 @@ export async function runPipelineStateMachine(
   if (opts.existingPitchDeck) {
     cb.updateStatus("pitch", "done");
   }
+
+  return { success: true };
 }
