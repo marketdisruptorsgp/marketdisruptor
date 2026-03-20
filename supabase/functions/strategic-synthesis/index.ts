@@ -659,6 +659,7 @@ function enforceMinimumArtifacts(
       competitiveBlindSpot: "Incumbents are optimized around legacy delivery assumptions.",
       urgencySignal: "emerging",
       urgencyReason: "User complaints and market behavior indicate this friction is becoming less acceptable.",
+      _synthetic: true,
     });
   }
   next.hiddenAssumptions = existingAssumptions;
@@ -674,6 +675,7 @@ function enforceMinimumArtifacts(
       boldAlternative: String(assumption.challengeIdea || "Invert the operating model"),
       rationale: "This inversion removes a proven friction cluster and unlocks scalable value delivery.",
       physicalMechanism: "Implement with a constrained pilot, instrument outcomes, then scale.",
+      _synthetic: true,
     });
   }
   next.flippedLogic = existingFlips;
@@ -700,6 +702,7 @@ function enforceMinimumArtifacts(
       valueCreated: "Reduced cost/friction",
       feasibility: "medium",
       filtered: false,
+      _synthetic: true,
     });
   }
   next.structuralTransformations = existingTransforms;

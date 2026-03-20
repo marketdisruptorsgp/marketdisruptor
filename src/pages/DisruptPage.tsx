@@ -299,20 +299,22 @@ export default function DisruptPage() {
               avgScore={(selectedProduct as any)?.revivalScore ?? null}
               analysisId={analysis.analysisId}
               onApplyRevision={(revision: any) => {
-                const currentGoverned = analysis.governedData || {};
+                const currentGoverned = { ...(analysis.governedData || {}) } as Record<string, unknown>;
+                let merged = currentGoverned;
                 if (revision.type === "re_rank" && revision.payload?.hypotheses) {
-                  analysis.setGovernedData({ ...currentGoverned, root_hypotheses: revision.payload.hypotheses });
+                  merged = { ...currentGoverned, root_hypotheses: revision.payload.hypotheses };
                 } else if (revision.type === "update_assumption" && revision.payload) {
                   const synopsis = (currentGoverned as any)?.reasoning_synopsis || {};
                   const updatedAssumptions = synopsis.key_assumptions?.map((a: any) =>
                     a.assumption === revision.payload.target ? { ...a, ...revision.payload.updates } : a
                   ) || [];
-                  analysis.setGovernedData({
+                  merged = {
                     ...currentGoverned,
                     reasoning_synopsis: { ...synopsis, key_assumptions: updatedAssumptions },
-                  });
+                  };
                 }
-                analysis.saveStepData("governed", analysis.governedData || currentGoverned);
+                analysis.setGovernedData(merged);
+                analysis.saveStepData("governed", merged);
                 analysis.markStepOutdated("redesign");
                 analysis.markStepOutdated("stressTest");
                 analysis.markStepOutdated("pitchDeck");
@@ -357,11 +359,13 @@ export default function DisruptPage() {
                 title={selectedProduct?.name || ""}
                 category={analysis.analysisParams?.category || ""}
                 onApplyRevision={(revision: any) => {
-                  const currentGoverned = analysis.governedData || {};
+                  const currentGoverned = { ...(analysis.governedData || {}) } as Record<string, unknown>;
                   if (revision.type === "new_hypothesis" && revision.payload) {
                     const existing = (currentGoverned as any)?.root_hypotheses || [];
                     const newH = { ...revision.payload, id: `user-hyp-${Date.now()}` };
-                    analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, newH] });
+                    const merged = { ...currentGoverned, root_hypotheses: [...existing, newH] };
+                    analysis.setGovernedData(merged);
+                    analysis.saveStepData("governed", merged);
                     analysis.markStepOutdated("redesign");
                     analysis.markStepOutdated("stressTest");
                     analysis.markStepOutdated("pitchDeck");
