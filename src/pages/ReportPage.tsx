@@ -568,7 +568,13 @@ export default function ReportPage() {
         stepTimings={pipelineProgress.stepTimings}
       />
 
-      <NextStepButton
+      {/* Step Timing Waterfall — shows how long each AI step took */}
+      <StepTimingWaterfall
+        stepTimings={pipelineProgress.stepTimings}
+        pipelineStartedAt={pipelineProgress.pipelineStartedAt}
+      />
+
+
         stepNumber={3}
         label="Disrupt"
         color={modeAccent}
