@@ -11,6 +11,7 @@
  */
 
 import { useMemo, useEffect } from "react";
+import { ThinDataBanner } from "@/components/SyntheticBadge";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
