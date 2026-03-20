@@ -128,7 +128,7 @@ export default function CommandDeckPage() {
     autoAnalysis.runAnalysis,
   );
 
-  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput, instantInsights } =
+  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput, instantInsights, disruptData } =
     analysis;
 
   const urlAnalysisId = useMemo(() => {
@@ -148,6 +148,22 @@ export default function CommandDeckPage() {
     secondOrderUnlocks,
     completedSteps,
   } = autoAnalysis;
+
+  // ── Extract flipped ideas from disruptData (persisted in saved_analyses) ──
+  const flippedIdeas: FlippedIdeaItem[] = useMemo(() => {
+    if (!disruptData) return [];
+    const dd = disruptData as Record<string, unknown>;
+    const raw = dd.flippedLogic || dd.flippedIdeas;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((f: any) => f && (f.boldAlternative || f.alternative || f.idea || f.name))
+      .map((f: any) => ({
+        originalAssumption: f.originalAssumption || f.assumption || "",
+        boldAlternative: f.boldAlternative || f.alternative || f.idea || f.name || "",
+        rationale: f.rationale || f.reason || f.whyItWorks || "",
+        physicalMechanism: f.physicalMechanism || f.mechanism || "",
+      }));
+  }, [disruptData]);
 
   // Auto-trigger analysis when the page mounts with data but no run yet
   useEffect(() => {
