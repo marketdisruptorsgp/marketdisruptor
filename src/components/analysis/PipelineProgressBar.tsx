@@ -78,7 +78,8 @@ export function PipelineProgressBar({
 
       {/* Dynamic status text */}
       <div className="flex items-center gap-1.5 mb-3">
-        {!allDone && <Loader2 size={10} className="animate-spin text-muted-foreground" />}
+        {!coreDone && <Loader2 size={10} className="animate-spin text-muted-foreground" />}
+        {coreDone && !allDone && <CheckCircle2 size={10} className="text-green-500" />}
         <span className="text-[10px] text-muted-foreground font-medium">{statusText}</span>
       </div>
 
