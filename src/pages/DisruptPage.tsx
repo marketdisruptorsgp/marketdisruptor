@@ -138,6 +138,14 @@ export default function DisruptPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
+      {/* Preliminary data indicator */}
+      {isEarlyData && hasDisruptData && (
+        <div className="flex items-center gap-2 px-1">
+          <PreliminaryBadge />
+          <span className="text-[10px] text-muted-foreground">Full deep analysis running — results will update automatically</span>
+        </div>
+      )}
+
       {/* ── Tab Navigation (shared component) ── */}
       <AnalysisTabBar
         tabs={TABS}
