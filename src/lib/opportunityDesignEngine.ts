@@ -432,6 +432,9 @@ function jaccard(a: string, b: string): number {
   return inter / (tokA.size + tokB.size - inter);
 }
 
+/** Minimum Jaccard similarity at which two vectors are considered redundant */
+const REDUNDANCY_THRESHOLD = 0.7;
+
 /**
  * Classify an evidence item into one of the 9 canonical categories.
  * Uses the evidence's category field if available, otherwise infers from label/description.
@@ -767,6 +770,39 @@ export function generateOpportunityVectors(
 //  STAGE 4: QUALIFICATION GATES
 // ═══════════════════════════════════════════════════════════════
 
+/** Gate that blocked a vector from qualifying */
+export type BlockedGate = "evidence" | "constraint_linkage" | "feasibility" | "redundancy";
+
+/** A vector that did not pass qualification gates, along with the reason */
+export interface BlockedVector {
+  vector: OpportunityVector;
+  blockedByGate: BlockedGate;
+  /** Human-readable explanation of why this combination was blocked */
+  blockReason: string;
+  /** What would need to change for this combination to become viable */
+  whatNeedsToChange: string;
+}
+
+/** A single Zwicky box row (one morphological dimension) */
+export interface ZwickyBoxRow {
+  dimensionId: string;
+  dimensionName: string;
+  /** Current "baseline" value for this dimension */
+  currentValue: string;
+  /** Alternative values seen across all qualified vectors */
+  qualifiedAlternatives: string[];
+  /** Alternative values seen only in blocked vectors */
+  blockedAlternatives: BlockedVector[];
+  evidenceCount: number;
+  status: DimensionStatus;
+}
+
+/** Result of the qualification gates: qualified vectors + blocked vectors with reasons */
+export interface QualificationGateResult {
+  qualified: OpportunityVector[];
+  blocked: BlockedVector[];
+}
+
 /**
  * Applies four deterministic qualification gates. No scores.
  * Vectors either pass or they don't.
@@ -775,36 +811,83 @@ export function generateOpportunityVectors(
  * Gate 2: Constraint linkage — constraint-driven vectors must reference ≥1 trigger
  * Gate 3: Feasibility — reject vectors conflicting with regulatory/operational constraints
  * Gate 4: Redundancy — collapse similar shifts (Jaccard >0.7)
+ *
+ * Blocked vectors are returned alongside qualified ones so the Zwicky box
+ * can surface them with "What needs to change?" reasoning.
  */
 export function applyQualificationGates(
   vectors: OpportunityVector[],
   constraints: StrategicInsight[],
   flatEvidence: Evidence[],
   baseline: BusinessBaseline,
-): OpportunityVector[] {
-  let surviving = [...vectors];
+): OpportunityVector[];
+export function applyQualificationGates(
+  vectors: OpportunityVector[],
+  constraints: StrategicInsight[],
+  flatEvidence: Evidence[],
+  baseline: BusinessBaseline,
+  returnBlocked: true,
+): QualificationGateResult;
+export function applyQualificationGates(
+  vectors: OpportunityVector[],
+  constraints: StrategicInsight[],
+  flatEvidence: Evidence[],
+  baseline: BusinessBaseline,
+  returnBlocked?: boolean,
+): OpportunityVector[] | QualificationGateResult {
+  const blocked: BlockedVector[] = [];
 
   // ── Gate 1: Evidence support ──
-  surviving = surviving.filter(v => {
+  let surviving: OpportunityVector[] = [];
+  for (const v of vectors) {
+    let passed = true;
+    let blockReason = "";
+    let whatNeedsToChange = "";
     for (const shift of v.changedDimensions) {
       const dim = Object.values(baseline).find(d => d.name === shift.dimension);
-      if (!dim) return false;
-      if (v.explorationMode === "adjacency" && dim.evidenceCount < 3) return false;
-      if (dim.evidenceCount < 2) return false;
+      if (!dim) {
+        passed = false;
+        blockReason = `Dimension "${shift.dimension}" has no evidence in the baseline.`;
+        whatNeedsToChange = `Add at least 2 evidence items for the "${shift.dimension}" dimension.`;
+        break;
+      }
+      if (v.explorationMode === "adjacency" && dim.evidenceCount < 3) {
+        passed = false;
+        blockReason = `"${shift.dimension}" has only ${dim.evidenceCount} evidence item(s); adjacency exploration requires ≥3.`;
+        whatNeedsToChange = `Collect at least one more evidence data point for "${shift.dimension}".`;
+        break;
+      }
+      if (dim.evidenceCount < 2) {
+        passed = false;
+        blockReason = `"${shift.dimension}" has only ${dim.evidenceCount} evidence item(s); minimum 2 required.`;
+        whatNeedsToChange = `Collect at least 2 evidence data points for "${shift.dimension}".`;
+        break;
+      }
     }
-    return true;
-  });
+    if (passed) {
+      surviving.push(v);
+    } else {
+      blocked.push({ vector: v, blockedByGate: "evidence", blockReason, whatNeedsToChange });
+    }
+  }
 
   // ── Gate 2: Constraint linkage ──
-  surviving = surviving.filter(v => {
-    if (v.explorationMode === "constraint") {
-      return v.triggerIds.length >= 1;
+  const afterGate2: OpportunityVector[] = [];
+  for (const v of surviving) {
+    if (v.explorationMode === "constraint" && v.triggerIds.length < 1) {
+      blocked.push({
+        vector: v,
+        blockedByGate: "constraint_linkage",
+        blockReason: "Constraint-driven vector has no linked constraint trigger.",
+        whatNeedsToChange: "Link this configuration shift to a detected structural constraint.",
+      });
+    } else {
+      afterGate2.push(v);
     }
-    return true; // Adjacency vectors don't need constraint linkage
-  });
+  }
+  surviving = afterGate2;
 
   // ── Gate 3: Feasibility ──
-  // Reject vectors whose shifted dimensions conflict with regulatory or operational constraints
   const regulatoryLabels = constraints
     .filter(c => c.label.toLowerCase().match(/regulat|compliance|legal|policy/))
     .map(c => c.label.toLowerCase());
@@ -812,38 +895,118 @@ export function applyQualificationGates(
     .filter(c => c.label.toLowerCase().match(/operational|dependency|capacity|resource/))
     .map(c => c.label.toLowerCase());
 
-  surviving = surviving.filter(v => {
+  const afterGate3: OpportunityVector[] = [];
+  for (const v of surviving) {
+    let passed = true;
+    let blockReason = "";
+    let whatNeedsToChange = "";
     for (const shift of v.changedDimensions) {
       const shiftText = `${shift.dimension} ${shift.to}`.toLowerCase();
-      // Check if the shift directly contradicts a regulatory constraint
       for (const reg of regulatoryLabels) {
-        if (jaccard(shiftText, reg) > 0.5) return false;
+        if (jaccard(shiftText, reg) > 0.5) {
+          passed = false;
+          blockReason = `Shift to "${shift.to}" conflicts with regulatory constraint: ${reg}.`;
+          whatNeedsToChange = "Resolve the regulatory constraint or design the shift to operate within it.";
+          break;
+        }
       }
-      // Check if the shift directly contradicts an operational constraint
+      if (!passed) break;
       for (const op of operationalLabels) {
-        if (jaccard(shiftText, op) > 0.5) return false;
+        if (jaccard(shiftText, op) > 0.5) {
+          passed = false;
+          blockReason = `Shift to "${shift.to}" conflicts with operational constraint: ${op}.`;
+          whatNeedsToChange = "Reduce operational dependency before attempting this configuration shift.";
+          break;
+        }
       }
+      if (!passed) break;
     }
-    return true;
-  });
+    if (passed) {
+      afterGate3.push(v);
+    } else {
+      blocked.push({ vector: v, blockedByGate: "feasibility", blockReason, whatNeedsToChange });
+    }
+  }
+  surviving = afterGate3;
 
   // ── Gate 4: Redundancy ──
-  // Collapse vectors with >0.7 Jaccard similarity on dimension+value signatures
   const deduped: OpportunityVector[] = [];
   for (const v of surviving) {
     const sig = v.changedDimensions.map(d => `${d.dimension}:${d.to}`).join("|");
-    const isDuplicate = deduped.some(existing => {
+    const duplicate = deduped.find(existing => {
       const existingSig = existing.changedDimensions.map(d => `${d.dimension}:${d.to}`).join("|");
-      return jaccard(sig, existingSig) > 0.7;
+      return jaccard(sig, existingSig) > REDUNDANCY_THRESHOLD;
     });
-    if (!isDuplicate) deduped.push(v);
+    if (duplicate) {
+      blocked.push({
+        vector: v,
+        blockedByGate: "redundancy",
+        blockReason: `This configuration shift is structurally similar to an existing qualified vector (>${(REDUNDANCY_THRESHOLD * 100).toFixed(0)}% Jaccard similarity).`,
+        whatNeedsToChange: "Differentiate the dimension shift to provide a distinct strategic direction.",
+      });
+    } else {
+      deduped.push(v);
+    }
   }
 
   // ── Output caps ──
   const constraintVectors = deduped.filter(v => v.explorationMode === "constraint").slice(0, 10);
   const adjacencyVectors = deduped.filter(v => v.explorationMode === "adjacency").slice(0, 5);
+  const qualified = [...constraintVectors, ...adjacencyVectors];
 
-  return [...constraintVectors, ...adjacencyVectors];
+  if (returnBlocked) {
+    return { qualified, blocked };
+  }
+  return qualified;
+}
+
+// ─── Zwicky box rows builder ───────────────────────────────────────────────────
+
+/**
+ * Assembles a Zwicky box (morphological chart) from the baseline, qualified
+ * vectors, and blocked vectors.  Each row is an active dimension; columns
+ * represent the baseline value + all explored alternatives.
+ */
+export function buildZwickyBoxRows(
+  baseline: BusinessBaseline,
+  qualifiedVectors: OpportunityVector[],
+  blockedVectors: BlockedVector[],
+): ZwickyBoxRow[] {
+  const rows: ZwickyBoxRow[] = [];
+
+  for (const dim of Object.values(baseline)) {
+    if (dim.status === "inactive") continue;
+
+    // Collect qualified alternatives for this dimension
+    const qualifiedAlts = new Set<string>();
+    for (const v of qualifiedVectors) {
+      for (const shift of v.changedDimensions) {
+        if (shift.dimension === dim.name) qualifiedAlts.add(shift.to);
+      }
+    }
+
+    // Collect blocked alternatives for this dimension (keyed by shift.to)
+    const blockedAltMap = new Map<string, BlockedVector>();
+    for (const bv of blockedVectors) {
+      for (const shift of bv.vector.changedDimensions) {
+        if (shift.dimension === dim.name && !blockedAltMap.has(shift.to)) {
+          blockedAltMap.set(shift.to, bv);
+        }
+      }
+    }
+
+    rows.push({
+      dimensionId: dim.id,
+      dimensionName: dim.name,
+      currentValue: dim.currentValue,
+      qualifiedAlternatives: [...qualifiedAlts],
+      blockedAlternatives: [...blockedAltMap.values()],
+      evidenceCount: dim.evidenceCount,
+      status: dim.status,
+    });
+  }
+
+  return rows;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -922,11 +1085,15 @@ export interface MorphologicalSearchResult {
   /** Diagnostic report for the search process */
   diagnostics: MorphologicalSearchDiagnostics;
   /**
-   * PR #20 — Full Zwicky Box:
+   * PR #20 — Full Zwicky Box (cross-dimension combinatorial matrix):
    * Complete combinatorial matrix including viable AND disqualified combinations.
    * Disqualified cells surface "What would need to be true?" prompts.
    */
   zwickyBox: ZwickyBox | null;
+  /** Vectors that were blocked by qualification gates, with reasons */
+  blockedVectors: BlockedVector[];
+  /** Zwicky box rows — one per active dimension (qualified + blocked alternatives) */
+  zwickyBoxRows: ZwickyBoxRow[];
 }
 
 /**
@@ -1005,13 +1172,19 @@ export function runMorphologicalSearch(
   const vectorsBeforeGates = allVectors.length;
 
   // Stage 5: Apply qualification gates (uniform across all sources)
-  const qualifiedVectors = applyQualificationGates(allVectors, constraints, flatEvidence, baseline);
+  // Use the full overload that returns blocked vectors for Zwicky box surfacing
+  const gateResult = applyQualificationGates(allVectors, constraints, flatEvidence, baseline, true);
+  const qualifiedVectors = gateResult.qualified;
+  const blockedVectors = gateResult.blocked;
 
   // Stage 6: Detect interactions between qualified vectors
   const vectorInteractions = detectInteractions(qualifiedVectors);
 
   // Stage 7: Cluster into zones
   const zones = clusterIntoZones(qualifiedVectors);
+
+  // Stage 8: Build Zwicky box rows from baseline + qualified/blocked vectors
+  const zwickyBoxRows = buildZwickyBoxRows(baseline, qualifiedVectors, blockedVectors);
 
   // Build diagnostics
   const diagnostics: MorphologicalSearchDiagnostics = {
@@ -1037,6 +1210,8 @@ export function runMorphologicalSearch(
     patternVectorCount: patternVectors.length,
     diagnostics,
     zwickyBox: (hotDims.length + warmDims.length) > 0 ? buildZwickyBox(baseline, aiAlternatives) : null,
+    blockedVectors,
+    zwickyBoxRows,
   };
 }
 

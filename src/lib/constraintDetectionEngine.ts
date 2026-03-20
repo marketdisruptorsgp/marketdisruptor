@@ -924,3 +924,139 @@ function generateEvidenceRequests(gaps: ConstraintCategory[]): EvidenceRequest[]
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   return requests.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA-DRIVEN BINDING CONSTRAINT IDENTIFICATION
+// ═══════════════════════════════════════════════════════════════
+
+/** Composite score breakdown for a constraint hypothesis */
+export interface BindingConstraintScore {
+  constraintId: string;
+  constraintName: string;
+  compositeScore: number;
+  /** Normalised evidence density: evidenceIds.length / 10, capped at 1 */
+  evidenceDensityScore: number;
+  /** Counterfactual reach: counterfactualImpact / 30, capped at 1 */
+  counterfactualScore: number;
+  /** Tier penalty: Tier 1 → 1.0, Tier 2 → 0.6, Tier 3 → 0.3 */
+  tierWeight: number;
+  /** Whether evidence quality was "strong" vs "moderate"/"limited" */
+  qualityBonus: number;
+  /** Normalised gap to the next-ranked hypothesis (0 if only one exists) */
+  gapToNext: number;
+  /** Whether this constraint is definitively identified as binding */
+  isDefinitivelyBinding: boolean;
+}
+
+/** Result of the data-driven binding constraint identification */
+export interface BindingConstraintIdentification {
+  /** The selected binding constraint, or null if evidence is too sparse */
+  bindingConstraint: ConstraintHypothesis | null;
+  /** Scored breakdown for every hypothesis */
+  scores: BindingConstraintScore[];
+  /** Why the binding constraint was selected (human-readable) */
+  selectionRationale: string;
+  /** Whether the selection has high confidence (gap ≥ 0.10) */
+  highConfidence: boolean;
+}
+
+const TIER_WEIGHTS: Record<number, number> = { 1: 1.0, 2: 0.6, 3: 0.3 };
+const QUALITY_BONUS: Record<string, number> = { strong: 0.15, moderate: 0.05, limited: 0 };
+
+/**
+ * Identifies the binding constraint from a hypothesis set using a composite
+ * data-driven score rather than relying solely on ranked list position.
+ *
+ * Composite score = (evidenceDensity × 0.35) + (counterfactual × 0.30)
+ *                   + (tierWeight × 0.25) + (qualityBonus × 0.10)
+ *
+ * The constraint with the highest composite score is declared binding if it
+ * leads the second-ranked by ≥ 0.10; otherwise the result is flagged as
+ * uncertain (matching the existing `bindingUncertain` signal but now with
+ * explicit numeric justification).
+ */
+export function identifyBindingConstraintDataDriven(
+  hypothesisSet: ConstraintHypothesisSet,
+): BindingConstraintIdentification {
+  const { hypotheses } = hypothesisSet;
+
+  if (hypotheses.length === 0) {
+    return {
+      bindingConstraint: null,
+      scores: [],
+      selectionRationale: "No constraint hypotheses detected — insufficient evidence.",
+      highConfidence: false,
+    };
+  }
+
+  // Compute composite scores
+  const scored: BindingConstraintScore[] = hypotheses.map(h => {
+    const evidenceDensityScore = Math.min(1, h.evidenceIds.length / 10);
+    const counterfactualScore = Math.min(1, h.counterfactualImpact / 30);
+    const tierWeight = TIER_WEIGHTS[h.tier] ?? 0.3;
+    const qualityBonus = QUALITY_BONUS[h.confidence] ?? 0;
+
+    const compositeScore =
+      evidenceDensityScore * 0.35 +
+      counterfactualScore * 0.30 +
+      tierWeight * 0.25 +
+      qualityBonus * 0.10;
+
+    return {
+      constraintId: h.constraintId,
+      constraintName: h.constraintName,
+      compositeScore,
+      evidenceDensityScore,
+      counterfactualScore,
+      tierWeight,
+      qualityBonus,
+      gapToNext: 0, // filled below
+      isDefinitivelyBinding: false, // filled below
+    };
+  });
+
+  // Sort descending by composite score
+  scored.sort((a, b) => b.compositeScore - a.compositeScore);
+
+  // Compute gap to next
+  for (let i = 0; i < scored.length; i++) {
+    scored[i].gapToNext = i + 1 < scored.length
+      ? scored[i].compositeScore - scored[i + 1].compositeScore
+      : scored[i].compositeScore;
+  }
+
+  const top = scored[0];
+  const highConfidence = top.gapToNext >= 0.10;
+  top.isDefinitivelyBinding = highConfidence;
+
+  // Find the matching hypothesis for the top-scored constraint
+  const bindingHypothesis = hypotheses.find(h => h.constraintId === top.constraintId) ?? null;
+
+  // Build selection rationale
+  let selectionRationale: string;
+  if (highConfidence) {
+    selectionRationale =
+      `${top.constraintName} identified as the binding constraint ` +
+      `(score ${(top.compositeScore * 100).toFixed(0)}%, ` +
+      `gap ${(top.gapToNext * 100).toFixed(0)}pp to next). ` +
+      `Evidence density ${(top.evidenceDensityScore * 100).toFixed(0)}%, ` +
+      `counterfactual reach ${(top.counterfactualScore * 100).toFixed(0)}%, ` +
+      `Tier ${hypotheses.find(h => h.constraintId === top.constraintId)?.tier ?? "?"} ` +
+      `(weight ${(top.tierWeight * 100).toFixed(0)}%).`;
+  } else {
+    const second = scored[1];
+    selectionRationale =
+      `Binding constraint uncertain between ${top.constraintName} ` +
+      `(score ${(top.compositeScore * 100).toFixed(0)}%) and ` +
+      `${second?.constraintName ?? "next candidate"} ` +
+      `(score ${((second?.compositeScore ?? 0) * 100).toFixed(0)}%). ` +
+      `Gap ${(top.gapToNext * 100).toFixed(1)}pp — collect more evidence to resolve.`;
+  }
+
+  return {
+    bindingConstraint: bindingHypothesis,
+    scores: scored,
+    selectionRationale,
+    highConfidence,
+  };
+}
