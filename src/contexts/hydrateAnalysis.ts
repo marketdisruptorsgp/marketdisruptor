@@ -161,11 +161,23 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   setters.setStep("done");
 
   // Restore persisted step data — explicit null fallbacks to clear stale state
-  setters.setGovernedData(ad?.governed ? (ad.governed as Record<string, unknown>) : null);
+  // Fall back to businessAnalysis.governed when top-level governed is missing
+  const governedSource = ad?.governed
+    ? (ad.governed as Record<string, unknown>)
+    : (ad?.businessAnalysis as Record<string, unknown>)?.governed
+      ? ((ad.businessAnalysis as Record<string, unknown>).governed as Record<string, unknown>)
+      : null;
+  setters.setGovernedData(governedSource);
   setters.setActiveBranchIdState(ad?.activeBranchId ? (ad.activeBranchId as string) : null);
   if (ad?.strategicProfile) setters.setStrategicProfileState(ad.strategicProfile as StrategicProfile);
   setters.setDecompositionData(ad?.decomposition || null);
-  setters.setDisruptData(ad?.disrupt || null);
+  // Fall back to businessAnalysis as disruptData when disrupt key is missing
+  const disruptSource = ad?.disrupt
+    ? ad.disrupt
+    : ad?.businessAnalysis
+      ? ad.businessAnalysis
+      : null;
+  setters.setDisruptData(disruptSource);
   setters.setStressTestData(ad?.stressTest || null);
   setters.setPitchDeckData(ad?.pitchDeck || null);
   setters.setBusinessStressTestData(ad?.businessStressTest || null);

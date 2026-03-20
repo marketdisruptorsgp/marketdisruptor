@@ -47,15 +47,28 @@ const TABS: TabDef<"assumptions" | "deconstruct" | "reasoning" | "hypotheses">[]
 
 type TabId = "assumptions" | "deconstruct" | "reasoning" | "hypotheses";
 
+const LOADING_TIMEOUT_MS = 90_000; // 90s max loading before showing error escape
+
 export default function DisruptPage() {
   const [activeTab, setActiveTab] = useState<TabId>("assumptions");
   const [runTrigger, setRunTrigger] = useState(0);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
+
+  // Safety timeout — prevent infinite loading spinner
+  React.useEffect(() => {
+    if (!analysisLoading && analysis.disruptData) {
+      setLoadingTimedOut(false);
+      return;
+    }
+    const timer = setTimeout(() => setLoadingTimedOut(true), LOADING_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [analysisLoading, analysis.disruptData]);
 
   const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
 
@@ -142,15 +155,36 @@ export default function DisruptPage() {
       />
 
 
-      {/* ── Loading Tracker (matches Redesign quality) ── */}
+      {/* ── Loading Tracker with timeout escape ── */}
       {(analysisLoading || (!hasDisruptData)) && (
         <AnalysisLoadingCard>
-          <StepLoadingTracker
-            title="Building Structural Analysis"
-            tasks={DISRUPT_TASKS}
-            estimatedSeconds={120}
-            accentColor="hsl(271 81% 55%)"
-          />
+          {loadingTimedOut ? (
+            <div className="text-center space-y-3 py-6">
+              <p className="text-sm font-semibold text-foreground">Analysis is taking longer than expected.</p>
+              <p className="text-xs text-muted-foreground">The pipeline may have encountered an issue. You can retry or continue exploring other sections.</p>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => { setLoadingTimedOut(false); setRunTrigger(t => t + 1); }}
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
+                >
+                  Retry Analysis
+                </button>
+                <button
+                  onClick={() => navigate(`/analysis/${analysisId}/report`)}
+                  className="px-4 py-2 rounded-lg bg-muted text-foreground text-xs font-semibold hover:bg-muted/80 transition-colors border border-border"
+                >
+                  Back to Report
+                </button>
+              </div>
+            </div>
+          ) : (
+            <StepLoadingTracker
+              title="Building Structural Analysis"
+              tasks={DISRUPT_TASKS}
+              estimatedSeconds={120}
+              accentColor="hsl(271 81% 55%)"
+            />
+          )}
         </AnalysisLoadingCard>
       )}
 
