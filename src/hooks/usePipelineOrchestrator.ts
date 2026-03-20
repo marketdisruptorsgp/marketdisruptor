@@ -45,6 +45,7 @@ export function usePipelineOrchestrator(
     setDecompositionData, setDisruptData, setRedesignData, setStressTestData, setPitchDeckData,
     setGovernedData, saveStepData, markStepOutdated, clearStepOutdated,
     conceptsData, setConceptsData,
+    loadedFromSaved,
   } = analysis;
 
   const businessAnalysisData = (analysis as any).businessAnalysisData;
@@ -220,7 +221,9 @@ export function usePipelineOrchestrator(
     }
   }, [effectiveProduct, analysisId, decompositionData, disruptData, stressTestData, buildCtx, buildCb, buildStore]);
 
-  // Auto-trigger when analysis is done but missing core data
+  // Auto-trigger when analysis is done but missing core data.
+  // Fresh analyses (not loaded from saved) trigger immediately — no hydration delay needed.
+  // Saved analyses keep a 1500ms buffer to let hydration settle.
   useEffect(() => {
     const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
     const hasMissingCoreStep = !disruptData || !decompositionData;
@@ -233,11 +236,12 @@ export function usePipelineOrchestrator(
       triggeredForRef.current !== analysisId
     ) {
       triggeredForRef.current = analysisId;
-      console.log(`[Pipeline] Auto-trigger: missing core steps`);
-      const timer = setTimeout(() => runPipeline(), 1500);
+      const delayMs = loadedFromSaved ? 1500 : 0;
+      console.log(`[Pipeline] Auto-trigger: missing core steps (delay=${delayMs}ms, saved=${loadedFromSaved})`);
+      const timer = setTimeout(() => runPipeline(), delayMs);
       return () => clearTimeout(timer);
     }
-  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, runPipeline]);
+  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, decompositionData, runPipeline, loadedFromSaved]);
 
   const runAllSteps = useCallback(() => {
     runAllRef.current = true;
