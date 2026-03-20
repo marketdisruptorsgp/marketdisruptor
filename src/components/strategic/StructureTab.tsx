@@ -436,7 +436,7 @@ export const StructureTab = forwardRef<HTMLDivElement, StructureTabProps>(functi
   onLoadingChange,
   viewMode = "all",
 }, ref) {
-  const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || [];
+  const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || (analysis.businessAnalysisData as any)?.hiddenAssumptions || [];
   const showAssumptions = viewMode === "all" || viewMode === "assumptions";
   const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
 
