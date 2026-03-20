@@ -702,6 +702,7 @@ function enforceMinimumArtifacts(
       valueCreated: "Reduced cost/friction",
       feasibility: "medium",
       filtered: false,
+      _synthetic: true,
     });
   }
   next.structuralTransformations = existingTransforms;

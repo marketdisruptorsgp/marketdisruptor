@@ -359,11 +359,13 @@ export default function DisruptPage() {
                 title={selectedProduct?.name || ""}
                 category={analysis.analysisParams?.category || ""}
                 onApplyRevision={(revision: any) => {
-                  const currentGoverned = analysis.governedData || {};
+                  const currentGoverned = { ...(analysis.governedData || {}) } as Record<string, unknown>;
                   if (revision.type === "new_hypothesis" && revision.payload) {
                     const existing = (currentGoverned as any)?.root_hypotheses || [];
                     const newH = { ...revision.payload, id: `user-hyp-${Date.now()}` };
-                    analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, newH] });
+                    const merged = { ...currentGoverned, root_hypotheses: [...existing, newH] };
+                    analysis.setGovernedData(merged);
+                    analysis.saveStepData("governed", merged);
                     analysis.markStepOutdated("redesign");
                     analysis.markStepOutdated("stressTest");
                     analysis.markStepOutdated("pitchDeck");

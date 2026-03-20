@@ -92,7 +92,7 @@ export function PipelineProgressBar({
 
       {/* Step markers */}
       <div className="flex items-center justify-between">
-        {PIPELINE.map((step) => {
+        {CORE_PIPELINE.map((step) => {
           const isDone = completedSteps.has(step.key);
           const isOutdated = outdatedSteps?.has(step.key);
           const isCurrent = currentStep === step.key;
