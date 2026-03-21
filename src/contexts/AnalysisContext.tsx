@@ -708,6 +708,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [analysisId, saveStepData, prefs, decompositionData, disruptData, markStepOutdated]);
 
+  // Flush pending mode snapshot (deferred from setActiveMode)
+  useEffect(() => {
+    if (pendingModeSnapshotRef.current && analysisId) {
+      const { key, data } = pendingModeSnapshotRef.current;
+      pendingModeSnapshotRef.current = null;
+      saveStepData(key, data);
+    }
+  }, [activeMode, analysisId, saveStepData]);
+
   // ── Auto-persist effects (extracted) ──
   useAutoPersistEffects({
     analysisId, saveStepData,
