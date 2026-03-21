@@ -37,6 +37,23 @@ export function useUserPreferences(
         next[id] = status;
       }
       pendingPrefSaveRef.current = next;
+
+      // #9: Record telemetry for idea quality feedback loop
+      if (status !== "neutral") {
+        try {
+          const { recordIdeaFeedback } = require("@/lib/ideaQualityTelemetry");
+          recordIdeaFeedback({
+            analysisId: "",  // populated by caller context
+            ideaId: id,
+            action: status,
+            steeringText: steeringText || null,
+            lensType: null,
+            analysisMode: "",
+            timestamp: Date.now(),
+          });
+        } catch { /* telemetry should never break the app */ }
+      }
+
       return next;
     });
   }, []);
