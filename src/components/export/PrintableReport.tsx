@@ -1,6 +1,7 @@
 import React from "react";
 import type { Product } from "@/data/mockProducts";
 import { isServiceCategory } from "@/utils/normalizeProduct";
+import { extractFinancialInputs, computeETAScores, type ETAFinancialInputs, type ETAScoreResult } from "@/lib/etaScoringEngine";
 import { ScoreBar } from "@/components/ScoreBar";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import {
@@ -29,6 +30,7 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
   const pitchDeckData = (analysisData?.pitchDeck ?? analysisData?.pitchDeckData) as Record<string, unknown> | null;
   const redesignData = (analysisData?.redesign ?? analysisData?.reimagine ?? analysisData?.redesignData) as Record<string, unknown> | null;
   const governedData = (analysisData?.governed ?? analysisData?.governedData) as Record<string, unknown> | null;
+  const biExtraction = (analysisData?.biExtraction ?? null) as Record<string, unknown> | null;
   const strategicSnapshot = analysisData?.strategicSnapshot as Record<string, unknown> | null;
 
   return (
@@ -173,6 +175,11 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
 
       {/* ── Governed Intelligence (Reasoning, Confidence, Decision) ── */}
       {governedData && <GovernedSection data={governedData} />}
+
+      {/* ── Acquisition Intelligence (ETA Deal Data) ── */}
+      {(biExtraction || governedData) && (
+        <AcquisitionIntelligenceSection biExtraction={biExtraction} governedData={governedData} />
+      )}
 
       {/* ── Stress Test ── */}
       {stressTestData && <StressTestSection data={stressTestData} />}
@@ -1326,4 +1333,192 @@ function PrintJSON({ data }: { data: Record<string, unknown> }) {
   };
 
   return <>{renderValue(data)}</>;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACQUISITION INTELLIGENCE (Deal Scorecard, SBA Financing, 90-Day Playbook)
+   ═══════════════════════════════════════════════════════════════ */
+
+function AcquisitionIntelligenceSection({
+  biExtraction,
+  governedData,
+}: {
+  biExtraction: Record<string, unknown> | null;
+  governedData: Record<string, unknown> | null;
+}) {
+  const inputs = extractFinancialInputs(governedData, biExtraction);
+  const bi = biExtraction as Record<string, any> | null;
+  const eta = bi?.eta_assessment as Record<string, any> | null;
+
+  // Only render if we have meaningful financial data
+  const hasFinancials = inputs.revenue || inputs.sde || inputs.askingPrice || inputs.grossMargin;
+  const hasETA = !!eta;
+  if (!hasFinancials && !hasETA) return null;
+
+  // Compute scores if we have data
+  let scoreResult: ETAScoreResult | null = null;
+  try {
+    scoreResult = computeETAScores(inputs);
+  } catch { /* scoring failed — still show raw data */ }
+
+  const multiple = inputs.sde && inputs.askingPrice ? (inputs.askingPrice / inputs.sde).toFixed(1) : null;
+  const dscr = inputs.sde && inputs.askingPrice
+    ? ((inputs.sde * 0.8) / (inputs.askingPrice * 0.1)).toFixed(2)
+    : null;
+
+  // SBA eligibility signals
+  const sbaEligible = (inputs.askingPrice ?? 0) <= 5_000_000;
+  const sbaDownPct = 10;
+  const sbaDown = inputs.askingPrice ? Math.round(inputs.askingPrice * sbaDownPct / 100) : null;
+
+  // 90-day playbook phases
+  const playbookPhases = buildPlaybookPhases(inputs, bi);
+
+  return (
+    <>
+      {/* Deal Scorecard */}
+      <PrintSection title="Acquisition Intelligence" icon={<DollarSign size={14} />}>
+        <div className="print-grid-3">
+          <PrintMetricBox label="Revenue" value={inputs.revenue ? `$${(inputs.revenue / 1000).toFixed(0)}K` : undefined} />
+          <PrintMetricBox label="SDE" value={inputs.sde ? `$${(inputs.sde / 1000).toFixed(0)}K` : undefined} />
+          <PrintMetricBox label="Asking Price" value={inputs.askingPrice ? `$${(inputs.askingPrice / 1000).toFixed(0)}K` : undefined} />
+          <PrintMetricBox label="SDE Multiple" value={multiple ? `${multiple}x` : undefined} />
+          <PrintMetricBox label="Gross Margin" value={inputs.grossMargin ? `${(inputs.grossMargin * 100).toFixed(0)}%` : undefined} />
+          <PrintMetricBox label="DSCR (est.)" value={dscr} />
+        </div>
+
+        {inputs.customerConcentration != null && (
+          <div className="print-grid-3">
+            <PrintMetricBox label="Top Customer %" value={`${(inputs.customerConcentration * 100).toFixed(0)}%`} />
+            <PrintMetricBox label="Employees" value={inputs.employeeCount} />
+            <PrintMetricBox label="Owner Dependency" value={inputs.ownerDependency?.replace(/_/g, " ")} />
+          </div>
+        )}
+
+        {scoreResult && (
+          <div className="print-subsection">
+            <h3 className="print-subsection-title"><Shield size={12} /> Deal Verdict</h3>
+            <div className="print-grid-3">
+              <PrintMetricBox label="Deal Grade" value={scoreResult.dealGrade} />
+              <PrintMetricBox label="Valuation Risk" value={`${scoreResult.valuationRiskScore.value}/100 — ${scoreResult.valuationRiskLabel}`} />
+              <PrintMetricBox label="Readiness" value={`${scoreResult.acquisitionReadiness.value}/100 — ${scoreResult.readinessLabel}`} />
+            </div>
+            {scoreResult.keyFlags.length > 0 && (
+              <div className="print-tag-row" style={{ marginTop: 6 }}>
+                {scoreResult.keyFlags.map((flag, i) => (
+                  <PrintTag key={i} label={flag} color="hsl(0 72% 50%)" />
+                ))}
+              </div>
+            )}
+            {scoreResult.dimensions.length > 0 && (
+              <div style={{ marginTop: 8 }}>
+                {scoreResult.dimensions.map((dim) => (
+                  <div key={dim.label} className="print-list-item" style={{ justifyContent: "space-between" }}>
+                    <span>{dim.label}</span>
+                    <span style={{ fontWeight: 600, fontSize: 11 }}>
+                      {dim.score}/100 ({dim.riskLevel}) — wt {(dim.weight * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </PrintSection>
+
+      {/* SBA Financing Model */}
+      {inputs.askingPrice && (
+        <PrintSection title="SBA Financing Model" icon={<TrendingUp size={14} />}>
+          <div className="print-grid-3">
+            <PrintMetricBox label="SBA Eligible" value={sbaEligible ? "Yes (≤$5M)" : "No (>$5M)"} />
+            <PrintMetricBox label="Down Payment (10%)" value={sbaDown ? `$${(sbaDown / 1000).toFixed(0)}K` : undefined} />
+            <PrintMetricBox label="Loan Amount" value={sbaDown ? `$${((inputs.askingPrice - sbaDown) / 1000).toFixed(0)}K` : undefined} />
+          </div>
+          {dscr && (
+            <p className="print-body-sm" style={{ marginTop: 6 }}>
+              Estimated DSCR of {dscr} — {Number(dscr) >= 1.25 ? "meets typical SBA minimum of 1.25x" : "below typical SBA minimum of 1.25x, may require additional collateral or seller note"}.
+            </p>
+          )}
+        </PrintSection>
+      )}
+
+      {/* 90-Day Playbook */}
+      {playbookPhases.length > 0 && (
+        <PrintSection title="90-Day Post-Close Playbook" icon={<Rocket size={14} />}>
+          {playbookPhases.map((phase, i) => (
+            <PrintCard key={i} accent={phase.color}>
+              <p className="print-card-title">
+                <span className="print-card-number">{i + 1}</span>
+                {phase.title} — {phase.timeline}
+              </p>
+              {phase.items.map((item, j) => (
+                <div key={j} className="print-list-item">
+                  <CheckCircle2 size={10} className="flex-shrink-0 mt-0.5" style={{ color: phase.color }} />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </PrintCard>
+          ))}
+        </PrintSection>
+      )}
+    </>
+  );
+}
+
+interface PlaybookPhase {
+  title: string;
+  timeline: string;
+  color: string;
+  items: string[];
+}
+
+function buildPlaybookPhases(
+  inputs: ETAFinancialInputs,
+  bi: Record<string, any> | null,
+): PlaybookPhase[] {
+  const phases: PlaybookPhase[] = [];
+  const ownerDep = inputs.ownerDependency;
+  const highConcentration = (inputs.customerConcentration ?? 0) > 0.3;
+
+  // Phase 1: Day 0-30 — Stabilize
+  const stabilize: string[] = [
+    "Meet all employees individually, understand roles and concerns",
+    "Audit all recurring revenue contracts and renewal dates",
+  ];
+  if (ownerDep === "owner_critical" || ownerDep === "dependent") {
+    stabilize.push("Begin owner knowledge transfer — document all owner-only processes");
+  }
+  if (highConcentration) {
+    stabilize.push("Schedule meetings with top 5 customers to reinforce relationship continuity");
+  }
+  stabilize.push("Review and secure all vendor and supplier agreements");
+  phases.push({ title: "Stabilize", timeline: "Days 0–30", color: "hsl(217 91% 55%)", items: stabilize });
+
+  // Phase 2: Day 31-60 — Optimize
+  const optimize: string[] = [
+    "Implement financial controls and reporting dashboards",
+    "Identify quick-win cost reductions without disrupting operations",
+  ];
+  if (inputs.grossMargin && inputs.grossMargin < 0.4) {
+    optimize.push("Analyze pricing structure for margin improvement opportunities");
+  }
+  if (inputs.recurringRevenuePct != null && inputs.recurringRevenuePct < 0.5) {
+    optimize.push("Develop recurring revenue offering to reduce revenue volatility");
+  }
+  optimize.push("Formalize SOPs for all critical business processes");
+  phases.push({ title: "Optimize", timeline: "Days 31–60", color: "hsl(142 70% 40%)", items: optimize });
+
+  // Phase 3: Day 61-90 — Grow
+  const grow: string[] = [
+    "Launch first growth initiative based on identified opportunities",
+    "Begin building sales pipeline or marketing engine",
+  ];
+  if (highConcentration) {
+    grow.push("Execute customer diversification strategy — target 3+ new accounts");
+  }
+  grow.push("Set 12-month strategic plan with KPIs and milestones");
+  grow.push("Evaluate technology or systems upgrades for scalability");
+  phases.push({ title: "Grow", timeline: "Days 61–90", color: "hsl(271 81% 55%)", items: grow });
+
+  return phases;
 }
