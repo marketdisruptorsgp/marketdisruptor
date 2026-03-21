@@ -259,6 +259,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [isHydrating, setIsHydrating] = useState(false);
   const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
   const [activeMode, setActiveModeState] = useState<AnalysisMode>("custom");
+  const activeModeRef = useRef<AnalysisMode>("custom");
+  const pendingModeSnapshotRef = useRef<{ key: string; data: Record<string, any> } | null>(null);
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -353,11 +355,27 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [markStepOutdated]);
 
   const setActiveMode = useCallback((m: AnalysisMode) => {
+    // #8: Snapshot current mode artifacts before switching
+    const currentMode = activeModeRef.current;
+    if (currentMode && currentMode !== m) {
+      const snapshotKey = `modeSnapshot_${currentMode}`;
+      const snapshot: Record<string, any> = {};
+      if (decompositionData) snapshot.decompositionData = decompositionData;
+      if (disruptData) snapshot.disruptData = disruptData;
+      if (stressTestData) snapshot.stressTestData = stressTestData;
+      if (pitchDeckData) snapshot.pitchDeckData = pitchDeckData;
+      if (redesignData) snapshot.redesignData = redesignData;
+      if (Object.keys(snapshot).length > 0) {
+        console.log(`[ModeSwitch] Snapshotting ${Object.keys(snapshot).length} artifacts from ${currentMode} mode`);
+        pendingModeSnapshotRef.current = { key: snapshotKey, data: snapshot };
+      }
+    }
+    activeModeRef.current = m;
     setActiveModeState(m);
     markStepOutdated("redesign");
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
-  }, [markStepOutdated]);
+  }, [markStepOutdated, decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
 
   const diagnosticContext = useMemo((): DiagnosticContext =>
     buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null)),
@@ -689,6 +707,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       markStepOutdated("concepts");
     }
   }, [analysisId, saveStepData, prefs, decompositionData, disruptData, markStepOutdated]);
+
+  // Flush pending mode snapshot (deferred from setActiveMode)
+  useEffect(() => {
+    if (pendingModeSnapshotRef.current && analysisId) {
+      const { key, data } = pendingModeSnapshotRef.current;
+      pendingModeSnapshotRef.current = null;
+      saveStepData(key, data);
+    }
+  }, [activeMode, analysisId, saveStepData]);
 
   // ── Auto-persist effects (extracted) ──
   useAutoPersistEffects({
