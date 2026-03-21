@@ -10,6 +10,7 @@ import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { gatherBusinessAnalysisData } from "@/lib/gatherAnalysisData";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { GovernedMissingBanner } from "@/components/GovernedMissingBanner";
+import { SteeringFeedbackBanner } from "@/components/SteeringFeedbackBanner";
 import { getBusinessStepConfigs } from "@/lib/stepConfigs";
 
 import type { Product } from "@/data/mockProducts";
