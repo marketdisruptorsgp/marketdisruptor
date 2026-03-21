@@ -627,46 +627,67 @@ function buildProductModeSystemPrompt(
   lensBlock: string,
   directionsBlock: string,
 ): string {
-  return `You are a product engineer and inventor who turns component analysis into "I never thought of that" product innovations. Generate SPECIFIC, CONCRETE product innovation opportunities — not business model plays.
+  return `You are a product engineer and inventor who turns deep structural component analysis into "I never thought of that" product innovations. Generate SPECIFIC, CONCRETE product innovation opportunities — not business model plays.
 
 Generate ${thesisCount} distinct product innovations, each a STRUCTURALLY DIFFERENT engineering approach.
-${hasDirections ? `Each opportunity corresponds to a direction below. Make each SPECIFIC for this product.` : `Generate one thesis per qualified pattern.`}
+${hasDirections ? `Each opportunity corresponds to a strategic direction below. Make each SPECIFIC for THIS product's actual failure modes and structural constraints — not generic product engineering advice.` : `Generate one thesis per qualified structural pattern.`}
+
+══════════════════════════════════════════════════════
+STRUCTURAL DERIVATION MANDATE — NON-NEGOTIABLE
+══════════════════════════════════════════════════════
+EVERY thesis must trace from a SPECIFIC structural finding in the analysis:
+- Start with a named failure mode, leverage primitive, or binding constraint from the structural profile
+- Explain WHY that specific physical or material condition causes the problem
+- Propose a SPECIFIC engineering change that eliminates the root cause
+- Estimate the business impact of that change in concrete terms
+
+If you cannot trace an opportunity back to a specific structural finding above, it is GENERIC and must be rejected.
 
 ══════════════════════════════════════════════════════
 BUSINESS LANGUAGE MANDATE — NON-NEGOTIABLE
 ══════════════════════════════════════════════════════
-1. EVERY "summary" MUST reference a real product or company that made a similar innovation:
-   "Dyson didn't improve suction — they eliminated the bag. The same logic applies here..."
-   "Moen's MotionSense faucet turned a commodity product into a premium category by adding a sensor that costs $4. The same opportunity exists here..."
+1. EVERY "summary" MUST:
+   a) Name the SPECIFIC failure mode or structural constraint being solved (from the analysis above)
+   b) Reference a real product or company that made a structurally similar innovation:
+      GOOD: "Dyson: replaced the filter bag (a $0.20 component) with cyclone technology — turned a $39 commodity into a $500 premium product and created the bagless category. The same structural logic applies here: [specific parallel]."
+      BAD: "Dyson (product innovation)" — too generic, parallel must be made EXPLICIT
 
-2. EVERY "whyThisMatters.ifSolved" item MUST include a business impact estimate:
-   Format: "This change enables a $X–Y premium over the commodity version" OR "Reduces warranty claims by X%, saving $Y per 1,000 units sold"
+2. EVERY "whyThisMatters.ifSolved" item MUST include a concrete business impact estimate:
+   Format: "Switching from [material A] to [material B] enables a $X–Y premium over the commodity version" OR
+           "Eliminating [failure mode] reduces warranty returns by ~X%, saving $Y per 10,000 units at current failure rate"
+   Use real numbers from the structural analysis where available. Estimate clearly when not.
 
 3. EVERY "strategicPrecedents" MUST have 2–3 real products/companies with the specific parallel made explicit.
    BAD: "Dyson (product innovation)"
    GOOD: "Dyson: replaced the filter bag (a $0.20 component) with cyclone technology — turned a $39 commodity into a $500 premium product and created the bagless category"
+   GOOD: "Moen MotionSense: added a $4 sensor to a $12 faucet — sells at $180 retail. The electronics cost 33% of BOM but justified 15x price premium by creating a new 'touchless' category."
 
-4. EVERY "firstMove" MUST be something a product engineer can do in a workshop THIS WEEK.
-   Specify exact steps: "Buy $50 in silicone sheet material and fabricate 3 prototype diaphragm valves. Test against chlorinated water for 48 hours."
+4. EVERY "firstMove" MUST be something a product engineer can do in a workshop THIS WEEK with under $200.
+   Specify exact steps: "Buy $50 in [specific material] from [specific supplier type]. Fabricate 3 prototype [specific mechanism]. Test against [specific failure condition] for 48 hours. Measure [specific metric] vs. the current design."
+   NOT: "Research the market" or "Consult with engineers" — those are not first moves.
 
 5. ${BANNED_WORDS_INSTRUCTION}
+
+6. ANTI-GENERIC TEST: Before finalizing, ask: "Would this thesis be equally valid for a DIFFERENT product in a completely different category?" If YES → it is generic. Rewrite it to be specific to THIS product's actual structural findings.
 
 ══════════════════════════════════════════════════════
 STRUCTURAL RULES
 ══════════════════════════════════════════════════════
-1. "reconfigurationLabel": SPECIFIC physical product change (e.g., "Replace rubber flapper with silicone diaphragm valve — eliminates chlorine degradation, extends lifespan 4x at +$0.15/unit cost")
-2. BANNED: SaaS, subscription platform, marketplace, API, white-label, data products, software-as-primary-product
-3. Include physical specifics: materials, manufacturing method, estimated unit cost impact, certifications
-4. "causalChain": trace a physical failure mode to a specific engineering solution
-5. Each opportunity must be STRUCTURALLY DISTINCT
+1. "reconfigurationLabel": SPECIFIC physical product change that names: the current component/material/mechanism → the proposed replacement → the expected performance delta and BOM impact
+   GOOD: "Replace injection-molded ABS frame with glass-filled nylon (PA66-GF30) — eliminates brittle fracture under load, +$0.09/unit BOM, enables 'lifetime replacement guarantee' positioning"
+   BAD: "Use better materials for improved durability"
+2. BANNED: SaaS, subscription platform, marketplace, API, white-label, data products, software-as-primary-product (engineering opportunities only)
+3. Include physical specifics: exact material names, manufacturing method, estimated unit cost impact at 10K/100K volumes
+4. "causalChain.constraint": trace a named physical failure mode → its root cause → the specific engineering solution
+5. Each opportunity must be STRUCTURALLY DISTINCT — not variations of the same intervention
 
-ENGINEERING LENSES: Material science | Failure mode elimination | Manufacturing simplification | Universal compatibility | Sensing & diagnostics | Installation UX
+ENGINEERING LENSES: Material science | Failure mode elimination | Manufacturing simplification | Universal compatibility | Sensing & diagnostics | Installation UX | Brand/positioning physics (when the constraint is how the product is positioned, not how it works)
 
 ${differentiationBias}
 ${lensBlock}
 ${directionsBlock}
 
-REQUIRED for every thesis: "whyThisMatters" (implications + ifSolved WITH business impact estimates), "strategicPrecedents" (2-3 real products with specific parallels), and "secondOrderEffects" (3-5 downstream consequences).`;
+REQUIRED for every thesis: "whyThisMatters" (implications + ifSolved WITH concrete business impact estimates), "strategicPrecedents" (2-3 real products with specific parallel descriptions), and "secondOrderEffects" (3-5 downstream consequences of this product change succeeding).`;
 }
 
 function buildBusinessModeSystemPrompt(

@@ -63,56 +63,130 @@ export const PRODUCT_DIRECTIONS: StrategicDirection[] = [
     label: "Redesign the core mechanism",
     description: "Replace the fundamental operating mechanism with a superior physical principle that eliminates the primary failure mode.",
     aiPromptHint: "Identify the core physical mechanism (valve, seal, spring, hinge, etc.). What physics principle does it rely on? What failure mode does that cause? Propose a SPECIFIC alternative mechanism using a different physical principle. Include: the new mechanism, why it's superior, material candidates, and estimated BOM impact. Example: 'Replace rubber flapper seal with silicone diaphragm valve — eliminates chlorine degradation (the #1 failure cause), adds $0.15/unit but extends lifespan 4x.'",
-    relevance: (_p) => 9, // Always highly relevant for products
+    relevance: (p) => {
+      let score = 5; // moderate base — only earns high scores when structure demands it
+      const hasMechanismConstraint = p.bindingConstraints.some(c =>
+        /mechanism|design|form|shape|structur|geometr|physical|rigid|fixed|form.?factor|architectur/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasMechanismConstraint) score += 4;
+      // Fragmented supply = many mechanism variants exist → redesign for unification
+      if (p.supplyFragmentation === "fragmented" || p.supplyFragmentation === "atomized") score += 1;
+      return Math.min(10, score);
+    },
   },
   {
     id: "material_substitution",
     label: "Advanced material substitution",
     description: "Replace legacy materials with modern alternatives that improve durability, reduce cost, or enable new capabilities.",
     aiPromptHint: "Identify each material in the current product. For each: what's the failure mode? What modern material would eliminate it? Be SPECIFIC — name the polymer, alloy, or composite. Include: material name, supplier ecosystem, cost delta per unit at 10K volume, and the performance improvement. Example: 'Replace ABS housing with glass-filled nylon (PA66-GF30) — 3x impact resistance, +$0.08/unit, eliminates brittleness cracking in cold climates.'",
-    relevance: (_p) => 8,
+    relevance: (p) => {
+      let score = 4; // lower base — material substitution is only compelling when materials are the actual constraint
+      const hasMaterialConstraint = p.bindingConstraints.some(c =>
+        /material|plastic|metal|wood|rubber|ceramic|glass|composit|alloy|polymer|brittle|crack|corrode|degrad|wear|snap|cheap|low.?cost/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasMaterialConstraint) score += 5;
+      // Thin margins mean BOM cost is a lever — material changes have outsized economics impact
+      if (p.marginStructure === "thin_margin") score += 1;
+      return Math.min(10, score);
+    },
   },
   {
     id: "universal_fit",
     label: "Universal compatibility system",
     description: "Design an adapter or modular system that fits multiple product variants with a single SKU, reducing complexity for both manufacturer and consumer.",
     aiPromptHint: "Map the current compatibility landscape — how many variants exist? What causes incompatibility (dimensions, threading, mounting)? Design a SPECIFIC universal fit mechanism (compression adapter, adjustable geometry, modular inserts). Include: the mechanical approach, what % of installed base it covers, tooling requirements, and how it simplifies the consumer's purchase decision. Reference real universal-fit precedents in adjacent categories.",
-    relevance: (_p) => 7,
+    relevance: (p) => {
+      let score = 2; // low base — only relevant when compatibility fragmentation is the real pain
+      const hasCompatibilityConstraint = p.bindingConstraints.some(c =>
+        /compat|fit|variant|size|dimension|standard|interop|adapter|interface|thread|mount|attach/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasCompatibilityConstraint) score += 6;
+      if (p.supplyFragmentation === "atomized") score += 2;
+      if (p.supplyFragmentation === "fragmented") score += 1;
+      return Math.min(10, score);
+    },
   },
   {
     id: "smart_sensing",
     label: "Add sensing & diagnostics",
     description: "Integrate low-cost sensors to detect failure before it happens, transforming a dumb component into a predictive maintenance tool.",
     aiPromptHint: "Identify the primary failure modes and their warning signals (vibration, flow rate change, acoustic signature, temperature). Propose a SPECIFIC sensor integration: sensor type, placement, power source (battery, harvested, passive), communication method (BLE, NFC, visual indicator). Include BOM cost of the electronics at 10K units. Keep it practical — if a $0.50 thermistor can detect 80% of failures, prefer that over a $15 IoT module. Reference real products that added sensing to traditionally dumb components.",
-    relevance: (_p) => 6,
+    relevance: (p) => {
+      let score = 2; // very low base — IoT is expensive and only justified when monitoring creates clear value
+      const hasSensingConstraint = p.bindingConstraints.some(c =>
+        /detect|monitor|sensor|diagnos|predictive|hidden|invisible|silent|track|measure|alert|warn/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasSensingConstraint) score += 6;
+      // High-margin products can absorb electronics BOM cost
+      if (p.marginStructure === "high_margin") score += 2;
+      // Thin-margin products rarely justify electronics additions unless they unlock a new price tier
+      if (p.marginStructure === "thin_margin") score -= 1;
+      return Math.max(0, Math.min(10, score));
+    },
   },
   {
     id: "manufacturing_innovation",
     label: "Manufacturing process innovation",
     description: "Change the manufacturing method to reduce cost, improve quality, or enable geometries impossible with current processes.",
     aiPromptHint: "Analyze the current manufacturing process (injection molding, stamping, machining, assembly). What are its constraints? Propose a SPECIFIC alternative: overmolding to eliminate assembly steps, 3D printing for complex internal channels, die-casting to replace multi-part assemblies. Include: process name, required capital equipment, unit cost at 10K/100K volumes, and quality improvements. Example: 'Replace 4-part assembly (housing + seal + spring + cap) with single overmolded part — eliminates 3 assembly steps, reduces unit cost from $2.40 to $1.65, improves seal reliability.'",
-    relevance: (_p) => 7,
+    relevance: (p) => {
+      let score = 3; // moderate-low base
+      const hasManufacturingConstraint = p.bindingConstraints.some(c =>
+        /manufactur|assembl|production|tooling|mold|cast|machin|fabri|process|cost|BOM|unit.?cost|cycle.?time/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasManufacturingConstraint) score += 5;
+      // Thin margins = manufacturing cost is where leverage lives
+      if (p.marginStructure === "thin_margin") score += 2;
+      return Math.min(10, score);
+    },
   },
   {
     id: "eliminate_failure",
     label: "Eliminate the #1 failure mode",
     description: "Engineer out the most common product failure through design change, material change, or mechanism change.",
     aiPromptHint: "From user complaints, warranty data patterns, and physical analysis: what is the #1 failure mode? What causes it (wear, corrosion, mineral buildup, UV degradation, impact)? Design a SPECIFIC engineering solution that eliminates or dramatically reduces this failure. Include: root cause, proposed design change, expected lifespan improvement (with reasoning), and any cost/complexity trade-offs. This should be something a product engineer could prototype in a week.",
-    relevance: (_p) => 9,
+    relevance: (p) => {
+      let score = 5; // moderate base — failures exist in every product
+      const hasDurabilityConstraint = p.bindingConstraints.some(c =>
+        /fail|break|crack|snap|wear|degrad|brittle|durabil|reliab|lifespan|warranty|defect|qualit/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasDurabilityConstraint) score += 4;
+      // Thin margins often mean cost-cutting led to reliability problems
+      if (p.marginStructure === "thin_margin") score += 1;
+      return Math.min(10, score);
+    },
   },
   {
     id: "tool_free_install",
     label: "Tool-free installation",
     description: "Redesign the product for tool-free, mistake-proof installation that any consumer can complete in under 5 minutes.",
     aiPromptHint: "Map the current installation process step by step. Where do consumers fail or need tools? Design SPECIFIC tool-free mechanisms: quarter-turn locks, snap-fit connections, bayonet mounts, compression fittings, color-coded alignment guides. Include: the mechanical connection type, tolerance requirements, and how the design prevents incorrect installation. Reference real products that transformed installation UX (e.g., Dyson filter replacement, Brita cartridge click-in).",
-    relevance: (_p) => 7,
+    relevance: (p) => {
+      let score = 2; // low base — only earns high relevance for products that actually require installation
+      const hasInstallConstraint = p.bindingConstraints.some(c =>
+        /install|setup|mount|connect|plumb|wire|assemble|tool|fit|attach|confus|complicate|error|mistake/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasInstallConstraint) score += 7;
+      // High switching costs often come from installation complexity
+      if (p.switchingCosts === "high") score += 1;
+      return Math.min(10, score);
+    },
   },
   {
     id: "reduce_sku_complexity",
     label: "SKU consolidation",
     description: "Reduce the number of product variants through modular design or adjustable geometry, cutting inventory costs and simplifying distribution.",
     aiPromptHint: "How many SKUs currently exist and why? Map the dimensional or functional variations. Design a SPECIFIC modular or adjustable system that covers multiple variants: telescoping parts, reversible components, adjustable stops, universal threads. Include: current SKU count vs. proposed, the mechanical adjustment mechanism, and the inventory/logistics cost savings. Example: 'Adjustable overflow tube with indexed height stops replaces 6 fixed-height SKUs with 1, cutting warehouse inventory 83%.'",
-    relevance: (_p) => 6,
+    relevance: (p) => {
+      let score = 2; // low base — SKU consolidation only matters at scale with real inventory cost
+      const hasSkuConstraint = p.bindingConstraints.some(c =>
+        /sku|variant|complex|inventory|catalog|proliferat|version|model|configur|option/i.test(c.constraintName + " " + c.explanation)
+      );
+      if (hasSkuConstraint) score += 6;
+      if (p.supplyFragmentation === "atomized") score += 2;
+      if (p.supplyFragmentation === "fragmented") score += 1;
+      return Math.min(10, score);
+    },
   },
 ];
 
