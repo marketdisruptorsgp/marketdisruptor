@@ -11,6 +11,7 @@ import { gatherBusinessAnalysisData } from "@/lib/gatherAnalysisData";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { GovernedMissingBanner } from "@/components/GovernedMissingBanner";
 import { SteeringFeedbackBanner } from "@/components/SteeringFeedbackBanner";
+import { EntityCompetitorPanel } from "@/components/EntityCompetitorPanel";
 import { getBusinessStepConfigs } from "@/lib/stepConfigs";
 
 import type { Product } from "@/data/mockProducts";
