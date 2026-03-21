@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { X, Link2, Loader2, Sparkles } from "lucide-react";
+import { X, Link2, Loader2, Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserLens } from "@/components/LensToggle";
+import { LENS_TEMPLATES, type LensTemplate } from "@/lib/lensTemplates";
 import { toast } from "sonner";
 
 interface LensEditorProps {
@@ -33,6 +34,19 @@ export function LensEditor({ lens, onClose, onSaved }: LensEditorProps) {
   const [url, setUrl] = useState("");
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
+
+  const applyTemplate = (template: LensTemplate) => {
+    const t = template.lens;
+    setName(t.name || "");
+    setPrimaryObjective(t.primary_objective || "");
+    setTargetOutcome(t.target_outcome || "");
+    setRiskTolerance(t.risk_tolerance || "medium");
+    setTimeHorizon(t.time_horizon || "1 year");
+    setAvailableResources(t.available_resources || "");
+    setConstraints(t.constraints || "");
+    if (t.evaluation_priorities) setPriorities(t.evaluation_priorities);
+    toast.success(`"${template.name}" template applied — customize below`);
+  };
 
   const handleUrlScan = async () => {
     if (!url.trim()) return;
@@ -132,7 +146,30 @@ export function LensEditor({ lens, onClose, onSaved }: LensEditorProps) {
         </p>
 
         <div className="space-y-4">
-          {/* URL Autofill — first item */}
+          {/* Archetype Templates — only for new lenses */}
+          {!lens && (
+            <div>
+              <label className="typo-card-meta block mb-2 flex items-center gap-1.5">
+                <Zap size={12} className="text-primary" /> Start from a template
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {LENS_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => applyTemplate(t)}
+                    className="text-left p-2.5 rounded-lg border border-border hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                  >
+                    <span className="text-sm">{t.emoji}</span>
+                    <p className="text-xs font-semibold text-foreground mt-0.5">{t.name}</p>
+                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{t.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* URL Autofill */}
           {!lens && (
             <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03] p-4">
               <div className="flex items-center gap-2 mb-2">

@@ -10,6 +10,7 @@ import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { gatherBusinessAnalysisData } from "@/lib/gatherAnalysisData";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { GovernedMissingBanner } from "@/components/GovernedMissingBanner";
+import { SteeringFeedbackBanner } from "@/components/SteeringFeedbackBanner";
 import { getBusinessStepConfigs } from "@/lib/stepConfigs";
 
 import type { Product } from "@/data/mockProducts";
@@ -201,6 +202,23 @@ export default function BusinessResultsPage() {
           analysis.saveStepData("businessAnalysis", updated);
         }}
       />
+
+      {/* ══════════ STEERING FEEDBACK ══════════ */}
+      {analysis.steeringText && (
+        <div className="px-4 sm:px-6 -mt-1">
+          <SteeringFeedbackBanner
+            steeringText={analysis.steeringText}
+            completedSteps={new Set(
+              [
+                businessAnalysisData ? "businessAnalysis" : "",
+                analysis.businessStressTestData ? "businessStressTest" : "",
+                analysis.pitchDeckData ? "businessPitchDeck" : "",
+              ].filter(Boolean)
+            )}
+            accentColor={modeAccent}
+          />
+        </div>
+      )}
 
       {/* ══════════ STEP CONTENT ══════════ */}
 
