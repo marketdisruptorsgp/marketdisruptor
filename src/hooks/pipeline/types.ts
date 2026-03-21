@@ -21,6 +21,7 @@ export interface StepRunnerContext {
   userScores?: any;
   analysisData?: any;
   focusTerritory?: any;
+  activeLens?: any;
 }
 
 export interface StepRunnerCallbacks {

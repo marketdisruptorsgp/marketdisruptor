@@ -51,5 +51,7 @@ export function hasUsableBusinessSynthesisData(data: any): boolean {
     data.redesignedConcept ||
     data.structuralTransformations?.length
   );
-  return hasGovernedStructure || hasStrategicArtifacts;
+  // Strategic artifacts only count if governed exists (even if thin) — prevents
+  // skipping full synthesis for pre-P0-C data that has opportunities but no governed schema.
+  return hasGovernedStructure || (hasStrategicArtifacts && governed != null);
 }
