@@ -176,6 +176,11 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
       {/* ── Governed Intelligence (Reasoning, Confidence, Decision) ── */}
       {governedData && <GovernedSection data={governedData} />}
 
+      {/* ── Acquisition Intelligence (ETA Deal Data) ── */}
+      {(biExtraction || governedData) && (
+        <AcquisitionIntelligenceSection biExtraction={biExtraction} governedData={governedData} />
+      )}
+
       {/* ── Stress Test ── */}
       {stressTestData && <StressTestSection data={stressTestData} />}
 
