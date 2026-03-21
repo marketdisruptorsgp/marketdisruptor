@@ -609,6 +609,14 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       console.error(`[StrategicSynthesis] TRUNCATION: missing ${structuredValidation.missing.join(", ")}`);
     }
 
+    // ── Governed rescue layer ──
+    // The AI sometimes puts all content at the top level and returns governed: {}.
+    // Before validation, attempt to synthesize governed from top-level analysis data.
+    if (!analysis.governed || Object.keys(analysis.governed as Record<string, unknown>).length === 0) {
+      console.warn("[StrategicSynthesis][Governed] Empty governed — attempting rescue from analysis data");
+      analysis.governed = rescueGovernedFromAnalysis(analysis, product, isService);
+    }
+
     // ── Governed validation ──
     const governed = analysis.governed || {};
     const governedValidation = buildValidationObject("strategic-synthesis", governed, [
