@@ -282,6 +282,22 @@ export default function DeepDivePage() {
           governedData={governedDataTyped}
         />
 
+        {/* ═══ ETA DEAL SCORECARD ═══ */}
+        {modeKey === "business" && (
+          <DealScorecard
+            biExtraction={biExtraction}
+            governedData={governedDataTyped}
+          />
+        )}
+
+        {/* ═══ ETA POST-CLOSE PLAYBOOK ═══ */}
+        {modeKey === "business" && (
+          <PostClosePlaybook
+            biExtraction={biExtraction}
+            governedData={governedDataTyped}
+          />
+        )}
+
         {/* ═══ ANALYSIS PROGRESS ═══ */}
         {pipelineProgress.isRunning && (
           <PipelineTimerStrip pipelineProgress={pipelineProgress} />
