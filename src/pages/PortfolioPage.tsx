@@ -11,6 +11,7 @@ import { format, parseISO } from "date-fns";
 import { ProjectInsightCard } from "@/components/portfolio/ProjectInsightCard";
 import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
 import { ComparisonInsightView } from "@/components/portfolio/ComparisonInsightView";
+import { LensComparisonView } from "@/components/portfolio/LensComparisonView";
 import { ActionItemsPanel } from "@/components/portfolio/ActionItemsPanel";
 import { InfoExplainer } from "@/components/InfoExplainer";
 
