@@ -60,9 +60,32 @@ function hasRootHypotheses(analysisData: any): boolean {
   return false;
 }
 
-async function generateHypotheses(apiKey: string, analysis: any): Promise<any[]> {
+async function generateHypotheses(apiKey: string, analysis: any, lens?: any): Promise<any[]> {
   const dataSnapshot = truncateJSON(analysis.analysis_data, 5000);
   const productsSnapshot = truncateJSON(analysis.products, 1500);
+
+  // Build lens-aware framing if an active lens is provided
+  let lensFraming = "";
+  if (lens) {
+    const parts: string[] = [];
+    if (lens.name) parts.push(`Active Lens: ${lens.name}`);
+    if (lens.primary_objective) parts.push(`Objective: ${lens.primary_objective}`);
+    if (lens.constraints) parts.push(`Constraints: ${lens.constraints}`);
+    if (lens.risk_tolerance) parts.push(`Risk Tolerance: ${lens.risk_tolerance}`);
+    if (lens.available_resources) parts.push(`Resources: ${lens.available_resources}`);
+    if (lens.time_horizon) parts.push(`Time Horizon: ${lens.time_horizon}`);
+    if (lens.evaluation_priorities) {
+      const prioStr = Object.entries(lens.evaluation_priorities)
+        .sort(([,a],[,b]) => (b as number) - (a as number))
+        .slice(0, 5)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(", ");
+      parts.push(`Priority Weights: ${prioStr}`);
+    }
+    if (parts.length > 0) {
+      lensFraming = `\n\nEVALUATION LENS (use this to weight and frame hypotheses):\n${parts.join("\n")}`;
+    }
+  }
 
   const prompt = `You are a structural constraint analyst. Given an existing analysis, extract 2-4 Tier 1 structural constraint hypotheses that represent the most fundamental forces shaping this domain.
 
@@ -71,6 +94,7 @@ ANALYSIS CONTEXT:
 - Mode: ${analysis.analysis_type || "product"}
 - Category: ${analysis.category || "Unknown"}
 - Average Score: ${analysis.avg_revival_score ?? "N/A"}
+${lensFraming}
 
 ANALYSIS DATA (truncated):
 ${dataSnapshot}
@@ -107,7 +131,7 @@ RULES:
 - confidence: integer 0-100.
 - evidence_mix values must sum to 1.0.
 - Order by estimated dominance (most dominant first).
-- Each hypothesis must represent a STRUCTURALLY DISTINCT constraint — no overlapping.`;
+- Each hypothesis must represent a STRUCTURALLY DISTINCT constraint — no overlapping.${lens ? "\n- Weight and frame hypotheses according to the EVALUATION LENS priorities above." : ""}`;
 
   const res = await fetch(AI_URL, {
     method: "POST",
