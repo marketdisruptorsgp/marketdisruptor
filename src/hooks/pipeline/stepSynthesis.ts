@@ -9,12 +9,14 @@ import type { StepRunnerContext, StepRunnerCallbacks, StepDataStore } from "./ty
 /**
  * After reuse path, ensure governed.constraint_map.root_hypotheses exists.
  * If already present in BA data, no-op. Otherwise fire backfill-strategic-os async.
+ * Accepts optional serialized lens to pass through to hypothesis generation.
  */
 async function ensureHypotheses(
   ba: any,
   ctx: StepRunnerContext,
   cb: StepRunnerCallbacks,
   store: StepDataStore,
+  lens?: any,
 ): Promise<void> {
   const governed = ba?.governed;
   const existingHypotheses = governed?.constraint_map?.root_hypotheses;
@@ -38,15 +40,27 @@ async function ensureHypotheses(
   console.log("[Pipeline] Reuse path: no hypotheses found — firing backfill-strategic-os async");
   invokeWithTimeout("backfill-strategic-os", {
     body: {
-      analysisId: ctx.analysisId,
-      mode: "hypotheses_only",
+      singleAnalysisId: ctx.analysisId,
+      ...(lens ? { lens } : {}),
     },
   }, 30_000).then(({ data, error }) => {
     if (error || !data) {
       console.warn("[Pipeline] Hypothesis backfill failed:", error?.message || "no data");
       return;
     }
-    console.log("[Pipeline] Hypothesis backfill completed async");
+    console.log("[Pipeline] Hypothesis backfill completed async — updating in-memory state");
+
+    // Merge backfilled hypotheses into in-memory governed state
+    const hypotheses = data.hypotheses;
+    if (Array.isArray(hypotheses) && hypotheses.length > 0) {
+      const existingGoverned = (ba?.governed || {});
+      if (!existingGoverned.constraint_map) existingGoverned.constraint_map = {};
+      existingGoverned.constraint_map.root_hypotheses = hypotheses;
+      existingGoverned.root_hypotheses = hypotheses;
+      store.setGovernedData({ ...existingGoverned });
+      store.setDisruptData({ ...ba, governed: existingGoverned });
+    }
+
     cb.onRecompute?.();
   }).catch((err) => {
     console.warn("[Pipeline] Hypothesis backfill error:", err);
