@@ -187,8 +187,8 @@ function inferLaborIntensity(corpus: string, constraints: Set<string>): LaborInt
 
 function inferRevenueModel(corpus: string, constraints: Set<string>): RevenueModel {
   if (constraints.has("transactional_revenue")) return "transactional";
-  const recurSignals = hits(corpus, /subscript|recurring|mrr|arr|monthly|annual\s*fee|retention/g);
-  const transSignals = hits(corpus, /one.?time|transact|project.?based|per.?unit|spot|episod|per.?job/g);
+  const recurSignals = hits(corpus, /subscript|recurring|mrr|arr|monthly|annual\s*fee|retention|retainer/g);
+  const transSignals = hits(corpus, /one.?time|transact|project.?based|per.?unit|spot|episod|per.?job|per.?engagement/g);
   if (recurSignals >= 2) return "recurring";
   if (transSignals >= 2) return "project_based";
   return "mixed";
