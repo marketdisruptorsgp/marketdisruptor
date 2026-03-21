@@ -195,35 +195,147 @@ async function fetchWorldBankData(): Promise<any[]> {
 // ── Category-to-NAICS mapping ──
 function categoryToNaics(category: string): string {
   const map: Record<string, string> = {
+    // ── Product / Retail ──
     "Consumer Electronics": "443",
     "Electronics": "443",
-    "EdTech": "6111",
-    "Education": "6111",
-    "Health & Wellness": "446",
-    "Health": "446",
-    "Sustainable Fashion": "448",
-    "Fashion": "448",
-    "Clothing": "448",
-    "Pet Care": "453",
-    "Pets": "453",
+    "Home": "442",
+    "Automotive": "441",
     "Food & Beverage": "445",
     "Food": "445",
     "Cannabis": "445",
-    "Fitness Tech": "713",
-    "Fitness": "713",
     "Beauty": "446",
-    "Home": "442",
-    "Automotive": "441",
+    "Health & Wellness": "446",
+    "Health": "446",
+    "Pet Care": "453",
+    "Pets": "453",
+    "Sustainable Fashion": "448",
+    "Fashion": "448",
+    "Clothing": "448",
+
+    // ── Technology / Software ──
+    "EdTech": "6111",
+    "Education": "6111",
     "Software": "5112",
     "SaaS": "5112",
     "Micro-SaaS": "5112",
-    "Service": "812",
+    "Fitness Tech": "713",
+    "Fitness": "713",
+
+    // ── Construction & Specialty Trades (CRITICAL for BA mode) ──
+    "Plumbing": "238220",
+    "HVAC": "238220",
+    "Heating": "238220",
+    "Air Conditioning": "238220",
+    "Electrical": "238210",
+    "Electrician": "238210",
+    "Roofing": "238160",
+    "Painting": "238320",
+    "Carpentry": "238350",
+    "Flooring": "238330",
+    "Concrete": "238110",
+    "Masonry": "238140",
+    "Demolition": "238910",
+    "Insulation": "238310",
+    "General Contractor": "236220",
+    "Construction": "236220",
+    "Remodel": "236118",
+    "Renovation": "236118",
+    "Landscaping": "561730",
+    "Lawn Care": "561730",
+    "Tree Service": "561730",
+
+    // ── Professional Services ──
+    "Accounting": "541211",
+    "CPA": "541211",
+    "Bookkeeping": "541219",
+    "Legal": "541110",
+    "Law Firm": "541110",
+    "Consulting": "541611",
+    "Management Consulting": "541611",
+    "IT Services": "541512",
+    "Marketing": "541810",
+    "Advertising": "541810",
+    "Architecture": "541310",
+    "Engineering": "541330",
+    "Real Estate": "531210",
+    "Insurance": "524210",
+    "Staffing": "561311",
+    "Recruiting": "561311",
+
+    // ── Healthcare / Medical ──
+    "Dental": "621210",
+    "Dentist": "621210",
+    "Medical": "621111",
+    "Physician": "621111",
+    "Veterinary": "541940",
+    "Vet": "541940",
+    "Physical Therapy": "621340",
+    "Chiropractic": "621310",
+    "Optometry": "621320",
+    "Pharmacy": "446110",
+    "Home Health": "621610",
+
+    // ── Auto Services ──
+    "Auto Repair": "811111",
+    "Auto Body": "811121",
+    "Car Wash": "811192",
+    "Oil Change": "811191",
+    "Towing": "488410",
+
+    // ── Food Service / Hospitality ──
+    "Restaurant": "722511",
+    "Catering": "722320",
+    "Bar": "722410",
+    "Hotel": "721110",
+    "Bakery": "311811",
+    "Coffee Shop": "722515",
+
+    // ── Personal Services ──
+    "Salon": "812111",
+    "Barber": "812111",
+    "Spa": "812199",
+    "Dry Cleaning": "812320",
+    "Laundry": "812310",
+    "Funeral": "812210",
+    "Child Care": "624410",
+    "Daycare": "624410",
+    "Gym": "713940",
+
+    // ── Industrial / Manufacturing ──
+    "Manufacturing": "332",
+    "Machine Shop": "332710",
+    "Metal Fabrication": "332312",
+    "Welding": "332313",
+    "Printing": "323111",
+    "Woodwork": "321999",
+    "Millwork": "321911",
+    "Cabinet": "337110",
+
+    // ── Transportation / Logistics ──
+    "Trucking": "484110",
+    "Freight": "484121",
+    "Moving": "484210",
+    "Courier": "492110",
+    "Warehouse": "493110",
+
+    // ── Cleaning / Maintenance ──
+    "Janitorial": "561720",
+    "Cleaning": "561720",
+    "Pest Control": "561710",
+    "Waste Management": "562111",
+
+    // ── Broad fallbacks ──
+    "Service": "811",
+    "Home Services": "238",
+    "Skilled Trades": "238",
+    "Professional Services": "541",
     "Business Model": "55",
     "Business": "55",
   };
 
+  const lower = category.toLowerCase();
   for (const [key, naics] of Object.entries(map)) {
-    if (category.toLowerCase().includes(key.toLowerCase())) return naics;
+    if (lower.includes(key.toLowerCase())) return naics;
   }
   return "44-45"; // retail fallback
 }

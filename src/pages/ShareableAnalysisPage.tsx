@@ -240,11 +240,29 @@ export default function ShareableAnalysisPage() {
 
         {/* Analysis title */}
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">{data.title}</h1>
-        <div className="flex items-center gap-3 px-1">
+        <div className="flex flex-wrap items-center gap-3 px-1">
           <span className="typo-page-meta">{data.category}</span>
           {data.avg_revival_score && (
             <span className="typo-card-meta font-bold bg-muted border border-border px-2 py-0.5 rounded">{data.avg_revival_score}/10</span>
           )}
+          {/* Lens context badge — shows what evaluation lens was active */}
+          {(() => {
+            const lensSnap = ad?.lensSnapshot as { name?: string; lensType?: string; primary_objective?: string; risk_tolerance?: string; time_horizon?: string } | null;
+            if (!lensSnap) return null;
+            const lensLabel = lensSnap.lensType === "eta" ? "ETA Acquisition Lens" : lensSnap.name ? `${lensSnap.name} Lens` : "Custom Lens";
+            const lensColor = lensSnap.lensType === "eta" ? "hsl(142 70% 40%)" : "hsl(38 92% 50%)";
+            return (
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border"
+                style={{ color: lensColor, borderColor: lensColor, background: `${lensColor} / 0.08` }}
+                title={lensSnap.primary_objective || undefined}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /></svg>
+                {lensLabel}
+                {lensSnap.risk_tolerance && <span className="opacity-70">· {lensSnap.risk_tolerance} risk</span>}
+              </span>
+            );
+          })()}
         </div>
 
         {/* ────────── BUSINESS MODEL VIEW ────────── */}
