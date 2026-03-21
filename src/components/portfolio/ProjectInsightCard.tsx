@@ -110,6 +110,13 @@ export function ProjectInsightCard({ analysis, onOpen, onToggleFavorite }: { ana
                 </span>
               )}
               <span className="typo-card-meta text-foreground/60">{format(parseISO(analysis.created_at), "MMM d")}</span>
+              <FreshnessBadge
+                updatedAt={(analysis as any).updated_at || analysis.created_at}
+                createdAt={analysis.created_at}
+                hasCompetitiveData={!!(analysis.analysis_data as any)?.scoutedCompetitors}
+                hasGeoData={!!(analysis.analysis_data as any)?.geoOpportunity}
+                compact
+              />
             </div>
           </div>
           <div

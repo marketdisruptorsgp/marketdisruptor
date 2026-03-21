@@ -226,6 +226,22 @@ export default function BusinessResultsPage() {
       {activeStep === 2 && (
         <AnalysisContentCard>
           <BusinessModelAnalysis initialData={businessAnalysisData} renderMode="report" onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)} />
+          {/* Entity-level competitor discovery for BA mode */}
+          <EntityCompetitorPanel
+            businessName={bizName}
+            industry={businessAnalysisData?.businessSummary?.industry || businessModelInput?.type}
+            geography={(analysis.adaptiveContext as any)?.territory || undefined}
+            services={businessAnalysisData?.businessSummary?.coreServices}
+            onCompetitorsFound={(competitors) => {
+              analysis.setScoutedCompetitors(competitors.map(c => ({
+                name: c.name,
+                url: c.url,
+                description: c.description,
+                competition_score: c.competition_score,
+                structural_overlap: c.competitive_angle,
+              })));
+            }}
+          />
         </AnalysisContentCard>
       )}
 

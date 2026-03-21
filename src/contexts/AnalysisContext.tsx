@@ -353,11 +353,27 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [markStepOutdated]);
 
   const setActiveMode = useCallback((m: AnalysisMode) => {
+    // #8: Snapshot current mode artifacts before switching
+    const currentMode = activeModeRef.current;
+    if (currentMode && currentMode !== m) {
+      const snapshotKey = `modeSnapshot_${currentMode}`;
+      const snapshot: Record<string, any> = {};
+      if (decompositionData) snapshot.decompositionData = decompositionData;
+      if (disruptData) snapshot.disruptData = disruptData;
+      if (stressTestData) snapshot.stressTestData = stressTestData;
+      if (pitchDeckData) snapshot.pitchDeckData = pitchDeckData;
+      if (redesignData) snapshot.redesignData = redesignData;
+      if (Object.keys(snapshot).length > 0) {
+        console.log(`[ModeSwitch] Snapshotting ${Object.keys(snapshot).length} artifacts from ${currentMode} mode`);
+        saveStepData(snapshotKey, snapshot);
+      }
+    }
+    activeModeRef.current = m;
     setActiveModeState(m);
     markStepOutdated("redesign");
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
-  }, [markStepOutdated]);
+  }, [markStepOutdated, decompositionData, disruptData, stressTestData, pitchDeckData, redesignData, saveStepData]);
 
   const diagnosticContext = useMemo((): DiagnosticContext =>
     buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null)),
