@@ -147,6 +147,21 @@ export default function BusinessResultsPage() {
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
         onPdf={() => downloadFullAnalysisPDF(bizSyntheticProduct, gatherBusinessAnalysisData(analysis))}
+        extraActions={
+          <button
+            onClick={() => setNewInfoOpen(true)}
+            className="flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold bg-background border border-border text-foreground hover:bg-muted transition-colors w-full sm:w-auto"
+            title="Add new documents to enrich this analysis"
+          >
+            <FilePlus size={14} /> New Info
+          </button>
+        }
+      />
+
+      <NewInformationDialog
+        open={newInfoOpen}
+        onOpenChange={setNewInfoOpen}
+        accentColor={modeAccent}
       />
 
       {/* ── Stress Test: pill-style tab buttons ── */}
