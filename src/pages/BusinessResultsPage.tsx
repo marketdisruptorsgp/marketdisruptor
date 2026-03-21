@@ -229,9 +229,9 @@ export default function BusinessResultsPage() {
           {/* Entity-level competitor discovery for BA mode */}
           <EntityCompetitorPanel
             businessName={bizName}
-            industry={businessAnalysisData?.businessSummary?.industry || businessModelInput?.type}
+            industry={(businessAnalysisData as any)?.businessSummary?.industry || businessModelInput?.type}
             geography={(analysis.adaptiveContext as any)?.territory || undefined}
-            services={businessAnalysisData?.businessSummary?.coreServices}
+            services={(businessAnalysisData as any)?.businessSummary?.coreServices}
             onCompetitorsFound={(competitors) => {
               analysis.setScoutedCompetitors(competitors.map(c => ({
                 name: c.name,

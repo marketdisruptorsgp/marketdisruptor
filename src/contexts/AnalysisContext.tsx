@@ -374,7 +374,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("redesign");
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
-  }, [markStepOutdated, decompositionData, disruptData, stressTestData, pitchDeckData, redesignData, saveStepData]);
+  }, [markStepOutdated, decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
 
   const diagnosticContext = useMemo((): DiagnosticContext =>
     buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null)),
