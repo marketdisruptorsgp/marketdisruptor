@@ -177,7 +177,7 @@ function inferDistributionControl(corpus: string, constraints: Set<string>): Dis
 function inferLaborIntensity(corpus: string, constraints: Set<string>): LaborIntensity {
   if (constraints.has("labor_intensity") || constraints.has("owner_dependency")) return "labor_heavy";
   if (constraints.has("manual_process") || constraints.has("skill_scarcity")) return "labor_heavy";
-  const laborSignals = hits(corpus, /manual|hand.?craft|bespoke|custom|artisan|labor|hourly|consult|hands.?on/g);
+  const laborSignals = hits(corpus, /manual|hand.?craft|bespoke|custom|artisan|labor|hourly|consult|hands.?on|billable|utilization/g);
   const autoSignals = hits(corpus, /automat|software|algorithm|self.?serv|digital|platform|scalable/g);
   if (laborSignals >= 3) return "artisan";
   if (laborSignals >= 1 && autoSignals >= 1) return "mixed";
