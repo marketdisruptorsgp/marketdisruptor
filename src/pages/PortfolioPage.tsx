@@ -303,6 +303,18 @@ export default function PortfolioPage() {
               <ComparisonInsightView compareList={compareList} />
             </div>
 
+            {/* Lens Comparison View */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="typo-section-title text-foreground">Lens Comparison</p>
+                <InfoExplainer text="When you run the same business through different lenses (Default, ETA, Custom), this view shows a side-by-side metric diff. Reveals how different evaluation frameworks produce different strategic conclusions." />
+              </div>
+              <p className="typo-card-body text-foreground/70 mb-4">
+                Compare how different lenses scored the same entity — reveals evaluation framework bias.
+              </p>
+              <LensComparisonView analyses={analyses} />
+            </div>
+
             {/* Timeline */}
             {timeline.length > 1 && (
               <div className="rounded-xl border border-border bg-card p-5">
