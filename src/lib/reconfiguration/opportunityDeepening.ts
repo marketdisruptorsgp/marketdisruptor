@@ -488,7 +488,10 @@ function deepenOpportunitiesDeterministic(
 
     const primaryConstraintName = profile.bindingConstraints[0]?.constraintName || "";
     const constraint = translateConstraintToBusinessLanguage(primaryConstraintName, profile.bindingConstraints[0]?.explanation || "a structural constraint is limiting growth");
-    const driver = profile.bindingConstraints[0]?.explanation || "underlying structural friction";
+    const rawExplanation = profile.bindingConstraints[0]?.explanation || "";
+    const driver = rawExplanation
+      ? (rawExplanation.split(/[.;—–]/)[0]?.trim().slice(0, 80) || "underlying structural friction")
+      : "underlying structural friction";
 
     // Get real company precedents from the precedent library
     const fallbackPrecedents = getFallbackPrecedents(direction.id);
@@ -628,11 +631,16 @@ function inferDriver(constraint: string, profile: StructuralProfile, evidence: E
     return "existing assets generate value for a single use case despite broader applicability";
   }
 
-  // Fallback: derive from evidence text
+  // Fallback: derive from evidence text — use label (short) not description (can be a full sentence)
   const frictionEvidence = evidence.filter(e => e.type === "friction" || e.type === "constraint");
   if (frictionEvidence.length > 0) {
     const top = frictionEvidence.sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0))[0];
-    return top.description?.slice(0, 120) || top.label.toLowerCase();
+    // Prefer label — it's short and sentence-safe
+    const rawLabel = top.label.toLowerCase();
+    if (rawLabel && rawLabel.length < 80) return rawLabel;
+    // Only use description as last resort, cleaned to a short noun phrase
+    const rawDesc = top.description?.split(/[.;—–]/)[0]?.trim().toLowerCase() ?? "";
+    return rawDesc.slice(0, 60) || "underlying structural friction";
   }
 
   return "the current business structure creates friction that compounds with scale";
