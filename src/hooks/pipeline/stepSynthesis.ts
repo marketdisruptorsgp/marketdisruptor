@@ -90,7 +90,7 @@ export async function runStrategicSynthesis(
     cb.onRecompute?.();
 
     // Non-blocking: ensure hypotheses exist for downstream consumers
-    ensureHypotheses(ba, ctx, cb, store).catch(() => {});
+    ensureHypotheses(ba, ctx, cb, store, ctx.activeLens).catch(() => {});
 
     return ba;
   }
