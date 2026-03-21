@@ -426,6 +426,24 @@ function buildDocumentIntelligenceBlock(doc: any): string {
     parts.push("");
   }
 
+  // Deal-level acquisition verdict — critical for grounding thesis in deal economics
+  if (doc.dealVerdict) {
+    const dv = doc.dealVerdict;
+    parts.push("═══ DEAL VERDICT (acquisition viability assessment) ═══");
+    if (dv.overallScore) parts.push(`  Overall Deal Score: ${dv.overallScore}/10`);
+    if (dv.dealGrade) parts.push(`  Deal Grade: ${dv.dealGrade}`);
+    if (dv.acquisitionComplexity) parts.push(`  Acquisition Complexity: ${dv.acquisitionComplexity}`);
+    if (dv.askingMultiple) parts.push(`  Asking Multiple: ${dv.askingMultiple}x`);
+    if (dv.recommendedMultiple) parts.push(`  Recommended Multiple: ${dv.recommendedMultiple}x`);
+    if (dv.valuationRange) parts.push(`  Valuation Range: ${typeof dv.valuationRange === "object" ? JSON.stringify(dv.valuationRange) : dv.valuationRange}`);
+    if (dv.riskSummary) {
+      const risks = Array.isArray(dv.riskSummary) ? dv.riskSummary.join("; ") : dv.riskSummary;
+      parts.push(`  Key Risks: ${risks}`);
+    }
+    parts.push("CRITICAL: Ground every thesis in this deal's specific economics. Reference the deal score, multiple, and identified risks when evaluating feasibility and ROI.");
+    parts.push("");
+  }
+
   if (doc.systemSignals?.leveragePoints?.length) {
     parts.push(`LEVERAGE POINTS: ${doc.systemSignals.leveragePoints.join(", ")}`);
     parts.push("");

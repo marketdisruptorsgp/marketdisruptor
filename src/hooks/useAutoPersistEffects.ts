@@ -105,12 +105,21 @@ export function useAutoPersistEffects(deps: AutoPersistDeps) {
     }
   }, [pitchDeckExclusions, analysisId, saveStepData]);
 
-  // Auto-persist active lens ID
+  // Auto-persist active lens ID + snapshot for shared page rendering
   useEffect(() => {
     if (pendingLensSaveRef.current !== undefined && analysisId) {
       const lensId = pendingLensSaveRef.current;
       pendingLensSaveRef.current = undefined;
       saveStepData("activeLensId", lensId);
+      // Save a lens snapshot so shared/exported views can display lens context
+      const snapshot = activeLens ? {
+        name: activeLens.name || null,
+        lensType: (activeLens as any).lensType || "custom",
+        primary_objective: activeLens.primary_objective || null,
+        risk_tolerance: activeLens.risk_tolerance || null,
+        time_horizon: activeLens.time_horizon || null,
+      } : null;
+      saveStepData("lensSnapshot", snapshot);
     }
   }, [activeLens, analysisId, saveStepData]);
 

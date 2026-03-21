@@ -1183,6 +1183,17 @@ function buildDocumentIntelligencePayload(bi: Record<string, unknown>): Record<s
       areas: (eta.owner_dependencies as any[] || []).slice(0, 4),
     };
     payload.customerConcentration = eta.customer_concentration || null;
+
+    // Deal-level verdict — overall acquisition viability assessment
+    payload.dealVerdict = {
+      overallScore: eta.overall_score || eta.deal_score || null,
+      dealGrade: eta.deal_grade || null,
+      riskSummary: eta.risk_summary || eta.key_risks || null,
+      acquisitionComplexity: eta.acquisition_complexity || null,
+      valuationRange: eta.valuation_range || null,
+      askingMultiple: (fs as any)?.asking_multiple || null,
+      recommendedMultiple: eta.recommended_multiple || null,
+    };
   }
 
   // Causal relationships for system-level reasoning
