@@ -56,43 +56,112 @@ serve(async (req) => {
       ideaCount: ideaCount,
     }) : "";
 
-    const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
-${getReasoningFramework()}
-${branchPrompt}${adaptivePrompt}
-CORE PRINCIPLES:
-- First-principles reasoning over analogy or convention
-- Decompose every system into at least 3 layers of depth
-- Never present modeled or inferred data as verified fact
+    const isBusinessMode = mode === "business";
 
-${useImpossibilityEngine ? `MODE: STRUCTURAL IMPOSSIBILITY ENGINE ACTIVE
-You are NOT brainstorming ideas. You are systematically deriving structural reconfigurations
-from the system's irreducible primitives using impossibility operations.
-Every concept must trace back to a specific primitive + operation combination.
-NO freestyle idea generation. NO incremental optimization. ONLY structural derivation.` : `MODE: CREATIVE EXPLORATION (no structural data available)
-Generate bold, specific, actionable product ideas.`}
+    // ── BA-specific vs Product-specific prompt blocks ──
+    const personaBlock = isBusinessMode
+      ? `You are an expert BUSINESS MODEL STRATEGIST who specializes in taking existing businesses and structurally reconfiguring their revenue models, pricing architectures, customer segmentation, and channel strategies to create breakthrough, commercially viable reinventions.
 
-OUTPUT RULES:
-- Metrics must be ≤12 words
-- Include leverage scores (1-10) on key assumptions
-- Flag risk levels: [Risk: Low/Medium/High]
-- Flag capital requirements: [Capital: Low/Medium/High]
-- Use directional indicators: ↑ ↓ → for trends
+You think in terms of:
+- Revenue model design (recurring vs transactional vs hybrid)
+- Pricing architecture (tiering, bundling, value-based pricing)
+- Customer segmentation and willingness-to-pay curves
+- Channel partnerships and distribution leverage
+- Space/asset utilization and capacity optimization
+- Service productization and scalable delivery models
+- Competitive positioning and market structure`
+      : `You are an expert product innovation strategist who specializes in taking existing products and structurally reconfiguring them to create breakthrough, commercially viable concepts.`;
 
-You are an expert product innovation strategist who specializes in taking existing products and structurally reconfiguring them to create breakthrough, commercially viable concepts.
-
-${useImpossibilityEngine ? `Your concepts must be STRUCTURALLY DERIVED — traced from a specific leverage primitive through a specific impossibility operation. If you cannot show the derivation chain, the concept is INVALID.` : `Your flipped ideas must be BOLD, SPECIFIC, and ACTIONABLE — not vague concepts. Prioritize NOVEL approaches that create new categories or rethink how things work.`}
-
-IMPORTANT: Not everything needs to be flipped. If parts of the current product/service already work well (pricing model, core feature, delivery method, audience), CALL THAT OUT and build on it. The best flips preserve what's strong and reinvent what's broken.
-
-THE DIFFERENCE BETWEEN A GOOD IDEA AND A GREAT ONE:
+    const qualityBarBlock = isBusinessMode
+      ? `THE DIFFERENCE BETWEEN A GOOD IDEA AND A GREAT ONE:
+- BAD: "Offer a subscription" (generic, no specifics)
+- GOOD: "A $297/mo retainer tier for builders covering unlimited design consultations + priority scheduling. At 15 clients = $53K ARR with 72% gross margin. Upsell path: $1,200 fixed-price 'Design-to-Install' packages converting 40% of retainer clients. Precedent: fractional CFO firms average 18-month LTV at similar price points."
+- BAD: "Go digital" or "Add an app" (tech-first, ignores business model)
+- GOOD: "Partner with 3 regional GCs as their exclusive millwork subcontractor at net-45 terms. Guaranteed $8K/mo minimum per partner × 3 = $24K/mo baseline. Reduces sales cost to zero for those units. Model: dental labs that embedded with specific practices saw 3× revenue stability."`
+      : `THE DIFFERENCE BETWEEN A GOOD IDEA AND A GREAT ONE:
 - BAD: "A smart version with an app" (generic, no specifics)
-- GOOD: "A $39 modular version sold via social commerce targeting the specific grip frustration that online communities discuss weekly. BOM $4.20 via Shenzhen suppliers, 78% margin, breakeven at 890 units."
+- GOOD: "A $39 modular version sold via social commerce targeting the specific grip frustration that online communities discuss weekly. BOM $4.20 via Shenzhen suppliers, 78% margin, breakeven at 890 units."`;
 
-When a real analogous success exists, cite it — it strengthens the case. When an idea is genuinely novel with no precedent, that's fine — explain WHY the timing is right and what demand signals support it.
+    const derivationRuleBlock = isBusinessMode
+      ? `${useImpossibilityEngine ? `Your concepts must be STRUCTURALLY DERIVED — traced from a specific leverage primitive through a specific impossibility operation. If you cannot show the derivation chain, the concept is INVALID.` : `Your flipped ideas must target the BUSINESS MODEL layer — revenue structure, pricing logic, channel strategy, customer segmentation, or value chain position. NOT product features or technology. Prioritize reinventions that create recurring revenue, reduce owner-dependence, or unlock new customer segments.`}`
+      : `${useImpossibilityEngine ? `Your concepts must be STRUCTURALLY DERIVED — traced from a specific leverage primitive through a specific impossibility operation. If you cannot show the derivation chain, the concept is INVALID.` : `Your flipped ideas must be BOLD, SPECIFIC, and ACTIONABLE — not vague concepts. Prioritize NOVEL approaches that create new categories or rethink how things work.`}`;
 
-Respond with ONLY a valid JSON array of flipped idea objects (no markdown, no explanation).
+    const antiGenericBlock = isBusinessMode
+      ? `ANTI-GENERIC RULES (BA MODE):
+- Do NOT suggest "add an app" or "go digital" unless you specify EXACTLY what problem it solves for this specific business and what the revenue impact is
+- Do NOT suggest "subscription model" without specifying: what recurring value justifies ongoing payment, the specific price point, target customer count, and churn assumptions
+- Do NOT use vague phrases like "leverage technology" — name the specific operational bottleneck it removes
+- Do NOT suggest ideas that require the owner to work MORE hours — the goal is to decouple revenue from billable hours
+- Each idea MUST fall into one of these BA IDEA CATEGORIES:
+  • Revenue Model Flip (transactional → recurring, project → retainer, hourly → fixed-price)
+  • Channel Inversion (direct → embedded partnerships, B2C → B2B, retail → wholesale)
+  • Pricing Architecture (cost-plus → value-based, single-tier → tiered, bundled → unbundled)
+  • Space/Asset Utilization (idle capacity → revenue, single-use → multi-use, owned → shared)
+  • Customer Segmentation Flip (mass → niche, residential → commercial, local → regional)
+  • Value Chain Repositioning (execution → design authority, subcontractor → prime, commodity → premium)
+  • Service Productization (custom → standardized, bespoke → modular, consultation → deliverable)`
+      : `ANTI-GENERIC RULES:
+- Do NOT suggest "add an app" or "make it smart" without specifying EXACTLY what the app/smartness does and why users would pay for it
+- Do NOT suggest "subscription model" without specifying what recurring value justifies ongoing payment
+- Do NOT use vague phrases like "leveraging nostalgia" — name the specific emotional trigger and who feels it`;
 
-Each object must follow this EXACT structure:
+    const outputSchemaBlock = isBusinessMode
+      ? `Each object must follow this EXACT structure:
+{
+  "name": "Short catchy business concept name",
+  "ideaCategory": "Revenue Model Flip | Channel Inversion | Pricing Architecture | Space/Asset Utilization | Customer Segmentation Flip | Value Chain Repositioning | Service Productization",
+  "description": "2-3 sentence concept pitch with specific details (price point, target customer, key differentiator, revenue model)",
+  "visualNotes": "Business model diagram notes — revenue flows, customer segments, channel architecture",
+  "reasoning": "Market + business model + competitive reasoning with SPECIFIC data points. Include demand signals where available (industry benchmarks, competitor pricing, customer behavior patterns). If a real analogous business model exists, cite it. If this is genuinely novel, explain what makes the timing right.",
+  "feasibilityNotes": "Revenue math: price × volume = revenue. Cost structure breakdown. Customer acquisition cost estimate. Time to first revenue. Key operational requirements. Margin analysis (revenue → COGS → gross margin → overhead → net margin %)",
+  "scores": {"feasibility": 5, "desirability": 6, "profitability": 5, "novelty": 7},
+  "feasibilityClass": "Near-term viable | Conditional opportunity | Long-horizon concept",
+  "risks": "Specific risks with named mitigation strategies. Include the #1 reason this could fail and what would need to be true for it to succeed.",
+  "preservedStrengths": "What elements of the CURRENT business model this idea intentionally KEEPS and builds on (and why they're worth keeping). If everything is new, explain why a clean break is better.",
+  "whyNow": "The specific market shift, regulatory change, or industry trend that makes this viable RIGHT NOW",
+  "analogousSuccess": "A real company/business that proved a similar model works (with data), OR 'Novel approach' with explanation of why no precedent exists and why that's an opportunity",
+  "demandSignal": "Evidence of demand: customer complaints about current model, industry pricing shifts, adjacent market growth, behavioral trends",
+  "actionPlan": {
+    "phase1": "First 60 days: 3-4 specific actions — contracts to draft, customers to approach, pricing to test",
+    "phase2": "Month 3-6: scale actions with specific channels, hiring triggers, and metrics",
+    "phase3": "Month 7-18: growth, expansion, and defensibility actions",
+    "timeline": "X months to first revenue from this model",
+    "estimatedInvestment": "$X–$Y",
+    "revenueProjection": "$X ARR at Y clients/contracts in year 1 — SHOW THE MATH",
+    "channels": ["Referral Partners", "Industry Associations", "Direct Outbound", "Strategic Alliances"]
+  },
+  "riskLevel": "[Risk: Low/Medium/High]",
+  "capitalRequired": "[Capital: Low/Medium/High]",
+  "constraint_linkage": {
+    "original_assumption": "the business model assumption being structurally challenged",
+    "structural_inversion": "what structural change this creates in the business",
+    "causal_mechanism": "how the flip creates value through constraint removal",
+    "constraint_relief_path": "which Tier 1 or Tier 2 friction this relaxes",
+    "constraint_linkage_id": "ID linking to a specific friction from upstream analysis"${useImpossibilityEngine ? `,
+    "derivation": {
+      "primitive_targeted": "exact label from TARGET PRIMITIVES",
+      "primitive_leverage_score": 0,
+      "operation_applied": "constraint_weaponization | role_inversion | waste_as_product | zero_player | time_inversion",
+      "impossibility_statement": "What would it look like if [constraint] didn't exist?",
+      "backward_engineering": "The path from impossible → viable",
+      "structural_advantage": "Why this reconfiguration compounds over time",
+      "precedent": "Real company that proved a piece of this works"
+    }` : ""}
+  },
+  "visualSpec": {
+    "visual_type": "causal_chain | leverage_hierarchy",
+    "title": "Short title for the visual",
+    "nodes": [
+      { "id": "node_id", "label": "Node label", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1 }
+    ],
+    "edges": [
+      { "from": "source_id", "to": "target_id", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "optional edge label" }
+    ],
+    "layout": "linear | vertical",
+    "interpretation": "One sentence explaining the core leverage mechanism"
+  }
+}`
+      : `Each object must follow this EXACT structure:
 {
   "name": "Short catchy product name",
   "description": "2-3 sentence concept pitch with specific details (price point, target user, key differentiator)",
@@ -145,7 +214,64 @@ Each object must follow this EXACT structure:
     "layout": "linear | vertical",
     "interpretation": "One sentence explaining the core leverage mechanism"
   }
-}
+}`;
+
+    const groundingRulesBlock = isBusinessMode
+      ? `GROUNDING RULES — make ideas SPECIFIC to THIS BUSINESS, not generic:
+1. If a real analogous business model exists that validates this approach, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
+2. Show demand signals where possible: customer complaints about current pricing, industry margin benchmarks, competitor pricing structures, market consolidation trends
+3. Show REAL revenue math: price × volume = revenue → COGS → gross margin → overhead → net margin
+4. Name the SPECIFIC business model friction this resolves — what operational bottleneck or revenue ceiling does this break?
+5. Include a "why now" trigger — what makes this viable TODAY for this specific industry/geography?
+6. Consider the OWNER'S perspective: Does this reduce owner-dependence? Increase enterprise value? Create defensible recurring revenue?`
+      : `GROUNDING RULES — make ideas SPECIFIC, not generic:
+1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
+2. Show demand signals where possible: community complaints, cultural shifts, adjacent market growth, behavioral trends, search/social data
+3. Show REAL unit economics math: BOM cost → retail price → margin % → breakeven units
+4. Name the SPECIFIC gap this fills — what frustration or unmet need does this address?
+5. Include a "why now" trigger — what makes this viable TODAY?`;
+
+    const diversityRuleBlock = isBusinessMode
+      ? `- Each idea must target a DIFFERENT BA idea category (e.g., one Revenue Model Flip, one Channel Inversion, one Pricing Architecture)
+- ANTI-INCREMENTALISM: If a business consultant would say "that's obvious" → REJECT and dig deeper
+- Do NOT default to technology solutions — process, pricing, and structural changes first`
+      : `- Each idea must be DIFFERENT in structural approach (e.g. one could be a material flip, one a business model flip, one an audience flip)`;
+
+    const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
+${getReasoningFramework()}
+${branchPrompt}${adaptivePrompt}
+CORE PRINCIPLES:
+- First-principles reasoning over analogy or convention
+- Decompose every system into at least 3 layers of depth
+- Never present modeled or inferred data as verified fact
+
+${useImpossibilityEngine ? `MODE: STRUCTURAL IMPOSSIBILITY ENGINE ACTIVE
+You are NOT brainstorming ideas. You are systematically deriving structural reconfigurations
+from the system's irreducible primitives using impossibility operations.
+Every concept must trace back to a specific primitive + operation combination.
+NO freestyle idea generation. NO incremental optimization. ONLY structural derivation.` : `MODE: ${isBusinessMode ? "BUSINESS MODEL REINVENTION" : "CREATIVE EXPLORATION"} (${isBusinessMode ? "business strategist active" : "no structural data available"})
+${isBusinessMode ? "Generate bold, specific, actionable BUSINESS MODEL reinventions — NOT product ideas." : "Generate bold, specific, actionable product ideas."}`}
+
+OUTPUT RULES:
+- Metrics must be ≤12 words
+- Include leverage scores (1-10) on key assumptions
+- Flag risk levels: [Risk: Low/Medium/High]
+- Flag capital requirements: [Capital: Low/Medium/High]
+- Use directional indicators: ↑ ↓ → for trends
+
+${personaBlock}
+
+${derivationRuleBlock}
+
+IMPORTANT: Not everything needs to be flipped. If parts of the current ${isBusinessMode ? "business model" : "product/service"} already work well (${isBusinessMode ? "customer relationships, reputation, craftsmanship quality, local market position" : "pricing model, core feature, delivery method, audience"}), CALL THAT OUT and build on it. The best flips preserve what's strong and reinvent what's broken.
+
+${qualityBarBlock}
+
+When a real analogous success exists, cite it — it strengthens the case. When an idea is genuinely novel with no precedent, that's fine — explain WHY the timing is right and what demand signals support it.
+
+Respond with ONLY a valid JSON array of flipped idea objects (no markdown, no explanation).
+
+${outputSchemaBlock}
 
 SCORE CALIBRATION RULES:
 - 5-6 is the DEFAULT range for most ideas. Most flipped ideas should land here.
@@ -156,7 +282,7 @@ SCORE CALIBRATION RULES:
 - Every idea MUST include "feasibilityClass": "Near-term viable", "Conditional opportunity", or "Long-horizon concept".
 - Before finalizing scores, ask: "What would cause this to fail?" If failure risk is material → reduce score.`;
 
-    const userPrompt = `Generate ${ideaCount} bold, commercially viable "flipped" product ideas for this product.
+    const userPrompt = `Generate ${ideaCount} bold, commercially viable "flipped" ${isBusinessMode ? "business model reinventions" : "product ideas"} for this ${isBusinessMode ? "business" : "product"}.
 
 PRODUCT: ${product.name}
 CATEGORY: ${product.category}
@@ -171,10 +297,10 @@ CURRENT PRICING:
 ${product.pricingIntel ? `- Market: ${product.pricingIntel.currentMarketPrice}\n- Resale avg: ${product.pricingIntel.resaleAvgSold || product.pricingIntel.ebayAvgSold}\n- Trend: ${product.pricingIntel.priceDirection}` : "See description"}
 
 CURRENT ASSUMPTIONS TO CHALLENGE:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || "All design, pricing, audience, and usage assumptions"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || `All ${isBusinessMode ? "revenue model, pricing, channel, and operational" : "design, pricing, audience, and usage"} assumptions`}
 
 KNOWN COMPLAINTS/PAIN POINTS:
-${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || "General usability and cost concerns"}
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || `General ${isBusinessMode ? "operational and revenue model" : "usability and cost"} concerns`}
 
 COMMUNITY IMPROVEMENT REQUESTS:
 ${(product as { communityInsights?: { improvementRequests?: string[] } }).communityInsights?.improvementRequests?.map((r: string) => `• ${r}`).join("\n") || "Not available"}
@@ -183,9 +309,9 @@ COMPETITOR GAPS:
 ${(product as { competitorAnalysis?: { gaps?: string[] } }).competitorAnalysis?.gaps?.map((g: string) => `• ${g}`).join("\n") || "Not available"}
 
 TREND CONTEXT:
-${product.trendAnalysis || "Nostalgia-driven market with modern tech expectations"}
+${product.trendAnalysis || (isBusinessMode ? "Service industry consolidation with demand for scalable, recurring-revenue models" : "Nostalgia-driven market with modern tech expectations")}
 
-ADDITIONAL CONTEXT: ${additionalContext || "Focus on modern market opportunities and emerging consumer trends."}
+ADDITIONAL CONTEXT: ${additionalContext || (isBusinessMode ? "Focus on business model reinvention: recurring revenue, pricing architecture, channel strategy, and operational leverage." : "Focus on modern market opportunities and emerging consumer trends.")}
 ${steeringText ? `\nUSER STEERING GUIDANCE: ${steeringText}` : ""}
 ${insightPreferences ? `\nUSER INSIGHT PREFERENCES (prioritize liked, exclude dismissed):
 ${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "liked").map(([id]) => `✓ LIKED: ${id}`).join("\n")}
@@ -228,19 +354,11 @@ ${governedReasoning.transformation_clusters ? `TRANSFORMATION CLUSTERS:
 ${(governedReasoning.transformation_clusters as any[]).map((tc: any, i: number) => `${i + 1}. "${tc.cluster_name || tc.theme}" — ${(tc.transformations || []).join(", ")}`).join("\n")}` : ""}
 ${governedReasoning.reasoning_synopsis ? `SYNOPSIS: ${governedReasoning.reasoning_synopsis}` : ""}` : "")}
 
-GROUNDING RULES — make ideas SPECIFIC, not generic:
-1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
-2. Show demand signals where possible: community complaints, cultural shifts, adjacent market growth, behavioral trends, search/social data
-3. Show REAL unit economics math: BOM cost → retail price → margin % → breakeven units
-4. Name the SPECIFIC gap this fills — what frustration or unmet need does this address?
-5. Include a "why now" trigger — what makes this viable TODAY?
+${groundingRulesBlock}
 
-ANTI-GENERIC RULES:
-- Do NOT suggest "add an app" or "make it smart" without specifying EXACTLY what the app/smartness does and why users would pay for it
-- Do NOT suggest "subscription model" without specifying what recurring value justifies ongoing payment
-- Do NOT use vague phrases like "leveraging nostalgia" — name the specific emotional trigger and who feels it
+${antiGenericBlock}
 ${useImpossibilityEngine ? `- Each idea must target a DIFFERENT primitive or use a DIFFERENT impossibility operation
-- ANTI-INCREMENTALISM: If an industry insider would say "that's obvious" → REJECT and dig deeper` : `- Each idea must be DIFFERENT in structural approach (e.g. one could be a material flip, one a business model flip, one an audience flip)`}
+- ANTI-INCREMENTALISM: If an industry insider would say "that's obvious" → REJECT and dig deeper` : diversityRuleBlock}
 - NOVEL ideas without precedent are WELCOME — explain why the timing is right and what signals support them
 
 Return ONLY a JSON array with exactly ${ideaCount} flipped idea objects.${buildLensPrompt(lens)}`;
