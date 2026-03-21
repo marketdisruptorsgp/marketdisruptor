@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { X, Link2, Loader2, Sparkles } from "lucide-react";
+import { X, Link2, Loader2, Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserLens } from "@/components/LensToggle";
+import { LENS_TEMPLATES, type LensTemplate } from "@/lib/lensTemplates";
 import { toast } from "sonner";
 
 interface LensEditorProps {
