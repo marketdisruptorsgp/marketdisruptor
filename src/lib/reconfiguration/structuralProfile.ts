@@ -148,7 +148,7 @@ function inferFragmentation(corpus: string, constraints: Set<string>): Fragmenta
 function inferMarginStructure(corpus: string, constraints: Set<string>): MarginStructure {
   if (constraints.has("margin_compression")) return "thin_margin";
   if (constraints.has("commoditized_pricing")) return "thin_margin";
-  const thinSignals = hits(corpus, /thin\s*margin|low\s*margin|razor|commod|price\s*war|race\s*to\s*bottom/g);
+  const thinSignals = hits(corpus, /thin\s*margin|low\s*margin|razor|commod|price\s*war|race\s*to\s*bottom|scope_creep|scope\s*creep/g);
   const highSignals = hits(corpus, /high\s*margin|premium|luxury|pricing\s*power|monopol/g);
   if (thinSignals >= 2) return "thin_margin";
   if (highSignals >= 2) return "high_margin";
@@ -177,7 +177,7 @@ function inferDistributionControl(corpus: string, constraints: Set<string>): Dis
 function inferLaborIntensity(corpus: string, constraints: Set<string>): LaborIntensity {
   if (constraints.has("labor_intensity") || constraints.has("owner_dependency")) return "labor_heavy";
   if (constraints.has("manual_process") || constraints.has("skill_scarcity")) return "labor_heavy";
-  const laborSignals = hits(corpus, /manual|hand.?craft|bespoke|custom|artisan|labor|hourly|consult|hands.?on/g);
+  const laborSignals = hits(corpus, /manual|hand.?craft|bespoke|custom|artisan|labor|hourly|consult|hands.?on|billable|utilization/g);
   const autoSignals = hits(corpus, /automat|software|algorithm|self.?serv|digital|platform|scalable/g);
   if (laborSignals >= 3) return "artisan";
   if (laborSignals >= 1 && autoSignals >= 1) return "mixed";
@@ -187,8 +187,8 @@ function inferLaborIntensity(corpus: string, constraints: Set<string>): LaborInt
 
 function inferRevenueModel(corpus: string, constraints: Set<string>): RevenueModel {
   if (constraints.has("transactional_revenue")) return "transactional";
-  const recurSignals = hits(corpus, /subscript|recurring|mrr|arr|monthly|annual\s*fee|retention/g);
-  const transSignals = hits(corpus, /one.?time|transact|project.?based|per.?unit|spot|episod|per.?job/g);
+  const recurSignals = hits(corpus, /subscript|recurring|mrr|arr|monthly|annual\s*fee|retention|retainer/g);
+  const transSignals = hits(corpus, /one.?time|transact|project.?based|per.?unit|spot|episod|per.?job|per.?engagement/g);
   if (recurSignals >= 2) return "recurring";
   if (transSignals >= 2) return "project_based";
   return "mixed";
