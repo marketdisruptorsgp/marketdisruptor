@@ -25,6 +25,8 @@ import { usePipelineOrchestrator } from "@/hooks/usePipelineOrchestrator";
 import { ModeBadge } from "@/components/ModeBadge";
 import { ContrarianInsightCard } from "@/components/command-deck/ContrarianInsightCard";
 import { DealMetricsStrip } from "@/components/command-deck/DealMetricsStrip";
+import { DealScorecard } from "@/components/command-deck/DealScorecard";
+import { PostClosePlaybook } from "@/components/command-deck/PostClosePlaybook";
 import { StepLoadingTracker, type StepTask } from "@/components/StepLoadingTracker";
 import {
   extractCriticalQuestion,
@@ -279,6 +281,22 @@ export default function DeepDivePage() {
           biExtraction={biExtraction}
           governedData={governedDataTyped}
         />
+
+        {/* ═══ ETA DEAL SCORECARD ═══ */}
+        {modeKey === "business" && (
+          <DealScorecard
+            biExtraction={biExtraction}
+            governedData={governedDataTyped}
+          />
+        )}
+
+        {/* ═══ ETA POST-CLOSE PLAYBOOK ═══ */}
+        {modeKey === "business" && (
+          <PostClosePlaybook
+            biExtraction={biExtraction}
+            governedData={governedDataTyped}
+          />
+        )}
 
         {/* ═══ ANALYSIS PROGRESS ═══ */}
         {pipelineProgress.isRunning && (
