@@ -275,7 +275,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <h3 className="text-[13px] font-bold text-foreground leading-snug">{node.label}</h3>
                   <Badge variant="outline" className="text-[10px] flex-shrink-0 whitespace-nowrap" style={{ color: "hsl(0 72% 52%)", borderColor: "hsl(0 72% 52% / 0.3)" }}>
-                    Impact {Math.round(node.impact * 100)}%
+                    Impact {Math.round((node.impact / 10) * 100)}%
                   </Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
@@ -315,7 +315,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <h3 className="text-[13px] font-bold text-foreground leading-snug">{node.label}</h3>
                   <Badge variant="outline" className="text-[10px] flex-shrink-0 whitespace-nowrap" style={{ color: "hsl(152 60% 44%)", borderColor: "hsl(152 60% 44% / 0.3)" }}>
-                    Impact {Math.round(node.impact * 100)}%
+                    Impact {Math.round((node.impact / 10) * 100)}%
                   </Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
