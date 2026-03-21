@@ -203,6 +203,23 @@ export default function BusinessResultsPage() {
         }}
       />
 
+      {/* ══════════ STEERING FEEDBACK ══════════ */}
+      {analysis.steeringText && (
+        <div className="px-4 sm:px-6 -mt-1">
+          <SteeringFeedbackBanner
+            steeringText={analysis.steeringText}
+            completedSteps={new Set(
+              [
+                businessAnalysisData ? "businessAnalysis" : "",
+                analysis.businessStressTestData ? "businessStressTest" : "",
+                analysis.pitchDeckData ? "businessPitchDeck" : "",
+              ].filter(Boolean)
+            )}
+            accentColor={modeAccent}
+          />
+        </div>
+      )}
+
       {/* ══════════ STEP CONTENT ══════════ */}
 
       {activeStep === 2 && (
