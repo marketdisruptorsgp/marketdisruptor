@@ -148,7 +148,7 @@ function inferFragmentation(corpus: string, constraints: Set<string>): Fragmenta
 function inferMarginStructure(corpus: string, constraints: Set<string>): MarginStructure {
   if (constraints.has("margin_compression")) return "thin_margin";
   if (constraints.has("commoditized_pricing")) return "thin_margin";
-  const thinSignals = hits(corpus, /thin\s*margin|low\s*margin|razor|commod|price\s*war|race\s*to\s*bottom/g);
+  const thinSignals = hits(corpus, /thin\s*margin|low\s*margin|razor|commod|price\s*war|race\s*to\s*bottom|scope_creep|scope\s*creep/g);
   const highSignals = hits(corpus, /high\s*margin|premium|luxury|pricing\s*power|monopol/g);
   if (thinSignals >= 2) return "thin_margin";
   if (highSignals >= 2) return "high_margin";
