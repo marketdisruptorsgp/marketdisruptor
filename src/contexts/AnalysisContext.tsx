@@ -367,7 +367,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       if (redesignData) snapshot.redesignData = redesignData;
       if (Object.keys(snapshot).length > 0) {
         console.log(`[ModeSwitch] Snapshotting ${Object.keys(snapshot).length} artifacts from ${currentMode} mode`);
-        saveStepData(snapshotKey, snapshot);
+        pendingModeSnapshotRef.current = { key: snapshotKey, data: snapshot };
       }
     }
     activeModeRef.current = m;
