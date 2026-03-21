@@ -194,7 +194,7 @@ serve(async (req) => {
         : null;
 
       if (!alreadyHasRH) {
-        hypotheses = await generateHypotheses(LOVABLE_API_KEY, analysis);
+        hypotheses = await generateHypotheses(LOVABLE_API_KEY, analysis, lens);
         governed.root_hypotheses = hypotheses;
         if (governed.constraint_map) governed.constraint_map.root_hypotheses = hypotheses;
         didChange = true;
