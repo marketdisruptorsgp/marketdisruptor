@@ -35,6 +35,19 @@ export function LensEditor({ lens, onClose, onSaved }: LensEditorProps) {
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
 
+  const applyTemplate = (template: LensTemplate) => {
+    const t = template.lens;
+    setName(t.name || "");
+    setPrimaryObjective(t.primary_objective || "");
+    setTargetOutcome(t.target_outcome || "");
+    setRiskTolerance(t.risk_tolerance || "medium");
+    setTimeHorizon(t.time_horizon || "1 year");
+    setAvailableResources(t.available_resources || "");
+    setConstraints(t.constraints || "");
+    if (t.evaluation_priorities) setPriorities(t.evaluation_priorities);
+    toast.success(`"${template.name}" template applied — customize below`);
+  };
+
   const handleUrlScan = async () => {
     if (!url.trim()) return;
     setScanning(true);
