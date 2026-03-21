@@ -70,6 +70,7 @@ export default function BusinessResultsPage() {
     return steps;
   });
   const [stressTestTab, setStressTestTab] = React.useState<"debate" | "validate">("debate");
+  const [newInfoOpen, setNewInfoOpen] = React.useState(false);
 
   const { businessAnalysisData, businessModelInput } = analysis;
 
