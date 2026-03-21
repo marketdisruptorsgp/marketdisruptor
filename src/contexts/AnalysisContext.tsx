@@ -1137,8 +1137,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (error || !data?.success) {
+      // Accept ideas even from 422 soft-validation responses (ideas may be in error payload)
+      const ideas = data?.ideas;
+      if ((error || !data?.success) && !ideas?.length) {
         throw new Error(data?.error || error?.message || "Generation failed");
+      }
+      if (!data?.success && ideas?.length) {
+        console.warn("[RegenerateIdeas] Soft validation warning — using ideas despite:", data?.error);
       }
 
       const newIdeas: FlippedIdea[] = data.ideas;

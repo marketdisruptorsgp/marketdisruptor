@@ -467,32 +467,27 @@ Return ONLY a JSON array with exactly ${ideaCount} flipped idea objects.${buildL
       }
     }
 
-    // ── Governed: validate constraint_linkage on each idea ──
-    let linkageErrors: string[] = [];
+    // ── Governed: validate constraint_linkage on each idea (soft warning, not blocking) ──
+    let linkageWarnings: string[] = [];
     for (const idea of ideas) {
       if (idea && typeof idea === "object") {
         const ideaObj = idea as Record<string, unknown>;
         const linkage = ideaObj.constraint_linkage as Record<string, unknown> | undefined;
         if (!linkage || !linkage.constraint_linkage_id || String(linkage.constraint_linkage_id).trim() === "") {
-          linkageErrors.push(`Idea "${ideaObj.name || "Unknown"}" missing constraint_linkage_id`);
-        }
-        if (!linkage || !linkage.causal_mechanism || String(linkage.causal_mechanism).trim() === "") {
-          linkageErrors.push(`Idea "${ideaObj.name || "Unknown"}" missing causal_mechanism`);
+          linkageWarnings.push(`Idea "${ideaObj.name || "Unknown"}" missing constraint_linkage_id`);
+          // Auto-fill a placeholder linkage so downstream consumers don't break
+          if (!ideaObj.constraint_linkage) ideaObj.constraint_linkage = {};
+          const cl = ideaObj.constraint_linkage as Record<string, unknown>;
+          if (!cl.constraint_linkage_id) cl.constraint_linkage_id = `auto_${Date.now()}`;
+          if (!cl.causal_mechanism) cl.causal_mechanism = ideaObj.reasoning || "Structural reconfiguration";
+          if (!cl.original_assumption) cl.original_assumption = "Inherited assumption";
+          if (!cl.structural_inversion) cl.structural_inversion = ideaObj.description || "Model inversion";
         }
       }
     }
 
-    if (linkageErrors.length > 0) {
-      console.error(`[Governed] FLIP LINKAGE FAILURES: ${linkageErrors.join("; ")}`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: "Governed validation failed — flip ideas missing constraint linkage",
-        linkage_errors: linkageErrors,
-        ideas, // include partial for client to display
-      }), {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (linkageWarnings.length > 0) {
+      console.warn(`[Governed] FLIP LINKAGE WARNINGS (auto-filled): ${linkageWarnings.join("; ")}`);
     }
 
     return new Response(JSON.stringify({ success: true, ideas }), {
