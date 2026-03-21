@@ -260,6 +260,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
   const [activeMode, setActiveModeState] = useState<AnalysisMode>("custom");
   const activeModeRef = useRef<AnalysisMode>("custom");
+  const pendingModeSnapshotRef = useRef<{ key: string; data: Record<string, any> } | null>(null);
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
