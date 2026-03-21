@@ -44,6 +44,12 @@ export function gatherAllAnalysisData(analysis: any): Record<string, unknown> {
     data.adaptiveContext = analysis.adaptiveContext;
   }
 
+  // Business intelligence extraction (ETA deal data, CIM signals)
+  const biExtraction = analysis.adaptiveContext?.biExtraction ?? analysis.biExtraction;
+  if (biExtraction) {
+    data.biExtraction = biExtraction;
+  }
+
   // Scouted competitors
   if (analysis.scoutedCompetitors?.length > 0) {
     data.scoutedCompetitors = analysis.scoutedCompetitors;
