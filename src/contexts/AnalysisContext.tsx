@@ -259,6 +259,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [isHydrating, setIsHydrating] = useState(false);
   const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
   const [activeMode, setActiveModeState] = useState<AnalysisMode>("custom");
+  const activeModeRef = useRef<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
