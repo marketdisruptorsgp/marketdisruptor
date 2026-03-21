@@ -617,63 +617,61 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       analysis.governed = rescueGovernedFromAnalysis(analysis, product, isService);
     }
 
-    // ── Governed validation ──
+    // ── Governed validation (soft — warn but don't block) ──
     const governed = analysis.governed || {};
-    const governedValidation = buildValidationObject("strategic-synthesis", governed, [
-      "domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"
-    ]);
-    console.log(`[StrategicSynthesis][Governed] Validation:`, JSON.stringify(governedValidation));
+    let governedValidation: Record<string, unknown> = { validation_passed: true };
+    try {
+      governedValidation = buildValidationObject("strategic-synthesis", governed, [
+        "domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"
+      ]);
+      console.log(`[StrategicSynthesis][Governed] Validation:`, JSON.stringify(governedValidation));
 
-    if (!governedValidation.validation_passed) {
-      console.error(`[StrategicSynthesis][Governed] CHECKPOINT BLOCKED: ${governedValidation.blocking_reason_if_any}`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: "Governed validation failed — required reasoning artifacts missing",
-        _governedValidation: governedValidation,
-        analysis,
-      }), {
-        status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (!governedValidation.validation_passed) {
+        console.warn(`[StrategicSynthesis][Governed] CHECKPOINT WARNING (non-blocking): ${governedValidation.blocking_reason_if_any}`);
+        // Continue with partial data instead of blocking the entire pipeline
+      }
+
+      const { deepValidateGoverned } = await import("../_shared/governedSchema.ts");
+      const deepValidation = deepValidateGoverned(governed);
+      if (!deepValidation.validation_passed) {
+        console.warn(`[StrategicSynthesis][Governed] DEEP VALIDATION WARNING (non-blocking): ${deepValidation.blocking_reason_if_any}`);
+      }
+    } catch (govErr) {
+      console.warn("[StrategicSynthesis][Governed] Validation error (non-blocking):", govErr);
     }
 
-    const { deepValidateGoverned } = await import("../_shared/governedSchema.ts");
-    const deepValidation = deepValidateGoverned(governed);
-    if (!deepValidation.validation_passed) {
-      console.error(`[StrategicSynthesis][Governed] DEEP VALIDATION FAILED: ${deepValidation.blocking_reason_if_any}`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: "Governed deep validation failed",
-        _governedValidation: deepValidation,
-        analysis,
-      }), {
-        status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Confidence computation (wrapped for resilience)
+    try {
+      const { computeGovernedConfidence: computeConf } = await import("../_shared/confidenceComputation.ts");
+      const confidenceResult = computeConf(governed);
+      console.log(`[StrategicSynthesis][Governed] Confidence: ${confidenceResult.computation_trace}`);
+      if (governed.decision_synthesis) {
+        const ds = governed.decision_synthesis as Record<string, unknown>;
+        ds.confidence_score = confidenceResult.computed_confidence;
+        ds.decision_grade = confidenceResult.computed_decision_grade;
+        ds._confidence_computation = confidenceResult.computation_trace;
+        ds._evidence_distribution = confidenceResult.evidence_distribution;
+      }
+    } catch (confErr) {
+      console.warn("[StrategicSynthesis][Governed] Confidence computation failed (non-blocking):", confErr);
     }
 
-    // Confidence computation
-    const { computeGovernedConfidence: computeConf } = await import("../_shared/confidenceComputation.ts");
-    const confidenceResult = computeConf(governed);
-    console.log(`[StrategicSynthesis][Governed] Confidence: ${confidenceResult.computation_trace}`);
-    if (governed.decision_synthesis) {
-      const ds = governed.decision_synthesis as Record<string, unknown>;
-      ds.confidence_score = confidenceResult.computed_confidence;
-      ds.decision_grade = confidenceResult.computed_decision_grade;
-      ds._confidence_computation = confidenceResult.computation_trace;
-      ds._evidence_distribution = confidenceResult.evidence_distribution;
-    }
-
-    // Hypothesis ranking
-    const { rankAndValidateHypotheses } = await import("../_shared/hypothesisRanking.ts");
-    const hypothesisResult = rankAndValidateHypotheses(governed);
-    if (hypothesisResult.ranked.length > 0) {
-      const cm = governed.constraint_map as Record<string, unknown>;
-      cm.root_hypotheses = hypothesisResult.ranked;
-      (governed as Record<string, unknown>)._hypothesis_ranking = {
-        primary_id: hypothesisResult.primary_id,
-        competing: hypothesisResult.competing,
-        delta: hypothesisResult.delta,
-        trace: hypothesisResult.trace,
-      };
+    // Hypothesis ranking (wrapped for resilience)
+    try {
+      const { rankAndValidateHypotheses } = await import("../_shared/hypothesisRanking.ts");
+      const hypothesisResult = rankAndValidateHypotheses(governed);
+      if (hypothesisResult.ranked.length > 0) {
+        const cm = governed.constraint_map as Record<string, unknown>;
+        cm.root_hypotheses = hypothesisResult.ranked;
+        (governed as Record<string, unknown>)._hypothesis_ranking = {
+          primary_id: hypothesisResult.primary_id,
+          competing: hypothesisResult.competing,
+          delta: hypothesisResult.delta,
+          trace: hypothesisResult.trace,
+        };
+      }
+    } catch (hypErr) {
+      console.warn("[StrategicSynthesis][Governed] Hypothesis ranking failed (non-blocking):", hypErr);
     }
 
     const validationResult = validateOutput(mode, analysis);

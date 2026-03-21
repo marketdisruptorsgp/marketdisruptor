@@ -114,15 +114,31 @@ export function FlippedIdeasPanel({ flippedIdeas, onRegenerateIdeas, generatingI
             </div>
           )}
 
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-2">
+            {generatingIdeas && (
+              <span className="text-xs text-muted-foreground animate-pulse">
+                AI is generating new ideas…
+              </span>
+            )}
             {onRegenerateIdeas && (
               <button
                 onClick={() => handleRegenerate(userContext || undefined)}
                 disabled={generatingIdeas}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: generatingIdeas ? 0.6 : 1 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:cursor-not-allowed"
+                style={{
+                  background: generatingIdeas ? "hsl(var(--muted))" : "hsl(var(--primary))",
+                  color: generatingIdeas ? "hsl(var(--muted-foreground))" : "hsl(var(--primary-foreground))",
+                  border: "1px solid hsl(var(--border))",
+                }}
               >
-                {generatingIdeas ? <span className="animate-spin">↻</span> : <Sparkles size={11} />}
+                {generatingIdeas ? (
+                  <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <Sparkles size={12} />
+                )}
                 {generatingIdeas ? "Generating…" : hasRejections ? `Regenerate (avoiding ${rejectedIdeas.length} dismissed)` : "Regenerate Ideas"}
               </button>
             )}

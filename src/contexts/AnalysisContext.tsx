@@ -1119,12 +1119,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      // Use freshest steering text: prefer the userContext arg (just typed), fall back to prefs
+      const effectiveSteering = userContext || prefs.steeringText || undefined;
+
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
           product,
           additionalContext: fullContext,
           insightPreferences: Object.keys(prefs.insightPreferences).length > 0 ? prefs.insightPreferences : undefined,
-          steeringText: prefs.steeringText || undefined,
+          steeringText: effectiveSteering,
           activeBranch,
           adaptiveContext: adaptiveContext || undefined,
           upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
@@ -1134,8 +1137,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (error || !data?.success) {
+      // Accept ideas even from 422 soft-validation responses (ideas may be in error payload)
+      const ideas = data?.ideas;
+      if ((error || !data?.success) && !ideas?.length) {
         throw new Error(data?.error || error?.message || "Generation failed");
+      }
+      if (!data?.success && ideas?.length) {
+        console.warn("[RegenerateIdeas] Soft validation warning — using ideas despite:", data?.error);
       }
 
       const newIdeas: FlippedIdea[] = data.ideas;
