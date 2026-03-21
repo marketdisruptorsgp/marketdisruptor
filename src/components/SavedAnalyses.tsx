@@ -301,9 +301,10 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
 
   const fetchAnalyses = async () => {
     setLoading(true);
+    // #19: Only fetch metadata columns for card list — skip multi-MB analysis_data blob
     const { data, error } = await supabase
       .from("saved_analyses")
-      .select("*")
+      .select("id, title, category, era, audience, batch_size, products, product_count, avg_revival_score, created_at, updated_at, analysis_type, is_favorite, is_anonymous")
       .order("created_at", { ascending: false })
       .limit(50);
 

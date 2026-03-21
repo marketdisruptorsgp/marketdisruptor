@@ -225,7 +225,34 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
       ? (ad.scoutedCompetitors as unknown[])
       : []
   );
-  if (!ad?.activeLensId) setters.setActiveLensState(null);
+  // #18: Restore active lens from saved lensSnapshot instead of dropping to default
+  if (ad?.lensSnapshot) {
+    const snap = ad.lensSnapshot as Record<string, any>;
+    setters.setActiveLensState({
+      id: ad.activeLensId as string || "hydrated-lens",
+      name: snap.name || "Restored Lens",
+      lensType: snap.lensType || "default",
+      primary_objective: snap.primaryObjective || null,
+      risk_tolerance: snap.riskTolerance || null,
+      user_id: "",
+      created_at: "",
+      updated_at: "",
+      is_default: false,
+    } as any);
+  } else if (ad?.activeLensId) {
+    // We have an ID but no snapshot — set a minimal placeholder so downstream knows a lens was active
+    setters.setActiveLensState({
+      id: ad.activeLensId as string,
+      name: "Saved Lens",
+      lensType: "custom",
+      user_id: "",
+      created_at: "",
+      updated_at: "",
+      is_default: false,
+    } as any);
+  } else {
+    setters.setActiveLensState(null);
+  }
   setters.setOutdatedSteps(
     ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)
       ? new Set(ad.outdatedSteps as string[])
