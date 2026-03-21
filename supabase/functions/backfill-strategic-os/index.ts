@@ -164,6 +164,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const singleAnalysisId = body.singleAnalysisId;
+    const lens = body.lens || null; // Optional lens context for hypothesis framing
     const batchSize = body.batchSize || 10;
     const offset = body.offset || 0;
     const dryRun = body.dryRun || false;
