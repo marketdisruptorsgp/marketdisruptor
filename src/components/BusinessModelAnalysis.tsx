@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { downloadBusinessModelPDF } from "@/lib/pdfExport";
+
 import {
   Brain, RefreshCw, Building2, Zap, DollarSign, Shield,
   AlertTriangle, CheckCircle2, Lightbulb, Users, BarChart3, Cpu,
