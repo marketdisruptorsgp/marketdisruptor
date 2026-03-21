@@ -15,8 +15,9 @@ import { getBusinessStepConfigs } from "@/lib/stepConfigs";
 import type { Product } from "@/data/mockProducts";
 import {
   Target, Brain, Swords, Presentation,
-  XCircle, BarChart3,
+  XCircle, BarChart3, FilePlus,
 } from "lucide-react";
+import { NewInformationDialog } from "@/components/analysis/NewInformationDialog";
 
 // ── Shared layout components ──
 import {
