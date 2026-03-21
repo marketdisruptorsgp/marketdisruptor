@@ -30,6 +30,7 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
   const pitchDeckData = (analysisData?.pitchDeck ?? analysisData?.pitchDeckData) as Record<string, unknown> | null;
   const redesignData = (analysisData?.redesign ?? analysisData?.reimagine ?? analysisData?.redesignData) as Record<string, unknown> | null;
   const governedData = (analysisData?.governed ?? analysisData?.governedData) as Record<string, unknown> | null;
+  const biExtraction = (analysisData?.biExtraction ?? null) as Record<string, unknown> | null;
   const strategicSnapshot = analysisData?.strategicSnapshot as Record<string, unknown> | null;
 
   return (
