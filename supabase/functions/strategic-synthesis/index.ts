@@ -609,6 +609,14 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       console.error(`[StrategicSynthesis] TRUNCATION: missing ${structuredValidation.missing.join(", ")}`);
     }
 
+    // ── Governed rescue layer ──
+    // The AI sometimes puts all content at the top level and returns governed: {}.
+    // Before validation, attempt to synthesize governed from top-level analysis data.
+    if (!analysis.governed || Object.keys(analysis.governed as Record<string, unknown>).length === 0) {
+      console.warn("[StrategicSynthesis][Governed] Empty governed — attempting rescue from analysis data");
+      analysis.governed = rescueGovernedFromAnalysis(analysis, product, isService);
+    }
+
     // ── Governed validation ──
     const governed = analysis.governed || {};
     const governedValidation = buildValidationObject("strategic-synthesis", governed, [
@@ -692,6 +700,115 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     });
   }
 });
+
+// ── Helper: rescue governed from top-level analysis when AI omits governed ──
+function rescueGovernedFromAnalysis(
+  analysis: Record<string, unknown>,
+  product: any,
+  isService: boolean,
+): Record<string, unknown> {
+  const assumptions = (analysis.hiddenAssumptions as any[]) || [];
+  const friction = analysis.frictionDimensions as Record<string, unknown> | undefined;
+  const flips = (analysis.flippedLogic as any[]) || [];
+  const transformations = (analysis.structuralTransformations as any[]) || [];
+  const concept = analysis.redesignedConcept as Record<string, unknown> | undefined;
+
+  const domain_confirmation = {
+    system_type: isService ? "service" : "product",
+    outcome_mechanism: friction?.primaryFriction || concept?.coreInsight || "Strategic reconfiguration",
+    success_condition: concept?.conceptName
+      ? `Successfully implement ${concept.conceptName}`
+      : `Address primary friction in ${product?.name || "entity"}`,
+    domain_lock: true,
+  };
+
+  const viability_assumptions = assumptions.slice(0, 6).map((a: any) => ({
+    assumption: a.assumption || a.currentAnswer || "Unknown assumption",
+    evidence_status: a.isChallengeable ? "speculative" as const : "modeled" as const,
+    leverage_if_wrong: a.leverageScore || 5,
+  }));
+
+  const fundamental_constraints: string[] = [];
+  if (friction?.primaryFriction) fundamental_constraints.push(String(friction.primaryFriction));
+  if (friction?.costStructure) fundamental_constraints.push(`Cost structure: ${friction.costStructure}`);
+  if (friction?.skillBarrier) fundamental_constraints.push(`Skill barrier: ${friction.skillBarrier}`);
+
+  const first_principles = {
+    minimum_viable_system: concept?.coreInsight || friction?.primaryFriction || "Core delivery system",
+    causal_model: {
+      inputs: assumptions.slice(0, 2).map((a: any) => a.assumption || "input"),
+      mechanism: concept?.coreInsight || "Structural reconfiguration",
+      outputs: flips.slice(0, 2).map((f: any) => f.boldAlternative || "output"),
+    },
+    fundamental_constraints,
+    resource_limits: [friction?.costStructure || "Operating cost structure"].filter(Boolean),
+    behavioral_realities: [friction?.skillBarrier || "Existing workflow habits"].filter(Boolean),
+    dependency_structure: [friction?.ecosystemLockIn || "Current ecosystem dependencies"].filter(Boolean),
+    viability_assumptions,
+  };
+
+  const gaps = (friction?.gaps as any[]) || [];
+  const friction_tiers = {
+    tier_1: [{ friction_id: "f1", description: String(friction?.primaryFriction || "Primary friction"), system_impact: "Limits core delivery" }],
+    tier_2: gaps.slice(0, 2).map((g: any, i: number) => ({
+      friction_id: `f${i + 2}`,
+      description: typeof g === "string" ? g : g?.gap || `Gap ${i + 1}`,
+      optimization_target: "Efficiency improvement",
+    })),
+    tier_3: [],
+  };
+
+  const causal_chains = transformations.slice(0, 4).map((t: any, i: number) => ({
+    friction_id: `f${i + 1}`,
+    structural_constraint: t.currentState || "Existing structure",
+    system_impact: t.valueCreated || "Value impact",
+    impact_dimension: "cost",
+  }));
+
+  const root_hypotheses = flips.slice(0, 3).map((flip: any, i: number) => ({
+    id: `rh${i + 1}`,
+    constraint_type: "structural",
+    hypothesis_statement: `If "${flip.originalAssumption}" is the binding constraint, then the system is limited because ${flip.rationale || "of structural defaults"}`,
+    causal_chain: [{
+      friction_id: `f${i + 1}`,
+      structural_constraint: flip.originalAssumption || "Assumption",
+      system_impact: flip.boldAlternative || "Alternative approach",
+      impact_dimension: "cost",
+    }],
+    friction_sources: [flip.physicalMechanism || flip.originalAssumption || "source"],
+    leverage_score: 7, impact_score: 7,
+    evidence_mix: { verified: 0.1, modeled: 0.4, assumption: 0.5 },
+    fragility_score: 5, confidence: 40,
+    downstream_implications: flip.boldAlternative || "Redesign required",
+  }));
+
+  const constraint_map = {
+    causal_chains,
+    binding_constraint_id: "f1",
+    dominance_proof: `${friction?.primaryFriction || "Primary friction"} dominates because it limits the core delivery mechanism`,
+    counterfactual_removal_result: "Removing this constraint would unlock the proposed reconfiguration",
+    next_binding_constraint: causal_chains[1]?.structural_constraint || "Secondary constraint",
+    root_hypotheses,
+  };
+
+  const decision_synthesis = {
+    verdict: concept?.coreInsight || `Reconfigure ${product?.name || "entity"} around structural leverage`,
+    decision_grade: "conditional",
+    confidence_score: 35,
+    blocking_uncertainties: assumptions
+      .filter((a: any) => a.isChallengeable)
+      .slice(0, 3)
+      .map((a: any) => a.assumption || "Unknown"),
+    _rescue_source: "synthesized_from_analysis",
+  };
+
+  console.log(`[StrategicSynthesis][Governed] Rescued: ${assumptions.length} assumptions, ${flips.length} flips, ${transformations.length} transformations`);
+  return {
+    domain_confirmation, first_principles, friction_tiers,
+    constraint_map, decision_synthesis,
+    _rescued: true,
+  };
+}
 
 // ── Helper: enforce minimum artifact counts ──
 function enforceMinimumArtifacts(
