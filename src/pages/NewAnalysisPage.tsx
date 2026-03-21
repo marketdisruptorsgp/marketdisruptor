@@ -605,12 +605,11 @@ export default function NewAnalysisPage() {
               });
             });
 
-          // Fetch geo/census data for BA mode (same as product pipeline)
+          // Fetch geo/census data for BA mode (parallel — same as product pipeline)
           const geoCategory = finalExtraction?.business_overview?.industry || name || "Business Services";
           const geoTerritory = clarifierTerritory.trim() || undefined;
           analysis.fetchGeoData(geoCategory, name, geoTerritory).then(() => {
             console.log("[Pipeline/BA] Geo market data fetched for business model:", geoCategory);
-            analysis.saveStepData("geoOpportunity", analysis.geoData);
           }).catch(() => {});
 
           toast.success("Business model analysis complete!");
