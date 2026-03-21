@@ -1,6 +1,7 @@
 import React from "react";
 import type { Product } from "@/data/mockProducts";
 import { isServiceCategory } from "@/utils/normalizeProduct";
+import { extractFinancialInputs, computeETAScores, type ETAFinancialInputs, type ETAScoreResult } from "@/lib/etaScoringEngine";
 import { ScoreBar } from "@/components/ScoreBar";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import {
