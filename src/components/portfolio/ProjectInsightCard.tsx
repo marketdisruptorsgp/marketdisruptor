@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { Lightbulb, Rocket, Target, ChevronRight, Presentation, StickyNote, Heart, FileDown, Loader2 } from "lucide-react";
+import { FreshnessBadge } from "./FreshnessBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectNotesEditor } from "./ProjectNotesEditor";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
