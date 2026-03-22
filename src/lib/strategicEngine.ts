@@ -1060,7 +1060,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
       stage1_rawEvidenceCount: rawFlat.length,
       stage2_normalizedCount: flat.length,
       stage2_dedupLosses: rawFlat.length - flat.length,
-      stage2b_facetsPopulated: facetsPopulated,
+      stage2b_facetsPopulated: evCount >= minEvidenceThreshold,
       stage3_constraintHypotheses: (constraintHypotheses?.hypotheses ?? []).map(h => ({
         name: h.constraintName,
         evidenceCount: h.evidenceIds?.length ?? 0,
