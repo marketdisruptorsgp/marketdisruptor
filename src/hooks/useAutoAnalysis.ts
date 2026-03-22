@@ -222,6 +222,28 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setTemporalUnlocks(morphResult.temporalUnlocks);
       setCompetitiveGaps(morphResult.competitiveGaps);
 
+      // Multi-mode diagnostic logging
+      console.log("[MultiMode Diagnostics]", {
+        activeMode: (analysis as any).activeMode,
+        activeModes: (analysis as any).adaptiveContext?.activeModes || [],
+        resolvedAnalysisMode: analysisMode,
+        isMultiMode: activeModes.length > 1,
+        modeCount: activeModes.length,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Evidence distribution by mode
+      const evidenceByMode: Record<string, number> = {};
+      (result.flatEvidence || []).forEach((item: any) => {
+        const m = item.mode || "unknown";
+        evidenceByMode[m] = (evidenceByMode[m] || 0) + 1;
+      });
+      console.log("[MultiMode Evidence Distribution]", {
+        totalEvidence: (result.flatEvidence || []).length,
+        byMode: evidenceByMode,
+        activeModes: activeModes,
+      });
+
       // Log diagnostics
       console.log("[StrategicEngine] Analysis complete:", {
         evidence: result.flatEvidence.length,
