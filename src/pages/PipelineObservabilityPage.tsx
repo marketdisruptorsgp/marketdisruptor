@@ -1,11 +1,15 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, XCircle, AlertTriangle, Clock, Zap, ChevronDown, ChevronUp,
-  Layers, Activity, Database, ArrowDown, RefreshCw, Eye, Shield
+  Layers, Activity, Database, ArrowDown, RefreshCw, Eye, Shield,
+  Loader2, Link2, Search, X, ChevronRight
 } from "lucide-react";
+import { format } from "date-fns";
 import { PlatformNav } from "@/components/PlatformNav";
 import { useAnalysis } from "@/contexts/AnalysisContext";
+import { supabase } from "@/integrations/supabase/client";
 import { STEP_CONTRACTS } from "@/utils/pipelineValidation";
 import { detectSignals } from "@/lib/signalDetection";
 import { extractAndRankSignals } from "@/lib/signalRanking";
@@ -13,6 +17,18 @@ import { validatePipelineCheckpoints } from "@/utils/checkpointGate";
 import { countOpportunities, deriveInnovationOpportunities } from "@/lib/innovationEngine";
 
 /* ─── Types ─── */
+interface PickerAnalysis {
+  id: string;
+  title: string;
+  category: string;
+  era: string;
+  analysis_type?: string;
+  is_favorite?: boolean;
+  avg_revival_score?: number;
+  created_at: string;
+  product_count?: number;
+}
+
 interface PipelineStep {
   id: string;
   label: string;
@@ -169,6 +185,96 @@ function StepRow({ step, isLast }: { step: PipelineStep; isLast: boolean }) {
 export default function PipelineObservabilityPage() {
   const analysis = useAnalysis();
   const { selectedProduct, disruptData, redesignData, stressTestData, pitchDeckData, governedData, outdatedSteps, mainTab, businessAnalysisData, adaptiveContext } = analysis;
+  const [searchParams] = useSearchParams();
+  const urlId = searchParams.get("id");
+
+  // ── Picker state ──
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerAnalyses, setPickerAnalyses] = useState<PickerAnalysis[]>([]);
+  const [pickerLoading, setPickerLoading] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [loadingById, setLoadingById] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Whether an analysis is already active (from context)
+  const hasActiveAnalysis = !!(selectedProduct || businessAnalysisData);
+  // Whether to show the picker (no active context, no URL param)
+  const showPicker = !hasActiveAnalysis && !urlId && !loadingById;
+
+  // ── Fetch picker list ──
+  const fetchPickerList = useCallback(async () => {
+    setPickerLoading(true);
+    try {
+      const { data, error } = await (supabase.from("saved_analyses") as any)
+        .select("id, title, category, era, analysis_type, is_favorite, avg_revival_score, created_at, product_count")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      setPickerAnalyses(data ?? []);
+    } catch (err) {
+      console.error("[PipelineObservabilityPage] Failed to fetch analyses:", err);
+      // picker will just be empty
+    } finally {
+      setPickerLoading(false);
+    }
+  }, []);
+
+  // Open picker and load list
+  const openPicker = useCallback(() => {
+    setPickerOpen(true);
+    if (pickerAnalyses.length === 0) fetchPickerList();
+  }, [pickerAnalyses.length, fetchPickerList]);
+
+  // ── Load by ID (shared by picker click and URL param) ──
+  const loadById = useCallback(async (id: string) => {
+    setLoadingById(true);
+    setLoadError(null);
+    try {
+      const { data, error } = await (supabase.from("saved_analyses") as any)
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error || !data) throw new Error(error?.message ?? "Analysis not found");
+      await analysis.handleLoadSaved(data);
+      setPickerOpen(false);
+    } catch (err: any) {
+      setLoadError(err?.message ?? "Failed to load analysis");
+    } finally {
+      setLoadingById(false);
+    }
+  }, [analysis]);
+
+  // ── Auto-load from URL param on mount ──
+  useEffect(() => {
+    if (urlId && !hasActiveAnalysis) {
+      loadById(urlId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlId]);
+
+  // ── Auto-open picker when no active analysis and no URL param ──
+  useEffect(() => {
+    if (showPicker) openPicker();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Direct link copy ──
+  const handleCopyLink = useCallback(() => {
+    if (!analysis.analysisId) return;
+    const url = `${window.location.origin}/admin/pipeline?id=${analysis.analysisId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [analysis.analysisId]);
+
+  // ── Filtered picker list ──
+  const filteredAnalyses = useMemo(() => {
+    if (!pickerSearch.trim()) return pickerAnalyses;
+    const q = pickerSearch.toLowerCase();
+    return pickerAnalyses.filter(a => a.title?.toLowerCase().includes(q) || a.category?.toLowerCase().includes(q));
+  }, [pickerAnalyses, pickerSearch]);
 
   // Build pipeline steps from current state
   const pipelineSteps = useMemo<PipelineStep[]>(() => {
@@ -530,101 +636,321 @@ export default function PipelineObservabilityPage() {
           <p className="text-sm text-muted-foreground">Real-time execution status, data flow, and methodology layer verification for the active analysis.</p>
         </div>
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: "Steps Complete", value: `${stats.completed}/${stats.total}`, icon: CheckCircle2, color: "hsl(142 70% 35%)" },
-            { label: "Data Flowing", value: `${(stats.totalDataSize / 1024).toFixed(0)}KB`, icon: Database, color: "hsl(var(--primary))" },
-            { label: "Governed Artifacts", value: String(stats.totalArtifacts), icon: Shield, color: "hsl(38 92% 42%)" },
-            { label: "Active Layers", value: `${stats.activeLayers}/13`, icon: Layers, color: "hsl(var(--primary))" },
-          ].map((card, i) => (
-            <div key={i} className="rounded-lg border border-border p-4 flex items-center gap-3" style={{ background: "hsl(var(--card))" }}>
-              <card.icon className="w-5 h-5 flex-shrink-0" style={{ color: card.color }} />
-              <div>
-                <p className="text-lg font-black text-foreground">{card.value}</p>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{card.label}</p>
+        {/* ── Loading spinner (URL param auto-load) ── */}
+        {loadingById && (
+          <div className="flex items-center justify-center gap-3 py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="text-sm font-medium text-muted-foreground">Loading analysis…</span>
+          </div>
+        )}
+
+        {/* ── Error state (URL param not found) ── */}
+        {loadError && !loadingById && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 flex items-center gap-3">
+            <XCircle className="w-5 h-5 text-destructive flex-shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-foreground">Failed to load analysis</p>
+              <p className="text-xs text-muted-foreground">{loadError}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Analysis Picker Panel (Mode 1) ── */}
+        {!loadingById && !hasActiveAnalysis && !urlId && (
+          <div className="rounded-lg border border-border" style={{ background: "hsl(var(--card))" }}>
+            {pickerOpen ? (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-primary" />
+                    <h2 className="text-base font-extrabold text-foreground">Select an Analysis to Inspect</h2>
+                  </div>
+                  <button
+                    onClick={() => setPickerOpen(false)}
+                    className="p-1 rounded hover:bg-muted/50 text-muted-foreground transition-colors"
+                    aria-label="Close picker"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Filter by title or category…"
+                    value={pickerSearch}
+                    onChange={e => setPickerSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                {/* List */}
+                {pickerLoading ? (
+                  <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Loading analyses…</span>
+                  </div>
+                ) : filteredAnalyses.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    {pickerSearch ? "No analyses match your search." : "No saved analyses found."}
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    {filteredAnalyses.map(a => (
+                      <div
+                        key={a.id}
+                        className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/30 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-foreground truncate">{a.title || "Untitled"}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                            {a.analysis_type && (
+                              <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold uppercase text-[10px] tracking-wider">
+                                {a.analysis_type.replace(/_/g, " ")}
+                              </span>
+                            )}
+                            <span>{a.created_at ? format(new Date(a.created_at), "MMM d, yyyy") : ""}</span>
+                            {a.avg_revival_score != null && (
+                              <span>Avg score: {a.avg_revival_score.toFixed(1)}</span>
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => loadById(a.id)}
+                          disabled={loadingById}
+                          className="flex-shrink-0 px-3 py-1.5 rounded-md text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-1"
+                        >
+                          {loadingById ? <Loader2 className="w-3 h-3 animate-spin" /> : <ChevronRight className="w-3 h-3" />}
+                          Load
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+            ) : (
+              <button
+                onClick={openPicker}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors rounded-lg"
+              >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Database className="w-4 h-4" />
+                  <span className="text-sm">No analysis loaded — click to pick one</span>
+                </div>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── Loaded banner (analysis is active) ── */}
+        {hasActiveAnalysis && (
+          <div className="rounded-lg border border-border bg-card flex items-center justify-between px-4 py-2.5 gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span className="text-sm font-medium text-foreground truncate">
+                Loaded: {(selectedProduct as any)?.name || (businessAnalysisData as any)?.business_name || analysis.analysisId || "Active analysis"}
+              </span>
             </div>
-          ))}
-        </div>
-
-        {/* Section 1: Methodology Layer Audit */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Eye className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-extrabold text-foreground">Methodology Layer Audit</h2>
-          </div>
-          <div className="space-y-2">
-            {layerStatuses.map((ls) => (
-              <LayerCard key={ls.layer.id} layer={ls.layer} status={ls.status} evidence={ls.evidence} />
-            ))}
-          </div>
-        </section>
-
-        {/* Section 2: Pipeline Execution Trace */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Zap className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-extrabold text-foreground">Pipeline Execution Trace</h2>
-            <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">{mainTab.toUpperCase()} MODE</span>
-          </div>
-          <div className="rounded-lg border border-border overflow-hidden" style={{ background: "hsl(var(--card))" }}>
-            {pipelineSteps.map((step, i) => (
-              <StepRow key={step.id} step={step} isLast={i === pipelineSteps.length - 1} />
-            ))}
-          </div>
-        </section>
-
-        {/* Section 3: Data Flow Summary */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-extrabold text-foreground">Data Flow Summary</h2>
-          </div>
-          <div className="rounded-lg border border-border p-4 space-y-3" style={{ background: "hsl(var(--card))" }}>
-            <div className="text-sm text-foreground space-y-1 font-mono">
-              <p>USER INPUT</p>
-              <p className="text-muted-foreground pl-4">↓ analyze-problem → adaptiveContext</p>
-              <p className="text-muted-foreground pl-4">↓ scrape-products → rawContent</p>
-              <p>INTELLIGENCE SYNTHESIS (analyze-products)</p>
-              <p className="text-muted-foreground pl-4">↓ Product[] + pricingIntel + supplyChain + patents + community</p>
-              <p className="text-muted-foreground pl-4">↓ geo-market-data → geoData [background]</p>
-              <p>{mainTab === "business" ? "BUSINESS MODEL ANALYSIS" : "REASONING ENGINE (first-principles-analysis)"}</p>
-              <p className="text-muted-foreground pl-4">↓ governed: constraint_map, friction_tiers, leverage_map, reasoning_synopsis</p>
-              <p>STRATEGIC OS (rankWithProfile)</p>
-              <p className="text-muted-foreground pl-4">↓ dominance-ranked hypotheses + adaptive drift</p>
-              {mainTab !== "business" && (
-                <>
-                  <p>REDESIGN (generate-flip-ideas)</p>
-                  <p className="text-muted-foreground pl-4">↓ flippedIdeas, redesignedConcept</p>
-                </>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {analysis.analysisId && (
+                <button
+                  onClick={handleCopyLink}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold border border-border hover:bg-muted/50 transition-colors text-muted-foreground"
+                  title="Copy direct link to this analysis"
+                >
+                  {copied ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <Link2 className="w-3 h-3" />}
+                  {copied ? "Copied!" : "Direct link"}
+                </button>
               )}
-              <p>ADVERSARIAL VALIDATION (critical-validation)</p>
-              <p className="text-muted-foreground pl-4">↓ redTeam, blueTeam, confidenceScores, governed.falsification</p>
-              <p>OUTPUT GENERATION (generate-pitch-deck)</p>
-              <p className="text-muted-foreground pl-4">↓ 11-slide deck, actionPlans, visualSpecs</p>
-              <p>PERSISTENCE (checkpoint gate → governed extraction → evidence registry → fingerprinting)</p>
+              <button
+                onClick={openPicker}
+                className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold border border-border hover:bg-muted/50 transition-colors text-muted-foreground"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Change
+              </button>
             </div>
           </div>
-        </section>
+        )}
 
-        {/* Section 4: Outdated Steps */}
-        {outdatedSteps.size > 0 && (
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5" style={{ color: "hsl(38 92% 42%)" }} />
-              <h2 className="text-lg font-extrabold text-foreground">Outdated Steps</h2>
+        {/* ── Picker when changing analysis (while active) ── */}
+        {hasActiveAnalysis && pickerOpen && (
+          <div className="rounded-lg border border-border" style={{ background: "hsl(var(--card))" }}>
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-primary" />
+                  <h2 className="text-base font-extrabold text-foreground">Switch Analysis</h2>
+                </div>
+                <button
+                  onClick={() => setPickerOpen(false)}
+                  className="p-1 rounded hover:bg-muted/50 text-muted-foreground transition-colors"
+                  aria-label="Close picker"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Filter by title or category…"
+                  value={pickerSearch}
+                  onChange={e => setPickerSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              {pickerLoading ? (
+                <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Loading analyses…</span>
+                </div>
+              ) : filteredAnalyses.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  {pickerSearch ? "No analyses match your search." : "No saved analyses found."}
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                  {filteredAnalyses.map(a => (
+                    <div
+                      key={a.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate">{a.title || "Untitled"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                          {a.analysis_type && (
+                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold uppercase text-[10px] tracking-wider">
+                              {a.analysis_type.replace(/_/g, " ")}
+                            </span>
+                          )}
+                          <span>{a.created_at ? format(new Date(a.created_at), "MMM d, yyyy") : ""}</span>
+                          {a.avg_revival_score != null && (
+                            <span>Avg score: {a.avg_revival_score.toFixed(1)}</span>
+                          )}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => loadById(a.id)}
+                        disabled={loadingById}
+                        className="flex-shrink-0 px-3 py-1.5 rounded-md text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-1"
+                      >
+                        {loadingById ? <Loader2 className="w-3 h-3 animate-spin" /> : <ChevronRight className="w-3 h-3" />}
+                        Load
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="rounded-lg border border-border p-4 space-y-2" style={{ background: "hsl(var(--card))" }}>
-              {[...outdatedSteps].map(step => (
-                <div key={step} className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" style={{ color: "hsl(38 92% 42%)" }} />
-                  <span className="text-sm font-bold text-foreground">{step}</span>
-                  <span className="text-xs text-muted-foreground">— needs regeneration due to upstream changes</span>
+          </div>
+        )}
+
+        {/* ── Main diagnostics content (only render when not loading) ── */}
+        {!loadingById && (
+          <>
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: "Steps Complete", value: `${stats.completed}/${stats.total}`, icon: CheckCircle2, color: "hsl(142 70% 35%)" },
+                { label: "Data Flowing", value: `${(stats.totalDataSize / 1024).toFixed(0)}KB`, icon: Database, color: "hsl(var(--primary))" },
+                { label: "Governed Artifacts", value: String(stats.totalArtifacts), icon: Shield, color: "hsl(38 92% 42%)" },
+                { label: "Active Layers", value: `${stats.activeLayers}/13`, icon: Layers, color: "hsl(var(--primary))" },
+              ].map((card, i) => (
+                <div key={i} className="rounded-lg border border-border p-4 flex items-center gap-3" style={{ background: "hsl(var(--card))" }}>
+                  <card.icon className="w-5 h-5 flex-shrink-0" style={{ color: card.color }} />
+                  <div>
+                    <p className="text-lg font-black text-foreground">{card.value}</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{card.label}</p>
+                  </div>
                 </div>
               ))}
             </div>
-          </section>
+
+            {/* Section 1: Methodology Layer Audit */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <Eye className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-extrabold text-foreground">Methodology Layer Audit</h2>
+              </div>
+              <div className="space-y-2">
+                {layerStatuses.map((ls) => (
+                  <LayerCard key={ls.layer.id} layer={ls.layer} status={ls.status} evidence={ls.evidence} />
+                ))}
+              </div>
+            </section>
+
+            {/* Section 2: Pipeline Execution Trace */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-extrabold text-foreground">Pipeline Execution Trace</h2>
+                <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">{mainTab.toUpperCase()} MODE</span>
+              </div>
+              <div className="rounded-lg border border-border overflow-hidden" style={{ background: "hsl(var(--card))" }}>
+                {pipelineSteps.map((step, i) => (
+                  <StepRow key={step.id} step={step} isLast={i === pipelineSteps.length - 1} />
+                ))}
+              </div>
+            </section>
+
+            {/* Section 3: Data Flow Summary */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <Database className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-extrabold text-foreground">Data Flow Summary</h2>
+              </div>
+              <div className="rounded-lg border border-border p-4 space-y-3" style={{ background: "hsl(var(--card))" }}>
+                <div className="text-sm text-foreground space-y-1 font-mono">
+                  <p>USER INPUT</p>
+                  <p className="text-muted-foreground pl-4">↓ analyze-problem → adaptiveContext</p>
+                  <p className="text-muted-foreground pl-4">↓ scrape-products → rawContent</p>
+                  <p>INTELLIGENCE SYNTHESIS (analyze-products)</p>
+                  <p className="text-muted-foreground pl-4">↓ Product[] + pricingIntel + supplyChain + patents + community</p>
+                  <p className="text-muted-foreground pl-4">↓ geo-market-data → geoData [background]</p>
+                  <p>{mainTab === "business" ? "BUSINESS MODEL ANALYSIS" : "REASONING ENGINE (first-principles-analysis)"}</p>
+                  <p className="text-muted-foreground pl-4">↓ governed: constraint_map, friction_tiers, leverage_map, reasoning_synopsis</p>
+                  <p>STRATEGIC OS (rankWithProfile)</p>
+                  <p className="text-muted-foreground pl-4">↓ dominance-ranked hypotheses + adaptive drift</p>
+                  {mainTab !== "business" && (
+                    <>
+                      <p>REDESIGN (generate-flip-ideas)</p>
+                      <p className="text-muted-foreground pl-4">↓ flippedIdeas, redesignedConcept</p>
+                    </>
+                  )}
+                  <p>ADVERSARIAL VALIDATION (critical-validation)</p>
+                  <p className="text-muted-foreground pl-4">↓ redTeam, blueTeam, confidenceScores, governed.falsification</p>
+                  <p>OUTPUT GENERATION (generate-pitch-deck)</p>
+                  <p className="text-muted-foreground pl-4">↓ 11-slide deck, actionPlans, visualSpecs</p>
+                  <p>PERSISTENCE (checkpoint gate → governed extraction → evidence registry → fingerprinting)</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 4: Outdated Steps */}
+            {outdatedSteps.size > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangle className="w-5 h-5" style={{ color: "hsl(38 92% 42%)" }} />
+                  <h2 className="text-lg font-extrabold text-foreground">Outdated Steps</h2>
+                </div>
+                <div className="rounded-lg border border-border p-4 space-y-2" style={{ background: "hsl(var(--card))" }}>
+                  {[...outdatedSteps].map(step => (
+                    <div key={step} className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" style={{ color: "hsl(38 92% 42%)" }} />
+                      <span className="text-sm font-bold text-foreground">{step}</span>
+                      <span className="text-xs text-muted-foreground">— needs regeneration due to upstream changes</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
 
         {/* Footer */}
