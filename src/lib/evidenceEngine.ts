@@ -1174,6 +1174,220 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // Service mode: taskGraph tasks → friction evidence
+  // Non-eliminable tasks with external performers are structural friction
+  safeArr(decomp.taskGraph).forEach((task: any, i: number) => {
+    const label = task.task || task.label || `Service Task ${i + 1}`;
+    if (!items.some(e => e.label === label)) {
+      const isStructural = task.eliminable === false && task.performer !== "customer";
+      items.push({
+        id: makeId("decomp-task"),
+        type: "friction",
+        label,
+        description: `Performer: ${task.performer || "unknown"}. Eliminable: ${task.eliminable ?? "unknown"}. Parallelizable: ${task.parallelizable ?? "unknown"}.`,
+        pipelineStep: "disrupt",
+        tier: isStructural ? "structural" : "system",
+        impact: task.eliminable === false ? 8 : 5,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Service mode: laborInputs → constraint evidence
+  // Scarce or non-automatable roles are structural constraints
+  safeArr(decomp.laborInputs).forEach((li: any, i: number) => {
+    const label = li.role || `Labor Input ${i + 1}`;
+    if (!items.some(e => e.label === label)) {
+      const scarcityImpact = li.scarcity === "scarce" ? 9 : li.scarcity === "moderate" ? 6 : 3;
+      items.push({
+        id: makeId("decomp-li"),
+        type: "constraint",
+        label,
+        description: `Skill: ${li.skillLevel || "unknown"}. Scarcity: ${li.scarcity || "unknown"}. Automatable: ${li.automatable ?? "unknown"}. Cost weight: ${li.costWeight || "unknown"}.`,
+        pipelineStep: "disrupt",
+        tier: li.scarcity === "scarce" ? "structural" : "system",
+        impact: scarcityImpact,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Service mode: tools → signal evidence
+  safeArr(decomp.tools).forEach((tool: any, i: number) => {
+    const label = tool.tool || `Tool ${i + 1}`;
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-tool"),
+        type: "signal",
+        label,
+        description: `Purpose: ${tool.purpose || "unknown"}. Ownership: ${tool.ownershipModel || "unknown"}. Substitutable: ${tool.substitutable ?? "unknown"}.`,
+        pipelineStep: "disrupt",
+        tier: "system",
+        impact: tool.substitutable === false ? 7 : 4,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "technology_dependency",
+      });
+    }
+  });
+
+  // Service mode: coordinationRequirements → friction evidence
+  safeArr(decomp.coordinationRequirements).forEach((cr: any, i: number) => {
+    const label = cr.requirement || `Coordination Requirement ${i + 1}`;
+    if (!items.some(e => e.label === label)) {
+      const isComplex = cr.complexity === "high";
+      items.push({
+        id: makeId("decomp-coord"),
+        type: "friction",
+        label,
+        description: `Parties: ${Array.isArray(cr.parties) ? cr.parties.join(", ") : cr.parties || "unknown"}. Complexity: ${cr.complexity || "unknown"}. Failure mode: ${cr.failureMode || "unknown"}.`,
+        pipelineStep: "disrupt",
+        tier: isComplex ? "structural" : "system",
+        impact: isComplex ? 8 : 5,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Service mode: timeConstraints → constraint evidence
+  safeArr(decomp.timeConstraints).forEach((tc: any, i: number) => {
+    const label = tc.constraint || `Time Constraint ${i + 1}`;
+    if (!items.some(e => e.label === label)) {
+      const bindingImpact = tc.bindingStrength === "hard" ? 9 : tc.bindingStrength === "moderate" ? 6 : 3;
+      items.push({
+        id: makeId("decomp-tc"),
+        type: "constraint",
+        label,
+        description: `Type: ${tc.type || "unknown"}. Binding strength: ${tc.bindingStrength || "unknown"}. Challengeable: ${tc.challengeable ?? "unknown"}.`,
+        pipelineStep: "disrupt",
+        tier: tc.bindingStrength === "hard" ? "structural" : "system",
+        impact: bindingImpact,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Business mode: scalingConstraints → constraint evidence
+  safeArr(decomp.scalingConstraints).forEach((sc: any, i: number) => {
+    const label = sc.constraint || `Scaling Constraint ${i + 1}`;
+    if (!items.some(e => e.label === label)) {
+      const bindingImpact = sc.bindingStrength === "hard" ? 9 : sc.bindingStrength === "moderate" ? 6 : 3;
+      items.push({
+        id: makeId("decomp-sc"),
+        type: "constraint",
+        label,
+        description: `Type: ${sc.type || "unknown"}. Binding strength: ${sc.bindingStrength || "unknown"}. Challengeable: ${sc.challengeable ?? "unknown"}.`,
+        pipelineStep: "disrupt",
+        tier: sc.bindingStrength === "hard" ? "structural" : "system",
+        impact: bindingImpact,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "cost_structure",
+      });
+    }
+  });
+
+  // Business mode: costStructure fixed/variable costs → constraint & friction evidence
+  const cs = decomp.costStructure;
+  if (cs) {
+    safeArr(cs.fixedCosts).forEach((fc: any, i: number) => {
+      const label = typeof fc === "string" ? fc : (fc.cost || fc.label || fc.name || `Fixed Cost ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-fc"),
+          type: "constraint",
+          label,
+          description: typeof fc === "object" ? (fc.description || fc.driver || undefined) : undefined,
+          pipelineStep: "disrupt",
+          tier: "system",
+          impact: typeof fc === "object" ? (fc.impact || 6) : 6,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "cost_structure",
+        });
+      }
+    });
+    safeArr(cs.variableCosts).forEach((vc: any, i: number) => {
+      const label = typeof vc === "string" ? vc : (vc.cost || vc.label || vc.name || `Variable Cost ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-vc"),
+          type: "friction",
+          label,
+          description: typeof vc === "object" ? (vc.description || vc.driver || undefined) : undefined,
+          pipelineStep: "disrupt",
+          tier: "optimization",
+          impact: typeof vc === "object" ? (vc.impact || 5) : 5,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "cost_structure",
+        });
+      }
+    });
+  }
+
+  // Business mode: valueCapture.leakagePoints → friction evidence
+  const vc = decomp.valueCapture;
+  if (vc) {
+    safeArr(vc.leakagePoints).forEach((lp: any, i: number) => {
+      const label = typeof lp === "string" ? lp : (lp.point || lp.label || lp.description || `Value Leakage Point ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-lp"),
+          type: "friction",
+          label,
+          description: typeof lp === "object" ? (lp.description || lp.impact || undefined) : undefined,
+          pipelineStep: "disrupt",
+          tier: "structural",
+          impact: typeof lp === "object" ? (lp.severity || lp.impact || 7) : 7,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "revenue_model",
+        });
+      }
+    });
+  }
+
+  // Business mode: distribution.channels → signal evidence
+  const dist = decomp.distribution;
+  if (dist) {
+    safeArr(dist.channels).forEach((ch: any, i: number) => {
+      const label = typeof ch === "string" ? ch : (ch.channel || ch.name || ch.label || `Distribution Channel ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-ch"),
+          type: "signal",
+          label,
+          description: typeof ch === "object" ? (ch.description || ch.type || undefined) : undefined,
+          pipelineStep: "disrupt",
+          tier: "system",
+          impact: typeof ch === "object" ? (ch.impact || 5) : 5,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "distribution",
+        });
+      }
+    });
+  }
+
   return items;
 }
 
