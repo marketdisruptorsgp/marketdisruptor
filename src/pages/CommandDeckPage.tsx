@@ -10,7 +10,7 @@
  * from this view. Deep-dive and report pages surface the technical detail.
  */
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { ThinDataBanner } from "@/components/SyntheticBadge";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -27,6 +27,7 @@ import { ActionPath } from "@/components/command-deck/ActionPath";
 import { ArrowRight, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { downloadTrace, getTrace } from "@/lib/pipelineTrace";
+import PipelineTraceViewer from "@/components/PipelineTraceViewer";
 import { motion } from "framer-motion";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import type { OpportunityZone } from "@/lib/opportunityDesignEngine";
@@ -123,6 +124,7 @@ export default function CommandDeckPage() {
   const navigate = useNavigate();
   const { shouldRedirectHome } = useHydrationGuard();
   const autoAnalysis = useAutoAnalysis();
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   // Auto-execute pipeline in the background — no visible Run button
   const pipelineProgress = usePipelineOrchestrator(
@@ -419,6 +421,37 @@ export default function CommandDeckPage() {
             mode={mode}
           />
         )}
+
+        {/* ═══ Pipeline Diagnostic panel ═══ */}
+        {(() => {
+          const trace = getTrace();
+          return trace ? (
+            <div className="rounded-xl border border-dashed border-border/60 bg-muted/30 px-3 py-2.5 space-y-2 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[11px] font-semibold text-foreground">Pipeline Diagnostic</span>
+                  <span className="text-[10px] text-muted-foreground truncate">
+                    {trace.analysisId || "unsaved"} · {trace.edgeFunctions.length} edge call{trace.edgeFunctions.length !== 1 ? "s" : ""} · {trace.evidenceExtraction?.dedupedTotal ?? 0} evidence items
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={downloadTrace} title="Download JSON trace">
+                    <Download size={12} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-[10px] px-2 py-0.5 h-6"
+                    onClick={() => setShowDiagnostics(v => !v)}
+                  >
+                    {showDiagnostics ? "Hide details" : "Show details"}
+                  </Button>
+                </div>
+              </div>
+              {showDiagnostics && <PipelineTraceViewer trace={trace} />}
+            </div>
+          ) : null;
+        })()}
 
         {/* ═══ Secondary navigation ═══ */}
         <motion.div
