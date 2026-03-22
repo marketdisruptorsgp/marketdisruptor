@@ -8,14 +8,14 @@
  * Uses compressed reasoning framework (reasoningFrameworkLite) to save ~1700 tokens.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
+import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt, getMultiModeGuardPrompt, resolveActiveModes } from "../_shared/modeEnforcement.ts";
 import { buildAdaptiveContextPrompt, extractAdaptiveContext } from "../_shared/adaptiveContext.ts";
 import { getReasoningFrameworkLite } from "../_shared/reasoningFrameworkLite.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { getGovernedSchemaPrompt, buildValidationObject } from "../_shared/governedSchema.ts";
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
-import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
+import { buildModeWeightingPrompt, buildMultiModeWeightingPrompt } from "../_shared/modeWeighting.ts";
 import { buildStructuredOutputTools, extractStructuredResponse, validateStructuredResponse, validateArrayMinimums } from "../_shared/structuredOutput.ts";
 import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 
@@ -51,6 +51,8 @@ serve(async (req) => {
     const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null, combinedCtx);
 
     const mode = resolveMode(undefined, product.category);
+    const activeModes = resolveActiveModes(adaptiveCtx, undefined, product.category);
+    const isMultiMode = activeModes.length > 1;
     const isService = mode === "service";
     const isBusiness = mode === "business";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -58,8 +60,8 @@ serve(async (req) => {
 
     const filterResult = filterInputData(mode, product);
     const filteredProduct = filterResult.filtered;
-    console.log(`[StrategicSynthesis] ${mode} mode`);
-    const modeGuard = getModeGuardPrompt(mode);
+    console.log(`[ModeEnforcement] strategic-synthesis | ${isMultiMode ? activeModes.join("+") : mode} | multi=${isMultiMode}`);
+    const modeGuard = isMultiMode ? getMultiModeGuardPrompt(activeModes) : getModeGuardPrompt(mode);
 
     // ── Business entity context for mode anchoring ──
     const entityContext = isBusiness ? buildBusinessEntityContext(product) : "";
@@ -384,7 +386,7 @@ CRITICAL INSTRUCTIONS:
 8. Reference real business model analogs (companies that solved similar structural problems)
 9. Do NOT suggest "web configurators", "DTC channels", or consumer product features unless this business actually sells to consumers
 
-Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}${curationPrompt}`
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${isMultiMode ? buildMultiModeWeightingPrompt(activeModes) : buildModeWeightingPrompt(mode)}${curationPrompt}`
       : isService
       ? `Apply radical first-principles deconstruction AND concept generation to this SERVICE.
 
@@ -444,7 +446,7 @@ CRITICAL INSTRUCTIONS:
 8. Reference real analogous products if possible
 9. Include BOM estimate, target retail price, margin
 
-Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}${curationPrompt}`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${isMultiMode ? buildMultiModeWeightingPrompt(activeModes) : buildModeWeightingPrompt(mode)}${curationPrompt}`;
 
     // ── UPSTREAM INTELLIGENCE from preContext ──
     let upstreamPrompt = "";

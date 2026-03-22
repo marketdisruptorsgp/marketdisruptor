@@ -4,7 +4,7 @@
  * Receives pre-filtered transformations (viability gate already enforced by orchestrator).
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { resolveMode, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
+import { resolveMode, getModeGuardPrompt, getMultiModeGuardPrompt, resolveActiveModes } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { extractStructuredResponse } from "../_shared/structuredOutput.ts";
@@ -33,14 +33,19 @@ serve(async (req) => {
       insightPreferences,
       userScores,
       steeringText,
+      adaptiveContext: rawAdaptiveCtx,
     } = await req.json();
 
+    const adaptiveCtx = rawAdaptiveCtx;
     const mode = resolveMode(undefined, product.category);
+    const activeModes = resolveActiveModes(adaptiveCtx, undefined, product.category);
+    const isMultiMode = activeModes.length > 1;
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const modeGuard = getModeGuardPrompt(mode);
+    console.log(`[ModeEnforcement] concept-architecture | ${isMultiMode ? activeModes.join("+") : mode} | multi=${isMultiMode}`);
+    const modeGuard = isMultiMode ? getMultiModeGuardPrompt(activeModes) : getModeGuardPrompt(mode);
 
     // ── Build curation prompt from user preferences ──
     let curationPrompt = "";

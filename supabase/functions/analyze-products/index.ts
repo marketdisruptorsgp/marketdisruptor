@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
+import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt, getMultiModeGuardPrompt, resolveActiveModes } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
@@ -81,11 +81,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { rawContent, communityContent, complaintsContent, sources, category, era, batchSize, customProducts, lens } = await req.json();
+    const { rawContent, communityContent, complaintsContent, sources, category, era, batchSize, customProducts, lens, adaptiveContext: rawAdaptiveCtx } = await req.json();
 
+    const adaptiveCtx = rawAdaptiveCtx;
     const isService = category === "Service";
     const mode = resolveMode(undefined, category);
-    console.log(`[ModeEnforcement] analyze-products | ${mode} | ${missingDataWarning(mode)}`);
+    const activeModes = resolveActiveModes(adaptiveCtx, undefined, category);
+    const isMultiMode = activeModes.length > 1;
+    console.log(`[ModeEnforcement] analyze-products | ${isMultiMode ? activeModes.join("+") : mode} | multi=${isMultiMode}`);
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 

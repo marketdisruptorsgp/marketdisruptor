@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
+import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt, getMultiModeGuardPrompt, resolveActiveModes } from "../_shared/modeEnforcement.ts";
 import { buildAdaptiveContextPrompt, extractAdaptiveContext } from "../_shared/adaptiveContext.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
@@ -23,9 +23,11 @@ serve(async (req) => {
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const mode = resolveMode(product.analysisType, product.category);
+    const activeModes = resolveActiveModes(adaptiveCtx, product.analysisType, product.category);
+    const isMultiMode = activeModes.length > 1;
     const filterResult = filterInputData(mode, { ...product, ...analysisData });
-    console.log(`[ModeEnforcement] critical-validation | ${mode} | ${missingDataWarning(mode)}`);
-    const modeGuard = getModeGuardPrompt(mode);
+    console.log(`[ModeEnforcement] critical-validation | ${isMultiMode ? activeModes.join("+") : mode} | multi=${isMultiMode}`);
+    const modeGuard = isMultiMode ? getMultiModeGuardPrompt(activeModes) : getModeGuardPrompt(mode);
     // Extract active branch for isolated or combined stress testing
     const isCombinedMode = !activeBranch?.active_branch_id || activeBranch?.active_branch_id === "combined";
     const branchCtx = (!isCombinedMode && activeBranch) ? extractActiveBranch(
