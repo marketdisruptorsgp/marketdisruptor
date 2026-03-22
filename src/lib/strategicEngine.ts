@@ -1053,6 +1053,54 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   buildDiagnostic(stages, graph.nodes, flat.length, insights.length, scenarios.length);
   events.push("Strategic intelligence computed (AI-enhanced)");
+
+  // ── Pipeline Trace: update narrative + diagnostic summary ──
+  try {
+    traceStrategicStages({
+      stage1_rawEvidenceCount: rawFlat.length,
+      stage2_normalizedCount: flat.length,
+      stage2_dedupLosses: rawFlat.length - flat.length,
+      stage2b_facetsPopulated: facetsPopulated,
+      stage3_constraintHypotheses: (constraintHypotheses?.hypotheses ?? []).map(h => ({
+        name: h.constraintName,
+        evidenceCount: h.evidenceIds?.length ?? 0,
+      })),
+      stage4_structuralProfile: structuralProfile ? {
+        supplyFragmentation: structuralProfile.supplyFragmentation,
+        marginStructure: structuralProfile.marginStructure,
+        switchingCosts: structuralProfile.switchingCosts,
+        distributionControl: structuralProfile.distributionControl,
+        laborIntensity: structuralProfile.laborIntensity,
+        revenueModel: structuralProfile.revenueModel,
+      } : null,
+      stage4_bindingConstraints: (structuralProfile?.bindingConstraints ?? []).map(c => c.constraintName),
+      stage5_qualifiedPatterns: qualifiedPatternsResult.map(qp => ({
+        name: qp.pattern.name,
+        signalDensity: qp.signalDensity,
+        strengthSignals: qp.qualification.strengthSignals,
+        weaknessSignals: qp.qualification.weaknessSignals,
+      })),
+      stage6_aiGatePassed: meetsAIThreshold,
+      stage6_aiGateDetails: { evidenceCount: evCount, bindingConstraintCount, suppressed: !!input.suppressAIDeepening },
+      stage6_deepenedLabels: deepenedOpps.map(d => d.reconfigurationLabel),
+      stage6_mode: meetsAIThreshold ? "ai" : qualifiedPatternsResult.length > 0 ? "deterministic" : "skipped",
+      narrative: narrative ? {
+        strategicVerdict: narrative.strategicVerdict,
+        primaryConstraint: narrative.primaryConstraint,
+        whyThisMatters: narrative.whyThisMatters,
+      } : null,
+    });
+    setPipelineDiagnosticSummary({
+      evidenceCount: evCount,
+      insightCount: insights.length,
+      constraintCount,
+      deepenedCount: deepenedOpps.length,
+      graphNodes: graph.nodes.length,
+      graphEdges: graph.edges.length,
+      stages: stages.map(s => ({ stage: s.stage, inputCount: s.inputCount, outputCount: s.outputCount, durationMs: s.durationMs })),
+    });
+  } catch (_) { /* trace not initialized */ }
+
   activeRunFactory = null;
 
   return {
