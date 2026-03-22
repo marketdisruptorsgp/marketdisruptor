@@ -446,6 +446,18 @@ export default function CommandDeckPage() {
             Full Report
             <ArrowRight size={13} />
           </Button>
+          {getTrace() && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={downloadTrace}
+              className="gap-1.5 text-xs border-dashed"
+              title="Download full pipeline diagnostic trace as JSON"
+            >
+              <Download size={13} />
+              Pipeline Diagnostic
+            </Button>
+          )}
         </motion.div>
 
       </main>

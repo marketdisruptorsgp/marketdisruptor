@@ -321,6 +321,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       })
       .finally(() => {
         clearTimeout(safetyTimer);
+        completeTrace();
         if (thisRunId === runIdRef.current) {
           setIsComputing(false);
           isComputingRef.current = false;
