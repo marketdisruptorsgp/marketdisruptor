@@ -389,15 +389,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("pitchDeck");
   }, [markStepOutdated, decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
 
-  const diagnosticContext = useMemo((): DiagnosticContext => {
-    const modes = adaptiveContext?.activeModes as InnovationMode[] | undefined;
-    return buildDiagnosticContext(
-      activeMode,
-      extractLensConfig(activeLens as unknown as Record<string, unknown> | null),
-      modes && modes.length > 1 ? modes : undefined,
-    );
-  }, [activeMode, activeLens, adaptiveContext?.activeModes]);
-
   // ── Additional State ──
   const [geoData, setGeoData] = useState<unknown>(null);
   const [regulatoryData, setRegulatoryData] = useState<unknown>(null);
@@ -408,6 +399,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [modeRouting, setModeRouting] = useState<RoutingResult | null>(null);
   const [adaptiveContext, setAdaptiveContextState] = useState<AdaptiveContextData | null>(null);
   const pendingAdaptiveCtxSaveRef = useRef<AdaptiveContextData | null | undefined>(undefined);
+
+  const diagnosticContext = useMemo((): DiagnosticContext => {
+    const modes = adaptiveContext?.activeModes as InnovationMode[] | undefined;
+    return buildDiagnosticContext(
+      activeMode,
+      extractLensConfig(activeLens as unknown as Record<string, unknown> | null),
+      modes && modes.length > 1 ? modes : undefined,
+    );
+  }, [activeMode, activeLens, adaptiveContext?.activeModes]);
   const setAdaptiveContext = useCallback((ctx: AdaptiveContextData | null) => {
     setAdaptiveContextState(ctx);
   }, []);
