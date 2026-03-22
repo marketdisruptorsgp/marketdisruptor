@@ -13,9 +13,17 @@ const TAB_TO_MODE: Record<string, StrictMode> = {
 };
 
 export function useActiveModes(): StrictMode[] {
-  const { adaptiveContext, mainTab } = useAnalysis();
+  const { adaptiveContext, mainTab, activeMode } = useAnalysis();
 
   if (adaptiveContext?.activeModes && adaptiveContext.activeModes.length > 0) {
+    // Warn if activeMode is out of sync with adaptiveContext.activeModes
+    const mapped: StrictMode = TAB_TO_MODE[activeMode] || "product";
+    if (!adaptiveContext.activeModes.includes(mapped) && adaptiveContext.activeModes.length === 1) {
+      console.warn("[useActiveModes] activeMode out of sync with adaptiveContext.activeModes", {
+        activeMode,
+        activeModes: adaptiveContext.activeModes,
+      });
+    }
     return adaptiveContext.activeModes as StrictMode[];
   }
 

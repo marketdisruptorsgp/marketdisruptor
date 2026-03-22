@@ -56,7 +56,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     analysisId, products, selectedProduct,
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
-    geoData, regulatoryData, activeLens,
+    geoData, regulatoryData, activeLens, adaptiveContext, activeMode,
     saveStepData, isHydrating,
   } = analysis;
 
@@ -205,6 +205,25 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         constraints: result.diagnostic.constraintCount,
         opportunities: result.diagnostic.opportunityCount,
         events: result.events,
+      });
+
+      // Multi-mode diagnostics
+      console.log("[MultiMode Diagnostics]", {
+        activeMode,
+        activeModes: adaptiveContext?.activeModes || [],
+        resolvedAnalysisMode: analysisMode,
+        isMultiMode: (adaptiveContext?.activeModes?.length || 0) > 1,
+        timestamp: new Date().toISOString(),
+      });
+      const evidenceByMode: Record<string, number> = {};
+      (result.flatEvidence || []).forEach((item: any) => {
+        const m = item.mode || "unknown";
+        evidenceByMode[m] = (evidenceByMode[m] || 0) + 1;
+      });
+      console.log("[MultiMode Evidence Distribution]", {
+        totalEvidence: result.flatEvidence.length,
+        byMode: evidenceByMode,
+        activeModes: adaptiveContext?.activeModes || [],
       });
 
       if (result.structuralProfile) {

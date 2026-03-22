@@ -45,10 +45,16 @@ export const DEFAULT_DIAGNOSTIC_CONTEXT: DiagnosticContext = {
 /**
  * Build a DiagnosticContext from the frontend AnalysisMode and an optional
  * UserLens-like object. This is called in AnalysisContext and hooks.
+ *
+ * @param activeModes - optional array of active modes for multi-mode analyses;
+ *   currently unused but accepted here so call-sites are ready for PR #46 which
+ *   will blend dimension priorities across all active modes.
  */
 export function buildDiagnosticContext(
   frontendMode: FrontendMode | string | null | undefined,
   lens: LensConfig | null | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _activeModes?: string[],
 ): DiagnosticContext {
   return {
     mode: toEngineMode(frontendMode),

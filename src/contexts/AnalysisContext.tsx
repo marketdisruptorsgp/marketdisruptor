@@ -375,11 +375,31 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("redesign");
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
+
+    // Sync adaptiveContext.activeModes so useActiveModes() stays in sync
+    // with the active mode after a mid-analysis mode switch.
+    setAdaptiveContextState(prev => {
+      if (!prev) return prev;
+      const modeMap: Record<string, string> = { custom: "product", service: "service", business: "business" };
+      const mapped = modeMap[m] || m;
+      let newActiveModes: string[];
+      if (mapped === "multi" || mapped === "all") {
+        newActiveModes = prev.activeModes && prev.activeModes.length > 1
+          ? prev.activeModes
+          : ["product", "service", "business"];
+      } else {
+        newActiveModes = [mapped];
+      }
+      const updated = { ...prev, activeModes: newActiveModes };
+      pendingAdaptiveCtxSaveRef.current = updated; // trigger auto-persist
+      return updated;
+    });
   }, [markStepOutdated, decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
 
-  const diagnosticContext = useMemo((): DiagnosticContext =>
-    buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null)),
-  [activeMode, activeLens]);
+  const diagnosticContext = useMemo((): DiagnosticContext => {
+    const activeModes = adaptiveContext?.activeModes;
+    return buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null), activeModes);
+  }, [activeMode, activeLens, adaptiveContext?.activeModes]);
 
   // ── Additional State ──
   const [geoData, setGeoData] = useState<unknown>(null);
