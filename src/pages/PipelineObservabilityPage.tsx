@@ -2,7 +2,8 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, XCircle, AlertTriangle, Clock, Zap, ChevronDown, ChevronUp,
-  Layers, Activity, Database, ArrowDown, RefreshCw, Eye, Shield
+  Layers, Activity, Database, ArrowDown, RefreshCw, Eye, Shield,
+  Copy, Code2, FlaskConical, BookOpen
 } from "lucide-react";
 import { PlatformNav } from "@/components/PlatformNav";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -11,6 +12,13 @@ import { detectSignals } from "@/lib/signalDetection";
 import { extractAndRankSignals } from "@/lib/signalRanking";
 import { validatePipelineCheckpoints } from "@/utils/checkpointGate";
 import { countOpportunities, deriveInnovationOpportunities } from "@/lib/innovationEngine";
+import {
+  computeSystemHealth,
+  checkRetroactiveInvalidation,
+  GOVERNED_ARTIFACT_KEYS,
+} from "@/lib/governedPersistence";
+import { buildEvidenceRegistry, type SourceType } from "@/lib/evidenceRegistry";
+import { JsonTree } from "@/components/JsonTree";
 
 /* ─── Types ─── */
 interface PipelineStep {
@@ -168,7 +176,7 @@ function StepRow({ step, isLast }: { step: PipelineStep; isLast: boolean }) {
 /* ─── Main Page ─── */
 export default function PipelineObservabilityPage() {
   const analysis = useAnalysis();
-  const { selectedProduct, disruptData, redesignData, stressTestData, pitchDeckData, governedData, outdatedSteps, mainTab, businessAnalysisData, adaptiveContext } = analysis;
+  const { selectedProduct, disruptData, redesignData, stressTestData, pitchDeckData, governedData, outdatedSteps, mainTab, businessAnalysisData, adaptiveContext, geoData, regulatoryData } = analysis;
 
   // Build pipeline steps from current state
   const pipelineSteps = useMemo<PipelineStep[]>(() => {
@@ -517,6 +525,39 @@ export default function PipelineObservabilityPage() {
     return { completed, total, totalDataSize, totalArtifacts, activeLayers };
   }, [pipelineSteps, layerStatuses]);
 
+  // Reconstructed analysis data for health / evidence registry
+  const analysisDataForHealth = useMemo(() => ({
+    governed: governedData,
+    disrupt: disruptData,
+    stressTest: stressTestData,
+    pitchDeck: pitchDeckData,
+    redesign: redesignData,
+    businessAnalysis: businessAnalysisData,
+    geoOpportunity: geoData,
+    regulatoryContext: regulatoryData,
+    adaptiveContext,
+    intelData: selectedProduct,
+  }), [governedData, disruptData, stressTestData, pitchDeckData, redesignData, businessAnalysisData, geoData, regulatoryData, adaptiveContext, selectedProduct]);
+
+  const systemHealth = useMemo(
+    () => computeSystemHealth(analysisDataForHealth as Record<string, unknown>),
+    [analysisDataForHealth]
+  );
+
+  const evidenceRegistry = useMemo(
+    () => buildEvidenceRegistry(analysisDataForHealth as Record<string, unknown>),
+    [analysisDataForHealth]
+  );
+
+  const invalidationResult = useMemo(() => {
+    if (!governedData) return null;
+    try {
+      return checkRetroactiveInvalidation(governedData as unknown as Record<string, unknown>);
+    } catch {
+      return null;
+    }
+  }, [governedData]);
+
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <PlatformNav tier="explorer" />
@@ -547,6 +588,111 @@ export default function PipelineObservabilityPage() {
             </div>
           ))}
         </div>
+
+        {/* System Health Score Panel */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-extrabold text-foreground">System Health Score</h2>
+            <span
+              className="ml-auto text-sm font-extrabold px-3 py-1 rounded"
+              style={{
+                background: systemHealth.market_ready ? "hsl(142 70% 35% / 0.15)" : "hsl(var(--destructive) / 0.15)",
+                color: systemHealth.market_ready ? "hsl(142 70% 35%)" : "hsl(var(--destructive))",
+              }}
+            >
+              {systemHealth.market_ready ? "✓ MARKET READY" : "✗ NOT READY"}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Governed Persistence */}
+            <div className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Governed Persistence</p>
+              <p className="text-base font-black text-foreground">
+                {systemHealth.artifact_count}/{systemHealth.total_required} artifacts
+              </p>
+              <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${Math.round(systemHealth.governed_persistence_rate * 100)}%`,
+                    background: systemHealth.governed_persistence_rate >= 0.9 ? "hsl(142 70% 35%)" : systemHealth.governed_persistence_rate >= 0.5 ? "hsl(38 92% 42%)" : "hsl(var(--destructive))",
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{Math.round(systemHealth.governed_persistence_rate * 100)}%</p>
+            </div>
+            {/* Schema Validation */}
+            <div className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Schema Validation</p>
+              <p className="text-base font-black text-foreground">{Math.round(systemHealth.schema_validation_pass_rate * 100)}%</p>
+              <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${Math.round(systemHealth.schema_validation_pass_rate * 100)}%`,
+                    background: systemHealth.schema_validation_pass_rate >= 0.9 ? "hsl(142 70% 35%)" : "hsl(38 92% 42%)",
+                  }}
+                />
+              </div>
+            </div>
+            {/* Causal Structure */}
+            <div className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Causal Structure</p>
+              <p className="text-base font-black" style={{ color: systemHealth.causal_structure_presence_rate > 0 ? "hsl(142 70% 35%)" : "hsl(var(--destructive))" }}>
+                {systemHealth.causal_structure_presence_rate > 0 ? "✓ Present" : "✗ Absent"}
+              </p>
+            </div>
+            {/* Confidence Computed */}
+            <div className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Confidence Computed</p>
+              <p className="text-base font-black" style={{ color: systemHealth.confidence_computed ? "hsl(142 70% 35%)" : "hsl(var(--destructive))" }}>
+                {systemHealth.confidence_computed ? "✓ Yes" : "✗ No"}
+              </p>
+            </div>
+            {/* Decision Grade */}
+            <div className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Decision Grade</p>
+              <p className="text-base font-black" style={{ color: systemHealth.decision_grade_present ? "hsl(142 70% 35%)" : "hsl(var(--destructive))" }}>
+                {systemHealth.decision_grade_present ? "✓ Present" : "✗ Absent"}
+              </p>
+            </div>
+            {/* Data Traceability */}
+            <div className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Data Traceability</p>
+              <p className="text-base font-black text-foreground">{Math.round(systemHealth.data_traceability_rate * 100)}%</p>
+              <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${Math.round(systemHealth.data_traceability_rate * 100)}%`,
+                    background: "hsl(var(--primary))",
+                  }}
+                />
+              </div>
+            </div>
+            {/* Governed Size */}
+            <div className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Governed Size</p>
+              <p className="text-base font-black text-foreground">
+                {(systemHealth.governed_byte_size / 1024).toFixed(1)} KB
+              </p>
+            </div>
+            {/* Market Ready */}
+            <div className="rounded-lg border border-border p-3 flex flex-col justify-center items-center" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Market Ready</p>
+              <span
+                className="text-sm font-extrabold px-2 py-1 rounded"
+                style={{
+                  background: systemHealth.market_ready ? "hsl(142 70% 35% / 0.15)" : "hsl(var(--destructive) / 0.15)",
+                  color: systemHealth.market_ready ? "hsl(142 70% 35%)" : "hsl(var(--destructive))",
+                }}
+              >
+                {systemHealth.market_ready ? "✓ YES" : "✗ NO"}
+              </span>
+            </div>
+          </div>
+        </section>
 
         {/* Section 1: Methodology Layer Audit */}
         <section>
@@ -627,6 +773,64 @@ export default function PipelineObservabilityPage() {
           </section>
         )}
 
+        {/* Section 5: Governed Artifact Inspector */}
+        <GovernedArtifactInspector governedData={governedData} />
+
+        {/* Section 6: Step Data Inspector */}
+        <StepDataInspector
+          disruptData={disruptData}
+          redesignData={redesignData}
+          stressTestData={stressTestData}
+          pitchDeckData={pitchDeckData}
+          businessAnalysisData={businessAnalysisData}
+          governedData={governedData}
+          adaptiveContext={adaptiveContext}
+        />
+
+        {/* Section 7: Evidence Registry */}
+        <EvidenceRegistryPanel registry={evidenceRegistry} />
+
+        {/* Section 8: Invalidation Check */}
+        {invalidationResult && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <FlaskConical className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-extrabold text-foreground">Invalidation Check</h2>
+            </div>
+            <div className="rounded-lg border border-border p-4" style={{ background: "hsl(var(--card))" }}>
+              {invalidationResult.shouldInvalidate ? (
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: "hsl(38 92% 42%)" }} />
+                  <div>
+                    <p className="text-sm font-bold text-foreground" style={{ color: "hsl(38 92% 42%)" }}>
+                      ⚠ Retroactive invalidation triggered
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Fragility score {invalidationResult.fragilityScore}/100 exceeds threshold (70).
+                      Confidence downgraded by {invalidationResult.confidenceDowngrade} points.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Affected: {invalidationResult.affectedArtifacts.join(", ")}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: "hsl(142 70% 35%)" }} />
+                  <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>
+                    ✓ No invalidation required
+                  </p>
+                  {invalidationResult.fragilityScore > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      (Fragility: {invalidationResult.fragilityScore}/100)
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* Footer */}
         <div className="text-center py-4">
           <p className="text-xs text-muted-foreground">
@@ -635,5 +839,432 @@ export default function PipelineObservabilityPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ─── Governed Artifact Inspector ─── */
+const OPTIONAL_ARTIFACT_KEYS = ["causal_chains", "evidence_registry", "confidence_metrics", "redesign_logic", "reasoning_synopsis"] as const;
+
+function GovernedArtifactInspector({ governedData }: { governedData: Record<string, unknown> | null }) {
+  const [open, setOpen] = useState(false);
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+
+  const toggleKey = (key: string) => {
+    setExpandedKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const allKeys = [...GOVERNED_ARTIFACT_KEYS, ...OPTIONAL_ARTIFACT_KEYS];
+  const presentOptional = OPTIONAL_ARTIFACT_KEYS.filter(k => governedData && governedData[k] != null);
+  const keysToShow = [...GOVERNED_ARTIFACT_KEYS, ...presentOptional];
+
+  return (
+    <section>
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 mb-4 text-left">
+        <BookOpen className="w-5 h-5 text-primary" />
+        <h2 className="text-lg font-extrabold text-foreground">Governed Artifact Inspector</h2>
+        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+          {governedData ? Object.keys(governedData).filter(k => allKeys.includes(k as never) && governedData[k] != null).length : 0}/{GOVERNED_ARTIFACT_KEYS.length} present
+        </span>
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto" /> : <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto" />}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="space-y-2">
+              {keysToShow.map(key => {
+                const artifact = governedData ? (governedData as Record<string, unknown>)[key] : undefined;
+                const present = artifact != null;
+                const byteSize = present ? new Blob([JSON.stringify(artifact)]).size : 0;
+                const isOptional = OPTIONAL_ARTIFACT_KEYS.includes(key as never);
+                const isExpanded = expandedKeys.has(key);
+
+                return (
+                  <div key={key} className="rounded-lg border border-border" style={{ background: "hsl(var(--card))" }}>
+                    <button
+                      onClick={() => present && toggleKey(key)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                      disabled={!present}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-foreground font-mono">{key}</span>
+                          {isOptional && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">optional</span>
+                          )}
+                          <span
+                            className="text-xs font-extrabold px-2 py-0.5 rounded"
+                            style={{
+                              color: present ? "hsl(142 70% 35%)" : "hsl(var(--destructive))",
+                              background: present ? "hsl(142 70% 35% / 0.1)" : "hsl(var(--destructive) / 0.1)",
+                            }}
+                          >
+                            {present ? "PRESENT" : "MISSING"}
+                          </span>
+                          {present && (
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {(byteSize / 1024).toFixed(1)} KB
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {present && (
+                        isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                    </button>
+                    <AnimatePresence>
+                      {isExpanded && present && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                          <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
+                            {/* Prominent fields for specific artifacts */}
+                            {key === "constraint_map" && artifact && (
+                              <ConstraintMapHighlight data={artifact as Record<string, unknown>} />
+                            )}
+                            {key === "decision_synthesis" && artifact && (
+                              <DecisionSynthesisHighlight data={artifact as Record<string, unknown>} />
+                            )}
+                            {key === "falsification" && artifact && (
+                              <FalsificationHighlight data={artifact as Record<string, unknown>} />
+                            )}
+                            {/* Full JSON tree */}
+                            <div>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Full Content</p>
+                              <div className="rounded-lg bg-muted/30 p-3 overflow-auto max-h-96">
+                                <JsonTree data={artifact} maxDepth={4} />
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+function ConstraintMapHighlight({ data }: { data: Record<string, unknown> }) {
+  const hypotheses = (data.root_hypotheses as Array<Record<string, unknown>>) || [];
+  return (
+    <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 space-y-2">
+      <p className="text-xs font-bold text-primary uppercase tracking-wider">Key Fields</p>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <span className="font-bold text-foreground">Binding Constraint: </span>
+          <span className="text-muted-foreground font-mono">{String(data.binding_constraint_id || "—")}</span>
+        </div>
+        <div>
+          <span className="font-bold text-foreground">Dominance Proof: </span>
+          <span className="text-muted-foreground">{String(data.dominance_proof || "—")}</span>
+        </div>
+      </div>
+      {hypotheses.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-foreground mb-1">Root Hypotheses ({hypotheses.length})</p>
+          <div className="space-y-1.5">
+            {hypotheses.map((h, i) => (
+              <div key={i} className="rounded bg-muted/40 px-2 py-1.5 text-xs space-y-0.5">
+                <p className="font-semibold text-foreground">{String(h.hypothesis_statement || `Hypothesis ${i + 1}`)}</p>
+                <div className="flex gap-3 text-muted-foreground">
+                  <span>Confidence: <strong>{String(h.confidence ?? "—")}</strong></span>
+                  <span>Leverage: <strong>{String(h.leverage_score ?? "—")}</strong></span>
+                  <span>Fragility: <strong>{String(h.fragility_score ?? "—")}</strong></span>
+                </div>
+                {h.evidence_mix && (
+                  <p>Evidence mix: {String(h.evidence_mix)}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DecisionSynthesisHighlight({ data }: { data: Record<string, unknown> }) {
+  const blockingUncertainties = (data.blocking_uncertainties as string[]) || [];
+  const grade = String(data.decision_grade || "—");
+  const gradeColor = grade === "proceed" ? "hsl(142 70% 35%)" : grade === "conditional" ? "hsl(38 92% 42%)" : grade === "blocked" ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))";
+  const confidence = typeof data.confidence_score === "number" ? data.confidence_score : null;
+  const confColor = confidence !== null ? (confidence >= 70 ? "hsl(142 70% 35%)" : confidence >= 45 ? "hsl(38 92% 42%)" : "hsl(var(--destructive))") : "inherit";
+
+  return (
+    <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 space-y-2">
+      <p className="text-xs font-bold text-primary uppercase tracking-wider">Key Fields</p>
+      <div className="flex items-center gap-4">
+        <div>
+          <p className="text-xs text-muted-foreground">Decision Grade</p>
+          <span className="text-lg font-black uppercase px-2 py-0.5 rounded" style={{ color: gradeColor, background: `${gradeColor}20` }}>{grade}</span>
+        </div>
+        {confidence !== null && (
+          <div>
+            <p className="text-xs text-muted-foreground">Confidence Score</p>
+            <p className="text-lg font-black" style={{ color: confColor }}>{confidence}/100</p>
+          </div>
+        )}
+      </div>
+      {blockingUncertainties.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-foreground mb-1">Blocking Uncertainties</p>
+          <ul className="space-y-0.5">
+            {blockingUncertainties.map((u, i) => (
+              <li key={i} className="text-xs text-muted-foreground flex gap-1">
+                <XCircle className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: "hsl(var(--destructive))" }} />
+                {u}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {data.fastest_validation_experiment && (
+        <div>
+          <p className="text-xs font-bold text-foreground">Fastest Validation Experiment</p>
+          <p className="text-xs text-muted-foreground">{String(data.fastest_validation_experiment)}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FalsificationHighlight({ data }: { data: Record<string, unknown> }) {
+  const fragilityScore = Number(data.model_fragility_score ?? 0);
+  const fragColor = fragilityScore > 70 ? "hsl(var(--destructive))" : fragilityScore > 40 ? "hsl(38 92% 42%)" : "hsl(142 70% 35%)";
+  const flags = Object.entries(data).filter(([k]) => k.toLowerCase().includes("flag") || k.toLowerCase().includes("fragil") && k !== "model_fragility_score");
+
+  return (
+    <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 space-y-2">
+      <p className="text-xs font-bold text-primary uppercase tracking-wider">Key Fields</p>
+      <div>
+        <p className="text-xs text-muted-foreground">Model Fragility Score</p>
+        <p className="text-2xl font-black" style={{ color: fragColor }}>{fragilityScore}/100</p>
+      </div>
+      {flags.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-foreground mb-1">Fragility Flags</p>
+          <div className="space-y-1">
+            {flags.map(([k, v]) => (
+              <div key={k} className="text-xs flex gap-2">
+                <span className="font-mono text-muted-foreground">{k}:</span>
+                <span className="text-foreground">{typeof v === "object" ? JSON.stringify(v).slice(0, 80) : String(v)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Step Data Inspector ─── */
+function StepDataInspector({
+  disruptData, redesignData, stressTestData, pitchDeckData,
+  businessAnalysisData, governedData, adaptiveContext,
+}: {
+  disruptData: unknown; redesignData: unknown; stressTestData: unknown; pitchDeckData: unknown;
+  businessAnalysisData: unknown; governedData: unknown; adaptiveContext: unknown;
+}) {
+  const [open, setOpen] = useState(false);
+  const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
+
+  const toggleStep = (key: string) => {
+    setExpandedSteps(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const steps: Array<{ key: string; label: string; data: unknown }> = [
+    { key: "disrupt", label: "Deconstruct (First Principles)", data: disruptData },
+    { key: "redesign", label: "Redesign", data: redesignData },
+    { key: "stressTest", label: "Stress Test", data: stressTestData },
+    { key: "pitchDeck", label: "Pitch Deck", data: pitchDeckData },
+    { key: "businessAnalysis", label: "Business Analysis", data: businessAnalysisData },
+    { key: "governed", label: "Governed Artifacts", data: governedData },
+    { key: "adaptiveContext", label: "Adaptive Context", data: adaptiveContext },
+  ].filter(s => s.data != null);
+
+  return (
+    <section>
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 mb-4 text-left">
+        <Code2 className="w-5 h-5 text-primary" />
+        <h2 className="text-lg font-extrabold text-foreground">Step Data Inspector</h2>
+        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">{steps.length} steps with data</span>
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto" /> : <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto" />}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="space-y-2">
+              {steps.map(({ key, label, data }) => {
+                const byteSize = JSON.stringify(data).length;
+                const isExpanded = expandedSteps.has(key);
+                const itemCounts = data && typeof data === "object" && !Array.isArray(data)
+                  ? Object.entries(data as Record<string, unknown>)
+                      .filter(([, v]) => Array.isArray(v))
+                      .map(([k, v]) => `${k}: ${(v as unknown[]).length} items`)
+                  : [];
+
+                return (
+                  <div key={key} className="rounded-lg border border-border" style={{ background: "hsl(var(--card))" }}>
+                    <button onClick={() => toggleStep(key)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-foreground">{label}</span>
+                          <span className="text-xs font-mono text-muted-foreground">{(byteSize / 1024).toFixed(1)} KB</span>
+                          {itemCounts.slice(0, 3).map((c, i) => (
+                            <span key={i} className="text-xs text-muted-foreground">{c}</span>
+                          ))}
+                        </div>
+                      </div>
+                      {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
+                    </button>
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                          <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  try { navigator.clipboard.writeText(JSON.stringify(data, null, 2)); } catch { /* ignore */ }
+                                }}
+                                className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-muted hover:bg-muted/70 text-muted-foreground transition-colors"
+                              >
+                                <Copy className="w-3 h-3" /> Copy JSON
+                              </button>
+                            </div>
+                            <div className="rounded-lg bg-muted/30 p-3 overflow-auto max-h-96">
+                              <JsonTree data={data} maxDepth={4} />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+              {steps.length === 0 && (
+                <div className="rounded-lg border border-border p-6 text-center" style={{ background: "hsl(var(--card))" }}>
+                  <p className="text-sm text-muted-foreground">No step data available yet. Run an analysis to populate this inspector.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+/* ─── Evidence Registry Panel ─── */
+const SOURCE_TYPE_COLORS: Record<SourceType, { bg: string; color: string }> = {
+  verified:   { bg: "hsl(142 70% 35% / 0.1)", color: "hsl(142 70% 35%)" },
+  scraped:    { bg: "hsl(210 80% 55% / 0.1)", color: "hsl(210 80% 55%)" },
+  database:   { bg: "hsl(210 80% 55% / 0.1)", color: "hsl(210 80% 55%)" },
+  modeled:    { bg: "hsl(48 92% 42% / 0.1)",  color: "hsl(48 92% 42%)" },
+  assumed:    { bg: "hsl(25 80% 50% / 0.1)",  color: "hsl(25 80% 50%)" },
+  user_input: { bg: "hsl(var(--muted))",       color: "hsl(var(--muted-foreground))" },
+};
+
+function EvidenceRegistryPanel({ registry }: { registry: ReturnType<typeof buildEvidenceRegistry> }) {
+  const [open, setOpen] = useState(false);
+  const [expandedClaims, setExpandedClaims] = useState<Set<string>>(new Set());
+
+  const toggleClaim = (id: string) => {
+    setExpandedClaims(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <section>
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 mb-4 text-left">
+        <Database className="w-5 h-5 text-primary" />
+        <h2 className="text-lg font-extrabold text-foreground">Evidence Registry</h2>
+        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">{registry.entries.length} signals</span>
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto" /> : <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto" />}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            {/* Summary row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {[
+                { label: "Total Signals", value: String(registry.entries.length) },
+                { label: "Provenance Score", value: `${Math.round(registry.provenance_score * 100)}%` },
+                { label: "Stale", value: String(registry.stale_count) },
+                { label: "Unverified", value: String(registry.unverified_count) },
+              ].map((item, i) => (
+                <div key={i} className="rounded-lg border border-border p-3" style={{ background: "hsl(var(--card))" }}>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                  <p className="text-lg font-black text-foreground">{item.value}</p>
+                </div>
+              ))}
+            </div>
+            {registry.entries.length === 0 ? (
+              <div className="rounded-lg border border-border p-6 text-center" style={{ background: "hsl(var(--card))" }}>
+                <p className="text-sm text-muted-foreground">
+                  Evidence registry is empty. It requires a completed analysis with governed artifacts (particularly <span className="font-mono">first_principles.viability_assumptions</span>).
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border overflow-hidden" style={{ background: "hsl(var(--card))" }}>
+                <div className="grid grid-cols-[1fr_auto_auto_2fr_auto] gap-0 text-xs font-bold text-muted-foreground uppercase tracking-wider px-4 py-2 border-b border-border bg-muted/30">
+                  <span>Signal ID</span>
+                  <span>Source</span>
+                  <span>Status</span>
+                  <span>Claim</span>
+                  <span>Age</span>
+                </div>
+                {registry.entries.map((entry) => {
+                  const sc = SOURCE_TYPE_COLORS[entry.source_type] || SOURCE_TYPE_COLORS.user_input;
+                  const claim = entry.supports_which_claim;
+                  const truncated = claim.length > 80;
+                  const isClaimExpanded = expandedClaims.has(entry.signal_id);
+                  const statusColor = entry.verification_status === "verified" ? "hsl(142 70% 35%)" : entry.verification_status === "stale" ? "hsl(38 92% 42%)" : "hsl(var(--muted-foreground))";
+
+                  return (
+                    <div key={entry.signal_id} className="grid grid-cols-[1fr_auto_auto_2fr_auto] gap-2 items-start px-4 py-2 border-b border-border/50 text-xs hover:bg-muted/20">
+                      <span className="font-mono text-muted-foreground truncate">{entry.signal_id}</span>
+                      <span className="px-1.5 py-0.5 rounded font-bold whitespace-nowrap" style={{ background: sc.bg, color: sc.color }}>
+                        {entry.source_type}
+                      </span>
+                      <span className="font-bold whitespace-nowrap" style={{ color: statusColor }}>
+                        {entry.verification_status}
+                      </span>
+                      <span className="text-foreground">
+                        {isClaimExpanded || !truncated ? claim : `${claim.slice(0, 80)}…`}
+                        {truncated && (
+                          <button onClick={() => toggleClaim(entry.signal_id)} className="ml-1 text-primary underline">
+                            {isClaimExpanded ? "less" : "more"}
+                          </button>
+                        )}
+                      </span>
+                      <span className="text-muted-foreground whitespace-nowrap font-mono">
+                        {entry.verification_status === "stale" ? "stale" : entry.freshness_hours != null ? `${entry.freshness_hours}h ago` : "—"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
   );
 }
