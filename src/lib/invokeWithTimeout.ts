@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { traceEdgeFunction } from "@/lib/pipelineTrace";
 
 /**
  * Wraps supabase.functions.invoke with a client-side timeout and optional auto-retry.
