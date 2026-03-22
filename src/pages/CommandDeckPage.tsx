@@ -29,7 +29,7 @@ import { BlockedPathsPanel } from "@/components/creative/BlockedPathsPanel";
 import { AllIdeasDrawer } from "@/components/creative/AllIdeasDrawer";
 import { ArrowRight, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { downloadTrace, getTrace } from "@/lib/pipelineTrace";
+import { downloadTrace, getTrace, restoreTraceForAnalysis } from "@/lib/pipelineTrace";
 import PipelineTraceViewer from "@/components/PipelineTraceViewer";
 import { motion } from "framer-motion";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
@@ -145,6 +145,13 @@ export default function CommandDeckPage() {
 
   const analysisId = ctxAnalysisId || urlAnalysisId;
   const modeAccent = theme.primary;
+
+  // Restore persisted trace for this analysis (survives page reload within same tab)
+  useEffect(() => {
+    if (analysisId) {
+      restoreTraceForAnalysis(analysisId);
+    }
+  }, [analysisId]);
 
   const {
     narrative,
@@ -438,34 +445,38 @@ export default function CommandDeckPage() {
         )}
 
         {/* ═══ Pipeline Diagnostic panel ═══ */}
-        {(() => {
+        {analysisId && (() => {
           const trace = getTrace();
-          return trace ? (
+          return (
             <div className="rounded-xl border border-dashed border-border/60 bg-muted/30 px-3 py-2.5 space-y-2 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-col min-w-0">
                   <span className="text-[11px] font-semibold text-foreground">Pipeline Diagnostic</span>
                   <span className="text-[10px] text-muted-foreground truncate">
-                    {trace.analysisId || "unsaved"} · {trace.edgeFunctions.length} edge call{trace.edgeFunctions.length !== 1 ? "s" : ""} · {trace.evidenceExtraction?.dedupedTotal ?? 0} evidence items
+                    {trace
+                      ? `${trace.analysisId || "unsaved"} · ${trace.edgeFunctions.length} edge call${trace.edgeFunctions.length !== 1 ? "s" : ""} · ${trace.evidenceExtraction?.dedupedTotal ?? 0} evidence items`
+                      : "No trace for this session — run a fresh analysis to populate diagnostics"}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={downloadTrace} title="Download JSON trace">
-                    <Download size={12} />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-[10px] px-2 py-0.5 h-6"
-                    onClick={() => setShowDiagnostics(v => !v)}
-                  >
-                    {showDiagnostics ? "Hide details" : "Show details"}
-                  </Button>
-                </div>
+                {trace && (
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={downloadTrace} title="Download JSON trace">
+                      <Download size={12} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-[10px] px-2 py-0.5 h-6"
+                      onClick={() => setShowDiagnostics(v => !v)}
+                    >
+                      {showDiagnostics ? "Hide details" : "Show details"}
+                    </Button>
+                  </div>
+                )}
               </div>
-              {showDiagnostics && <PipelineTraceViewer trace={trace} />}
+              {trace && showDiagnostics && <PipelineTraceViewer trace={trace} />}
             </div>
-          ) : null;
+          );
         })()}
 
         {/* ═══ Secondary navigation ═══ */}
