@@ -49,6 +49,7 @@ import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
 import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
+import { traceStrategicStages, traceEvent, setPipelineDiagnosticSummary } from "@/lib/pipelineTrace";
 
 /** Get a pattern-specific business narrative that references real company precedents */
 function patternToBusinessNarrative(patternId: string, contrarianBelief: string): string {
