@@ -149,6 +149,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     setIsComputing(true);
     isComputingRef.current = true;
 
+    // Start pipeline trace for diagnostics
+    startTrace(analysisId);
+
     // Build system intelligence
     invalidateIntelligence(analysisId);
     const siInput: SystemIntelligenceInput = {
