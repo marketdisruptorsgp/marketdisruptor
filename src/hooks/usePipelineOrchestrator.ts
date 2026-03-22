@@ -150,6 +150,9 @@ export function usePipelineOrchestrator(
     acquireKeepAlive();
     setStepTimings({});
 
+    // Ensure pipeline trace is started (may already exist from useAutoAnalysis)
+    if (!getTrace()) startTrace(analysisId);
+
     const ctx = buildCtx();
     const cb = buildCb();
     const store = buildStore();
