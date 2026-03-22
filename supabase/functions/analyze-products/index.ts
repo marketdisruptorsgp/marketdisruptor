@@ -464,7 +464,23 @@ CRITICAL RULES:
 - flippedIdeas should have 2-3 per product and directly address community complaints/requests
 - Be BOLD — the flipped ideas should surprise and inspire, not just iterate
 - Generate 1-2 structural visuals (visualSpecs) representing the dominant market constraint or friction mechanism per product
-- Generate 2-3 v3ActionPlans targeting the highest-leverage interventions per product`;
+- Generate 2-3 v3ActionPlans targeting the highest-leverage interventions per product
+
+KEY INSIGHT RULES (the "keyInsight" field is the most important field in the entire output):
+- The keyInsight is NOT a summary of what the product does — that's just description
+- The keyInsight is a NON-OBVIOUS commercial insight that a smart investor would find compelling
+- It must contain a SPECIFIC market gap, pricing anomaly, structural constraint, or demand signal
+- TEST: Would a journalist covering the startup beat find this interesting? Would they want to write about it?
+- BAD: "The ubiquitous clothes hanger, often overlooked, represents a massive latent market" — vague, generic
+- GOOD: "The hanger market is trapped in a commodity doom loop (cheap materials → breakage → more cheap hangers) that has no premium incumbent. The closest analogy is razors pre-Dollar Shave Club: a $3.5B market where 95% buys at <$2/unit, but the r/BuyItForLife community (2.3M members) is openly asking for a 'buy once' solution nobody makes at scale."
+- Include a SPECIFIC structural comparison to a real category that solved the same problem
+
+FLIPPED IDEA RULES:
+- Each flipped idea must attack a DIFFERENT assumption embedded in the current design or market
+- At least one flipped idea must challenge the DISTRIBUTION assumption (not just the product design)
+- At least one must challenge the BUYER assumption (who actually buys it, not just the product itself)
+- "reasoning" must trace the idea back to a specific community complaint or structural finding above — generic reasoning is not acceptable
+- "feasibilityNotes" must show BOM math or CAC/LTV math — not just say "costs will be lower"`;
 
     const systemPrompt = isService ? serviceSystemPrompt : productSystemPrompt;
 
