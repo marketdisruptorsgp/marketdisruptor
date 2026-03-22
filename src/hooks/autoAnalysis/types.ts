@@ -14,6 +14,7 @@ import type { ConstraintInversion } from "@/lib/constraintInverter";
 import type { SecondOrderUnlock } from "@/lib/secondOrderEngine";
 import type { TemporalUnlock } from "@/lib/temporalArbitrageEngine";
 import type { CompetitiveGap } from "@/lib/negativeSpaceEngine";
+import type { WowCard, BlockedPath, IdeaCandidate } from "@/lib/creativeOpportunityEngine";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
@@ -39,6 +40,9 @@ export interface AutoAnalysisResult {
   pipelineCompletion: number;
   runAnalysis: () => void;
   hasRun: boolean;
+  wowCards: WowCard[];
+  blockedPaths: BlockedPath[];
+  allCreativeIdeas: IdeaCandidate[];
 }
 
 /** All mutable state managed by the auto-analysis engine */

@@ -42,6 +42,8 @@ import { type CompetitiveGap } from "@/lib/negativeSpaceEngine";
 import { extractLensConfig } from "@/lib/diagnosticContext";
 import { expandMultiMode } from "@/lib/modeIntelligence";
 import type { InnovationMode } from "@/lib/modeIntelligence";
+import type { ConstraintHypothesis } from "@/lib/constraintDetectionEngine";
+import { generateCreativeOpportunities } from "@/lib/creativeOpportunityEngine";
 
 // Decomposed modules
 import { type AutoAnalysisResult, type EngineSetters } from "./autoAnalysis/types";
@@ -82,6 +84,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [secondOrderUnlocks, setSecondOrderUnlocks] = useState<SecondOrderUnlock[]>([]);
   const [temporalUnlocks, setTemporalUnlocks] = useState<TemporalUnlock[]>([]);
   const [competitiveGaps, setCompetitiveGaps] = useState<CompetitiveGap[]>([]);
+  const [constraintHypotheses, setConstraintHypotheses] = useState<ConstraintHypothesis[]>([]);
   const [isComputing, setIsComputing] = useState(false);
   const isComputingRef = useRef(false);
   const [hasRun, setHasRun] = useState(false);
@@ -208,6 +211,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setScenarioComparison(result.scenarioComparison);
       setSensitivityReports(result.sensitivityReports);
       setDeepenedOpportunities(result.deepenedOpportunities ?? []);
+      // Capture constraint hypotheses for the creative opportunity engine
+      setConstraintHypotheses(result.constraintHypotheses?.hypotheses ?? []);
       setHasRun(true);
 
       // Run deterministic morphological engines
@@ -343,6 +348,18 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     completedSteps, isComputing, isComputingRef, isHydrating, runAnalysis,
   );
 
+  // ── Creative opportunity generation (deterministic, no AI calls) ──
+  const creativeResult = useMemo(
+    () =>
+      generateCreativeOpportunities(
+        flatEvidenceState,
+        structuralProfile,
+        constraintHypotheses,
+        deepenedOpportunities,
+      ),
+    [flatEvidenceState, structuralProfile, constraintHypotheses, deepenedOpportunities],
+  );
+
   return {
     intelligence, structuralProfile, graph, evidence,
     flatEvidence: flatEvidenceState,
@@ -351,5 +368,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     morphologicalZones, morphologicalVectors,
     constraintInversions, secondOrderUnlocks, temporalUnlocks, competitiveGaps,
     isComputing, completedSteps, pipelineCompletion, runAnalysis, hasRun,
+    wowCards: creativeResult.wowCards,
+    blockedPaths: creativeResult.blockedPaths,
+    allCreativeIdeas: creativeResult.allIdeas,
   };
 }

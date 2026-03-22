@@ -24,6 +24,9 @@ import { BreakthroughGrid, type OpportunityGridItem } from "@/components/strateg
 import { ActionDirective } from "@/components/strategic/ActionDirective";
 import { ReinventionIdeas, type FlippedIdeaItem } from "@/components/strategic/ReinventionIdeas";
 import { ActionPath } from "@/components/command-deck/ActionPath";
+import { WowCardGrid } from "@/components/creative/WowCardGrid";
+import { BlockedPathsPanel } from "@/components/creative/BlockedPathsPanel";
+import { AllIdeasDrawer } from "@/components/creative/AllIdeasDrawer";
 import { ArrowRight, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { downloadTrace, getTrace } from "@/lib/pipelineTrace";
@@ -151,6 +154,9 @@ export default function CommandDeckPage() {
     constraintInversions,
     secondOrderUnlocks,
     completedSteps,
+    wowCards,
+    blockedPaths,
+    allCreativeIdeas,
   } = autoAnalysis;
 
   // ── Extract flipped ideas from disruptData (persisted in saved_analyses) ──
@@ -406,6 +412,15 @@ export default function CommandDeckPage() {
           opportunities={opportunityGrid}
           modeAccent={modeAccent}
         />
+
+        {/* ═══ Zone 2.5: Radical Opportunities ═══ */}
+        {wowCards.length > 0 && (
+          <>
+            <WowCardGrid cards={wowCards} modeAccent={modeAccent} />
+            <BlockedPathsPanel paths={blockedPaths} modeAccent={modeAccent} />
+            <AllIdeasDrawer ideas={allCreativeIdeas} modeAccent={modeAccent} />
+          </>
+        )}
 
         {/* ═══ Zone 3: What to do first ═══ */}
         <ActionDirective
