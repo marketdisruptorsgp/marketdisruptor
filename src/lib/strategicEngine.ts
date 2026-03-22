@@ -1078,7 +1078,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
         name: qp.pattern.name,
         signalDensity: qp.signalDensity,
         strengthSignals: qp.qualification.strengthSignals,
-        weaknessSignals: qp.qualification.weaknessSignals,
+        weaknessSignals: qp.qualification.resolvesConstraints,
       })),
       stage6_aiGatePassed: meetsAIThreshold,
       stage6_aiGateDetails: { evidenceCount: evCount, bindingConstraintCount, suppressed: !!input.suppressAIDeepening },
