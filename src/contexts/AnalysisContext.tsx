@@ -15,7 +15,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { getResumeRoute } from "@/utils/analysisSteps";
-import { buildDiagnosticContext, extractLensConfig, type DiagnosticContext } from "@/lib/diagnosticContext";
+import { buildDiagnosticContext, extractLensConfig, type DiagnosticContext, type InnovationMode } from "@/lib/diagnosticContext";
 
 // Extracted hooks
 import { useLoadingTimer } from "@/hooks/useLoadingTimer";
@@ -372,14 +372,31 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
     activeModeRef.current = m;
     setActiveModeState(m);
+    // Sync adaptiveContext.activeModes so pipeline picks up the switch
+    setAdaptiveContextState(prev => {
+      if (!prev) return prev;
+      const modeMap: Record<string, string> = { custom: "product", service: "service", business: "business" };
+      const mapped = modeMap[m] || m;
+      const newActiveModes = (mapped === "multi" || mapped === "all")
+        ? (prev.activeModes && prev.activeModes.length > 1 ? prev.activeModes : ["product", "service", "business"])
+        : [mapped];
+      const updated = { ...prev, activeModes: newActiveModes };
+      pendingAdaptiveCtxSaveRef.current = updated;
+      return updated;
+    });
     markStepOutdated("redesign");
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
   }, [markStepOutdated, decompositionData, disruptData, stressTestData, pitchDeckData, redesignData]);
 
-  const diagnosticContext = useMemo((): DiagnosticContext =>
-    buildDiagnosticContext(activeMode, extractLensConfig(activeLens as unknown as Record<string, unknown> | null)),
-  [activeMode, activeLens]);
+  const diagnosticContext = useMemo((): DiagnosticContext => {
+    const modes = adaptiveContext?.activeModes as InnovationMode[] | undefined;
+    return buildDiagnosticContext(
+      activeMode,
+      extractLensConfig(activeLens as unknown as Record<string, unknown> | null),
+      modes && modes.length > 1 ? modes : undefined,
+    );
+  }, [activeMode, activeLens, adaptiveContext?.activeModes]);
 
   // ── Additional State ──
   const [geoData, setGeoData] = useState<unknown>(null);
