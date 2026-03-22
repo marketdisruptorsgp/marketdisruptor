@@ -318,18 +318,39 @@ export function getToolById(id: string): LensTool | undefined {
 
 /**
  * Infer active lenses from analysis mode.
+ *
+ * When `activeModes` contains multiple entries (multi-mode), returns the
+ * **union** of lenses from all active modes with duplicates removed.
  */
-export function inferLensesFromMode(mode: string): LensId[] {
-  switch (mode) {
-    case "product":
-    case "custom":
-      return ["product", "innovator"];
-    case "service":
-      return ["operator", "customer"];
-    case "business":
-    case "business_model":
-      return ["business_model", "investor"];
-    default:
-      return ["product"];
+export function inferLensesFromMode(mode: string, activeModes?: string[]): LensId[] {
+  function lensesForMode(m: string): LensId[] {
+    switch (m) {
+      case "product":
+      case "custom":
+        return ["product", "innovator"];
+      case "service":
+        return ["operator", "customer"];
+      case "business":
+      case "business_model":
+        return ["business_model", "investor"];
+      default:
+        return ["product"];
+    }
   }
+
+  if (activeModes && activeModes.length > 1) {
+    const seen = new Set<LensId>();
+    const result: LensId[] = [];
+    for (const m of activeModes) {
+      for (const lens of lensesForMode(m)) {
+        if (!seen.has(lens)) {
+          seen.add(lens);
+          result.push(lens);
+        }
+      }
+    }
+    return result;
+  }
+
+  return lensesForMode(mode);
 }

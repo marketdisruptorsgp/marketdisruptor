@@ -134,12 +134,35 @@ function autoTier(label: string, description?: string, fallback: EvidenceTier = 
 }
 
 /** Infer mode from analysis context */
-function inferMode(analysisType?: string): EvidenceMode {
+function inferMode(analysisType?: string, activeModes?: EvidenceMode[]): EvidenceMode {
+  // In multi-mode, the caller can pass activeModes; return the primary
+  if (activeModes && activeModes.length > 0) return activeModes[0];
   if (!analysisType) return "product";
   const lower = analysisType.toLowerCase();
   if (lower.includes("service")) return "service";
   if (lower.includes("business")) return "business_model";
   return "product";
+}
+
+/**
+ * In multi-mode, infer the most appropriate mode for a specific schema field.
+ * Falls back to the primary mode when not in multi-mode.
+ *
+ * Field origins:
+ *   product  — functionalComponents, technologyPrimitives, physicalConstraints, costDrivers
+ *   service  — taskGraph, laborInputs, tools, coordinationRequirements, timeConstraints
+ *   business — scalingConstraints, costStructure, valueCapture, distribution
+ *   shared   — systemDynamics, leverageAnalysis, valueChain (→ primary mode)
+ */
+function inferModeForField(
+  fieldOrigin: "product" | "service" | "business_model" | "shared",
+  activeModes?: EvidenceMode[],
+): EvidenceMode {
+  if (!activeModes || activeModes.length <= 1) {
+    return activeModes?.[0] ?? "product";
+  }
+  if (fieldOrigin === "shared") return activeModes[0];
+  return fieldOrigin;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -973,14 +996,25 @@ function extractPricingEvidence(input: EvidenceInput): Evidence[] {
  * The decomposition engine returns a rich object with functional components, technology
  * primitives, physical constraints, system dynamics, and leverage analysis — each
  * containing discrete data points that should feed the evidence pool separately.
+ *
+ * In multi-mode analyses each field group is tagged with the mode most relevant to
+ * its schema origin so that mode-specific engines can weight evidence correctly.
  */
 function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
-  const mode = inferMode(input.analysisType);
+  const activeModes = input.activeModes;
+  // Per-origin mode helpers
+  const mProduct  = inferModeForField("product",       activeModes);
+  const mService  = inferModeForField("service",       activeModes);
+  const mBusiness = inferModeForField("business_model", activeModes);
+  const mShared   = inferModeForField("shared",        activeModes);
+
   const decomp = (input.disruptData as any)?.structuralDecomposition
     ?? (input.disruptData as any)?.decomposition
     ?? (input.disruptData as any)?.structuralAnalysis;
   if (!decomp) return items;
+
+  // ── Product-schema fields ──────────────────────────────────────────────────
 
   // Functional components → constraint evidence
   safeArr(decomp.functionalComponents || decomp.components).forEach((fc: any, i: number) => {
@@ -995,7 +1029,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
         pipelineStep: "disrupt",
         tier: "structural",
         impact: fc.criticalityScore ?? fc.criticality ?? 6,
-        mode,
+        mode: mProduct,
         sourceEngine: "system_intelligence",
         provenanceTag: "ai_generated",
         category: "operational_dependency",
@@ -1015,7 +1049,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
         pipelineStep: "disrupt",
         tier: "structural",
         impact: typeof tp === "object" ? (tp.maturityScore ?? tp.maturity ?? 5) : 5,
-        mode,
+        mode: mProduct,
         sourceEngine: "system_intelligence",
         provenanceTag: "ai_generated",
         category: "technology_dependency",
@@ -1038,7 +1072,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
         tier: "structural",
         impact: Math.min(10, Math.max(1, bindingStrength)),
         confidenceScore: challengeable ? 0.6 : 0.9,
-        mode,
+        mode: mProduct,
         sourceEngine: "system_intelligence",
         provenanceTag: "ai_generated",
         category: "operational_dependency",
@@ -1058,13 +1092,226 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
         pipelineStep: "disrupt",
         tier: "optimization",
         impact: typeof cd === "object" ? (cd.costWeight ?? cd.impact ?? 5) : 5,
-        mode,
+        mode: mProduct,
         sourceEngine: "system_intelligence",
         provenanceTag: "ai_generated",
         category: "cost_structure",
       });
     }
   });
+
+  // ── Service-schema fields ──────────────────────────────────────────────────
+
+  // Task graph → friction evidence (non-eliminable tasks = structural friction)
+  safeArr(decomp.taskGraph || decomp.tasks).forEach((tg: any, i: number) => {
+    const label = typeof tg === "string" ? tg : (tg.name || tg.label || tg.task || `Task ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-tg"),
+        type: "friction",
+        label,
+        description: typeof tg === "object" ? (tg.description || tg.purpose) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: typeof tg === "object" ? (tg.effort ?? tg.complexity ?? 5) : 5,
+        mode: mService,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Labor inputs → constraint evidence (scarce/non-automatable roles)
+  safeArr(decomp.laborInputs || decomp.staffingRequirements).forEach((li: any, i: number) => {
+    const label = typeof li === "string" ? li : (li.name || li.label || li.role || `Labor Input ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-li"),
+        type: "constraint",
+        label,
+        description: typeof li === "object" ? (li.description || li.requirement) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: typeof li === "object" ? (li.scarcityScore ?? li.criticality ?? 6) : 6,
+        mode: mService,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "labor_operations",
+      });
+    }
+  });
+
+  // Tools → signal evidence (non-substitutable tools = tech dependency)
+  safeArr(decomp.tools || decomp.equipmentDependencies).forEach((t: any, i: number) => {
+    const label = typeof t === "string" ? t : (t.name || t.label || t.tool || `Tool ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-tool"),
+        type: "signal",
+        label,
+        description: typeof t === "object" ? (t.description || t.purpose) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: typeof t === "object" ? (t.substitutabilityScore ?? t.criticality ?? 5) : 5,
+        mode: mService,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "technology_dependency",
+      });
+    }
+  });
+
+  // Coordination requirements → friction evidence
+  safeArr(decomp.coordinationRequirements || decomp.coordination).forEach((cr: any, i: number) => {
+    const label = typeof cr === "string" ? cr : (cr.name || cr.label || cr.requirement || `Coordination Requirement ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-cr"),
+        type: "friction",
+        label,
+        description: typeof cr === "object" ? (cr.description || cr.complexity) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: typeof cr === "object" ? (cr.complexityScore ?? cr.effort ?? 6) : 6,
+        mode: mService,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Time constraints → constraint evidence
+  safeArr(decomp.timeConstraints || decomp.timingConstraints).forEach((tc: any, i: number) => {
+    const label = typeof tc === "string" ? tc : (tc.name || tc.label || tc.constraint || `Time Constraint ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-tc"),
+        type: "constraint",
+        label,
+        description: typeof tc === "object" ? (tc.description || tc.impact) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: typeof tc === "object" ? (tc.bindingScore ?? tc.severity ?? 6) : 6,
+        mode: mService,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // ── Business-schema fields ─────────────────────────────────────────────────
+
+  // Scaling constraints → constraint evidence
+  safeArr(decomp.scalingConstraints || decomp.growthConstraints).forEach((sc: any, i: number) => {
+    const label = typeof sc === "string" ? sc : (sc.name || sc.label || sc.constraint || `Scaling Constraint ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-sc"),
+        type: "constraint",
+        label,
+        description: typeof sc === "object" ? (sc.description || sc.mechanism) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: typeof sc === "object" ? (sc.bindingScore ?? sc.severity ?? 7) : 7,
+        mode: mBusiness,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "structural_economic",
+      });
+    }
+  });
+
+  // Cost structure → constraint/friction evidence
+  const costStructure = decomp.costStructure;
+  if (costStructure) {
+    safeArr(costStructure.fixedCosts || costStructure.fixed).forEach((fc: any, i: number) => {
+      const label = typeof fc === "string" ? fc : (fc.name || fc.label || fc.item || `Fixed Cost ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-costfixed"),
+          type: "constraint",
+          label,
+          description: typeof fc === "object" ? (fc.description || fc.category) : undefined,
+          pipelineStep: "disrupt",
+          tier: "structural",
+          impact: typeof fc === "object" ? (fc.magnitude ?? fc.weight ?? 5) : 5,
+          mode: mBusiness,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "cost_structure",
+        });
+      }
+    });
+    safeArr(costStructure.variableCosts || costStructure.variable).forEach((vc: any, i: number) => {
+      const label = typeof vc === "string" ? vc : (vc.name || vc.label || vc.item || `Variable Cost ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-costvar"),
+          type: "friction",
+          label,
+          description: typeof vc === "object" ? (vc.description || vc.driver) : undefined,
+          pipelineStep: "disrupt",
+          tier: "optimization",
+          impact: typeof vc === "object" ? (vc.magnitude ?? vc.weight ?? 5) : 5,
+          mode: mBusiness,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "cost_structure",
+        });
+      }
+    });
+  }
+
+  // Value capture: leakage points → friction evidence
+  const valueCapture = decomp.valueCapture;
+  if (valueCapture) {
+    safeArr(valueCapture.leakagePoints || valueCapture.leakage).forEach((lkp: any, i: number) => {
+      const label = typeof lkp === "string" ? lkp : (lkp.name || lkp.label || lkp.point || `Leakage Point ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-leakage"),
+          type: "friction",
+          label,
+          description: typeof lkp === "object" ? (lkp.description || lkp.mechanism) : undefined,
+          pipelineStep: "disrupt",
+          tier: "structural",
+          impact: typeof lkp === "object" ? (lkp.magnitude ?? lkp.severity ?? 6) : 6,
+          mode: mBusiness,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "revenue_pricing",
+        });
+      }
+    });
+  }
+
+  // Distribution channels → signal evidence
+  const distribution = decomp.distribution;
+  if (distribution) {
+    safeArr(distribution.channels || distribution.channel).forEach((ch: any, i: number) => {
+      const label = typeof ch === "string" ? ch : (ch.name || ch.label || ch.channel || `Distribution Channel ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-dist"),
+          type: "signal",
+          label,
+          description: typeof ch === "object" ? (ch.description || ch.reach) : undefined,
+          pipelineStep: "disrupt",
+          tier: "optimization",
+          impact: typeof ch === "object" ? (ch.reachScore ?? ch.importance ?? 5) : 5,
+          mode: mBusiness,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "distribution_channel",
+        });
+      }
+    });
+  }
+
+  // ── Shared fields (use primary mode) ──────────────────────────────────────
 
   // System dynamics: feedback loops → signal evidence
   const sysDyn = decomp.systemDynamics || decomp.dynamics;
@@ -1080,7 +1327,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
           pipelineStep: "disrupt",
           tier: "system",
           impact: typeof fl === "object" ? (fl.amplificationFactor ?? fl.impact ?? 5) : 5,
-          mode,
+          mode: mShared,
           sourceEngine: "system_intelligence",
           provenanceTag: "ai_generated",
           category: "operational_dependency",
@@ -1100,7 +1347,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
           pipelineStep: "disrupt",
           tier: "structural",
           impact: typeof fm === "object" ? (fm.probability ?? fm.severity ?? 6) : 6,
-          mode,
+          mode: mShared,
           sourceEngine: "system_intelligence",
           provenanceTag: "ai_generated",
           category: "operational_dependency",
@@ -1120,7 +1367,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
           pipelineStep: "disrupt",
           tier: "system",
           impact: typeof bn === "object" ? (bn.severity ?? bn.impact ?? 7) : 7,
-          mode,
+          mode: mShared,
           sourceEngine: "system_intelligence",
           provenanceTag: "ai_generated",
           category: "operational_dependency",
@@ -1140,7 +1387,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
           pipelineStep: "disrupt",
           tier: "system",
           impact: typeof cp === "object" ? (cp.controlStrength ?? cp.impact ?? 6) : 6,
-          mode,
+          mode: mShared,
           sourceEngine: "system_intelligence",
           provenanceTag: "ai_generated",
           category: "operational_dependency",
@@ -1165,7 +1412,7 @@ function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
           pipelineStep: "redesign",
           tier,
           impact: Math.min(10, Math.max(1, leverageScore)),
-          mode,
+          mode: mShared,
           sourceEngine: "system_intelligence",
           provenanceTag: "ai_generated",
           category: "operational_dependency",
@@ -1454,6 +1701,12 @@ export interface EvidenceInput {
   intelligence: any | null;
   /** Analysis type for mode inference */
   analysisType?: string;
+  /**
+   * All active engine modes — populated in multi-mode analyses.
+   * When present and length > 1, evidence items are tagged with the mode
+   * most relevant to their source schema field rather than a blanket mode.
+   */
+  activeModes?: EvidenceMode[];
   /** Geo market data (Census, CBP, World Bank) */
   geoMarketData?: any | null;
   /** Regulatory intelligence profile */

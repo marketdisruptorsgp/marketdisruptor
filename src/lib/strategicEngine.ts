@@ -168,6 +168,12 @@ export interface StrategicAnalysisInput {
   businessAnalysisData: any | null;
   intelligence: SystemIntelligence | null;
   analysisType: "product" | "service" | "business_model";
+  /**
+   * All active engine modes — populated in multi-mode analyses.
+   * When present and length > 1, evidence is tagged per-schema-origin and
+   * the morphological engines blend priorities across all active modes.
+   */
+  activeModes?: ("product" | "service" | "business_model")[];
   analysisId: string;
   completedSteps: Set<string>;
   aiAlternatives?: import("@/lib/opportunityDesignEngine").DimensionAlternative[];
@@ -275,6 +281,7 @@ function collectEvidence(input: StrategicAnalysisInput): { structured: Record<Me
     businessAnalysisData: input.businessAnalysisData,
     intelligence: input.intelligence,
     analysisType: input.analysisType,
+    activeModes: input.activeModes,
     geoMarketData: input.geoMarketData,
     regulatoryData: input.regulatoryData,
   });
