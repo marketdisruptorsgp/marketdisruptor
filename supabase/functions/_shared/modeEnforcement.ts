@@ -240,14 +240,15 @@ export function resolveMode(
   return "product";
 }
 
-/**
- * Generate the mode enforcement prompt section for AI system prompts.
- */
-export function getModeGuardPrompt(mode: AnalysisMode): string {
-  const cap = MODE_CAPABILITIES[mode];
+// ── 7. Structural Dimension Definitions ──
 
-  const STRUCTURAL_DIMENSIONS: Record<AnalysisMode, string> = {
-    product: `
+/**
+ * Structural analysis dimension text for each mode.
+ * Extracted as a module-level constant so both single-mode and multi-mode
+ * guard prompts can reference them.
+ */
+export const STRUCTURAL_DIMENSIONS: Record<AnalysisMode, string> = {
+  product: `
 STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
   • Physical limits — material properties, form factor constraints, physics boundaries
   • Manufacturability — production complexity, tooling, supply chain feasibility
@@ -257,7 +258,7 @@ STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
 
 LEVERAGE DOMAIN: Valid leverage = artifact change or architecture change.
 Do NOT propose flow changes or value engine changes unless a constraint explicitly crosses layers.`,
-    service: `
+  service: `
 STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
   • Process flow — sequence of delivery steps, handoffs, wait states
   • Bottlenecks — capacity constraints, throughput limits, queuing effects
@@ -267,7 +268,7 @@ STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
 
 LEVERAGE DOMAIN: Valid leverage = delivery flow change.
 Do NOT propose artifact changes or value engine changes unless a constraint explicitly crosses layers.`,
-    business: `
+  business: `
 STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
   • Revenue mechanics — pricing model, transaction structure, value capture method
   • Cost structure — fixed vs variable, cost drivers, margin architecture
@@ -277,7 +278,13 @@ STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
 
 LEVERAGE DOMAIN: Valid leverage = value engine change.
 Do NOT propose artifact changes or flow changes unless a constraint explicitly crosses layers.`,
-  };
+};
+
+/**
+ * Generate the mode enforcement prompt section for AI system prompts.
+ */
+export function getModeGuardPrompt(mode: AnalysisMode): string {
+  const cap = MODE_CAPABILITIES[mode];
 
   return `
 ═══ MODE ENFORCEMENT: ${mode.toUpperCase()} ANALYSIS ═══
@@ -296,4 +303,85 @@ ANTI-DRIFT GUARDRAILS:
 • Cross-mode logic is prohibited
 • Every constraint must connect to: cost, time, adoption, scale, reliability, or risk
 `;
+}
+
+/**
+ * Generate a blended mode enforcement prompt for multi-mode analyses.
+ * When activeModes has >1 entry, combines required dimensions and intersects prohibited outputs.
+ */
+export function getMultiModeGuardPrompt(modes: AnalysisMode[]): string {
+  // Defensive guard: resolveActiveModes() never returns [] but this function is
+  // exported and may be called directly, so we handle the empty case safely.
+  if (modes.length === 0) return getModeGuardPrompt("product");
+  if (modes.length === 1) return getModeGuardPrompt(modes[0]);
+
+  // Multi-mode: blend the structural analysis dimensions from all modes
+  const modeLabels = modes.map((m) => m.toUpperCase()).join(" + ");
+
+  // Union all allowed domains across active modes
+  const allAllowed = [...new Set(modes.flatMap((m) => MODE_CAPABILITIES[m].allow))];
+
+  // Intersect blocked domains — only block what ALL active modes prohibit
+  const blockedByAll = modes
+    .map((m) => new Set(MODE_CAPABILITIES[m].block))
+    .reduce((acc, set) => new Set([...acc].filter((x) => set.has(x))));
+
+  return `
+═══ MULTI-MODE ANALYSIS: ${modeLabels} ═══
+
+This analysis blends ${modes.length} analytical lenses. Address dimensions from ALL active modes.
+
+ALLOWED DOMAINS (union across all active modes):
+${allAllowed.map((d) => `  ✓ ${d}`).join("\n")}
+
+BLOCKED DOMAINS (only what ALL active modes prohibit):
+${[...blockedByAll].map((d) => `  ✗ ${d}`).join("\n")}
+
+${modes.map((m) => {
+    return `--- ${m.toUpperCase()} DIMENSIONS ---${STRUCTURAL_DIMENSIONS[m]}`;
+  }).join("\n\n")}
+
+MULTI-MODE GUIDELINES:
+• Tag each insight with its primary mode (product/service/business)
+• Identify cross-mode synergies and tensions between dimensions
+• Each mode should receive proportional coverage based on relevance
+• When dimensions conflict across modes, explicitly flag the tension
+• Do NOT force-fit insights — if a mode has limited relevance, cover it briefly
+• LEVERAGE DOMAIN: Valid leverage can span artifact changes, flow changes, AND value engine changes
+
+OUTPUT VALIDATION:
+1. Which modes are active and why each applies
+2. Cross-mode tensions or synergies discovered
+3. Evidence supporting each conclusion
+4. How mode-blending changed the analysis vs single-mode
+`;
+}
+
+// ── 8. Active Mode Resolution ──
+
+/**
+ * Resolve activeModes from adaptiveContext, falling back to single resolveMode().
+ * Use this in edge functions to support multi-mode analyses when the client sends
+ * an adaptiveContext with multiple active modes.
+ */
+export function resolveActiveModes(
+  // deno-lint-ignore no-explicit-any
+  adaptiveContext: any | undefined,
+  frontendMode?: string,
+  category?: string,
+): AnalysisMode[] {
+  // If adaptiveContext has activeModes with >1 entry, use them
+  if (
+    adaptiveContext?.activeModes &&
+    Array.isArray(adaptiveContext.activeModes) &&
+    adaptiveContext.activeModes.length > 1
+  ) {
+    return adaptiveContext.activeModes.map((m: string) => {
+      if (m === "service") return "service" as AnalysisMode;
+      if (m === "business" || m === "business_model") return "business" as AnalysisMode;
+      return "product" as AnalysisMode;
+    });
+  }
+  // Fallback to single mode
+  return [resolveMode(frontendMode, category)];
 }

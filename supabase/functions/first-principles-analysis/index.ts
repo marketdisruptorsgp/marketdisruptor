@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
+import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt, getMultiModeGuardPrompt, resolveActiveModes } from "../_shared/modeEnforcement.ts";
 import { buildAdaptiveContextPrompt, extractAdaptiveContext } from "../_shared/adaptiveContext.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
@@ -7,7 +7,7 @@ import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { getGovernedSchemaPrompt, buildValidationObject } from "../_shared/governedSchema.ts";
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
-import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
+import { buildModeWeightingPrompt, buildMultiModeWeightingPrompt } from "../_shared/modeWeighting.ts";
 import { buildStructuredOutputTools, extractStructuredResponse, validateStructuredResponse, validateArrayMinimums } from "../_shared/structuredOutput.ts";
 import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 
@@ -33,6 +33,8 @@ serve(async (req) => {
     const combinedCtx = (isCombinedMode && activeBranch?.allHypotheses) ? extractCombinedBranches({ root_hypotheses: activeBranch.allHypotheses }) : null;
     const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null, combinedCtx);
     const mode = resolveMode(undefined, product.category);
+    const activeModes = resolveActiveModes(adaptiveCtx, undefined, product.category);
+    const isMultiMode = activeModes.length > 1;
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -40,8 +42,8 @@ serve(async (req) => {
     // ── Mode Data Filtering: strip blocked domains before AI call ──
     const filterResult = filterInputData(mode, product);
     const filteredProduct = filterResult.filtered;
-    console.log(`[ModeEnforcement] ${mode} mode | ${missingDataWarning(mode)}`);
-    const modeGuard = getModeGuardPrompt(mode);
+    console.log(`[ModeEnforcement] first-principles-analysis | ${isMultiMode ? activeModes.join("+") : mode} | multi=${isMultiMode}`);
+    const modeGuard = isMultiMode ? getMultiModeGuardPrompt(activeModes) : getModeGuardPrompt(mode);
 
     const OS_PREAMBLE = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
@@ -530,7 +532,7 @@ VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 2-3 action plans for highest-leverage interventions. Each must connect to a specific constraint.
 - Only generate visuals when structural causality is clear. Do not force visuals.
 
-Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${isMultiMode ? buildMultiModeWeightingPrompt(activeModes) : buildModeWeightingPrompt(mode)}`;
 
     // ── USER CURATION CONTEXT (for redesign mode) ──
     let curationPrompt = "";

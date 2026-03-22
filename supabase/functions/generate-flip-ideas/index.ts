@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { resolveMode, filterInputData, missingDataWarning } from "../_shared/modeEnforcement.ts";
+import { resolveMode, filterInputData, missingDataWarning, getModeGuardPrompt, getMultiModeGuardPrompt, resolveActiveModes } from "../_shared/modeEnforcement.ts";
 import { buildAdaptiveContextPrompt, extractAdaptiveContext } from "../_shared/adaptiveContext.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
@@ -23,9 +23,11 @@ serve(async (req) => {
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const ideaCount = count || 2;
     const mode = resolveMode(undefined, product.category);
+    const activeModes = resolveActiveModes(adaptiveCtx, undefined, product.category);
+    const isMultiMode = activeModes.length > 1;
     const filterResult = filterInputData(mode, product);
     const filteredProduct = filterResult.filtered as typeof product;
-    console.log(`[ModeEnforcement] flip-ideas | ${mode} | ${missingDataWarning(mode)}`);
+    console.log(`[ModeEnforcement] flip-ideas | ${isMultiMode ? activeModes.join("+") : mode} | multi=${isMultiMode}`);
     // Extract active branch for constraint-driven flip generation
     const isCombinedMode = !activeBranch?.active_branch_id || activeBranch?.active_branch_id === "combined";
     const branchCtx = (!isCombinedMode && activeBranch) ? extractActiveBranch(
@@ -265,9 +267,11 @@ You think in terms of:
 - REQUIRED diversity: at least one idea must attack the DISTRIBUTION or BUYER assumption, not just the physical product design`;
 
 
+    const modeGuard = isMultiMode ? getMultiModeGuardPrompt(activeModes) : getModeGuardPrompt(mode);
+
     const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
-${branchPrompt}${adaptivePrompt}
+${modeGuard}${branchPrompt}${adaptivePrompt}
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth

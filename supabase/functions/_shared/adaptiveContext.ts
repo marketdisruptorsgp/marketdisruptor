@@ -48,6 +48,13 @@ export interface AdaptiveContext {
   fallbackAssumptions?: string[];
   /** Clarification prompts for vague inputs — surfaced to user */
   clarificationPrompts?: string[];
+  /**
+   * Active analysis modes when the user has selected multiple modes.
+   * Values: "product" | "service" | "business" | "business_model"
+   * When present with >1 entry, edge functions will blend mode enforcement
+   * across all active modes instead of enforcing a single mode.
+   */
+  activeModes?: string[];
 }
 
 /**
