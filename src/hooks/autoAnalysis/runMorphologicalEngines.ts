@@ -136,6 +136,24 @@ export function runMorphologicalEngines(
       result.competitiveGaps = exploreNegativeSpace(flatEvidence, activeDims, 4);
     }
     console.log(`[StrategicEngines] Surfaced constraint inversions, second-order unlocks (${runMode} mode)`);
+
+    // ── Pipeline Trace: final morphological counts ──
+    try {
+      const { traceMorphological } = require("@/lib/pipelineTrace");
+      traceMorphological({
+        runMode,
+        evidenceCount: evidenceCount,
+        fullThreshold,
+        limitedThreshold,
+        zoneCount: result.zones.length,
+        vectorCount: result.vectors.length,
+        constraintInversionCount: result.constraintInversions.length,
+        secondOrderUnlockCount: result.secondOrderUnlocks.length,
+        temporalUnlockCount: result.temporalUnlocks.length,
+        competitiveGapCount: result.competitiveGaps.length,
+        degradedConfidence: result.degradedConfidence ?? false,
+      });
+    } catch (_) { /* trace not initialized */ }
   } catch (err) {
     console.warn("[StrategicEngines] Engine run failed:", err);
   }
