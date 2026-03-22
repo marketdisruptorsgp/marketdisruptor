@@ -100,14 +100,45 @@ export function startTrace(analysisId: string | null): PipelineTrace {
 }
 
 export function getTrace(): PipelineTrace | null {
-  return _currentTrace;
+  if (_currentTrace) return _currentTrace;
+  // Attempt to restore from sessionStorage (survives page reload within same tab)
+  try {
+    const key = sessionStorage.getItem("pipeline_trace_latest_key");
+    if (key) {
+      const raw = sessionStorage.getItem(key);
+      if (raw) {
+        _currentTrace = JSON.parse(raw) as PipelineTrace;
+        return _currentTrace;
+      }
+    }
+  } catch (_) { /* parse error or no sessionStorage */ }
+  return null;
 }
 
 export function completeTrace(): void {
   if (_currentTrace) {
     _currentTrace.completedAt = new Date().toISOString();
     console.log("[PipelineTrace] Completed:", _currentTrace.traceId);
+    // Persist to sessionStorage so it survives page reloads within the same tab
+    try {
+      const key = `pipeline_trace_${_currentTrace.analysisId ?? "unknown"}`;
+      sessionStorage.setItem(key, JSON.stringify(_currentTrace));
+      // Also store the latest key for quick lookup
+      sessionStorage.setItem("pipeline_trace_latest_key", key);
+    } catch (_) { /* sessionStorage quota — silently ignore */ }
   }
+}
+
+export function restoreTraceForAnalysis(analysisId: string): PipelineTrace | null {
+  try {
+    const key = `pipeline_trace_${analysisId}`;
+    const raw = sessionStorage.getItem(key);
+    if (raw) {
+      _currentTrace = JSON.parse(raw) as PipelineTrace;
+      return _currentTrace;
+    }
+  } catch (_) { /* parse error or no sessionStorage */ }
+  return null;
 }
 
 export function traceEdgeFunction(entry: EdgeFunctionTrace): void {
