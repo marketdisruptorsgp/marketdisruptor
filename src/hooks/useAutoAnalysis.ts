@@ -11,6 +11,7 @@
 
 import { useRef, useCallback, useMemo, useState } from "react";
 import type { Evidence } from "@/lib/evidenceEngine";
+import { startTrace, completeTrace } from "@/lib/pipelineTrace";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { isPipelineRunning } from "@/lib/pipelineSignal";
@@ -147,6 +148,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const thisRunId = ++runIdRef.current;
     setIsComputing(true);
     isComputingRef.current = true;
+
+    // Start pipeline trace for diagnostics
+    startTrace(analysisId);
 
     // Build system intelligence
     invalidateIntelligence(analysisId);
@@ -317,6 +321,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       })
       .finally(() => {
         clearTimeout(safetyTimer);
+        completeTrace();
         if (thisRunId === runIdRef.current) {
           setIsComputing(false);
           isComputingRef.current = false;

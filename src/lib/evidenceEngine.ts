@@ -1951,12 +1951,46 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
   const decomposition = tagEngine(extractDecompositionEvidence(input), "system_intelligence");
   const jtbd = tagEngine(extractJtbdEvidence(input), "system_intelligence");
 
+  // ── Pipeline Trace: extractor counts ──
+  const extractorCounts: Record<string, number> = {
+    opportunity: opportunity.length,
+    friction: friction.length,
+    constraint: constraint.length,
+    leverage: leverage.length,
+    risk: risk.length,
+    patent: patent.length,
+    supplyChain: supplyChain.length,
+    geo: geo.length,
+    regulatory: regulatory.length,
+    pricing: pricing.length,
+    decomposition: decomposition.length,
+    jtbd: jtbd.length,
+  };
+
   // Combine ALL items for cross-domain processing
   const allRaw = [...opportunity, ...friction, ...constraint, ...leverage, ...risk,
     ...patent, ...supplyChain, ...geo, ...regulatory, ...pricing, ...decomposition, ...jtbd];
 
   // Deduplication pass — merges duplicates across extractors and increments sourceCount
   const allDeduped = deduplicateEvidence(allRaw);
+
+  // ── Pipeline Trace: capture evidence extraction details ──
+  try {
+    const { traceEvidenceExtraction } = require("@/lib/pipelineTrace");
+    traceEvidenceExtraction({
+      extractorCounts,
+      evidenceLabels: allDeduped.map(e => ({
+        label: e.label,
+        type: e.type,
+        tier: e.tier,
+        mode: e.mode,
+        sourceEngine: e.sourceEngine,
+      })),
+      rawTotalBeforeDedup: allRaw.length,
+      dedupedTotal: allDeduped.length,
+      dedupLosses: allRaw.length - allDeduped.length,
+    });
+  } catch (_) { /* trace not initialized */ }
 
   // Confidence scoring across ALL items
   computeConfidenceScores(allDeduped);

@@ -95,6 +95,25 @@ export function runMorphologicalEngines(
       // Cap vectors in limited mode to reduce noise from thin evidence
       result.vectors = runMode === "limited" ? morphResult.vectors.slice(0, 3) : morphResult.vectors;
       console.log(`[Morphological] Auto-ran (${runMode}): ${result.vectors.length} vectors, ${result.zones.length} zones`);
+
+      // ── Pipeline Trace: morphological results ──
+      try {
+        const { traceMorphological } = require("@/lib/pipelineTrace");
+        traceMorphological({
+          runMode,
+          evidenceCount: evidenceCount,
+          fullThreshold,
+          limitedThreshold,
+          zoneCount: result.zones.length,
+          vectorCount: result.vectors.length,
+          constraintInversionCount: 0, // updated after inversions
+          secondOrderUnlockCount: 0,
+          temporalUnlockCount: 0,
+          competitiveGapCount: 0,
+          degradedConfidence: result.degradedConfidence ?? false,
+        });
+      } catch (_) { /* trace not initialized */ }
+
     } catch (err) {
       console.warn("[Morphological] Auto-run failed:", err);
     }
@@ -117,6 +136,24 @@ export function runMorphologicalEngines(
       result.competitiveGaps = exploreNegativeSpace(flatEvidence, activeDims, 4);
     }
     console.log(`[StrategicEngines] Surfaced constraint inversions, second-order unlocks (${runMode} mode)`);
+
+    // ── Pipeline Trace: final morphological counts ──
+    try {
+      const { traceMorphological } = require("@/lib/pipelineTrace");
+      traceMorphological({
+        runMode,
+        evidenceCount: evidenceCount,
+        fullThreshold,
+        limitedThreshold,
+        zoneCount: result.zones.length,
+        vectorCount: result.vectors.length,
+        constraintInversionCount: result.constraintInversions.length,
+        secondOrderUnlockCount: result.secondOrderUnlocks.length,
+        temporalUnlockCount: result.temporalUnlocks.length,
+        competitiveGapCount: result.competitiveGaps.length,
+        degradedConfidence: result.degradedConfidence ?? false,
+      });
+    } catch (_) { /* trace not initialized */ }
   } catch (err) {
     console.warn("[StrategicEngines] Engine run failed:", err);
   }

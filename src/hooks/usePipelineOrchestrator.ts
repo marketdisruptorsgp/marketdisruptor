@@ -8,6 +8,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
+import { startTrace, getTrace } from "@/lib/pipelineTrace";
 import { runPipelineStateMachine, type PipelineResult } from "./pipeline/runPipelineStateMachine";
 import { acquireKeepAlive, releaseKeepAlive } from "./pipeline/keepAlive";
 import { setPipelineRunning } from "@/lib/pipelineSignal";
@@ -148,6 +149,9 @@ export function usePipelineOrchestrator(
     setPipelineError(null);
     acquireKeepAlive();
     setStepTimings({});
+
+    // Ensure pipeline trace is started (may already exist from useAutoAnalysis)
+    if (!getTrace()) startTrace(analysisId);
 
     const ctx = buildCtx();
     const cb = buildCb();

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { traceEdgeFunction } from "@/lib/pipelineTrace";
 
 /**
  * Wraps supabase.functions.invoke with a client-side timeout and optional auto-retry.
@@ -51,6 +52,7 @@ export async function invokeWithTimeout<T = any>(
   for (let attempt = 0; attempt <= retries; attempt++) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const callStart = Date.now();
 
     try {
       const result = await Promise.race([
@@ -66,6 +68,18 @@ export async function invokeWithTimeout<T = any>(
       clearTimeout(timeoutId);
 
       const r = result as { data: T | null; error: any };
+
+      // Trace edge function call
+      traceEdgeFunction({
+        functionName,
+        calledAt: new Date(callStart).toISOString(),
+        durationMs: Date.now() - callStart,
+        status: r.error ? "error" : "success",
+        requestBodyKeys: options.body ? Object.keys(options.body) : [],
+        responseData: r.data,
+        error: r.error ? String(r.error?.message || r.error) : undefined,
+      });
+
       if (r.error && attempt < retries && isRetryable(r.error)) {
         lastError = r.error;
         console.warn(`[invokeWithTimeout] ${functionName} attempt ${attempt + 1} failed (retryable), retrying...`);
@@ -79,6 +93,18 @@ export async function invokeWithTimeout<T = any>(
     } catch (err) {
       clearTimeout(timeoutId);
       lastError = err;
+
+      // Trace timeout/error
+      traceEdgeFunction({
+        functionName,
+        calledAt: new Date(callStart).toISOString(),
+        durationMs: Date.now() - callStart,
+        status: "timeout",
+        requestBodyKeys: options.body ? Object.keys(options.body) : [],
+        responseData: null,
+        error: String((err as any)?.message || err),
+      });
+
       if (attempt < retries && isRetryable(err)) {
         console.warn(`[invokeWithTimeout] ${functionName} attempt ${attempt + 1} threw (retryable), retrying...`);
         await delay(Math.min(2000 * (attempt + 1), 6000));

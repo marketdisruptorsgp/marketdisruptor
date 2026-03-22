@@ -24,8 +24,9 @@ import { BreakthroughGrid, type OpportunityGridItem } from "@/components/strateg
 import { ActionDirective } from "@/components/strategic/ActionDirective";
 import { ReinventionIdeas, type FlippedIdeaItem } from "@/components/strategic/ReinventionIdeas";
 import { ActionPath } from "@/components/command-deck/ActionPath";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { downloadTrace, getTrace } from "@/lib/pipelineTrace";
 import { motion } from "framer-motion";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import type { OpportunityZone } from "@/lib/opportunityDesignEngine";
@@ -445,6 +446,18 @@ export default function CommandDeckPage() {
             Full Report
             <ArrowRight size={13} />
           </Button>
+          {getTrace() && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={downloadTrace}
+              className="gap-1.5 text-xs border-dashed"
+              title="Download full pipeline diagnostic trace as JSON"
+            >
+              <Download size={13} />
+              Pipeline Diagnostic
+            </Button>
+          )}
         </motion.div>
 
       </main>
