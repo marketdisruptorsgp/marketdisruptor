@@ -186,10 +186,19 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
   const leveragePoints = asyncResult.insights.filter(i => i.insightType === "leverage_point");
   const flat = asyncResult.flatEvidence;
 
-  if (constraints.length < 1 || flat.length < 18) {
-    console.log(`[Morphological] Skipping AI: ${constraints.length} constraints, ${flat.length} evidence`);
+  const evidenceCount = flat.length;
+  const hasSufficientConstraints = constraints.length >= 1;
+
+  if (!hasSufficientConstraints || evidenceCount < 5) {
+    console.log(`[Morphological] Skipping AI: ${constraints.length} constraints, ${evidenceCount} evidence`);
     return asyncOutput;
   }
+
+  // Tiered run mode based on evidence depth
+  const morphRunMode: "full" | "limited" | "inversions_only" =
+    evidenceCount >= 18 ? "full" : evidenceCount >= 10 ? "limited" : "inversions_only";
+
+  console.log(`[Morphological] Running in ${morphRunMode} mode (${evidenceCount} evidence items)`);
 
   // Build diagnostic context for mode-aware morphological search
   const morphContext = buildDiagnosticContext(input.analysisType, extractLensConfig(input.lensConfig as unknown as Record<string, unknown> | null));
@@ -197,14 +206,17 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
   // Run morphological search deterministically — no AI cost, <100ms
   let morphologicalZones: import("@/lib/opportunityDesignEngine").OpportunityZone[] = [];
   let morphologicalVectors: import("@/lib/opportunityDesignEngine").OpportunityVector[] = [];
-  try {
-    // Pass empty aiAlternatives — morphological search is purely deterministic (no AI cost)
-    const morphResult = runMorphologicalSearch(flat, constraints, leveragePoints, [], morphContext);
-    morphologicalZones = morphResult.zones;
-    morphologicalVectors = morphResult.vectors;
-    console.log(`[Morphological] Auto-ran: ${morphResult.vectors.length} vectors, ${morphResult.zones.length} zones`);
-  } catch (err) {
-    console.warn("[Morphological] Auto-run failed:", err);
+  if (morphRunMode === "full" || morphRunMode === "limited") {
+    try {
+      // Pass empty aiAlternatives — morphological search is purely deterministic (no AI cost)
+      const morphResult = runMorphologicalSearch(flat, constraints, leveragePoints, [], morphContext);
+      morphologicalZones = morphResult.zones;
+      // Cap vectors in limited mode
+      morphologicalVectors = morphRunMode === "limited" ? morphResult.vectors.slice(0, 3) : morphResult.vectors;
+      console.log(`[Morphological] Auto-ran (${morphRunMode}): ${morphologicalVectors.length} vectors, ${morphologicalZones.length} zones`);
+    } catch (err) {
+      console.warn("[Morphological] Auto-run failed:", err);
+    }
   }
 
   let aiAlternatives: DimensionAlternative[] | undefined;

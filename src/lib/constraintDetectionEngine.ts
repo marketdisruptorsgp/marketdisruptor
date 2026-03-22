@@ -679,6 +679,8 @@ export interface RankingFactors {
   evidenceQuality: number;
   networkCentrality: number;
   analogFrequency?: number;
+  /** Alignment with high-underservice JTBD jobs (0-1) */
+  jtbdAlignment?: number;
 }
 
 export interface ConstraintHypothesis {
@@ -805,6 +807,19 @@ export function detectConstraintHypotheses(
 
   // Layer 3: Counterfactual validation + probabilistic stack on top candidates
   const topCandidates = ranked.slice(0, 5);
+
+  // Pre-compute JTBD high-underservice evidence IDs for alignment scoring
+  const jtbdHighUnderserviceIds = new Set(
+    evidence
+      .filter(e =>
+        e.sourceEngine === "system_intelligence" &&
+        e.category === "demand_signal" &&
+        (e.impact ?? 0) >= 7,
+      )
+      .map(e => e.id),
+  );
+  const hasJtbdData = jtbdHighUnderserviceIds.size > 0;
+
   const hypotheses: ConstraintHypothesis[] = topCandidates.map((candidate, idx) => {
     const def = CONSTRAINT_BY_NAME.get(candidate.constraintName)!;
     const { impact, explanation: cfExplanation } = computeCounterfactualImpact(candidate, evidence);
@@ -814,10 +829,25 @@ export function detectConstraintHypotheses(
     const evidenceQuality = candidate.confidence === "strong" ? 1 : candidate.confidence === "moderate" ? 0.7 : 0.4;
     const networkCentrality = Math.min(1, impact / 20);
 
-    const rankingFactors: RankingFactors = { evidenceDensity, evidenceQuality, networkCentrality };
+    // Phase 4a: Compute JTBD alignment factor
+    // If constraint evidence overlaps with high-underservice JTBD demand signals, add bonus
+    let jtbdAlignment = 0;
+    if (hasJtbdData) {
+      const overlappingJtbd = candidate.evidenceIds.filter(id => jtbdHighUnderserviceIds.has(id)).length;
+      jtbdAlignment = Math.min(1, overlappingJtbd / Math.max(1, jtbdHighUnderserviceIds.size));
+    }
 
-    // Compute confidence interval
-    const point = (evidenceDensity * 0.4 + evidenceQuality * 0.35 + networkCentrality * 0.25);
+    const rankingFactors: RankingFactors = { evidenceDensity, evidenceQuality, networkCentrality, jtbdAlignment };
+
+    // Compute confidence interval — incorporate JTBD alignment when available
+    let point: number;
+    if (hasJtbdData) {
+      // With JTBD data: distribute weight to include jtbdAlignment factor
+      point = (evidenceDensity * 0.35 + evidenceQuality * 0.30 + networkCentrality * 0.20 + jtbdAlignment * 0.15);
+    } else {
+      // Without JTBD data: fall back to original weights
+      point = (evidenceDensity * 0.4 + evidenceQuality * 0.35 + networkCentrality * 0.25);
+    }
     const spread = (1 - evidenceQuality) * 0.15; // Lower quality = wider interval
     const confidenceInterval: ConfidenceInterval = {
       point,

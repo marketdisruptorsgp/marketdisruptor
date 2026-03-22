@@ -93,6 +93,8 @@ export interface Evidence {
   archetypeScores?: { operator?: number; eta?: number; rollup?: number; venture?: number; bootstrapped?: number };
   /** Domain-specific structured metadata (Phase 1: constraint-first reasoning) */
   facets?: import("@/lib/evidenceFacets").EvidenceFacets;
+  /** Provenance: distinguishes AI-generated from engine-validated or user-provided evidence */
+  provenanceTag?: "engine_validated" | "ai_generated" | "user_provided" | "rescued";
 }
 
 export type MetricDomain = "opportunity" | "friction" | "constraint" | "leverage" | "risk";
@@ -117,6 +119,13 @@ let eid = 0;
 function makeId(prefix: string): string {
   return `${prefix}-${++eid}`;
 }
+
+/**
+ * JTBD solution quality threshold below which a job becomes friction evidence.
+ * Scale is 1-10; scores ≤ this value indicate poor current solutions and
+ * represent a friction/pain-point rather than a satisfied demand signal.
+ */
+const JTBD_FRICTION_QUALITY_THRESHOLD = 4;
 
 function autoTier(label: string, description?: string, fallback: EvidenceTier = "optimization"): EvidenceTier {
   const text = `${label} ${description || ""}`;
@@ -959,6 +968,271 @@ function extractPricingEvidence(input: EvidenceInput): Evidence[] {
   return items;
 }
 
+/**
+ * Phase 1a: Extract individual evidence items from the structural decomposition blob.
+ * The decomposition engine returns a rich object with functional components, technology
+ * primitives, physical constraints, system dynamics, and leverage analysis — each
+ * containing discrete data points that should feed the evidence pool separately.
+ */
+function extractDecompositionEvidence(input: EvidenceInput): Evidence[] {
+  const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
+  const decomp = (input.disruptData as any)?.structuralDecomposition
+    ?? (input.disruptData as any)?.decomposition
+    ?? (input.disruptData as any)?.structuralAnalysis;
+  if (!decomp) return items;
+
+  // Functional components → constraint evidence
+  safeArr(decomp.functionalComponents || decomp.components).forEach((fc: any, i: number) => {
+    const label = fc.name || fc.label || fc.component || `Functional Component ${i + 1}`;
+    const desc = fc.description || fc.purpose || fc.role;
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-fc"),
+        type: "constraint",
+        label,
+        description: desc,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: fc.criticalityScore ?? fc.criticality ?? 6,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Technology primitives → signal evidence
+  safeArr(decomp.technologyPrimitives || decomp.technologies || decomp.techStack).forEach((tp: any, i: number) => {
+    const label = typeof tp === "string" ? tp : (tp.name || tp.label || tp.primitive || `Technology Primitive ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-tp"),
+        type: "signal",
+        label,
+        description: typeof tp === "object" ? (tp.description || tp.role) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: typeof tp === "object" ? (tp.maturityScore ?? tp.maturity ?? 5) : 5,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "technology_dependency",
+      });
+    }
+  });
+
+  // Physical constraints → constraint evidence (derived from bindingStrength)
+  safeArr(decomp.physicalConstraints || decomp.engineeringConstraints).forEach((pc: any, i: number) => {
+    const label = typeof pc === "string" ? pc : (pc.name || pc.label || pc.constraint || `Physical Constraint ${i + 1}`);
+    const bindingStrength = typeof pc === "object" ? (pc.bindingStrength ?? pc.severity ?? 7) : 7;
+    const challengeable = typeof pc === "object" ? (pc.challengeable ?? pc.breakable ?? true) : true;
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-pc"),
+        type: "constraint",
+        label,
+        description: typeof pc === "object" ? (pc.description || pc.explanation) : undefined,
+        pipelineStep: "disrupt",
+        tier: "structural",
+        impact: Math.min(10, Math.max(1, bindingStrength)),
+        confidenceScore: challengeable ? 0.6 : 0.9,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "operational_dependency",
+      });
+    }
+  });
+
+  // Cost drivers → friction evidence
+  safeArr(decomp.costDrivers || decomp.primaryCostDrivers).forEach((cd: any, i: number) => {
+    const label = typeof cd === "string" ? cd : (cd.name || cd.label || cd.driver || `Cost Driver ${i + 1}`);
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId("decomp-cd"),
+        type: "friction",
+        label,
+        description: typeof cd === "object" ? (cd.description || cd.mechanism) : undefined,
+        pipelineStep: "disrupt",
+        tier: "optimization",
+        impact: typeof cd === "object" ? (cd.costWeight ?? cd.impact ?? 5) : 5,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "cost_structure",
+      });
+    }
+  });
+
+  // System dynamics: feedback loops → signal evidence
+  const sysDyn = decomp.systemDynamics || decomp.dynamics;
+  if (sysDyn) {
+    safeArr(sysDyn.feedbackLoops || sysDyn.loops).forEach((fl: any, i: number) => {
+      const label = typeof fl === "string" ? fl : (fl.name || fl.label || fl.loop || `Feedback Loop ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-fl"),
+          type: "signal",
+          label,
+          description: typeof fl === "object" ? (fl.description || fl.mechanism) : undefined,
+          pipelineStep: "disrupt",
+          tier: "system",
+          impact: typeof fl === "object" ? (fl.amplificationFactor ?? fl.impact ?? 5) : 5,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "operational_dependency",
+        });
+      }
+    });
+
+    // Failure modes → friction evidence
+    safeArr(sysDyn.failureModes || sysDyn.failures).forEach((fm: any, i: number) => {
+      const label = typeof fm === "string" ? fm : (fm.name || fm.label || fm.mode || `Failure Mode ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-fm"),
+          type: "friction",
+          label,
+          description: typeof fm === "object" ? (fm.description || fm.cause) : undefined,
+          pipelineStep: "disrupt",
+          tier: "structural",
+          impact: typeof fm === "object" ? (fm.probability ?? fm.severity ?? 6) : 6,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "operational_dependency",
+        });
+      }
+    });
+
+    // Bottlenecks → friction evidence
+    safeArr(sysDyn.bottlenecks || sysDyn.constraints).forEach((bn: any, i: number) => {
+      const label = typeof bn === "string" ? bn : (bn.name || bn.label || bn.bottleneck || `Bottleneck ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-bn"),
+          type: "friction",
+          label,
+          description: typeof bn === "object" ? (bn.description || bn.impact) : undefined,
+          pipelineStep: "disrupt",
+          tier: "system",
+          impact: typeof bn === "object" ? (bn.severity ?? bn.impact ?? 7) : 7,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "operational_dependency",
+        });
+      }
+    });
+
+    // Control points → constraint evidence
+    safeArr(sysDyn.controlPoints || sysDyn.leverPoints).forEach((cp: any, i: number) => {
+      const label = typeof cp === "string" ? cp : (cp.name || cp.label || cp.point || `Control Point ${i + 1}`);
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-cp"),
+          type: "constraint",
+          label,
+          description: typeof cp === "object" ? (cp.description || cp.mechanism) : undefined,
+          pipelineStep: "disrupt",
+          tier: "system",
+          impact: typeof cp === "object" ? (cp.controlStrength ?? cp.impact ?? 6) : 6,
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "operational_dependency",
+        });
+      }
+    });
+  }
+
+  // Leverage analysis: leverage primitives → leverage evidence
+  const levAnalysis = decomp.leverageAnalysis || decomp.leverage;
+  if (levAnalysis) {
+    safeArr(levAnalysis.leveragePrimitives || levAnalysis.primitives || levAnalysis.levers).forEach((lp: any, i: number) => {
+      const label = typeof lp === "string" ? lp : (lp.name || lp.label || lp.primitive || `Leverage Primitive ${i + 1}`);
+      const leverageScore = typeof lp === "object" ? (lp.leverageScore ?? lp.score ?? 5) : 5;
+      const tier: EvidenceTier = leverageScore >= 7 ? "structural" : "optimization";
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("decomp-lp"),
+          type: "leverage",
+          label,
+          description: typeof lp === "object" ? (lp.description || lp.mechanism) : undefined,
+          pipelineStep: "redesign",
+          tier,
+          impact: Math.min(10, Math.max(1, leverageScore)),
+          mode,
+          sourceEngine: "system_intelligence",
+          provenanceTag: "ai_generated",
+          category: "operational_dependency",
+        });
+      }
+    });
+  }
+
+  return items;
+}
+
+/**
+ * Phase 1b: Extract evidence from the JTBD (Jobs-to-Be-Done) engine output.
+ * Converts each JTBD job into demand or friction evidence based on
+ * currentSolutionQuality and evidenceStrength.
+ */
+function extractJtbdEvidence(input: EvidenceInput): Evidence[] {
+  const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
+
+  // JTBD data can live in disruptData.jtbdProfile, disruptData.jtbd, or disruptData directly
+  const jtbd = (input.disruptData as any)?.jtbdProfile
+    ?? (input.disruptData as any)?.jtbd
+    ?? (input.disruptData as any)?.jobsToBeDone;
+  if (!jtbd) return items;
+
+  const processJob = (job: any, jobCategory: "functional" | "emotional" | "social", index: number) => {
+    if (!job) return;
+    const label = job.job || job.label || job.description || job.name || `${jobCategory} Job ${index + 1}`;
+    const solutionQuality = job.currentSolutionQuality ?? job.solutionQuality ?? job.quality ?? 5;
+    const evidenceStrength = job.evidenceStrength ?? job.strength ?? 5;
+    const underserviceScore = job.underserviceScore ?? job.underservice ?? (10 - solutionQuality);
+    // Poor solution quality → friction evidence; good quality → demand signal
+    const type: EvidenceType = solutionQuality <= JTBD_FRICTION_QUALITY_THRESHOLD ? "friction" : "signal";
+    const impact = Math.min(10, Math.max(1, Math.round(evidenceStrength)));
+
+    if (!items.some(e => e.label === label)) {
+      items.push({
+        id: makeId(`jtbd-${jobCategory.slice(0, 3)}`),
+        type: type as EvidenceType,
+        label,
+        description: job.context || job.rationale || `${jobCategory} job: ${label}`,
+        pipelineStep: "report",
+        tier: autoTier(label, job.context, "system"),
+        impact,
+        mode,
+        sourceEngine: "system_intelligence",
+        provenanceTag: "ai_generated",
+        category: "demand_signal",
+      });
+    }
+  };
+
+  // Process functional, emotional, and social jobs
+  safeArr(jtbd.functionalJobs || jtbd.functional).forEach((j: any, i: number) => processJob(j, "functional", i));
+  safeArr(jtbd.emotionalJobs || jtbd.emotional).forEach((j: any, i: number) => processJob(j, "emotional", i));
+  safeArr(jtbd.socialJobs || jtbd.social).forEach((j: any, i: number) => processJob(j, "social", i));
+
+  // Some schemas use a flat `jobs` array with a `type` field
+  safeArr(jtbd.jobs).forEach((j: any, i: number) => {
+    const jobType = j.type || j.category || "functional";
+    processJob(j, jobType as "functional" | "emotional" | "social", i);
+  });
+
+  return items;
+}
+
 function extractRiskEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
   const mode = inferMode(input.analysisType);
@@ -1207,10 +1481,12 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
   const geo = tagEngine(extractGeoMarketEvidence(input), "geo_market");
   const regulatory = tagEngine(extractRegulatoryEvidence(input), "pipeline");
   const pricing = tagEngine(extractPricingEvidence(input), "pipeline");
+  const decomposition = tagEngine(extractDecompositionEvidence(input), "system_intelligence");
+  const jtbd = tagEngine(extractJtbdEvidence(input), "system_intelligence");
 
   // Combine ALL items for cross-domain processing
   const allRaw = [...opportunity, ...friction, ...constraint, ...leverage, ...risk,
-    ...patent, ...supplyChain, ...geo, ...regulatory, ...pricing];
+    ...patent, ...supplyChain, ...geo, ...regulatory, ...pricing, ...decomposition, ...jtbd];
 
   // Deduplication pass — merges duplicates across extractors and increments sourceCount
   const allDeduped = deduplicateEvidence(allRaw);

@@ -216,6 +216,7 @@ export function MorphologicalExplorerPanel({
   const [selectedVectorIds, setSelectedVectorIds] = useState<Set<string>>(new Set());
   const [dismissedVectorIds, setDismissedVectorIds] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<"vectors" | "zwicky">("vectors");
+  const [evidenceCount, setEvidenceCount] = useState<number>(0);
 
   const runExploration = useCallback(async () => {
     setIsRunning(true);
@@ -241,6 +242,7 @@ export function MorphologicalExplorerPanel({
         intelligence: null,
       });
       const flatEv = flattenEvidence(evidenceMap);
+      setEvidenceCount(flatEv.length);
 
       if (flatEv.length < 5) {
         setError("Not enough evidence to explore the design space. Run the full analysis first.");
@@ -445,8 +447,39 @@ export function MorphologicalExplorerPanel({
   const blockedCount = result?.blockedVectors.length ?? 0;
   const zwickyRows = result?.zwickyBoxRows ?? [];
 
+  // Check for rescued or degraded state: rescued if governed data has _rescued flag,
+  // or if evidence count is below full analysis threshold (18)
+  const governedData = analysis.governedData as Record<string, unknown> | null;
+  const isRescued = !!(governedData as any)?._rescued;
+  const isDegraded = evidenceCount > 0 && evidenceCount < 18;
+
   return (
     <div className="mt-4 space-y-3">
+      {/* Preliminary analysis banner — shown when evidence is limited or output was rescued */}
+      {(isRescued || isDegraded) && (
+        <div
+          className="rounded-lg px-3 py-2.5 flex items-start gap-2"
+          style={{
+            background: "hsl(38 92% 50% / 0.1)",
+            border: "1px solid hsl(38 92% 50% / 0.4)",
+          }}
+        >
+          <AlertTriangle size={13} className="shrink-0 mt-0.5" style={{ color: "hsl(38 92% 50%)" }} />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold" style={{ color: "hsl(38 92% 40%)" }}>
+              Preliminary Analysis — Based on limited evidence
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+              Add more data to unlock engine-validated insights.
+              {evidenceCount > 0 && (
+                <> Evidence: <span className="font-semibold">{evidenceCount}/18</span> needed for full morphological analysis.</>
+              )}
+              {isRescued && <> Results were AI-generated to fill evidence gaps.</>}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div
         className="rounded-xl px-4 py-3 flex items-center justify-between"
