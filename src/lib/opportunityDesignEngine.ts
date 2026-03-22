@@ -96,6 +96,8 @@ export interface OpportunityVector {
   surfaceId?: string;
   /** Constraint hypothesis that generated this vector (Phase 1) */
   constraintHypothesisId?: string;
+  /** IDs of JTBD jobs that this vector addresses, if the constraint basis maps to demand signals */
+  addressesJobs?: string[];
 }
 
 export interface OpportunityZone {
@@ -1179,6 +1181,23 @@ export function runMorphologicalSearch(
 
   // Stage 6: Detect interactions between qualified vectors
   const vectorInteractions = detectInteractions(qualifiedVectors);
+
+  // Phase 4b: Tag vectors with JTBD job references
+  // Find JTBD demand evidence items (from JTBD engine, demand_signal category)
+  const jtbdJobEvidence = flatEvidence.filter(e =>
+    e.sourceEngine === "system_intelligence" &&
+    e.category === "demand_signal",
+  );
+  if (jtbdJobEvidence.length > 0) {
+    for (const vector of qualifiedVectors) {
+      const addressedJobIds = jtbdJobEvidence
+        .filter(je => vector.evidenceIds.includes(je.id))
+        .map(je => je.id);
+      if (addressedJobIds.length > 0) {
+        vector.addressesJobs = addressedJobIds;
+      }
+    }
+  }
 
   // Stage 7: Cluster into zones
   const zones = clusterIntoZones(qualifiedVectors);

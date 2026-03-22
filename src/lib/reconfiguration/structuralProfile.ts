@@ -69,6 +69,12 @@ export interface StructuralProfile {
   evidenceDepth: number;
   /** Categories of evidence that contributed */
   evidenceCategories: string[];
+  /**
+   * Per-dimension inference confidence (0–1).
+   * Higher values mean more keyword evidence was found supporting the classification.
+   * Only present when at least some signal was detected.
+   */
+  dimensionConfidence?: Record<string, number>;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -85,6 +91,27 @@ export interface DiagnosisLensConfig {
   risk_tolerance?: string;
   constraints?: string;
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  CONFIDENCE SCORING CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * When a matching constraint is detected (via CONSTRAINT_TAXONOMY), it contributes
+ * a bonus equivalent to this many keyword hits — treating detected constraints as
+ * strong evidence of the dimension's classification.
+ */
+const CONSTRAINT_MATCH_BONUS = 3;
+
+/**
+ * Number of keyword hits (or hit-equivalents) needed to reach confidence = 1.0.
+ * Dimensions with more distinct keywords use a higher normalizer (e.g., laborIntensity = 6)
+ * to prevent a single strong signal from saturating confidence prematurely.
+ */
+const CONFIDENCE_NORMALIZER_DEFAULT = 5;
+const CONFIDENCE_NORMALIZER_LABOR = 6; // labor/automation has more distinct keywords
+const CONFIDENCE_NORMALIZER_CONCENTRATION = 4; // fewer relevant terms
+const CONFIDENCE_NORMALIZER_ASSET = 4;
 
 /**
  * Build a StructuralProfile from the evidence dataset and detected constraints.
@@ -115,6 +142,22 @@ export function diagnoseStructuralProfile(
     valueChainPosition: inferValueChainPosition(corpus),
   };
 
+  // Compute per-dimension inference confidence based on keyword hit density.
+  // confidence = min(1, (keywordHits + constraintBonus) / normalizer)
+  const constraintBonus = (detected: boolean) => detected ? CONSTRAINT_MATCH_BONUS : 0;
+  const dimensionConfidence: Record<string, number> = {
+    supplyFragmentation: Math.min(1, (hits(corpus, /fragment|scatter|many\s*small|independ|cottage|dispersed|niche\s*player|local\s*shop|consolidat|monopol|dominant|oligopol|market\s*leader|incumbent/g) + constraintBonus(constraintNames.has("supply_fragmentation"))) / CONFIDENCE_NORMALIZER_DEFAULT),
+    marginStructure: Math.min(1, (hits(corpus, /thin\s*margin|low\s*margin|razor|commod|price\s*war|race\s*to\s*bottom|high\s*margin|premium|luxury|pricing\s*power|monopol/g) + constraintBonus(constraintNames.has("margin_compression") || constraintNames.has("commoditized_pricing"))) / CONFIDENCE_NORMALIZER_DEFAULT),
+    switchingCosts: Math.min(1, (hits(corpus, /lock.?in|switching\s*cost|contract|stickiness|integrat|embed|easy\s*to\s*switch|no\s*contract|plug.?and.?play|interchange/g) + constraintBonus(constraintNames.has("switching_friction") || constraintNames.has("legacy_lock_in"))) / CONFIDENCE_NORMALIZER_DEFAULT),
+    distributionControl: Math.min(1, (hits(corpus, /direct\s*sales|own\s*channel|dtc|direct.?to.?consumer|proprietary\s*channel|intermediar|broker|dealer|reseller|wholesal|distributor|agent|middl/g) + constraintBonus(constraintNames.has("channel_dependency"))) / CONFIDENCE_NORMALIZER_DEFAULT),
+    laborIntensity: Math.min(1, (hits(corpus, /manual|hand.?craft|bespoke|custom|artisan|labor|hourly|consult|hands.?on|billable|utilization|automat|software|algorithm|self.?serv|digital|platform|scalable/g) + constraintBonus(constraintNames.has("labor_intensity") || constraintNames.has("owner_dependency") || constraintNames.has("manual_process") || constraintNames.has("skill_scarcity"))) / CONFIDENCE_NORMALIZER_LABOR),
+    revenueModel: Math.min(1, (hits(corpus, /subscript|recurring|mrr|arr|monthly|annual\s*fee|retention|retainer|one.?time|transact|project.?based|per.?unit|spot|episod|per.?job|per.?engagement/g) + constraintBonus(constraintNames.has("transactional_revenue"))) / CONFIDENCE_NORMALIZER_DEFAULT),
+    customerConcentration: Math.min(1, (hits(corpus, /concentrat|single\s*client|key\s*account|whale|top\s*customer|few\s*clients/g) + constraintBonus(constraintNames.has("revenue_concentration"))) / CONFIDENCE_NORMALIZER_CONCENTRATION),
+    assetUtilization: Math.min(1, (hits(corpus, /idle|underutil|excess\s*capacity|empty|unused|dead\s*asset/g) + constraintBonus(constraintNames.has("asset_underutilization") || constraintNames.has("capacity_ceiling"))) / CONFIDENCE_NORMALIZER_ASSET),
+    regulatorySensitivity: Math.min(1, (hits(corpus, /regulat|compliance|licens|permit|fda|hipaa|legal|certif/g) + constraintBonus(constraintNames.has("regulatory_barrier"))) / CONFIDENCE_NORMALIZER_DEFAULT),
+    valueChainPosition: Math.min(1, hits(corpus, /infrastructure|utility|commodity|raw\s*material|supply|backbone|platform|marketplace|ecosystem|api|developer|integration|service|consult|agency|deliver|custom\s*work|bespoke/g) / CONFIDENCE_NORMALIZER_DEFAULT),
+  };
+
   return {
     ...baseProfile,
     ownerDependency: isEta ? inferOwnerDependency(corpus, constraintNames, baseProfile) : null,
@@ -124,6 +167,7 @@ export function diagnoseStructuralProfile(
     bindingConstraints: constraints.slice(0, 3),
     evidenceDepth: evidence.length,
     evidenceCategories: categories,
+    dimensionConfidence,
   };
 }
 
