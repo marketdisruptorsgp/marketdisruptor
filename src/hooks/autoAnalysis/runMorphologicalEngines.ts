@@ -10,6 +10,7 @@ import type { ConstraintInversion } from "@/lib/constraintInverter";
 import type { SecondOrderUnlock } from "@/lib/secondOrderEngine";
 import type { TemporalUnlock } from "@/lib/temporalArbitrageEngine";
 import type { CompetitiveGap } from "@/lib/negativeSpaceEngine";
+import type { InnovationMode } from "@/lib/modeIntelligence";
 import {
   runMorphologicalSearch,
   extractBaseline,
@@ -45,6 +46,8 @@ export function runMorphologicalEngines(
   insights: StrategicInsight[],
   analysisMode: "product" | "service" | "business_model",
   lensConfig: Record<string, unknown> | null,
+  /** All active engine modes — populated in multi-mode analyses */
+  activeModes?: InnovationMode[],
 ): MorphologicalResult {
   const result: MorphologicalResult = {
     zones: [],
@@ -63,12 +66,26 @@ export function runMorphologicalEngines(
   // Hard minimum: need at least 1 constraint and 5 evidence items
   if (!hasSufficientConstraints || evidenceCount < 5) return result;
 
+  // Scale evidence thresholds by the number of active modes.
+  // Multi-mode evidence is spread across schemas so the per-mode density
+  // is lower — raise the floor to avoid false "full confidence" with thin coverage.
+  const modeCount = activeModes && activeModes.length > 1 ? activeModes.length : 1;
+  const fullThreshold  = 18 + (modeCount - 1) * 8;  // 18 → 26 → 34
+  const limitedThreshold = 10 + (modeCount - 1) * 4; // 10 → 14 → 18
+
   // Tiered run mode based on evidence depth
-  const runMode: MorphRunMode = evidenceCount >= 18 ? "full" : evidenceCount >= 10 ? "limited" : "inversions_only";
+  const runMode: MorphRunMode = evidenceCount >= fullThreshold ? "full"
+    : evidenceCount >= limitedThreshold ? "limited"
+    : "inversions_only";
   result.runMode = runMode;
   result.degradedConfidence = runMode !== "full";
 
-  const morphDiagnosticContext = buildDiagnosticContext(analysisMode, extractLensConfig(lensConfig));
+  // Build a blended DiagnosticContext that carries all active modes
+  const morphDiagnosticContext = buildDiagnosticContext(
+    analysisMode,
+    extractLensConfig(lensConfig),
+    activeModes && activeModes.length > 1 ? activeModes : undefined,
+  );
 
   // Full and limited modes run morphological search
   if (runMode === "full" || runMode === "limited") {

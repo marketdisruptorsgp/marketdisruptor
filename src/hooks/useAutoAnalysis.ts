@@ -39,6 +39,8 @@ import { type SecondOrderUnlock } from "@/lib/secondOrderEngine";
 import { type TemporalUnlock } from "@/lib/temporalArbitrageEngine";
 import { type CompetitiveGap } from "@/lib/negativeSpaceEngine";
 import { extractLensConfig } from "@/lib/diagnosticContext";
+import { expandMultiMode } from "@/lib/modeIntelligence";
+import type { InnovationMode } from "@/lib/modeIntelligence";
 
 // Decomposed modules
 import { type AutoAnalysisResult, type EngineSetters } from "./autoAnalysis/types";
@@ -117,6 +119,25 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     return "product" as const;
   }, [(analysis as any).activeMode]);
 
+  /**
+   * In multi-mode, derive all active engine modes from adaptiveContext.activeModes
+   * (set by the adaptive context engine when the user selects multiple modes).
+   * Falls back to the single analysisMode for backwards compatibility.
+   */
+  const activeModes = useMemo((): InnovationMode[] => {
+    const rawActiveModes: string[] | undefined = (analysis as any).adaptiveContext?.activeModes;
+    if (rawActiveModes && rawActiveModes.length > 1) {
+      // Convert frontend mode strings → engine InnovationMode, dedupe, preserve order
+      const mapped = rawActiveModes.flatMap(m => expandMultiMode(m));
+      return [...new Set(mapped)] as InnovationMode[];
+    }
+    // Single-mode or no adaptive context — expand from the current activeMode
+    const mode = (analysis as any).activeMode as string | undefined;
+    const expanded = expandMultiMode(mode);
+    // Only use expanded array if it contains more than one mode
+    return expanded.length > 1 ? expanded : [analysisMode];
+  }, [(analysis as any).activeMode, (analysis as any).adaptiveContext?.activeModes, analysisMode]);
+
   // ── Core recompute function ──
   const runAnalysis = useCallback(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
@@ -158,6 +179,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       products, selectedProduct, disruptData, redesignData,
       stressTestData, pitchDeckData, governedData, businessAnalysisData,
       intelligence: newIntelligence, analysisType: analysisMode,
+      activeModes: activeModes.length > 1 ? activeModes : undefined,
       analysisId, completedSteps,
       geoMarketData: geoData, regulatoryData, lensConfig, biExtraction,
       suppressAIDeepening: isPipelineRunning(),
@@ -191,6 +213,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         result.insights ?? [],
         analysisMode,
         lensConfig as Record<string, unknown> | null,
+        activeModes.length > 1 ? activeModes : undefined,
       );
       setMorphologicalZones(morphResult.zones);
       setMorphologicalVectors(morphResult.vectors);

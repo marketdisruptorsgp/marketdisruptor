@@ -195,6 +195,40 @@ export function toCardId(engine: InnovationMode): string {
   return engine; // product → product, service → service
 }
 
+// ── Multi-Mode Expansion ──
+
+/**
+ * Expand any mode string (including "multi" / "all") into an ordered array
+ * of engine-layer InnovationMode values.
+ *
+ * - Single modes → single-element array (backwards compatible)
+ * - "multi" / "all" / unrecognised → all three modes in plan order when
+ *   problemText is provided, otherwise the full set as a fallback
+ */
+export function expandMultiMode(
+  mode: string | null | undefined,
+  problemText?: string,
+): InnovationMode[] {
+  switch (mode) {
+    case "product":
+    case "custom":
+      return ["product"];
+    case "service":
+      return ["service"];
+    case "business":
+    case "business_model":
+      return ["business_model"];
+    default: {
+      // "multi", "all", or any unrecognised string → multi-mode
+      if (problemText) {
+        const plan = createAnalysisPlan(problemText);
+        return plan.executionOrder;
+      }
+      return ["product", "service", "business_model"];
+    }
+  }
+}
+
 // ── Master Entry Point ──
 
 export function analyzeProblem(problem: string) {

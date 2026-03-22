@@ -24,11 +24,14 @@ export type { LensConfig };
 /**
  * The canonical context object passed to every diagnostic / opportunity engine.
  *
- * `mode`  — engine-layer mode ("product" | "service" | "business_model")
- * `lens`  — structural lens config (null = default weights)
+ * `mode`        — primary engine-layer mode (kept for backwards compat)
+ * `activeModes` — ordered list of all active modes; populated in multi-mode
+ * `lens`        — structural lens config (null = default weights)
  */
 export interface DiagnosticContext {
   mode: InnovationMode;
+  /** All active modes — length > 1 in multi-mode, single entry in single-mode */
+  activeModes?: InnovationMode[];
   lens: LensConfig | null;
 }
 
@@ -45,13 +48,22 @@ export const DEFAULT_DIAGNOSTIC_CONTEXT: DiagnosticContext = {
 /**
  * Build a DiagnosticContext from the frontend AnalysisMode and an optional
  * UserLens-like object. This is called in AnalysisContext and hooks.
+ *
+ * When `activeModes` is provided (multi-mode path), `mode` is set to the
+ * first active mode for backwards-compat while `activeModes` carries the
+ * full list.
  */
 export function buildDiagnosticContext(
   frontendMode: FrontendMode | string | null | undefined,
   lens: LensConfig | null | undefined,
+  activeModes?: InnovationMode[],
 ): DiagnosticContext {
+  const primaryMode = activeModes && activeModes.length > 0
+    ? activeModes[0]
+    : toEngineMode(frontendMode);
   return {
-    mode: toEngineMode(frontendMode),
+    mode: primaryMode,
+    activeModes: activeModes && activeModes.length > 1 ? activeModes : undefined,
     lens: lens ?? null,
   };
 }
@@ -153,12 +165,19 @@ export function extractLensConfig(lens: Record<string, unknown> | null | undefin
 }
 /**
  * Get the dimension priority weight for a given evidence category + mode.
+ * In multi-mode, returns the **max** weight across all active modes so that
+ * no dimension is suppressed relative to its most relevant mode.
  * Returns 1.0 if not specified.
  */
 export function getDimensionPriority(
   category: string,
   context: DiagnosticContext,
 ): number {
+  if (context.activeModes && context.activeModes.length > 1) {
+    return Math.max(
+      ...context.activeModes.map(m => MODE_DIMENSION_PRIORITIES[m]?.[category] ?? 1.0),
+    );
+  }
   return MODE_DIMENSION_PRIORITIES[context.mode]?.[category] ?? 1.0;
 }
 
@@ -202,12 +221,18 @@ export const MODE_CONSTRAINT_CATEGORY_BOOSTS: Record<
 
 /**
  * Get the constraint category boost for a given category + mode.
+ * In multi-mode, returns the **max** boost across all active modes.
  * Returns 1.0 if not found.
  */
 export function getConstraintCategoryBoost(
   category: string,
   context: DiagnosticContext,
 ): number {
+  if (context.activeModes && context.activeModes.length > 1) {
+    return Math.max(
+      ...context.activeModes.map(m => MODE_CONSTRAINT_CATEGORY_BOOSTS[m]?.[category] ?? 1.0),
+    );
+  }
   return MODE_CONSTRAINT_CATEGORY_BOOSTS[context.mode]?.[category] ?? 1.0;
 }
 
