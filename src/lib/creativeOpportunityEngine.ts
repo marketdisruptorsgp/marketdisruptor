@@ -474,7 +474,7 @@ function findBestAnalogy(
     // Structural profile match
     if (profile) {
       for (const signal of analogy.structuralSignals) {
-        const val = (profile as Record<string, unknown>)[signal];
+        const val = (profile as unknown as Record<string, unknown>)[signal];
         if (val && typeof val === "string") {
           const valStr = val.replace(/_/g, " ");
           if (haystack.includes(valStr)) score += 1;

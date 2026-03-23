@@ -180,11 +180,6 @@ function StepRow({ step, isLast }: { step: PipelineStep; isLast: boolean }) {
           </motion.div>
         )}
       </AnimatePresence>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       {!isLast && (
         <div className="flex justify-center py-1">
           <ArrowDown className="w-4 h-4 text-muted-foreground/40" />
