@@ -7,6 +7,8 @@
  * Tracks reasoning chain health across all node types.
  */
 
+import { setPipelineDiagnosticSummary } from "./pipelineTrace";
+
 export interface PipelineStageResult {
   stage: string;
   inputCount: number;
@@ -205,7 +207,7 @@ export function buildDiagnostic(
   if (warnings.length > 0) {
     console.warn("[Pipeline Diagnostic]", warnings);
   }
-  console.log("[Pipeline Diagnostic] Summary:", {
+  const diagnosticSummary = {
     evidence: evidenceCount,
     insights: insightCount,
     constraints: totalConstraints,
@@ -214,7 +216,12 @@ export function buildDiagnostic(
     scenarios: totalScenarios,
     pathways: totalPathways,
     chainHealth: reasoningChain.map(r => `${r.label}:${r.count}/${r.minimum}`).join(" | "),
-  });
+    warnings,
+  };
+  console.log("[Pipeline Diagnostic] Summary:", diagnosticSummary);
+
+  // Sync summary into the active pipeline trace so it appears in the downloaded JSON
+  setPipelineDiagnosticSummary(diagnosticSummary);
 
   _lastDiagnostic = diagnostic;
   return diagnostic;
