@@ -27,7 +27,7 @@ function makeProfile(overrides: Partial<StructuralProfile> = {}): StructuralProf
     revenueModel: "transactional",
     customerConcentration: "diversified",
     assetUtilization: "moderate",
-    regulatorySensitivity: "low",
+    regulatorySensitivity: "light",
     valueChainPosition: "application",
     ownerDependency: null,
     acquisitionComplexity: null,
