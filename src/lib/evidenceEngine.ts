@@ -1976,7 +1976,7 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
 
   // ── Pipeline Trace: capture evidence extraction details ──
   try {
-    const { traceEvidenceExtraction, traceEvent } = await import("@/lib/pipelineTrace");
+    const { traceEvidenceExtraction, traceEvent } = require("@/lib/pipelineTrace") as typeof import("@/lib/pipelineTrace");
     traceEvent(`evidence_extraction: raw=${allRaw.length}, deduped=${allDeduped.length}, losses=${allRaw.length - allDeduped.length}`);
     traceEvidenceExtraction({
       extractorCounts,
