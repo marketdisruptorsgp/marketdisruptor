@@ -1072,12 +1072,6 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   const primary = deepenedOpps[0] ?? null;
   const alternative = deepenedOpps[1] ?? null;
   const narrative = buildStrategicNarrative(primary, alternative, structuralProfile, flat, input.analysisType);
-    evidence.opportunity.items.push({
-      id: opp.id, type: "opportunity" as any, label: opp.label, description: opp.description,
-      pipelineStep: "disrupt" as any, tier: "structural" as any,
-      impact: opp.impact, confidenceScore: opp.confidence, sourceEngine: "reconfiguration" as any,
-    });
-  }
 
   const scenarios = getScenarios(input.analysisId);
   const scenarioComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
