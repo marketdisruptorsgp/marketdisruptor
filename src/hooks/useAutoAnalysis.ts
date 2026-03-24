@@ -330,10 +330,14 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       .then(applyResult)
       .catch((err) => {
         console.warn("[StrategicEngine] Async failed, running sync fallback:", err);
+        traceError(`Strategic engine async failed: ${err}`);
+        traceEvent("strategic_engine_async_failed — running sync fallback");
         try {
           const syncResult = runStrategicAnalysis(input);
           applyResult(syncResult);
+          traceEvent("strategic_engine_sync_fallback_succeeded");
         } catch (syncErr) {
+          traceError(`Strategic engine sync fallback also failed: ${syncErr}`);
           console.warn("[StrategicEngine] Sync fallback also failed:", syncErr);
         }
       })
