@@ -189,17 +189,29 @@ export async function runPipelineStateMachine(
 
   // ═══ PHASE 3: Stress Test + Pitch (auto-run if runAll) ═══
   if (opts.existingStressTest) {
+    traceEvent("step:stressTest reused");
     cb.updateStatus("stressTest", "done");
   } else if (opts.runAll && synthesisResult && !isOverBudget()) {
+    traceEvent("step:stressTest running");
     const stressResult = await runStressTest(ctx, cb, store, synthesisResult, decompResult);
-    if (stressResult && !opts.existingPitchDeck && !isOverBudget()) {
-      await runPitch(ctx, cb, store, synthesisResult, stressResult);
+    if (stressResult) {
+      traceEvent(`step:stressTest done (elapsed=${elapsed()}s)`);
+      if (!opts.existingPitchDeck && !isOverBudget()) {
+        traceEvent("step:pitch running");
+        await runPitch(ctx, cb, store, synthesisResult, stressResult);
+        traceEvent(`step:pitch done (elapsed=${elapsed()}s)`);
+      }
+    } else {
+      traceError("Stress test failed");
+      traceEvent("step:stressTest error");
     }
   }
 
   if (opts.existingPitchDeck) {
+    traceEvent("step:pitch reused");
     cb.updateStatus("pitch", "done");
   }
 
+  traceEvent(`pipeline_finished (elapsed=${elapsed()}s)`);
   return { success: true };
 }
