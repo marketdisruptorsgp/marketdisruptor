@@ -53,17 +53,29 @@ function makeInsight(id: string, label: string): Partial<StrategicInsight> & { i
 }
 
 /** Minimal narrative fixture */
-const SAMPLE_NARRATIVE: StrategicNarrative = {
-  headline: "Test narrative",
+const SAMPLE_NARRATIVE = {
   primaryConstraint: "labor_intensity",
   keyDriver: "workforce bottleneck",
   leveragePoint: "automation",
   breakthroughOpportunity: "systematized delivery",
   killQuestion: "Will customers pay for a productized version?",
   validationExperiment: "Run a pilot with 3 existing customers",
-  strategicLogic: "Replacing labor with process enables margin expansion",
-  founderPrompt: "What would have to be true for this to work?",
-};
+  narrativeSummary: "Replacing labor with process enables margin expansion",
+  strategicVerdict: null,
+  verdictRationale: null,
+  verdictConfidence: 0,
+  whyThisMatters: null,
+  strategicPathway: null,
+  trappedValue: null,
+  unlockPotential: null,
+  trappedValueEstimate: null,
+  trappedValueBenchmark: null,
+  trappedValueEvidenceCount: 0,
+  validationTimeframe: "4-6 weeks",
+  validationSteps: [],
+  verdictBenchmark: null,
+  executiveSummary: null,
+} as StrategicNarrative;
 
 /**
  * Service-flavoured evidence: mentions of billable hours, consultants, bespoke
