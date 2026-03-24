@@ -1003,7 +1003,7 @@ function buildReconfigurationLabel(qp: QualifiedPattern, profile: StructuralProf
       if (profile.supplyFragmentation === "atomized") {
         // In product mode, "atomized supply" means fragmented component suppliers — not a marketplace opportunity
         if (isProduct) {
-          return "Consolidate component sourcing and establish direct-to-consumer distribution to capture margin from fragmented supply chain";
+          return "Consolidate component sourcing and establish direct-to-consumer distribution to capture supply chain margin";
         }
         return "Build a single-access marketplace that consolidates hundreds of independent providers under one trusted interface";
       }
