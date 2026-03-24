@@ -1857,8 +1857,9 @@ function isMetaLabel(label: string): boolean {
 // ═══════════════════════════════════════════════════════════════
 
 function tokenize(text: string): Set<string> {
-  // Improved normalization: collapse punctuation, strip stop words to improve
-  // dedup precision for near-duplicate labels with slightly different phrasing.
+  // Improved normalization: replace punctuation with spaces (so "cost-structure"
+  // and "cost structure" tokenize identically) and discard tokens ≤2 chars
+  // (removes common short function words like "of", "in", "at").
   return new Set(
     text
       .toLowerCase()

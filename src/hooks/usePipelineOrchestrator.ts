@@ -150,8 +150,8 @@ export function usePipelineOrchestrator(
     acquireKeepAlive();
     setStepTimings({});
 
-    // Start a fresh trace for this pipeline run (non-destructive if one is already
-    // active for this analysisId — the strategic engine will reuse it).
+    // Always start a fresh trace for this pipeline run (force: true ensures a new
+    // runId is generated even if the strategic engine left a completed trace behind).
     startTrace(analysisId, { source: "usePipelineOrchestrator", force: true });
 
     const ctx = buildCtx();

@@ -109,7 +109,8 @@ const _traces = new Map<string, PipelineTrace>();
 // Active cursor — updated by startTrace, read by all trace-mutation helpers
 let _currentTrace: PipelineTrace | null = null;
 
-// Monotonic per-analysis run counter (resets per page load, which is fine)
+// Monotonic per-analysis run counter (resets per page load, which is fine).
+// JavaScript is single-threaded so no synchronization is needed here.
 const _runCounters = new Map<string, number>();
 
 function makeRunId(analysisId: string | null): string {
@@ -190,6 +191,10 @@ export function getTrace(): PipelineTrace | null {
 /**
  * Returns the most recent trace for a given analysisId — prefers the latest
  * completed run but falls back to a still-running trace if that's all we have.
+ *
+ * Performance note: the in-memory _traces Map holds only the traces for the
+ * current page session (at most a handful of runs per analysis), so linear
+ * scan is O(1) in practice.
  */
 export function getLatestTrace(analysisId: string): PipelineTrace | null {
   // Scan in-memory map for matching traces (most recently inserted wins)
@@ -233,7 +238,9 @@ export function completeTrace(status: "completed" | "failed" = "completed"): voi
       sessionStorage.setItem(key, JSON.stringify(_currentTrace));
       // Store the latest completed trace key for quick lookup per analysisId
       sessionStorage.setItem(`pipeline_trace_latest_key_${_currentTrace.analysisId ?? "unknown"}`, key);
-      // Legacy key for backward compatibility with existing restoreTraceForAnalysis callers
+      // Legacy key (analysisId only) retained for backward compatibility with
+      // restoreTraceForAnalysis and any other callers using the old key format.
+      // Can be removed once all consumers migrate to the new key format.
       sessionStorage.setItem(`pipeline_trace_${_currentTrace.analysisId ?? "unknown"}`, JSON.stringify(_currentTrace));
       sessionStorage.setItem("pipeline_trace_latest_key", key);
     } catch (_) { /* sessionStorage quota — silently ignore */ }
@@ -354,7 +361,9 @@ export function downloadTrace(analysisId?: string | null, productName?: string):
   a.href = url;
 
   // Filename: [productSlug-][analysisId-][runId-]timestamp.json
-  const slug = productName ? productName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 30) + "-" : "";
+  // Product slug is capped to keep total filename length reasonable.
+  const MAX_PRODUCT_SLUG_LENGTH = 30;
+  const slug = productName ? productName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, MAX_PRODUCT_SLUG_LENGTH) + "-" : "";
   const aid = (trace.analysisId ?? "unknown").slice(0, 8);
   const rid = trace.runId ?? "r0";
   a.download = `pipeline-trace-${slug}${aid}-${rid}-${Date.now()}.json`;
