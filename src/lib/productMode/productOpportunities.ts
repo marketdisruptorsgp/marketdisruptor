@@ -51,7 +51,7 @@ interface ProductOpportunityTemplate {
   economicRationale: string;
   gtmStrategy: GTMStrategy;
   /** Score this template for a given facet profile (0–10) */
-  scoreFor: (profile: ProductFacetProfile, corpus: string) => number;
+  scoreFor: (profile: ProductFacetProfile) => number;
 }
 
 const PRODUCT_OPPORTUNITY_TEMPLATES: ProductOpportunityTemplate[] = [
@@ -311,14 +311,9 @@ const PRODUCT_OPPORTUNITY_TEMPLATES: ProductOpportunityTemplate[] = [
  */
 export function selectProductOpportunities(
   profile: ProductFacetProfile,
-  evidence: Evidence[] = [],
+  _evidence: Evidence[] = [],
   topN: number = 3,
 ): ProductOpportunity[] {
-  const corpus = evidence
-    .map(e => `${e.label ?? ""} ${e.description ?? ""}`)
-    .join(" ")
-    .toLowerCase();
-
   return PRODUCT_OPPORTUNITY_TEMPLATES
     .filter(t => !PRODUCT_MODE_EXCLUDED_PATTERNS.has(t.id))
     .map(t => ({
@@ -328,7 +323,7 @@ export function selectProductOpportunities(
       gtmImplication: t.gtmImplication,
       economicRationale: t.economicRationale,
       gtmStrategy: t.gtmStrategy,
-      relevanceScore: t.scoreFor(profile, corpus),
+      relevanceScore: t.scoreFor(profile),
     }))
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, topN);

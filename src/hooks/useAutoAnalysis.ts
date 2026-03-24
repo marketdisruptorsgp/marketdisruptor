@@ -374,9 +374,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   );
 
   // ── Product-mode specific computation (deterministic, no AI) ──
+  const rawActiveMode = (analysis as any).activeMode as string | undefined;
   const productModeData = useMemo(() => {
-    const mode = (analysis as any).activeMode as string | undefined;
-    if (mode !== "custom" && mode !== "product") {
+    if (rawActiveMode !== "custom" && rawActiveMode !== "product") {
       return { constraints: [] as ProductConstraint[], opportunities: [] as ProductOpportunity[], actionPlan: [] as ProductAction[] };
     }
     const facetProfile = inferProductStructuralProfile(flatEvidenceState);
@@ -384,7 +384,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const opportunities = selectProductOpportunities(facetProfile, flatEvidenceState, 3);
     const actionPlan = buildProductActionPlan(facetProfile, constraints, opportunities);
     return { constraints, opportunities, actionPlan };
-  }, [flatEvidenceState, (analysis as any).activeMode]);
+  }, [flatEvidenceState, rawActiveMode]);
 
   return {
     intelligence, structuralProfile, graph, evidence,

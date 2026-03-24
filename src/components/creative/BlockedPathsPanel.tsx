@@ -121,10 +121,12 @@ export function BlockedPathsPanel({ paths, modeAccent: _modeAccent }: BlockedPat
 
   // Deduplicate: render blocked paths once per blocking constraint with an "Affects" list
   const grouped = groupByBlockingConstraint(paths);
-  const primaryPaths = Array.from(grouped.values()).map(group => ({
-    primary: group[0],
-    affected: group.slice(1).map(p => p.title),
-  }));
+  const primaryPaths = Array.from(grouped.values())
+    .filter(group => group.length > 0)
+    .map(group => ({
+      primary: group[0]!,
+      affected: group.slice(1).map(p => p.title),
+    }));
 
   return (
     <motion.div

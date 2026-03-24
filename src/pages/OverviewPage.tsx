@@ -1107,7 +1107,7 @@ function ProductActionPlanCard({
             <div key={step.phase} className="flex items-start gap-3">
               <div
                 className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold text-white"
-                style={{ background: PHASE_COLORS[i] ?? PHASE_COLORS[0] }}
+                style={{ background: PHASE_COLORS[i % PHASE_COLORS.length] }}
               >
                 {step.phase}
               </div>

@@ -278,7 +278,7 @@ export function deduplicateCards(cards: WowCard[]): WowCard[] {
   for (const card of cards) {
     if (card.innovationMethod === "scamper" && card.mutationType) {
       const existing = scamperByType.get(card.mutationType);
-      if (!existing || (card.compositeScore ?? 0) > (existing.compositeScore ?? 0)) {
+      if (!existing || card.compositeScore > existing.compositeScore) {
         scamperByType.set(card.mutationType, card);
       }
       continue;
