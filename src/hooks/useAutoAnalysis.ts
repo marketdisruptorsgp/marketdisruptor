@@ -11,7 +11,7 @@
 
 import { useRef, useCallback, useMemo, useState } from "react";
 import type { Evidence } from "@/lib/evidenceEngine";
-import { startTrace, completeTrace } from "@/lib/pipelineTrace";
+import { startTrace, completeTrace, traceEvent, traceError } from "@/lib/pipelineTrace";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { isPipelineRunning } from "@/lib/pipelineSignal";
@@ -326,14 +326,19 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     }, 45_000);
 
     // Run async pipeline, sync fallback
+    traceEvent("strategic_engine_async_started");
     runStrategicAnalysisAsync(input)
       .then(applyResult)
       .catch((err) => {
         console.warn("[StrategicEngine] Async failed, running sync fallback:", err);
+        traceError(`Strategic engine async failed: ${err}`);
+        traceEvent("strategic_engine_async_failed — running sync fallback");
         try {
           const syncResult = runStrategicAnalysis(input);
           applyResult(syncResult);
+          traceEvent("strategic_engine_sync_fallback_succeeded");
         } catch (syncErr) {
+          traceError(`Strategic engine sync fallback also failed: ${syncErr}`);
           console.warn("[StrategicEngine] Sync fallback also failed:", syncErr);
         }
       })

@@ -19,6 +19,7 @@
  */
 
 import { classifyTier } from "@/lib/tierDiscoveryEngine";
+import { traceEvidenceExtraction, traceEvent } from "@/lib/pipelineTrace";
 
 // ═══════════════════════════════════════════════════════════════
 //  CANONICAL TYPES
@@ -1976,7 +1977,7 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
 
   // ── Pipeline Trace: capture evidence extraction details ──
   try {
-    const { traceEvidenceExtraction } = require("@/lib/pipelineTrace");
+    traceEvent(`evidence_extraction: raw=${allRaw.length}, deduped=${allDeduped.length}, losses=${allRaw.length - allDeduped.length}`);
     traceEvidenceExtraction({
       extractorCounts,
       evidenceLabels: allDeduped.map(e => ({

@@ -4,6 +4,7 @@
  */
 
 import type { Evidence } from "@/lib/evidenceEngine";
+import { traceMorphological, traceEvent } from "@/lib/pipelineTrace";
 import type { StrategicInsight } from "@/lib/strategicEngine";
 import type { OpportunityZone, OpportunityVector } from "@/lib/opportunityDesignEngine";
 import type { ConstraintInversion } from "@/lib/constraintInverter";
@@ -98,7 +99,7 @@ export function runMorphologicalEngines(
 
       // ── Pipeline Trace: morphological results ──
       try {
-        const { traceMorphological } = require("@/lib/pipelineTrace");
+        traceEvent(`morphological_search: ${result.vectors.length} vectors, ${result.zones.length} zones (${runMode})`);
         traceMorphological({
           runMode,
           evidenceCount: evidenceCount,
@@ -139,7 +140,7 @@ export function runMorphologicalEngines(
 
     // ── Pipeline Trace: final morphological counts ──
     try {
-      const { traceMorphological } = require("@/lib/pipelineTrace");
+      traceEvent(`morphological_final: inversions=${result.constraintInversions.length}, unlocks=${result.secondOrderUnlocks.length}, temporal=${result.temporalUnlocks.length}, gaps=${result.competitiveGaps.length}`);
       traceMorphological({
         runMode,
         evidenceCount: evidenceCount,
