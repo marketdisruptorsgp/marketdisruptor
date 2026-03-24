@@ -202,18 +202,38 @@ const INVERSION_TEMPLATES: InversionTemplate[] = [
 /**
  * Generate constraint inversions — reframe constraints as potential advantages.
  * Only returns inversions with genuine viability.
+ *
+ * @param constraintShapes  Constraints to evaluate for inversion
+ * @param maxPerConstraint  Maximum inversions per individual constraint
+ * @param maxTotal          Maximum total inversions to return
+ * @param analysisType      Engine analysis type — "product" mode suppresses
+ *                          service-business inversions (Hermès handbag analogy,
+ *                          premium-signal narratives) that are not applicable
+ *                          to mass-market physical-product entrepreneurs.
  */
 export function generateInversions(
   constraintShapes: ConstraintShape[],
   maxPerConstraint: number = 2,
-  maxTotal: number = 4
+  maxTotal: number = 4,
+  analysisType: string = "service",
 ): ConstraintInversion[] {
   const allInversions: ConstraintInversion[] = [];
+
+  // In product mode, suppress "premium_signal" inversion type (Hermès handbag analogy)
+  // unless there is clear evidence of luxury/artisan positioning (ASP > $1000+).
+  // Mass-market electronics entrepreneurs should not be told their labor cost is a
+  // "PREMIUM SIGNAL" — this is a service-business narrative that does not apply.
+  const suppressedInversionTypes = new Set<string>(
+    analysisType === "product" ? ["premium_signal"] : [],
+  );
 
   for (const shape of constraintShapes) {
     const candidates: { inversion: ConstraintInversion; score: number }[] = [];
 
     for (const template of INVERSION_TEMPLATES) {
+      // Suppress wrong-mode inversion types in product mode
+      if (suppressedInversionTypes.has(template.inversionType)) continue;
+
       // Must match bottleneck type
       if (!template.bottleneckTypes.includes(shape.bottleneckType)) continue;
 

@@ -210,11 +210,19 @@ function filterRealisticOpportunities(
 /**
  * Deepen qualified patterns into full opportunity candidates.
  * Produces 2-3 opportunities, never more than 4.
+ *
+ * @param qualifiedPatterns  Qualified structural patterns to deepen
+ * @param profile            Structural profile for context
+ * @param evidence           Evidence items for context
+ * @param analysisType       Engine analysis type — in "product" mode, filters out
+ *                           multi-sided marketplace / aggregation narratives that
+ *                           don't apply to physical product entrepreneurs.
  */
 export function deepenOpportunities(
   qualifiedPatterns: QualifiedPattern[],
   profile: StructuralProfile,
   evidence: Evidence[],
+  analysisType: string = "service",
 ): DeepenedOpportunity[] {
   if (qualifiedPatterns.length === 0) return [];
 
@@ -229,7 +237,7 @@ export function deepenOpportunities(
     const feasibility = assessFeasibility(qp, profile);
     const firstMove = designFirstMove(qp, profile, constraint);
     const label = buildOpportunityLabel(qp, profile);
-    const reconfigurationLabel = buildReconfigurationLabel(qp, profile, constraint);
+    const reconfigurationLabel = buildReconfigurationLabel(qp, profile, constraint, analysisType);
     const summary = buildSummary(qp, causalChain, economicMechanism);
     const relevantEvidenceIds = findRelevantEvidence(qp, evidence);
     // Add structural precedents from the library for the pattern or closest direction mapping
@@ -376,7 +384,7 @@ export async function deepenOpportunitiesAsync(
 
     if (error || !data?.theses || data.theses.length === 0 || data.fallback) {
       console.warn("[AI Deepening] Falling back to deterministic:", error);
-      return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence);
+      return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence, analysisType);
     }
 
     console.log(`[AI Deepening] Received ${data.theses.length} AI-generated theses`);
@@ -447,7 +455,7 @@ export async function deepenOpportunitiesAsync(
     if (filtered.length === 0) {
       console.warn("[AI Deepening] All AI theses failed realism filter; using deterministic fallback");
       return filterRealisticOpportunities(
-        deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence),
+        deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence, analysisType),
         profile,
       ).slice(0, 5);
     }
@@ -455,7 +463,7 @@ export async function deepenOpportunitiesAsync(
     return filtered.slice(0, 5);
   } catch (err) {
     console.warn("[AI Deepening] Error, falling back to deterministic:", err);
-    return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence);
+    return deepenOpportunitiesDeterministic(qualifiedPatterns, profile, evidence, analysisType);
   }
 }
 
@@ -467,9 +475,10 @@ function deepenOpportunitiesDeterministic(
   qualifiedPatterns: QualifiedPattern[],
   profile: StructuralProfile,
   evidence: Evidence[],
+  analysisType: string = "service",
 ): DeepenedOpportunity[] {
   // Start with pattern-based opportunities
-  const patternOpps = deepenOpportunities(qualifiedPatterns, profile, evidence);
+  const patternOpps = deepenOpportunities(qualifiedPatterns, profile, evidence, analysisType);
 
   // If we already have 3+, return them
   if (patternOpps.length >= 3) return patternOpps.slice(0, 5);
@@ -977,10 +986,14 @@ function buildOpportunityLabel(qp: QualifiedPattern, profile: StructuralProfile)
  * Build a concrete reconfiguration label that describes the specific business move,
  * distinct from the abstract pattern name. Uses profile dimensions and constraint
  * context to generate domain-specific language.
+ *
+ * In product mode, multi-sided marketplace / booking-platform narratives are
+ * suppressed in favour of product-appropriate channel moves (DTC, direct distribution).
  */
-function buildReconfigurationLabel(qp: QualifiedPattern, profile: StructuralProfile, constraint: string): string {
+function buildReconfigurationLabel(qp: QualifiedPattern, profile: StructuralProfile, constraint: string, analysisType: string = "service"): string {
   const patternId = qp.pattern.id;
   const constraintLower = constraint.toLowerCase();
+  const isProduct = analysisType === "product";
 
   switch (patternId) {
     case "aggregation":
@@ -988,7 +1001,15 @@ function buildReconfigurationLabel(qp: QualifiedPattern, profile: StructuralProf
         return "Create a demand aggregation layer that routes clients to vetted providers and captures coordination margin";
       }
       if (profile.supplyFragmentation === "atomized") {
+        // In product mode, "atomized supply" means fragmented component suppliers — not a marketplace opportunity
+        if (isProduct) {
+          return "Consolidate component sourcing and establish direct-to-consumer distribution to capture margin from fragmented supply chain";
+        }
         return "Build a single-access marketplace that consolidates hundreds of independent providers under one trusted interface";
+      }
+      // In product mode, suppress booking/comparison platform language
+      if (isProduct) {
+        return "Go direct-to-consumer to bypass intermediary margin capture and build direct customer relationships";
       }
       return "Launch a comparison and booking platform that captures the relationship premium between fragmented suppliers and underserved buyers";
 

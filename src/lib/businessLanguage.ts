@@ -8,6 +8,11 @@
  * Two-layer approach:
  *   1. Business translation (full context sentence)
  *   2. Humanized fallback (snake_case → readable sentence case)
+ *
+ * Mode-aware layer (§5.5):
+ *   Product mode suppresses service-business constraints that assume
+ *   billable hours / owner bottleneck worldview, and maps constraints
+ *   to product-market language instead.
  */
 
 import { humanizeLabel } from "@/lib/humanize";
@@ -65,4 +70,88 @@ export function translateConstraintToBusinessLanguage(
   const business = CONSTRAINT_BUSINESS_LANGUAGE[constraint];
   if (business) return business;
   return fallback || humanizeLabel(constraint.replace(/_/g, " "));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SERVICE-ONLY CONSTRAINTS (§5.5)
+//  Constraints that assume a service/founder worldview.
+//  Suppressed in Product mode so product entrepreneurs don't
+//  receive advice about billable hours, owner bottlenecks, etc.
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Constraint IDs that carry a service-business / founder-coaching worldview.
+ * These are suppressed when analysisType === "product" to avoid giving
+ * headphone (or other physical-product) entrepreneurs advice about
+ * billable hours, hiring their way out of owner dependency, etc.
+ */
+export const SERVICE_ONLY_CONSTRAINTS = new Set<string>([
+  "labor_intensity",
+  "owner_dependency",
+  "manual_process",
+  "linear_scaling",
+  "skill_scarcity",
+]);
+
+// ═══════════════════════════════════════════════════════════════
+//  PRODUCT-SPECIFIC CONSTRAINT LANGUAGE MAP (§5.5)
+//  Overrides generic business language for product mode with
+//  product-market–specific constraint narratives.
+// ═══════════════════════════════════════════════════════════════
+
+export const PRODUCT_CONSTRAINT_LANGUAGE: Record<string, string> = {
+  commoditized_pricing:
+    "You compete on spec parity with established players — feature improvements cost more to build than buyers perceive as value. Non-feature differentiation (durability, customization, community) is your leverage.",
+  channel_dependency:
+    "Retail channels capture 30–40% margin, compressing your unit economics. DTC positioning recovers that margin while building direct customer relationships for repeat sales.",
+  margin_compression:
+    "Thin per-unit margins leave insufficient room for customer acquisition, reinvestment, or manufacturing risk. Premium positioning, DTC channel, or recurring revenue are the structural paths forward.",
+  inventory_burden:
+    "Unsold inventory is tied-up capital — every unit that doesn't ship costs you carrying cost and cash flow. Pre-orders and made-to-demand production reduce this structural risk.",
+  vendor_concentration:
+    "Reliance on a small number of component suppliers creates production continuity risk. A single disruption can halt your entire product line.",
+  switching_friction:
+    "Without ecosystem lock-in (software, parts, community), customers have no structural reason to stay. Build switching costs through personalisation, subscriptions, or parts ecosystems.",
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  MODE-AWARE TRANSLATION (§5.5)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Translate a constraint name to entrepreneur-facing language, mode-aware.
+ *
+ * In product mode:
+ *   - Returns null for service-only constraints (caller should suppress them)
+ *   - Uses product-specific language map when available
+ *   - Falls back to generic business language otherwise
+ *
+ * In service/business mode:
+ *   - Behaves identically to translateConstraintToBusinessLanguage()
+ *
+ * @param constraint    Internal constraint ID (e.g., "labor_intensity")
+ * @param analysisType  Engine analysis type ("product" | "service" | "business_model")
+ * @param fallback      Optional fallback text (e.g., constraint explanation)
+ * @returns             Translated string, or null if the constraint should be suppressed
+ */
+export function translateConstraintForMode(
+  constraint: string,
+  analysisType: string,
+  fallback?: string,
+): string | null {
+  const isProduct = analysisType === "product";
+
+  // Suppress service-only constraints in product mode
+  if (isProduct && SERVICE_ONLY_CONSTRAINTS.has(constraint)) {
+    return null;
+  }
+
+  // Use product-specific language in product mode when available
+  if (isProduct) {
+    const productLanguage = PRODUCT_CONSTRAINT_LANGUAGE[constraint];
+    if (productLanguage) return productLanguage;
+  }
+
+  // Fall back to generic translation
+  return translateConstraintToBusinessLanguage(constraint, fallback);
 }

@@ -48,7 +48,7 @@ import { buildDiagnosticContext, extractLensConfig, type DiagnosticContext } fro
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
-import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
+import { translateConstraintForMode } from "@/lib/businessLanguage";
 import { traceStrategicStages, traceEvent, setPipelineDiagnosticSummary } from "@/lib/pipelineTrace";
 
 /** Get a pattern-specific business narrative that references real company precedents */
@@ -565,7 +565,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   let deepenedOpps: DeepenedOpportunity[] = [];
   if (structuralProfile && qualifiedPatternsResult.length > 0) {
     const { result: deepened, stage: s6 } = traceStage("Thesis Construction", qualifiedPatternsResult.length, () =>
-      deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat)
+      deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat, input.analysisType)
     );
     stages.push(s6);
     deepenedOpps = deepened.slice(0, 5); // Allow up to 5 opportunities
@@ -579,7 +579,10 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // Add constraint insights from structural profile
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const modeLabel = translateConstraintForMode(bc.constraintName, input.analysisType, bc.explanation);
+      // Skip service-only constraints in product mode
+      if (modeLabel === null) continue;
+      const businessLabel = modeLabel;
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
@@ -906,12 +909,12 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
         events.push(`${deepenedOpps.length} AI theses: ${deepenedOpps.map(d => d.reconfigurationLabel.slice(0, 60)).join(" | ")}`);
       } catch (err) {
         console.warn("[StrategicEngine] AI deepening failed, using deterministic:", err);
-        deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 5);
+        deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat, input.analysisType).slice(0, 5);
         events.push(`${deepenedOpps.length} deterministic theses (AI fallback)`);
       }
     } else if (qualifiedPatternsResult.length > 0) {
       events.push(`AI quality gate not met (${evCount}/6 evidence, ${bindingConstraintCount}/1 constraints) — using deterministic deepening`);
-      deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat).slice(0, 5);
+      deepenedOpps = deepenOpportunities(qualifiedPatternsResult, structuralProfile!, flat, input.analysisType).slice(0, 5);
       events.push(`${deepenedOpps.length} deterministic theses`);
     }
   }
@@ -922,7 +925,10 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const modeLabel = translateConstraintForMode(bc.constraintName, input.analysisType, bc.explanation);
+      // Skip service-only constraints in product mode
+      if (modeLabel === null) continue;
+      const businessLabel = modeLabel;
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
