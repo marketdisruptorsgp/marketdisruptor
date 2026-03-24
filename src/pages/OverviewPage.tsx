@@ -15,7 +15,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
-import { extractAllEvidence } from "@/lib/evidenceEngine";
+import { extractAllEvidence, flattenEvidence } from "@/lib/evidenceEngine";
+import { CompetitiveInversion } from "@/components/strategic-visuals/CompetitiveInversion";
+import { ComplaintHierarchy } from "@/components/strategic-visuals/ComplaintHierarchy";
 import {
   aggregateOpportunities,
   type CommandDeckMetricsInput,
@@ -138,6 +140,15 @@ export default function OverviewPage() {
   const showInstantInsights = !!instantInsights && !singleInsight && !earlyConstraint;
 
   const topMorphZones = rawMorphZones.filter(z => z.vectors.length > 0).slice(0, 3);
+
+  // Product-mode visuals
+  const analysisType = analysis.activeMode === "service"
+    ? "service"
+    : analysis.activeMode === "business"
+      ? "business_model"
+      : "product";
+
+  const flatEvidence = useMemo(() => flattenEvidence(allEvidence), [allEvidence]);
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
@@ -321,6 +332,21 @@ export default function OverviewPage() {
               </p>
             </div>
           ) : null}
+        </motion.div>
+      )}
+
+      {/* ═══ PRODUCT MODE VISUALS (only in product mode, when data is ready) ═══ */}
+      {analysisType === "product" && hasData && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.2 }} className="space-y-6">
+          <CompetitiveInversion
+            product={selectedProduct}
+            analysisType={analysisType}
+            evidence={flatEvidence}
+          />
+          <ComplaintHierarchy
+            product={selectedProduct}
+            evidence={flatEvidence}
+          />
         </motion.div>
       )}
 
