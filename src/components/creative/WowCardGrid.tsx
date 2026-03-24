@@ -89,10 +89,12 @@ function WowCardItem({
   card,
   modeAccent,
   index,
+  variantCount = 1,
 }: {
   card: WowCard;
   modeAccent: string;
   index: number;
+  variantCount?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [annotation, setAnnotation] = useState<AnnotationState>({ verdict: null, note: "" });
@@ -134,6 +136,11 @@ function WowCardItem({
               {card.mutationType && (
                 <span className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5 rounded bg-muted/60">
                   {card.mutationType}
+                </span>
+              )}
+              {variantCount > 1 && (
+                <span className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5 rounded bg-muted/60 border border-border/50">
+                  {variantCount} variants
                 </span>
               )}
             </div>
@@ -270,6 +277,11 @@ function WowCardItem({
 export function WowCardGrid({ cards, modeAccent }: WowCardGridProps) {
   if (cards.length === 0) return null;
 
+  // Deduplicate morphological cards: if two cards share the same title (case-insensitive)
+  // and are within 5% composite score of each other, collapse them into one card and
+  // show a "N variants" badge.
+  const deduplicatedCards = deduplicateCards(cards);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -284,21 +296,65 @@ export function WowCardGrid({ cards, modeAccent }: WowCardGridProps) {
           Radical Opportunities
         </h2>
         <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4">
-          {cards.length}
+          {deduplicatedCards.length}
         </Badge>
       </div>
 
       {/* Cards */}
       <div className="space-y-3">
-        {cards.map((card, index) => (
+        {deduplicatedCards.map((entry, index) => (
           <WowCardItem
-            key={card.id}
-            card={card}
+            key={entry.card.id}
+            card={entry.card}
             modeAccent={modeAccent}
             index={index}
+            variantCount={entry.variantCount}
           />
         ))}
       </div>
     </motion.div>
   );
+}
+
+// ── Deduplication logic ──────────────────────────────────────────────────────
+
+interface DeduplicatedCard {
+  card: WowCard;
+  variantCount: number;
+}
+
+/**
+ * Collapse cards with identical titles (morphological duplicates) or
+ * SCAMPER cards with the same mutationType (near-identical lens applied to
+ * different theses) into one representative card per group.
+ *
+ * Design note on asymmetry:
+ *   - Morphological cards: deduplicated by exact (lowercased) title because
+ *     identical delivery+pricing combos generate identical titles regardless
+ *     of which evidence drove them.
+ *   - SCAMPER cards: deduplicated by mutationType (Substitute, Reverse, etc.)
+ *     because each SCAMPER lens is applied to the top 3 opportunities, producing
+ *     3 near-identical "Reverse: Invert customer flow in [thesis]" cards that
+ *     differ only in which thesis they reference. Grouping by lens type makes
+ *     the output read as one "Reverse" idea, not three.
+ */
+function deduplicateCards(cards: WowCard[]): DeduplicatedCard[] {
+  const seen = new Map<string, DeduplicatedCard>();
+
+  for (const card of cards) {
+    // Dedup key: for SCAMPER cards, group by mutationType so "Reverse" applied to
+    // 3 different theses becomes one card. For morphological, group by exact title.
+    const dedupKey = card.innovationMethod === "scamper" && card.mutationType
+      ? `scamper::${card.mutationType}`
+      : `title::${card.title.toLowerCase().trim()}`;
+
+    const existing = seen.get(dedupKey);
+    if (existing) {
+      existing.variantCount += 1;
+    } else {
+      seen.set(dedupKey, { card, variantCount: 1 });
+    }
+  }
+
+  return Array.from(seen.values());
 }

@@ -36,7 +36,7 @@ function HeilmeierPanelView({ panel }: { panel: NonNullable<BlockedPath["heilmei
   );
 }
 
-function BlockedPathRow({ path, index }: { path: BlockedPath; index: number }) {
+function BlockedPathRow({ path, index, affectedTitles = [] }: { path: BlockedPath; index: number; affectedTitles?: string[] }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -72,6 +72,21 @@ function BlockedPathRow({ path, index }: { path: BlockedPath; index: number }) {
         <p className="text-[11px] text-muted-foreground/80 italic leading-relaxed pl-4">
           "{path.whatWouldNeedToBeTrue}"
         </p>
+
+        {/* Affected configurations (when multiple paths share this blocker) */}
+        {affectedTitles.length > 1 && (
+          <div className="pl-4 flex flex-wrap gap-1 pt-0.5">
+            <span className="text-[9px] text-muted-foreground/60 mr-0.5 self-center">Affects:</span>
+            {affectedTitles.map(title => (
+              <span
+                key={title}
+                className="text-[9px] px-1.5 py-0 rounded bg-muted/60 text-muted-foreground font-medium border border-border/40"
+              >
+                {title.length > 35 ? title.slice(0, 33) + "…" : title}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Expandable Heilmeier */}
@@ -108,6 +123,10 @@ function BlockedPathRow({ path, index }: { path: BlockedPath; index: number }) {
 export function BlockedPathsPanel({ paths, modeAccent: _modeAccent }: BlockedPathsPanelProps) {
   if (paths.length === 0) return null;
 
+  // Group paths by blocking constraint — if multiple paths share the same
+  // blocking explanation, show it once with the list of affected configurations.
+  const grouped = groupByBlockingConstraint(paths);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -128,10 +147,46 @@ export function BlockedPathsPanel({ paths, modeAccent: _modeAccent }: BlockedPat
 
       {/* Rows */}
       <div className="space-y-2">
-        {paths.map((path, index) => (
-          <BlockedPathRow key={path.id} path={path} index={index} />
+        {grouped.map((group, index) => (
+          <BlockedPathRow
+            key={group.representative.id}
+            path={group.representative}
+            index={index}
+            affectedTitles={group.affectedTitles}
+          />
         ))}
       </div>
     </motion.div>
   );
+}
+
+// ── Grouping logic ───────────────────────────────────────────────────────────
+
+interface GroupedBlockedPath {
+  representative: BlockedPath;
+  affectedTitles: string[];
+}
+
+/**
+ * Group blocked paths that share the same blockingConstraint key.
+ * The first path in each group is used as the representative card.
+ * Its affected configurations are listed as tags below the explanation.
+ */
+function groupByBlockingConstraint(paths: BlockedPath[]): GroupedBlockedPath[] {
+  const groupMap = new Map<string, GroupedBlockedPath>();
+
+  for (const path of paths) {
+    const key = path.blockingConstraint.trim().toLowerCase();
+    const existing = groupMap.get(key);
+    if (existing) {
+      existing.affectedTitles.push(path.title);
+    } else {
+      groupMap.set(key, {
+        representative: path,
+        affectedTitles: [path.title],
+      });
+    }
+  }
+
+  return Array.from(groupMap.values());
 }

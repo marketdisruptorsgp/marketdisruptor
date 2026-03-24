@@ -48,7 +48,7 @@ import { buildDiagnosticContext, extractLensConfig, type DiagnosticContext } fro
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
-import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
+import { translateConstraintToBusinessLanguage, translateConstraintForMode } from "@/lib/businessLanguage";
 import { traceStrategicStages, traceEvent, setPipelineDiagnosticSummary } from "@/lib/pipelineTrace";
 
 /** Get a pattern-specific business narrative that references real company precedents */
@@ -579,13 +579,17 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // Add constraint insights from structural profile
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const businessLabel = translateConstraintForMode(bc.constraintName, input.analysisType, bc.explanation);
+      // Skip service-only constraints in product mode
+      if (businessLabel === null) continue;
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
         insightType: "constraint_cluster",
         label: businessLabel,
-        description: `Here's what's holding this business back: ${businessLabel}`,
+        description: input.analysisType === "product"
+          ? `Here's what's constraining this product: ${businessLabel}`
+          : `Here's what's holding this business back: ${businessLabel}`,
         evidenceIds: bc.evidenceIds ?? [],
         relatedInsightIds: [],
         impact: 8,
@@ -922,13 +926,17 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const businessLabel = translateConstraintForMode(bc.constraintName, input.analysisType, bc.explanation);
+      // Skip service-only constraints in product mode
+      if (businessLabel === null) continue;
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
         insightType: "constraint_cluster",
         label: businessLabel,
-        description: `Here's what's holding this business back: ${businessLabel}`,
+        description: input.analysisType === "product"
+          ? `Here's what's constraining this product: ${businessLabel}`
+          : `Here's what's holding this business back: ${businessLabel}`,
         evidenceIds: bc.evidenceIds ?? [],
         relatedInsightIds: [],
         impact: 8,

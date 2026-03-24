@@ -33,18 +33,33 @@ const ROLE_OPTIONS: { id: UserRole; label: string }[] = [
   { id: "investor", label: "Investor" },
 ];
 
+/** Returns true when the UI mode corresponds to a product analysis. */
+function isProductMode(mode?: string): boolean {
+  // UI mode "custom" maps to engine analysisType "product"
+  return !mode || mode === "custom" || mode === "product";
+}
+
 function modeToDefaultRole(mode?: string): UserRole {
   if (mode === "business") return "buyer";
-  if (mode === "service") return "investor";
-  return "founder";
+  if (mode === "service") return "founder";
+  // Product mode ("custom") → buyer: the user is analyzing a product,
+  // not running a service firm, so "founder coaching" language is wrong.
+  return "buyer";
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  ROLE-SPECIFIC ACTION LINES
 // ═══════════════════════════════════════════════════════════════
 
-function getConstraintAction(node: InsightGraphNode, role: UserRole): string {
-  const name = node.label.toLowerCase();
+function getConstraintAction(node: InsightGraphNode, role: UserRole, productMode: boolean): string {
+  if (productMode) {
+    const templates = [
+      `Address "${node.label}" to improve product competitiveness.`,
+      `Resolve "${node.label}" — it's limiting the product's market potential.`,
+      `"${node.label}" is a structural product constraint. Prioritize fixing it.`,
+    ];
+    return templates[Math.abs(hashStr(node.id)) % templates.length];
+  }
   const templates: Record<UserRole, string[]> = {
     buyer: [
       `Negotiate a price reduction based on the cost to fix "${node.label}".`,
@@ -66,7 +81,15 @@ function getConstraintAction(node: InsightGraphNode, role: UserRole): string {
   return templates[role][idx];
 }
 
-function getLeverAction(node: InsightGraphNode, role: UserRole): string {
+function getLeverAction(node: InsightGraphNode, role: UserRole, productMode: boolean): string {
+  if (productMode) {
+    const templates = [
+      `"${node.label}" is the core product opportunity. Invest here.`,
+      `Double down on "${node.label}" — it differentiates the product.`,
+      `"${node.label}" is the strongest product-level unlock. Prioritize it.`,
+    ];
+    return templates[Math.abs(hashStr(node.id)) % templates.length];
+  }
   const templates: Record<UserRole, string[]> = {
     buyer: [
       `This is your Day 1 value creation play — "${node.label}" can be activated immediately.`,
@@ -86,6 +109,15 @@ function getLeverAction(node: InsightGraphNode, role: UserRole): string {
   };
   const idx = Math.abs(hashStr(node.id)) % templates[role].length;
   return templates[role][idx];
+}
+
+/**
+ * Returns the prefix label for the action line.
+ * In product mode, uses "Priority:" instead of "As a {role}:".
+ */
+function getActionPrefix(role: UserRole, productMode: boolean): string {
+  if (productMode) return "Priority:";
+  return `As a ${role}:`;
 }
 
 function hashStr(s: string): number {
@@ -118,6 +150,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
   activeMode,
   entityName,
 }: StrategicActionBriefProps) {
+  const productMode = isProductMode(activeMode);
   const [role, setRole] = useState<UserRole>(modeToDefaultRole(activeMode));
   const [reasoningOpen, setReasoningOpen] = useState(false);
   const [explorationTab, setExplorationTab] = useState<"reasoning" | "opportunity" | "constraints" | null>(null);
@@ -160,43 +193,71 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
     return `${driverPart}, ${constraintPart}. ${opportunityPart}`;
   }, [graph.topNodes, entityName]);
 
-  // Build action plan — ordered items from constraints + levers
+  // Build action plan — mode-aware ordering
   const actionPlan = useMemo(() => {
     const items: { label: string; timing: { label: string; color: string }; source: string }[] = [];
 
-    // Urgent constraints first
-    topConstraints.forEach(n => {
-      if (n.impact > 0.5) {
+    if (productMode) {
+      // Product mode: fix structural constraint first, then activate top opportunities
+      topConstraints.slice(0, 1).forEach(n => {
+        items.push({
+          label: `Fix "${n.label}" — ${getNodeSummary(n)}`,
+          timing: getTimingBadge(n, role, true),
+          source: "blocker",
+        });
+      });
+      topLevers.slice(0, 2).forEach(n => {
+        items.push({
+          label: `Activate "${n.label}" — ${getNodeSummary(n)}`,
+          timing: getTimingBadge(n, role, false),
+          source: "lever",
+        });
+      });
+      topConstraints.slice(1, 3).forEach(n => {
         items.push({
           label: `Address "${n.label}" — ${getNodeSummary(n)}`,
           timing: getTimingBadge(n, role, true),
           source: "blocker",
         });
-      }
-    });
-
-    // Then quick-win levers
-    topLevers.forEach(n => {
-      items.push({
-        label: `Activate "${n.label}" — ${getNodeSummary(n)}`,
-        timing: getTimingBadge(n, role, false),
-        source: "lever",
       });
-    });
-
-    // Add remaining constraints
-    topConstraints.forEach(n => {
-      if (n.impact <= 0.5) {
+      topLevers.slice(2).forEach(n => {
         items.push({
-          label: `Monitor "${n.label}" — ${getNodeSummary(n)}`,
-          timing: getTimingBadge(n, role, true),
-          source: "blocker",
+          label: `Explore "${n.label}" — ${getNodeSummary(n)}`,
+          timing: getTimingBadge(n, role, false),
+          source: "lever",
         });
-      }
-    });
+      });
+    } else {
+      // Service / Business model mode: urgent constraints first, then levers
+      topConstraints.forEach(n => {
+        if (n.impact > 0.5) {
+          items.push({
+            label: `Address "${n.label}" — ${getNodeSummary(n)}`,
+            timing: getTimingBadge(n, role, true),
+            source: "blocker",
+          });
+        }
+      });
+      topLevers.forEach(n => {
+        items.push({
+          label: `Activate "${n.label}" — ${getNodeSummary(n)}`,
+          timing: getTimingBadge(n, role, false),
+          source: "lever",
+        });
+      });
+      topConstraints.forEach(n => {
+        if (n.impact <= 0.5) {
+          items.push({
+            label: `Monitor "${n.label}" — ${getNodeSummary(n)}`,
+            timing: getTimingBadge(n, role, true),
+            source: "blocker",
+          });
+        }
+      });
+    }
 
     return items.slice(0, 5);
-  }, [topConstraints, topLevers, role]);
+  }, [topConstraints, topLevers, role, productMode]);
 
   // Build reasoning chains for collapsible
   const reasoningChains = useMemo(() => {
@@ -282,7 +343,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                   {getNodeBody(node)}
                 </p>
                 <p className="text-[11px] font-semibold text-foreground leading-relaxed" style={{ color: "hsl(var(--primary))" }}>
-                  As a {role}: {getConstraintAction(node, role)}
+                  {getActionPrefix(role, productMode)} {getConstraintAction(node, role, productMode)}
                 </p>
               </motion.div>
             ))}
@@ -322,7 +383,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                   {getNodeBody(node)}
                 </p>
                 <p className="text-[11px] font-semibold leading-relaxed" style={{ color: "hsl(152 60% 44%)" }}>
-                  As a {role}: {getLeverAction(node, role)}
+                  {getActionPrefix(role, productMode)} {getLeverAction(node, role, productMode)}
                 </p>
               </motion.div>
             ))}
