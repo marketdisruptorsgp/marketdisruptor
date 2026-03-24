@@ -267,8 +267,49 @@ function WowCardItem({
   );
 }
 
+/**
+ * Collapse identical or near-identical WowCards.
+ *
+ * Rules:
+ *  - Morphological cards with the same title are collapsed into one
+ *    (highest compositeScore wins).
+ *  - SCAMPER cards with the same mutationType are collapsed into one
+ *    (highest compositeScore wins).
+ *  - All other cards pass through unchanged.
+ */
+export function deduplicateCards(cards: WowCard[]): WowCard[] {
+  const morphologicalBest = new Map<string, WowCard>();
+  const scamperBest = new Map<string, WowCard>();
+  const others: WowCard[] = [];
+
+  for (const card of cards) {
+    if (card.innovationMethod === "morphological") {
+      const key = card.title.toLowerCase().trim();
+      const existing = morphologicalBest.get(key);
+      if (!existing || card.compositeScore > existing.compositeScore) {
+        morphologicalBest.set(key, card);
+      }
+    } else if (card.innovationMethod === "scamper" && card.mutationType) {
+      const key = card.mutationType.toLowerCase().trim();
+      const existing = scamperBest.get(key);
+      if (!existing || card.compositeScore > existing.compositeScore) {
+        scamperBest.set(key, card);
+      }
+    } else {
+      others.push(card);
+    }
+  }
+
+  return [
+    ...Array.from(morphologicalBest.values()),
+    ...Array.from(scamperBest.values()),
+    ...others,
+  ].sort((a, b) => b.compositeScore - a.compositeScore);
+}
+
 export function WowCardGrid({ cards, modeAccent }: WowCardGridProps) {
-  if (cards.length === 0) return null;
+  const dedupedCards = deduplicateCards(cards);
+  if (dedupedCards.length === 0) return null;
 
   return (
     <motion.div
@@ -284,13 +325,13 @@ export function WowCardGrid({ cards, modeAccent }: WowCardGridProps) {
           Radical Opportunities
         </h2>
         <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4">
-          {cards.length}
+          {dedupedCards.length}
         </Badge>
       </div>
 
       {/* Cards */}
       <div className="space-y-3">
-        {cards.map((card, index) => (
+        {dedupedCards.map((card, index) => (
           <WowCardItem
             key={card.id}
             card={card}

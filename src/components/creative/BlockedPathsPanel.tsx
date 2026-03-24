@@ -36,6 +36,35 @@ function HeilmeierPanelView({ panel }: { panel: NonNullable<BlockedPath["heilmei
   );
 }
 
+/**
+ * Group blocked paths by their blockingConstraint, collapsing duplicates.
+ *
+ * Returns a map from constraintLabel → array of paths that share that
+ * blocking constraint, sorted by descending radicalityScore within each group.
+ */
+export function groupByBlockingConstraint(
+  paths: BlockedPath[],
+): Map<string, BlockedPath[]> {
+  const groups = new Map<string, BlockedPath[]>();
+
+  for (const path of paths) {
+    const key = path.blockingConstraint.toLowerCase().trim();
+    const group = groups.get(key);
+    if (group) {
+      group.push(path);
+    } else {
+      groups.set(key, [path]);
+    }
+  }
+
+  // Sort paths within each group by descending radicalityScore
+  for (const group of groups.values()) {
+    group.sort((a, b) => b.radicalityScore - a.radicalityScore);
+  }
+
+  return groups;
+}
+
 function BlockedPathRow({ path, index }: { path: BlockedPath; index: number }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -108,6 +137,8 @@ function BlockedPathRow({ path, index }: { path: BlockedPath; index: number }) {
 export function BlockedPathsPanel({ paths, modeAccent: _modeAccent }: BlockedPathsPanelProps) {
   if (paths.length === 0) return null;
 
+  const grouped = groupByBlockingConstraint(paths);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -126,10 +157,29 @@ export function BlockedPathsPanel({ paths, modeAccent: _modeAccent }: BlockedPat
         </span>
       </div>
 
-      {/* Rows */}
-      <div className="space-y-2">
-        {paths.map((path, index) => (
-          <BlockedPathRow key={path.id} path={path} index={index} />
+      {/* Groups */}
+      <div className="space-y-3">
+        {Array.from(grouped.entries()).map(([constraintKey, groupPaths]) => (
+          <div key={constraintKey} className="space-y-1.5">
+            {/* Constraint header */}
+            <div className="flex items-center gap-1.5 px-1">
+              <Lock size={10} className="text-muted-foreground/70 flex-shrink-0" />
+              <p className="text-[10px] font-bold text-foreground/80 uppercase tracking-wide">
+                {groupPaths[0].blockingConstraint}
+              </p>
+              {groupPaths.length > 1 && (
+                <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 font-semibold border-border/40">
+                  Affects {groupPaths.length}
+                </Badge>
+              )}
+            </div>
+            {/* Paths in this group */}
+            <div className="space-y-2 pl-3 border-l border-border/30">
+              {groupPaths.map((path, index) => (
+                <BlockedPathRow key={path.id} path={path} index={index} />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </motion.div>

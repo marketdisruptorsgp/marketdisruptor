@@ -72,6 +72,44 @@ export function translateConstraintToBusinessLanguage(
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  SERVICE-ONLY CONSTRAINTS
+//  Constraints that are conceptually tied to service businesses
+//  (labor billing, founder-as-delivery, geography as travel
+//  ceiling). These are suppressed — not reworded — in product
+//  mode via translateConstraintForMode().
+// ═══════════════════════════════════════════════════════════════
+
+export const SERVICE_ONLY_CONSTRAINTS = new Set([
+  "labor_intensity",
+  "owner_dependency",
+  "linear_scaling",
+  "geographic_constraint",
+]);
+
+// ═══════════════════════════════════════════════════════════════
+//  PRODUCT-MODE CONSTRAINT LANGUAGE
+//  Product-specific rewrites for constraints that survive
+//  product-mode analysis (i.e. NOT in SERVICE_ONLY_CONSTRAINTS).
+//  These replace the shared map entries when analysisType is
+//  "product".
+// ═══════════════════════════════════════════════════════════════
+
+export const PRODUCT_CONSTRAINT_LANGUAGE: Record<string, string> = {
+  commoditized_pricing:
+    "Feature commoditization is compressing your ASP — competitors are shipping equivalent capabilities and buyers can't justify the price delta",
+  channel_dependency:
+    "Your retail or distributor channel owns the customer relationship — they capture the margin and you lose pricing power with every SKU",
+  expertise_barrier:
+    "Customers can't unlock the value without specialist knowledge — onboarding friction is killing adoption and NPS at the same time",
+  trust_deficit:
+    "Buyers won't commit without social proof — product credibility is the real blocker, not feature parity",
+  margin_compression:
+    "BOM + channel costs are eliminating contribution margin — without structural cost reduction the unit economics don't work at scale",
+  awareness_gap:
+    "Target buyers don't know your product exists — distribution and category education are the bottleneck, not product quality",
+};
+
+// ═══════════════════════════════════════════════════════════════
 //  MODE-SPECIFIC OVERRIDES
 //  Constraints whose plain-English framing differs materially
 //  between product, service, and business-model analyses.
@@ -131,4 +169,43 @@ export function translateConstraintToBusinessLanguageForMode(
     if (modeOverride) return modeOverride;
   }
   return translateConstraintToBusinessLanguage(constraint, fallback);
+}
+
+/**
+ * Filter + translate a constraint ID for a given engine analysisType.
+ *
+ * Returns **null** when the constraint should be SUPPRESSED for the given
+ * analysis type (e.g. service-only constraints in a product analysis).
+ *
+ * Fallback chain (non-null path):
+ *   1. PRODUCT_CONSTRAINT_LANGUAGE (product-specific rewrites)
+ *   2. CONSTRAINT_BUSINESS_LANGUAGE_BY_MODE overrides
+ *   3. Shared CONSTRAINT_BUSINESS_LANGUAGE map
+ *   4. Explicit fallback string
+ *   5. Humanized constraint ID
+ */
+export function translateConstraintForMode(
+  constraint: string,
+  analysisType: "product" | "service" | "business_model" | null | undefined,
+  fallback?: string,
+): string | null {
+  // Suppress service-only constraints in product analysis
+  if (analysisType === "product" && SERVICE_ONLY_CONSTRAINTS.has(constraint)) {
+    return null;
+  }
+
+  // Product-specific rewrites for surviving constraints
+  if (analysisType === "product") {
+    const productOverride = PRODUCT_CONSTRAINT_LANGUAGE[constraint];
+    if (productOverride) return productOverride;
+  }
+
+  // Mode override (covers service + business_model rewrites)
+  const innovationMode: InnovationMode | null =
+    analysisType === "product" ? "product"
+    : analysisType === "service" ? "service"
+    : analysisType === "business_model" ? "business_model"
+    : null;
+
+  return translateConstraintToBusinessLanguageForMode(constraint, innovationMode, fallback);
 }

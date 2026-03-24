@@ -15,6 +15,7 @@
  */
 
 import type { ConstraintShape, BottleneckType } from "@/lib/analogEngine";
+import { SERVICE_ONLY_CONSTRAINTS } from "@/lib/businessLanguage";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -202,15 +203,22 @@ const INVERSION_TEMPLATES: InversionTemplate[] = [
 /**
  * Generate constraint inversions — reframe constraints as potential advantages.
  * Only returns inversions with genuine viability.
+ *
+ * @param analysisType - When "product", service-only constraints are skipped.
  */
 export function generateInversions(
   constraintShapes: ConstraintShape[],
   maxPerConstraint: number = 2,
-  maxTotal: number = 4
+  maxTotal: number = 4,
+  analysisType?: "product" | "service" | "business_model" | null,
 ): ConstraintInversion[] {
   const allInversions: ConstraintInversion[] = [];
 
   for (const shape of constraintShapes) {
+    // Skip service-only constraints when running a product analysis
+    if (analysisType === "product" && SERVICE_ONLY_CONSTRAINTS.has(shape.id)) {
+      continue;
+    }
     const candidates: { inversion: ConstraintInversion; score: number }[] = [];
 
     for (const template of INVERSION_TEMPLATES) {

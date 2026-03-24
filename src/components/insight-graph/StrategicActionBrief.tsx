@@ -33,10 +33,20 @@ const ROLE_OPTIONS: { id: UserRole; label: string }[] = [
   { id: "investor", label: "Investor" },
 ];
 
-function modeToDefaultRole(mode?: string): UserRole {
+export function modeToDefaultRole(mode?: string): UserRole {
   if (mode === "business") return "buyer";
+  if (mode === "custom") return "buyer";
   if (mode === "service") return "investor";
   return "founder";
+}
+
+export function isProductMode(mode?: string): boolean {
+  return mode === "custom" || mode === "product";
+}
+
+export function getActionPrefix(mode: string | undefined, role: UserRole): string {
+  if (isProductMode(mode)) return "Priority:";
+  return `As a ${role}:`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -161,42 +171,61 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
   }, [graph.topNodes, entityName]);
 
   // Build action plan — ordered items from constraints + levers
+  // In product mode: fix the binding constraint first, then activate top 2 product opportunities
   const actionPlan = useMemo(() => {
     const items: { label: string; timing: { label: string; color: string }; source: string }[] = [];
+    const productMode = isProductMode(activeMode);
 
-    // Urgent constraints first
-    topConstraints.forEach(n => {
-      if (n.impact > 0.5) {
+    if (productMode) {
+      // Product mode: constraint first → then top 2 opportunities
+      const primaryConstraint = topConstraints[0];
+      if (primaryConstraint) {
         items.push({
-          label: `Address "${n.label}" — ${getNodeSummary(n)}`,
-          timing: getTimingBadge(n, role, true),
+          label: `Fix "${primaryConstraint.label}" — ${getNodeSummary(primaryConstraint)}`,
+          timing: getTimingBadge(primaryConstraint, role, true),
           source: "blocker",
         });
       }
-    });
-
-    // Then quick-win levers
-    topLevers.forEach(n => {
-      items.push({
-        label: `Activate "${n.label}" — ${getNodeSummary(n)}`,
-        timing: getTimingBadge(n, role, false),
-        source: "lever",
+      topLevers.slice(0, 2).forEach(n => {
+        items.push({
+          label: `Activate "${n.label}" — ${getNodeSummary(n)}`,
+          timing: getTimingBadge(n, role, false),
+          source: "lever",
+        });
       });
-    });
+    } else {
+      // Standard mode: urgent constraints first, then quick-win levers, then remaining constraints
+      topConstraints.forEach(n => {
+        if (n.impact > 0.5) {
+          items.push({
+            label: `Address "${n.label}" — ${getNodeSummary(n)}`,
+            timing: getTimingBadge(n, role, true),
+            source: "blocker",
+          });
+        }
+      });
 
-    // Add remaining constraints
-    topConstraints.forEach(n => {
-      if (n.impact <= 0.5) {
+      topLevers.forEach(n => {
         items.push({
-          label: `Monitor "${n.label}" — ${getNodeSummary(n)}`,
-          timing: getTimingBadge(n, role, true),
-          source: "blocker",
+          label: `Activate "${n.label}" — ${getNodeSummary(n)}`,
+          timing: getTimingBadge(n, role, false),
+          source: "lever",
         });
-      }
-    });
+      });
+
+      topConstraints.forEach(n => {
+        if (n.impact <= 0.5) {
+          items.push({
+            label: `Monitor "${n.label}" — ${getNodeSummary(n)}`,
+            timing: getTimingBadge(n, role, true),
+            source: "blocker",
+          });
+        }
+      });
+    }
 
     return items.slice(0, 5);
-  }, [topConstraints, topLevers, role]);
+  }, [topConstraints, topLevers, role, activeMode]);
 
   // Build reasoning chains for collapsible
   const reasoningChains = useMemo(() => {
@@ -282,7 +311,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                   {getNodeBody(node)}
                 </p>
                 <p className="text-[11px] font-semibold text-foreground leading-relaxed" style={{ color: "hsl(var(--primary))" }}>
-                  As a {role}: {getConstraintAction(node, role)}
+                  {getActionPrefix(activeMode, role)} {getConstraintAction(node, role)}
                 </p>
               </motion.div>
             ))}
@@ -322,7 +351,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                   {getNodeBody(node)}
                 </p>
                 <p className="text-[11px] font-semibold leading-relaxed" style={{ color: "hsl(152 60% 44%)" }}>
-                  As a {role}: {getLeverAction(node, role)}
+                  {getActionPrefix(activeMode, role)} {getLeverAction(node, role)}
                 </p>
               </motion.div>
             ))}
