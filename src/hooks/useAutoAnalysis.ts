@@ -44,6 +44,14 @@ import { expandMultiMode } from "@/lib/modeIntelligence";
 import type { InnovationMode } from "@/lib/modeIntelligence";
 import type { ConstraintHypothesis } from "@/lib/constraintDetectionEngine";
 import { generateCreativeOpportunities } from "@/lib/creativeOpportunityEngine";
+import {
+  inferProductStructuralProfile,
+  selectProductBindingConstraints,
+} from "@/lib/productMode/productStructuralInference";
+import { selectProductConstraints } from "@/lib/productMode/productConstraints";
+import { selectProductOpportunities } from "@/lib/productMode/productOpportunities";
+import { buildProductActionPlan } from "@/lib/productMode/productActionPlan";
+import type { ProductConstraint, ProductOpportunity, ProductAction } from "@/lib/productMode/types";
 
 // Decomposed modules
 import { type AutoAnalysisResult, type EngineSetters } from "./autoAnalysis/types";
@@ -90,6 +98,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [hasRun, setHasRun] = useState(false);
   const runIdRef = useRef(0);
   const hydratedRef = useRef(false);
+  // Product-mode specific state
+  const [productConstraints, setProductConstraints] = useState<ProductConstraint[]>([]);
+  const [productOpportunities, setProductOpportunities] = useState<ProductOpportunity[]>([]);
+  const [productActionPlan, setProductActionPlan] = useState<ProductAction[]>([]);
 
   const setters: EngineSetters = useMemo(() => ({
     setIntelligence, setStructuralProfile, setGraph, setEvidence,
@@ -98,6 +110,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     setDeepenedOpportunities, setMorphologicalZones, setMorphologicalVectors,
     setConstraintInversions, setSecondOrderUnlocks, setTemporalUnlocks,
     setCompetitiveGaps, setIsComputing, setHasRun,
+    setProductConstraints, setProductOpportunities, setProductActionPlan,
   }), []);
 
   // ── Reset on analysis switch ──
@@ -360,6 +373,19 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     [flatEvidenceState, structuralProfile, constraintHypotheses, deepenedOpportunities],
   );
 
+  // ── Product-mode specific computation (deterministic, no AI) ──
+  const productModeData = useMemo(() => {
+    const mode = (analysis as any).activeMode as string | undefined;
+    if (mode !== "custom" && mode !== "product") {
+      return { constraints: [] as ProductConstraint[], opportunities: [] as ProductOpportunity[], actionPlan: [] as ProductAction[] };
+    }
+    const facetProfile = inferProductStructuralProfile(flatEvidenceState);
+    const constraints = selectProductConstraints(facetProfile, flatEvidenceState, 4);
+    const opportunities = selectProductOpportunities(facetProfile, flatEvidenceState, 3);
+    const actionPlan = buildProductActionPlan(facetProfile, constraints, opportunities);
+    return { constraints, opportunities, actionPlan };
+  }, [flatEvidenceState, (analysis as any).activeMode]);
+
   return {
     intelligence, structuralProfile, graph, evidence,
     flatEvidence: flatEvidenceState,
@@ -371,5 +397,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     wowCards: creativeResult.wowCards,
     blockedPaths: creativeResult.blockedPaths,
     allCreativeIdeas: creativeResult.allIdeas,
+    productConstraints: productModeData.constraints,
+    productOpportunities: productModeData.opportunities,
+    productActionPlan: productModeData.actionPlan,
   };
 }

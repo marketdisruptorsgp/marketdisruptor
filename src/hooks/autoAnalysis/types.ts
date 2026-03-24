@@ -15,6 +15,9 @@ import type { SecondOrderUnlock } from "@/lib/secondOrderEngine";
 import type { TemporalUnlock } from "@/lib/temporalArbitrageEngine";
 import type { CompetitiveGap } from "@/lib/negativeSpaceEngine";
 import type { WowCard, BlockedPath, IdeaCandidate } from "@/lib/creativeOpportunityEngine";
+import type { ProductConstraint } from "@/lib/productMode/types";
+import type { ProductOpportunity } from "@/lib/productMode/types";
+import type { ProductAction } from "@/lib/productMode/types";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
@@ -43,6 +46,10 @@ export interface AutoAnalysisResult {
   wowCards: WowCard[];
   blockedPaths: BlockedPath[];
   allCreativeIdeas: IdeaCandidate[];
+  /** Product-mode specific fields (populated only when activeMode === "custom" or "product") */
+  productConstraints: ProductConstraint[];
+  productOpportunities: ProductOpportunity[];
+  productActionPlan: ProductAction[];
 }
 
 /** All mutable state managed by the auto-analysis engine */
@@ -67,6 +74,10 @@ export interface EngineState {
   competitiveGaps: CompetitiveGap[];
   isComputing: boolean;
   hasRun: boolean;
+  /** Product-mode specific state */
+  productConstraints: ProductConstraint[];
+  productOpportunities: ProductOpportunity[];
+  productActionPlan: ProductAction[];
 }
 
 export interface EngineSetters {
@@ -90,4 +101,8 @@ export interface EngineSetters {
   setCompetitiveGaps: (v: CompetitiveGap[]) => void;
   setIsComputing: (v: boolean) => void;
   setHasRun: (v: boolean) => void;
+  /** Product-mode specific setters */
+  setProductConstraints: (v: ProductConstraint[]) => void;
+  setProductOpportunities: (v: ProductOpportunity[]) => void;
+  setProductActionPlan: (v: ProductAction[]) => void;
 }

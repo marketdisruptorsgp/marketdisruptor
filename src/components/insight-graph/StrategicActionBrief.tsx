@@ -36,7 +36,17 @@ const ROLE_OPTIONS: { id: UserRole; label: string }[] = [
 function modeToDefaultRole(mode?: string): UserRole {
   if (mode === "business") return "buyer";
   if (mode === "service") return "investor";
+  if (mode === "custom" || mode === "product") return "buyer";
   return "founder";
+}
+
+function isProductMode(mode?: string): boolean {
+  return mode === "custom" || mode === "product";
+}
+
+function getActionPrefix(mode: string | undefined, role: UserRole): string {
+  if (isProductMode(mode)) return "Priority:";
+  return `As a ${role}:`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -282,7 +292,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                   {getNodeBody(node)}
                 </p>
                 <p className="text-[11px] font-semibold text-foreground leading-relaxed" style={{ color: "hsl(var(--primary))" }}>
-                  As a {role}: {getConstraintAction(node, role)}
+                  {getActionPrefix(activeMode, role)} {getConstraintAction(node, role)}
                 </p>
               </motion.div>
             ))}
@@ -322,7 +332,7 @@ export const StrategicActionBrief = memo(function StrategicActionBrief({
                   {getNodeBody(node)}
                 </p>
                 <p className="text-[11px] font-semibold leading-relaxed" style={{ color: "hsl(152 60% 44%)" }}>
-                  As a {role}: {getLeverAction(node, role)}
+                  {getActionPrefix(activeMode, role)} {getLeverAction(node, role)}
                 </p>
               </motion.div>
             ))}
