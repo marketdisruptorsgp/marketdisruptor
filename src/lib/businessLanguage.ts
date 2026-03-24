@@ -8,9 +8,13 @@
  * Two-layer approach:
  *   1. Business translation (full context sentence)
  *   2. Humanized fallback (snake_case → readable sentence case)
+ *
+ * Mode-specific overrides ensure that service tropes (e.g. "billable hours")
+ * never appear in product-mode analyses, and vice-versa.
  */
 
 import { humanizeLabel } from "@/lib/humanize";
+import type { InnovationMode } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  CONSTRAINT → BUSINESS LANGUAGE MAP
@@ -65,4 +69,66 @@ export function translateConstraintToBusinessLanguage(
   const business = CONSTRAINT_BUSINESS_LANGUAGE[constraint];
   if (business) return business;
   return fallback || humanizeLabel(constraint.replace(/_/g, " "));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MODE-SPECIFIC OVERRIDES
+//  Constraints whose plain-English framing differs materially
+//  between product, service, and business-model analyses.
+//  Only constraints with genuinely different semantics per-mode
+//  are listed here — the shared map above remains the default.
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Per-mode constraint language overrides.
+ *
+ * Keys must be InnovationMode values ("product" | "service" | "business_model").
+ * Inner keys are constraint IDs from CONSTRAINT_BUSINESS_LANGUAGE.
+ * Only list constraints that need a genuinely different framing for that mode.
+ *
+ * Service mode inherits all defaults from CONSTRAINT_BUSINESS_LANGUAGE
+ * (including "billable hours" for labor_intensity, which is appropriate).
+ */
+const CONSTRAINT_BUSINESS_LANGUAGE_BY_MODE: Partial<
+  Record<InnovationMode, Partial<Record<string, string>>>
+> = {
+  product: {
+    // In a product business, labor intensity is about manufacturing/support cost-per-unit,
+    // NOT about billing hours to clients (which is a service concept).
+    labor_intensity:
+      "High labor costs per unit are compressing your margins — every new sale requires proportional headcount",
+    // Owner dependency in product mode is about founder being a single point of failure in ops/R&D.
+    owner_dependency:
+      "Growth stalls when everything flows through you — your product operation needs systems that run without your constant input",
+    // Linear scaling in product mode is about inability to grow revenue without adding headcount.
+    linear_scaling:
+      "Your product growth is directly tied to headcount — you haven't yet unlocked revenue that scales faster than your team",
+  },
+  business_model: {
+    // Business model mode focuses on structural revenue constraints rather than operational ones.
+    labor_intensity:
+      "Your revenue model is structurally dependent on human effort — scaling revenue requires scaling cost at the same rate",
+    linear_scaling:
+      "Your business model scales linearly: more revenue means proportionally more cost or headcount, eliminating leverage",
+  },
+};
+
+/**
+ * Translate a constraint ID to entrepreneur-facing language, respecting the
+ * active analysis mode so that service tropes like "billable hours" never
+ * appear in product-mode output.
+ *
+ * Falls back to the shared map, then to an explicit fallback string, then to
+ * a humanized version of the constraint ID.
+ */
+export function translateConstraintToBusinessLanguageForMode(
+  constraint: string,
+  mode: InnovationMode | null | undefined,
+  fallback?: string,
+): string {
+  if (mode) {
+    const modeOverride = CONSTRAINT_BUSINESS_LANGUAGE_BY_MODE[mode]?.[constraint];
+    if (modeOverride) return modeOverride;
+  }
+  return translateConstraintToBusinessLanguage(constraint, fallback);
 }
