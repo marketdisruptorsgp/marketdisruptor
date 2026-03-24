@@ -43,16 +43,13 @@ function makeEvidence(
   };
 }
 
-function makeInsight(id: string, label: string): StrategicInsight {
+function makeInsight(id: string, label: string): Partial<StrategicInsight> & { id: string; label: string } {
   return {
     id,
-    type: "constraint",
     label,
     description: "",
     evidenceIds: [],
-    confidence: "moderate",
-    mode: "product",
-  };
+  } as any;
 }
 
 /** Minimal narrative fixture */
