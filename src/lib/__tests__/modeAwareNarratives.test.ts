@@ -387,3 +387,61 @@ describe("selectProductOpportunities — Sony WHCH720N fixture", () => {
     }
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  generateInversions — premium_signal suppression in product mode
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { generateInversions } from "@/lib/constraintInverter";
+import type { ConstraintShape } from "@/lib/analogEngine";
+
+describe("generateInversions — product mode premium_signal suppression", () => {
+  const humanCapacityShape: ConstraintShape = {
+    id: "cs-human-capacity",
+    bottleneckType: "human_capacity",
+    sourceConstraintLabel: "craft assembly requires skilled workers",
+    scarceResource: "skilled labor",
+    scalingBehavior: "linear",
+    bindingMechanism: "capacity",
+  };
+
+  it("includes premium_signal inversions in service mode (no suppression)", () => {
+    const inversions = generateInversions([humanCapacityShape], 2, 4, "service");
+    const types = inversions.map(i => i.inversionType);
+    expect(types).toContain("premium_signal");
+  });
+
+  it("suppresses premium_signal inversions in product mode", () => {
+    const inversions = generateInversions([humanCapacityShape], 2, 4, "product");
+    const types = inversions.map(i => i.inversionType);
+    expect(types).not.toContain("premium_signal");
+  });
+
+  it("suppresses premium_signal in product mode — no Hermès language in output", () => {
+    const inversions = generateInversions([humanCapacityShape], 2, 4, "product");
+    for (const inv of inversions) {
+      expect(inv.precedent).not.toMatch(/herm[eèé]s/i);
+      expect(inv.invertedFrame).not.toMatch(/PREMIUM\s*SIGNAL/i);
+    }
+  });
+
+  it("does NOT suppress premium_signal when analysisType is undefined (backward compat)", () => {
+    const inversions = generateInversions([humanCapacityShape], 2, 4);
+    const types = inversions.map(i => i.inversionType);
+    expect(types).toContain("premium_signal");
+  });
+
+  it("still returns other inversion types in product mode (no blanket suppression)", () => {
+    const regulatoryShape: ConstraintShape = {
+      id: "cs-regulatory",
+      bottleneckType: "regulatory_cage",
+      sourceConstraintLabel: "CE marking compliance for electronics",
+      scarceResource: "regulatory approval",
+      scalingBehavior: "binary",
+      bindingMechanism: "regulation",
+    };
+    const inversions = generateInversions([regulatoryShape], 2, 4, "product");
+    const types = inversions.map(i => i.inversionType);
+    expect(types).toContain("regulatory_shield");
+  });
+});

@@ -50,7 +50,7 @@ import { buildDiagnosticContext, extractLensConfig, type DiagnosticContext } fro
 import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
-import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
+import { translateConstraintToBusinessLanguage, translateConstraintForMode } from "@/lib/businessLanguage";
 import { traceStrategicStages, traceEvent, setPipelineDiagnosticSummary } from "@/lib/pipelineTrace";
 
 /** Get a pattern-specific business narrative that references real company precedents */
@@ -327,6 +327,7 @@ function buildStrategicNarrative(
   alternative: DeepenedOpportunity | null,
   profile: StructuralProfile | null,
   flatEvidence: Evidence[],
+  analysisType?: string,
 ): StrategicNarrative {
   if (!primary || !profile) {
     return emptyNarrative("Gathering intelligence and building the strategic picture. Results will appear as data comes in.");
@@ -339,7 +340,10 @@ function buildStrategicNarrative(
 
   // Strategic Verdict — the headline
   const strategicVerdict = move;
-  const verdictRationale = `Here's what's holding this business back: ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
+  const constraintContext = analysisType === "product"
+    ? `Here's what's constraining this product: ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`
+    : `Here's what's holding this business back: ${constraint.toLowerCase()}. ${primary.causalChain.reasoning}`;
+  const verdictRationale = constraintContext;
   const verdictConfidence = Math.min(0.4 + primary.signalDensity * 0.15, 0.9);
 
   // Why This Matters — with company precedent from strategicPrecedents if available
@@ -581,13 +585,18 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // Add constraint insights from structural profile
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const translated = translateConstraintForMode(bc.constraintName, input.analysisType, bc.explanation);
+      if (translated === null) continue; // service-only constraint suppressed in product mode
+      const businessLabel = translated;
+      const constraintDesc = input.analysisType === "product"
+        ? `Here's what's constraining this product: ${businessLabel}`
+        : `Here's what's holding this business back: ${businessLabel}`;
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
         insightType: "constraint_cluster",
         label: businessLabel,
-        description: `Here's what's holding this business back: ${businessLabel}`,
+        description: constraintDesc,
         evidenceIds: bc.evidenceIds ?? [],
         relatedInsightIds: [],
         impact: 8,
@@ -657,9 +666,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // ── Build Narrative ──
   const primary = deepenedOpps[0] ?? null;
   const alternative = deepenedOpps[1] ?? null;
-  const narrative = buildStrategicNarrative(primary, alternative, structuralProfile, flat);
-
-  // ── Inject opportunities into evidence for metrics ──
+  const narrative = buildStrategicNarrative(primary, alternative, structuralProfile, flat, input.analysisType);
   for (const opp of insights.filter(i => i.insightType === "emerging_opportunity")) {
     evidence.opportunity.items.push({
       id: opp.id,
@@ -986,13 +993,18 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   if (structuralProfile) {
     for (const bc of structuralProfile.bindingConstraints.slice(0, 3)) {
-      const businessLabel = translateConstraintToBusinessLanguage(bc.constraintName, bc.explanation);
+      const translated = translateConstraintForMode(bc.constraintName, input.analysisType, bc.explanation);
+      if (translated === null) continue; // service-only constraint suppressed in product mode
+      const businessLabel = translated;
+      const constraintDesc = input.analysisType === "product"
+        ? `Here's what's constraining this product: ${businessLabel}`
+        : `Here's what's holding this business back: ${businessLabel}`;
       insights.push(makeInsight({
         id: nextId("constraint"),
         analysisId: input.analysisId,
         insightType: "constraint_cluster",
         label: businessLabel,
-        description: `Here's what's holding this business back: ${businessLabel}`,
+        description: constraintDesc,
         evidenceIds: bc.evidenceIds ?? [],
         relatedInsightIds: [],
         impact: 8,
@@ -1059,9 +1071,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
 
   const primary = deepenedOpps[0] ?? null;
   const alternative = deepenedOpps[1] ?? null;
-  const narrative = buildStrategicNarrative(primary, alternative, structuralProfile, flat);
-
-  for (const opp of insights.filter(i => i.insightType === "emerging_opportunity")) {
+  const narrative = buildStrategicNarrative(primary, alternative, structuralProfile, flat, input.analysisType);
     evidence.opportunity.items.push({
       id: opp.id, type: "opportunity" as any, label: opp.label, description: opp.description,
       pipelineStep: "disrupt" as any, tier: "structural" as any,

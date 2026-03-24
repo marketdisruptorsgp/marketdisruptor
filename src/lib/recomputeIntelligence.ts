@@ -242,7 +242,7 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
 
       // ── Layer 3: Inject constraint inversions ───────────────────────
       // Generate inversions — exploring if constraints can become competitive advantages
-      const inversions = generateInversions(constraintShapes, 2, 4);
+      const inversions = generateInversions(constraintShapes, 2, 4, input.analysisType);
 
       // ── Layer 4: Inject second-order unlocks ────────────────────────
       // Explore what becomes possible if constraints were removed
