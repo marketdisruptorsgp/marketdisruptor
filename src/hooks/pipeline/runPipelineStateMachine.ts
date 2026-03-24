@@ -111,8 +111,11 @@ export async function runPipelineStateMachine(
   const hasFullSynthesis = opts.existingDisrupt && !(opts.existingDisrupt as any)?._earlyInsights;
   let synthesisResult = hasFullSynthesis ? opts.existingDisrupt : null;
   if (!synthesisResult) {
+    traceEvent("step:synthesis running");
     synthesisResult = await runStrategicSynthesis(ctx, cb, store, decompResult, strategyContext);
     if (!synthesisResult) {
+      traceError("Synthesis failed — generating thin-data fallback");
+      traceEvent(`step:synthesis fallback (elapsed=${elapsed()}s)`);
       console.warn("[Pipeline] Synthesis failed — generating thin-data fallback");
       const decompObj = decompResult as Record<string, unknown> | null;
       const earlyAssumptions = decompObj?._earlyAssumptions as any[] || [];
@@ -128,13 +131,17 @@ export async function runPipelineStateMachine(
       await cb.saveStepData("disrupt", fallbackSynthesis, ctx.analysisId);
       cb.updateStatus("synthesis", "done");
       toast.info("Limited data available — upload financial documents for deeper strategic analysis.");
+    } else {
+      traceEvent(`step:synthesis done (elapsed=${elapsed()}s)`);
     }
   } else {
     console.log("[Pipeline] Reusing existing synthesis data");
+    traceEvent("step:synthesis reused");
     cb.updateStatus("synthesis", "done");
   }
 
   if (isOverBudget()) {
+    traceError(`Pipeline exceeded time budget after synthesis (${elapsed()}s)`);
     console.warn("[Pipeline] Over time budget after synthesis — skipping concepts");
     cb.updateStatus("concepts", "skipped");
     return { success: true }; // Core phases done, just skipping enrichment
