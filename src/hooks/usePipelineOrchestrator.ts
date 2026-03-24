@@ -8,7 +8,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
-import { startTrace, completeTrace, getTrace } from "@/lib/pipelineTrace";
+import { startTrace, traceEvent, traceError } from "@/lib/pipelineTrace";
 import { runPipelineStateMachine, type PipelineResult } from "./pipeline/runPipelineStateMachine";
 import { acquireKeepAlive, releaseKeepAlive } from "./pipeline/keepAlive";
 import { setPipelineRunning } from "@/lib/pipelineSignal";
@@ -179,11 +179,17 @@ export function usePipelineOrchestrator(
       runAllRef.current = false;
       releaseKeepAlive();
 
-      // Always complete the trace in the orchestrator's finally so completedAt
-      // is never left null even if the strategic engine is still resolving its
-      // async promise. The strategic engine will write its fields before the
-      // orchestrator finally fires (it's triggered synchronously via onRecompute).
-      completeTrace(result.success ? "completed" : "failed");
+      // Do NOT call completeTrace() here. The strategic engine in useAutoAnalysis
+      // runs asynchronously — calling completeTrace() from the orchestrator's
+      // finally would mark the trace done BEFORE traceStrategicStages() is called,
+      // which results in strategicStages: null in every exported trace JSON.
+      // The strategic engine's own .finally() block calls completeTrace() once the
+      // async work fully resolves. The 45s safety timeout in useAutoAnalysis
+      // provides the guaranteed fallback if the engine hangs indefinitely.
+      traceEvent(`pipeline_orchestrator_finished status=${result.success ? "success" : "failed"}`);
+      if (!result.success) {
+        traceError(`Pipeline failed: ${result.error || "Unknown error"}`);
+      }
 
       if (!result.success) {
         setPipelineError(result.error || "Pipeline failed");

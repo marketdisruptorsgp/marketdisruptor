@@ -251,6 +251,7 @@ function StrategicSection({ trace }: { trace: PipelineTrace }) {
 
   const aiGateColor = st?.stage6_aiGatePassed ? "#10b981" : "#f59e0b";
   const modeColor = st?.stage6_mode === "ai" ? "#8b5cf6" : st?.stage6_mode === "deterministic" ? "#3b82f6" : "#9ca3af";
+  const engineFailed = st?.stage6_mode === "skipped" && st?.stage6_skipReason?.toLowerCase().includes("failed");
 
   return (
     <div className="space-y-3">
@@ -258,6 +259,12 @@ function StrategicSection({ trace }: { trace: PipelineTrace }) {
         Strategic synthesis uses deterministic scoring &amp; reasoning-chain checks through stages 1–5, then
         conditionally uses AI deepening if the quality gate passes (stage 6).
       </p>
+      {engineFailed && (
+        <div className="flex items-start gap-1.5 text-[9px] text-red-600 bg-red-500/10 rounded px-2 py-1.5 border border-red-500/20">
+          <AlertTriangle size={10} className="flex-shrink-0 mt-0.5" />
+          <span><strong>Engine failure:</strong> Both async and sync strategic engines failed. Check the Events &amp; Error Timeline for details.</span>
+        </div>
+      )}
 
       {st && (
         <>
@@ -358,6 +365,11 @@ function StrategicSection({ trace }: { trace: PipelineTrace }) {
             {st.stage6_deepenedLabels.length > 0 && (
               <p className="text-[9px] text-muted-foreground">
                 Thesis labels: <span className="text-foreground">{st.stage6_deepenedLabels.slice(0, 6).join(", ")}{st.stage6_deepenedLabels.length > 6 ? ", …" : ""}</span>
+              </p>
+            )}
+            {st.stage6_skipReason && (
+              <p className="text-[9px] text-amber-600 bg-amber-500/10 rounded px-2 py-1 border border-amber-500/20">
+                <span className="font-semibold">Skip reason:</span> {st.stage6_skipReason}
               </p>
             )}
           </div>
