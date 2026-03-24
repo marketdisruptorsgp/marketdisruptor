@@ -12,6 +12,7 @@ import { runStrategicSynthesis } from "./stepSynthesis";
 import { runConceptSynthesis } from "./stepConcepts";
 import { runStressTest } from "./stepStressTest";
 import { runPitch } from "./stepPitch";
+import { traceEvent, traceError } from "@/lib/pipelineTrace";
 import type { StepRunnerContext, StepRunnerCallbacks, StepDataStore } from "./types";
 import { toast } from "sonner";
 
