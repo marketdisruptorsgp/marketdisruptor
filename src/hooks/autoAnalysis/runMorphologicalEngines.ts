@@ -128,7 +128,7 @@ export function runMorphologicalEngines(
     const warmDims = getDimensionsByStatus(baseline, "warm");
     const activeDims = [...hotDims, ...warmDims];
 
-    result.constraintInversions = generateInversions(constraintShapes, 2, 4);
+    result.constraintInversions = generateInversions(constraintShapes, 2, 4, analysisMode);
     result.secondOrderUnlocks = generateSecondOrderUnlocks(constraintShapes, 2, 4);
 
     if (runMode !== "inversions_only") {

@@ -202,12 +202,17 @@ const INVERSION_TEMPLATES: InversionTemplate[] = [
 /**
  * Generate constraint inversions — reframe constraints as potential advantages.
  * Only returns inversions with genuine viability.
+ *
+ * In product mode, "premium_signal" inversions (e.g. Hermès handbag analogies)
+ * are suppressed — they are service/luxury tropes irrelevant to hardware products.
  */
 export function generateInversions(
   constraintShapes: ConstraintShape[],
   maxPerConstraint: number = 2,
-  maxTotal: number = 4
+  maxTotal: number = 4,
+  analysisType?: string
 ): ConstraintInversion[] {
+  const isProduct = analysisType === "product";
   const allInversions: ConstraintInversion[] = [];
 
   for (const shape of constraintShapes) {
@@ -216,6 +221,10 @@ export function generateInversions(
     for (const template of INVERSION_TEMPLATES) {
       // Must match bottleneck type
       if (!template.bottleneckTypes.includes(shape.bottleneckType)) continue;
+
+      // In product mode, suppress premium_signal inversions — service/luxury tropes
+      // (e.g. "your cost IS your moat", Hermès handbag precedent) are irrelevant for hardware products
+      if (isProduct && template.inversionType === "premium_signal") continue;
 
       // Evaluate viability
       const constraintText = shape.sourceConstraintLabel + " " + shape.scarceResource;
