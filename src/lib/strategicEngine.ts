@@ -304,7 +304,7 @@ function normalizeEvidence(flat: Evidence[]): Evidence[] {
   const usedIds = new Set<string>();
   for (const ev of flat) {
     if (usedIds.has(ev.id)) continue;
-    const isDuplicate = deduped.some(d => jaccard(d.label, ev.label) >= 0.7);
+    const isDuplicate = deduped.some(d => jaccard(d.label, ev.label) >= 0.8);
     if (isDuplicate) continue;
     deduped.push({
       ...ev,
@@ -764,6 +764,53 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   buildDiagnostic(stages, graph.nodes, flat.length, insights.length, scenarios.length);
   events.push("Strategic intelligence computed");
+
+  // ── Pipeline Trace: update narrative + diagnostic summary ──
+  try {
+    traceStrategicStages({
+      stage1_rawEvidenceCount: rawFlat.length,
+      stage2_normalizedCount: flat.length,
+      stage2_dedupLosses: rawFlat.length - flat.length,
+      stage2b_facetsPopulated: evCount >= minEvidenceThreshold,
+      stage3_constraintHypotheses: (constraintHypotheses?.hypotheses ?? []).map(h => ({
+        name: h.constraintName,
+        evidenceCount: h.evidenceIds?.length ?? 0,
+      })),
+      stage4_structuralProfile: structuralProfile ? {
+        supplyFragmentation: structuralProfile.supplyFragmentation,
+        marginStructure: structuralProfile.marginStructure,
+        switchingCosts: structuralProfile.switchingCosts,
+        distributionControl: structuralProfile.distributionControl,
+        laborIntensity: structuralProfile.laborIntensity,
+        revenueModel: structuralProfile.revenueModel,
+      } : null,
+      stage4_bindingConstraints: (structuralProfile?.bindingConstraints ?? []).map(c => c.constraintName),
+      stage5_qualifiedPatterns: qualifiedPatternsResult.map(qp => ({
+        name: qp.pattern.name,
+        signalDensity: qp.signalDensity,
+        strengthSignals: qp.qualification.strengthSignals,
+        weaknessSignals: qp.qualification.resolvesConstraints,
+      })),
+      stage6_aiGatePassed: false,
+      stage6_aiGateDetails: { evidenceCount: evCount, bindingConstraintCount: structuralProfile?.bindingConstraints.length ?? 0, suppressed: true },
+      stage6_deepenedLabels: deepenedOpps.map(d => d.reconfigurationLabel),
+      stage6_mode: "deterministic",
+      narrative: narrative ? {
+        strategicVerdict: narrative.strategicVerdict,
+        primaryConstraint: narrative.primaryConstraint,
+        whyThisMatters: narrative.whyThisMatters,
+      } : null,
+    });
+    setPipelineDiagnosticSummary({
+      evidenceCount: evCount,
+      insightCount: insights.length,
+      constraintCount,
+      deepenedCount: deepenedOpps.length,
+      graphNodes: graph.nodes.length,
+      graphEdges: graph.edges.length,
+      stages: stages.map(s => ({ stage: s.stage, inputCount: s.inputCount, outputCount: s.outputCount, durationMs: s.durationMs })),
+    });
+  } catch (_) { /* trace not initialized */ }
 
   activeRunFactory = null;
 

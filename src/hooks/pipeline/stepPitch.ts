@@ -35,7 +35,7 @@ export async function runPitch(
 
   const pitchResult = result.deck;
   store.setPitchDeckData(pitchResult);
-  await cb.saveStepData("pitchDeck", pitchResult, ctx.analysisId);
+  await cb.saveStepData("pitch", pitchResult, ctx.analysisId);
   store.clearStepOutdated("pitch");
   cb.updateStatus("pitch", "done");
   cb.onStepComplete?.("pitch");
