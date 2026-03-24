@@ -236,7 +236,7 @@ describe("product mode opportunity language — negative assertions", () => {
 describe("product mode structural inference — no service language", () => {
   it("product inference does NOT produce labor_intensity", () => {
     const profile = inferProductStructuralProfile(headphoneEvidence);
-    expect((profile as Record<string, unknown>).labor_intensity).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).labor_intensity).toBeUndefined();
   });
 
   it("product inference does NOT produce owner_dependency", () => {
