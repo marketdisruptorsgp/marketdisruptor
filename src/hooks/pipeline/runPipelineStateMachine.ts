@@ -80,6 +80,7 @@ export async function runPipelineStateMachine(
   // ═══ PHASE 1.5: Strategy Search (deterministic, ~50ms) ═══
   let strategyContext: any = undefined;
   try {
+    traceEvent("step:strategy_search running");
     const structuralProfile = profileFromDecomposition(decompResult);
     if (structuralProfile && structuralProfile.bindingConstraints.length > 0) {
       const searchResult = runStrategySearch(structuralProfile, { outputCount: 8 });
@@ -96,9 +97,13 @@ export async function runPipelineStateMachine(
         analogyCount: analogyStrategies.length,
         totalEvaluated: searchResult.totalEvaluated,
       };
+      traceEvent(`step:strategy_search done (evaluated=${searchResult.totalEvaluated}, cross-domain=${analogyStrategies.length})`);
       console.log(`[Pipeline] Strategy search: ${searchResult.totalEvaluated} evaluated, ${analogyStrategies.length} cross-domain`);
+    } else {
+      traceEvent("step:strategy_search skipped (no binding constraints)");
     }
   } catch (e) {
+    traceError(`Strategy search failed: ${e}`);
     console.warn("[Pipeline] Strategy search failed (non-blocking):", e);
   }
 
