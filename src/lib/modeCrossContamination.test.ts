@@ -46,27 +46,36 @@ function makeEvidence(
 function makeInsight(id: string, label: string): StrategicInsight {
   return {
     id,
-    type: "constraint",
     label,
     description: "",
     evidenceIds: [],
-    confidence: "moderate",
-    mode: "product",
-  };
+  } as unknown as StrategicInsight;
 }
 
 /** Minimal narrative fixture */
-const SAMPLE_NARRATIVE: StrategicNarrative = {
-  headline: "Test narrative",
+const SAMPLE_NARRATIVE = {
   primaryConstraint: "labor_intensity",
   keyDriver: "workforce bottleneck",
   leveragePoint: "automation",
   breakthroughOpportunity: "systematized delivery",
   killQuestion: "Will customers pay for a productized version?",
   validationExperiment: "Run a pilot with 3 existing customers",
-  strategicLogic: "Replacing labor with process enables margin expansion",
-  founderPrompt: "What would have to be true for this to work?",
-};
+  narrativeSummary: "Replacing labor with process enables margin expansion",
+  strategicVerdict: null,
+  verdictRationale: null,
+  verdictConfidence: 0,
+  whyThisMatters: null,
+  strategicPathway: null,
+  trappedValue: null,
+  unlockPotential: null,
+  trappedValueEstimate: null,
+  trappedValueBenchmark: null,
+  trappedValueEvidenceCount: 0,
+  validationTimeframe: "4-6 weeks",
+  validationSteps: [],
+  verdictBenchmark: null,
+  executiveSummary: null,
+} as StrategicNarrative;
 
 /**
  * Service-flavoured evidence: mentions of billable hours, consultants, bespoke
@@ -163,19 +172,17 @@ describe("generatePlaybooks() — cross-mode contamination", () => {
  */
 function makeBaselineWithServiceDimension(): BusinessBaseline {
   return {
-    dimensions: [
-      {
-        id: "dim-1",
-        name: "Delivery model",
-        category: "operational_dependency",
-        currentValue: "Bespoke manual service delivery with hourly labor",
-        status: "hot",
-        hasConstraint: true,
-        hasLeverage: false,
-        evidenceCount: 6,
-        evidenceIds: ["ev-p1", "ev-p2"],
-      },
-    ],
+    "dim-1": {
+      id: "dim-1",
+      name: "Delivery model",
+      category: "operational_dependency",
+      currentValue: "Bespoke manual service delivery with hourly labor",
+      status: "hot",
+      hasConstraint: true,
+      hasLeverage: false,
+      evidenceCount: 6,
+      evidenceIds: ["ev-p1", "ev-p2"],
+    } as any,
   };
 }
 

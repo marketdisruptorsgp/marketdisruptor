@@ -236,17 +236,17 @@ describe("product mode opportunity language — negative assertions", () => {
 describe("product mode structural inference — no service language", () => {
   it("product inference does NOT produce labor_intensity", () => {
     const profile = inferProductStructuralProfile(headphoneEvidence);
-    expect((profile as Record<string, unknown>).labor_intensity).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).labor_intensity).toBeUndefined();
   });
 
   it("product inference does NOT produce owner_dependency", () => {
     const profile = inferProductStructuralProfile(headphoneEvidence);
-    expect((profile as Record<string, unknown>).owner_dependency).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).owner_dependency).toBeUndefined();
   });
 
   it("product inference does NOT produce billable_hours", () => {
     const profile = inferProductStructuralProfile(headphoneEvidence);
-    expect((profile as Record<string, unknown>).billable_hours).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).billable_hours).toBeUndefined();
   });
 
   it("product binding constraints do NOT include labor_intensity", () => {
@@ -265,17 +265,17 @@ describe("product mode structural inference — no service language", () => {
 describe("service mode structural inference — no product language", () => {
   it("service inference does NOT produce durability_risk", () => {
     const profile = inferServiceStructuralProfile(consultancyEvidence);
-    expect((profile as Record<string, unknown>).durability_risk).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).durability_risk).toBeUndefined();
   });
 
   it("service inference does NOT produce repairability_friction", () => {
     const profile = inferServiceStructuralProfile(consultancyEvidence);
-    expect((profile as Record<string, unknown>).repairability_friction).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).repairability_friction).toBeUndefined();
   });
 
   it("service inference does NOT produce feature_commoditization", () => {
     const profile = inferServiceStructuralProfile(consultancyEvidence);
-    expect((profile as Record<string, unknown>).feature_commoditization).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).feature_commoditization).toBeUndefined();
   });
 
   it("service binding constraints include labor_intensity", () => {
