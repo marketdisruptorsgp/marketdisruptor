@@ -11,7 +11,7 @@
 
 import { useRef, useCallback, useMemo, useState } from "react";
 import type { Evidence } from "@/lib/evidenceEngine";
-import { startTrace, completeTrace } from "@/lib/pipelineTrace";
+import { startTrace, completeTrace, traceEvent, traceError } from "@/lib/pipelineTrace";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { isPipelineRunning } from "@/lib/pipelineSignal";
