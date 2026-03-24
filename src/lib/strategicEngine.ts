@@ -38,6 +38,8 @@ import {
   qualifyPatterns,
   deepenOpportunities,
   deepenOpportunitiesAsync,
+  SERVICE_ONLY_CONSTRAINT_NAMES,
+  PRODUCT_ONLY_CONSTRAINT_NAMES,
   type StructuralProfile,
   type QualifiedPattern,
   type DeepenedOpportunity,
@@ -542,7 +544,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   if (evCount >= minEvidenceThreshold) {
     const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () =>
-      diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig)
+      diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig, input.analysisType)
     );
     stages.push(s4);
     structuralProfile = profile;
@@ -898,7 +900,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   let structuralProfile: StructuralProfile | null = null;
   const candidatesForProfile = (constraintHypotheses?.hypotheses ?? []).slice(0, 5);
   if (evCount >= minEvidenceThreshold) {
-    const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () => diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig));
+    const { result: profile, stage: s4 } = traceStage("Structural Diagnosis", flat.length, () => diagnoseStructuralProfile(flat, candidatesForProfile, input.lensConfig, input.analysisType));
     stages.push(s4);
     structuralProfile = profile;
     events.push(`Structural profile: ${profile.supplyFragmentation} fragmentation, ${profile.laborIntensity} labor, ${profile.revenueModel} revenue`);
@@ -918,9 +920,24 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
   // ── Stage 6: Thesis Construction (AI-gated, multi-opportunity) ──
   let deepenedOpps: DeepenedOpportunity[] = [];
   const bindingConstraintCount = structuralProfile?.bindingConstraints.length ?? 0;
+
+  // Detect mode mismatch: binding constraints must match the declared analysis type.
+  // After the Stage 4 fix this should never fire, but serves as a safety net.
+  const bindingNames = (structuralProfile?.bindingConstraints ?? []).map(c => c.constraintName);
+  const hasModeConstraintMismatch = (() => {
+    if (input.analysisType === "product") return bindingNames.some(n => SERVICE_ONLY_CONSTRAINT_NAMES.has(n));
+    if (input.analysisType === "service") return bindingNames.some(n => PRODUCT_ONLY_CONSTRAINT_NAMES.has(n));
+    return false;
+  })();
+
   // Lower AI threshold — strategic directions can fill gaps even with fewer qualified patterns
   const meetsAIThreshold = evCount >= 6 && bindingConstraintCount >= 1 && structuralProfile != null
-    && !input.suppressAIDeepening; // Skip AI deepening during active pipeline to prevent rate-limit contention
+    && !input.suppressAIDeepening // Skip AI deepening during active pipeline to prevent rate-limit contention
+    && !hasModeConstraintMismatch; // Fail gate on mode/constraint mismatch
+
+  if (hasModeConstraintMismatch) {
+    events.push(`AI quality gate FAILED — mode constraint mismatch detected (analysisType=${input.analysisType}, binding=[${bindingNames.join(", ")}])`);
+  }
 
   if (structuralProfile) {
     if (meetsAIThreshold) {
@@ -1128,7 +1145,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
         weaknessSignals: qp.qualification.resolvesConstraints,
       })),
       stage6_aiGatePassed: meetsAIThreshold,
-      stage6_aiGateDetails: { evidenceCount: evCount, bindingConstraintCount, suppressed: !!input.suppressAIDeepening },
+      stage6_aiGateDetails: { evidenceCount: evCount, bindingConstraintCount, suppressed: !!input.suppressAIDeepening, modeMismatch: hasModeConstraintMismatch },
       stage6_deepenedLabels: deepenedOpps.map(d => d.reconfigurationLabel),
       stage6_mode: meetsAIThreshold ? "ai" : qualifiedPatternsResult.length > 0 ? "deterministic" : "skipped",
       narrative: narrative ? {

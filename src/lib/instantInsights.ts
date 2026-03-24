@@ -698,3 +698,47 @@ function isRemoteLike(category: string, product: any): boolean {
 function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  AI GATE ENFORCEMENT — Narrative Rendering Guard
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Minimal shape of an analysis output that contains a narrative and AI gate status.
+ * Compatible with StrategicStageTrace and the StrategicAnalysisOutput narrative field.
+ */
+export interface AnalysisWithGate {
+  stage6_aiGatePassed?: boolean;
+  stage6_aiGateDetails?: Record<string, unknown>;
+  narrative?: {
+    strategicVerdict: string;
+    primaryConstraint?: string;
+    whyThisMatters?: string;
+  } | null;
+}
+
+/**
+ * Gate-enforced narrative renderer.
+ *
+ * Returns `null` when the AI gate has not passed — preventing invalid or mode-mismatched
+ * analyses from reaching the user. Returns the narrative object when the gate passes.
+ *
+ * Usage:
+ * ```ts
+ * const output = renderAnalysisNarrative(analysisResult);
+ * if (!output) return { status: "failed", reason: "Analysis did not pass validation gates" };
+ * ```
+ */
+export function renderAnalysisNarrative(
+  analysis: AnalysisWithGate,
+): AnalysisWithGate["narrative"] | null {
+  if (analysis.stage6_aiGatePassed === false) {
+    const details = analysis.stage6_aiGateDetails ?? {};
+    console.warn(
+      "[AI Gate] Analysis did not meet validation gates; structural profile mismatch detected.",
+      details,
+    );
+    return null;
+  }
+  return analysis.narrative ?? null;
+}

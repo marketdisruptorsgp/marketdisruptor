@@ -10,6 +10,14 @@
 
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { ConstraintCandidate } from "@/lib/constraintDetectionEngine";
+import {
+  inferProductStructuralProfile,
+  selectProductBindingConstraints,
+} from "@/lib/productMode/productStructuralInference";
+import {
+  inferServiceStructuralProfile,
+  selectServiceBindingConstraints,
+} from "@/lib/serviceMode/serviceStructuralInference";
 
 // ═══════════════════════════════════════════════════════════════
 //  STRUCTURAL DIMENSIONS
@@ -118,11 +126,16 @@ const CONFIDENCE_NORMALIZER_ASSET = 4;
  * Pure deterministic inference — no AI calls.
  * When lensConfig.lensType === "eta", adds owner-dependency, acquisition complexity,
  * and improvement runway dimensions that shape downstream pattern qualification.
+ *
+ * When analysisType is provided, binding constraint selection is routed to the
+ * appropriate mode-specific inference function so that product analyses never
+ * receive service constraints (e.g. labor_intensity) and vice versa.
  */
 export function diagnoseStructuralProfile(
   evidence: Evidence[],
   constraints: ConstraintCandidate[],
   lensConfig?: DiagnosisLensConfig | null,
+  analysisType?: "product" | "service" | "business_model" | null,
 ): StructuralProfile {
   const corpus = evidence.map(e => `${e.label} ${e.description ?? ""}`).join(" ").toLowerCase();
   const categories = [...new Set(evidence.map(e => e.category).filter(Boolean))] as string[];
@@ -164,11 +177,121 @@ export function diagnoseStructuralProfile(
     acquisitionComplexity: isEta ? inferAcquisitionComplexity(corpus, constraintNames, baseProfile) : null,
     improvementRunway: isEta ? inferImprovementRunway(corpus, constraintNames, baseProfile) : null,
     etaActive: isEta,
-    bindingConstraints: constraints.slice(0, 3),
+    bindingConstraints: selectModeBindingConstraints(evidence, constraints, analysisType),
     evidenceDepth: evidence.length,
     evidenceCategories: categories,
     dimensionConfidence,
   };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MODE-AWARE BINDING CONSTRAINT SELECTION
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Service-only constraint names that must NOT appear in product-mode binding constraints.
+ * Mirrors SERVICE_ONLY_CONSTRAINTS in businessLanguage.ts.
+ */
+export const SERVICE_ONLY_CONSTRAINT_NAMES = new Set([
+  "labor_intensity",
+  "owner_dependency",
+  "manual_process",
+  "linear_scaling",
+  "skill_scarcity",
+  "billable_hours",
+  "delivery_scalability",
+]);
+
+/**
+ * Product-only constraint names that must NOT appear in service-mode binding constraints.
+ */
+export const PRODUCT_ONLY_CONSTRAINT_NAMES = new Set([
+  "durability_risk",
+  "repairability_friction",
+  "unit_economics_pressure",
+  "feature_commoditization",
+  "supply_chain_risk",
+]);
+
+/**
+ * Build a synthetic ConstraintCandidate from a mode-inferred constraint name.
+ * Used when the mode-specific inference produces constraints not present in the
+ * stage-3 candidate set.
+ */
+function makeSyntheticConstraint(name: string, evidenceIds: string[]): ConstraintCandidate {
+  return {
+    constraintId: `C-MODE-${name.replace(/[^a-z0-9]/gi, "_").toUpperCase()}`,
+    constraintName: name,
+    tier: 2,
+    evidenceIds,
+    facetBasis: ["mode_inference"],
+    confidence: "moderate",
+    explanation: `Inferred from mode-specific structural analysis (${name}).`,
+  };
+}
+
+/**
+ * Select binding constraints that are appropriate for the given analysis mode.
+ *
+ * - Product mode: runs product-specific inference and filters out service-only names.
+ * - Service mode: runs service-specific inference and filters out product-only names.
+ * - Business model / unknown: falls back to generic top-3 from stage-3 candidates.
+ */
+function selectModeBindingConstraints(
+  evidence: Evidence[],
+  candidates: ConstraintCandidate[],
+  analysisType?: "product" | "service" | "business_model" | null,
+): ConstraintCandidate[] {
+  const evidenceIds = evidence.slice(0, 4).map(e => e.id);
+
+  if (analysisType === "product") {
+    const productProfile = inferProductStructuralProfile(evidence);
+    const productConstraintNames = selectProductBindingConstraints(productProfile, evidence);
+
+    // Prefer existing candidates that match product constraints; supplement with synthetic ones.
+    const matched: ConstraintCandidate[] = productConstraintNames.map(name => {
+      const existing = candidates.find(c => c.constraintName === name);
+      return existing ?? makeSyntheticConstraint(name, evidenceIds);
+    });
+
+    // Also include any non-service candidates from stage 3 that aren't already present.
+    for (const c of candidates) {
+      if (
+        !SERVICE_ONLY_CONSTRAINT_NAMES.has(c.constraintName) &&
+        !matched.some(m => m.constraintName === c.constraintName) &&
+        matched.length < 4
+      ) {
+        matched.push(c);
+      }
+    }
+
+    return matched.slice(0, 4);
+  }
+
+  if (analysisType === "service") {
+    const serviceProfile = inferServiceStructuralProfile(evidence);
+    const serviceConstraintNames = selectServiceBindingConstraints(serviceProfile, evidence);
+
+    const matched: ConstraintCandidate[] = serviceConstraintNames.map(name => {
+      const existing = candidates.find(c => c.constraintName === name);
+      return existing ?? makeSyntheticConstraint(name, evidenceIds);
+    });
+
+    for (const c of candidates) {
+      if (
+        !PRODUCT_ONLY_CONSTRAINT_NAMES.has(c.constraintName) &&
+        !matched.some(m => m.constraintName === c.constraintName) &&
+        matched.length < 4
+      ) {
+        matched.push(c);
+      }
+    }
+
+    return matched.slice(0, 4);
+  }
+
+  // Default (business_model or unknown): use original top-3 candidates
+  return candidates.slice(0, 3);
 }
 
 // ═══════════════════════════════════════════════════════════════

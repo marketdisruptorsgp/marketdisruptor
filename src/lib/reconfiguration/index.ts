@@ -7,7 +7,7 @@
  *   Stage 4: Opportunity Deepening → DeepenedOpportunity[]
  */
 
-export { diagnoseStructuralProfile } from "./structuralProfile";
+export { diagnoseStructuralProfile, SERVICE_ONLY_CONSTRAINT_NAMES, PRODUCT_ONLY_CONSTRAINT_NAMES } from "./structuralProfile";
 export type {
   StructuralProfile,
   DiagnosisLensConfig,
