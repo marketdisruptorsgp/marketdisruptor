@@ -267,8 +267,45 @@ function WowCardItem({
   );
 }
 
+export function deduplicateCards(cards: WowCard[]): WowCard[] {
+  const seen = new Set<string>();
+  const result: WowCard[] = [];
+
+  // For morphological cards: deduplicate by identical title
+  // For SCAMPER cards: group by mutationType, keep highest-scored per type
+  const scamperByType: Map<string, WowCard> = new Map();
+
+  for (const card of cards) {
+    if (card.innovationMethod === "scamper" && card.mutationType) {
+      const existing = scamperByType.get(card.mutationType);
+      if (!existing || card.compositeScore > existing.compositeScore) {
+        scamperByType.set(card.mutationType, card);
+      }
+      continue;
+    }
+
+    const key = card.title.trim().toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(card);
+    }
+  }
+
+  // Add best SCAMPER card per mutationType
+  for (const scamperCard of scamperByType.values()) {
+    const key = scamperCard.title.trim().toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(scamperCard);
+    }
+  }
+
+  return result;
+}
+
 export function WowCardGrid({ cards, modeAccent }: WowCardGridProps) {
-  if (cards.length === 0) return null;
+  const deduped = deduplicateCards(cards);
+  if (deduped.length === 0) return null;
 
   return (
     <motion.div
@@ -284,13 +321,13 @@ export function WowCardGrid({ cards, modeAccent }: WowCardGridProps) {
           Radical Opportunities
         </h2>
         <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4">
-          {cards.length}
+          {deduped.length}
         </Badge>
       </div>
 
       {/* Cards */}
       <div className="space-y-3">
-        {cards.map((card, index) => (
+        {deduped.map((card, index) => (
           <WowCardItem
             key={card.id}
             card={card}

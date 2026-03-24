@@ -105,8 +105,28 @@ function BlockedPathRow({ path, index }: { path: BlockedPath; index: number }) {
   );
 }
 
+export function groupByBlockingConstraint(paths: BlockedPath[]): Map<string, BlockedPath[]> {
+  const groups = new Map<string, BlockedPath[]>();
+  for (const path of paths) {
+    const key = path.blockingConstraint;
+    const existing = groups.get(key) ?? [];
+    existing.push(path);
+    groups.set(key, existing);
+  }
+  return groups;
+}
+
 export function BlockedPathsPanel({ paths, modeAccent: _modeAccent }: BlockedPathsPanelProps) {
   if (paths.length === 0) return null;
+
+  // Deduplicate: render blocked paths once per blocking constraint with an "Affects" list
+  const grouped = groupByBlockingConstraint(paths);
+  const primaryPaths = Array.from(grouped.values())
+    .filter(group => group.length > 0)
+    .map(group => ({
+      primary: group[0]!,
+      affected: group.slice(1).map(p => p.title),
+    }));
 
   return (
     <motion.div
@@ -126,10 +146,17 @@ export function BlockedPathsPanel({ paths, modeAccent: _modeAccent }: BlockedPat
         </span>
       </div>
 
-      {/* Rows */}
+      {/* Rows — one per blocking constraint, with "Affects" list for grouped duplicates */}
       <div className="space-y-2">
-        {paths.map((path, index) => (
-          <BlockedPathRow key={path.id} path={path} index={index} />
+        {primaryPaths.map(({ primary, affected }, index) => (
+          <div key={primary.id}>
+            <BlockedPathRow path={primary} index={index} />
+            {affected.length > 0 && (
+              <p className="text-[9px] text-muted-foreground mt-1 pl-4">
+                Also affects: {affected.join(", ")}
+              </p>
+            )}
+          </div>
         ))}
       </div>
     </motion.div>

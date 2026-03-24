@@ -54,7 +54,7 @@ export default function OverviewPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const autoAnalysis = useAutoAnalysis();
-  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing, morphologicalZones: rawMorphZones, constraintInversions, secondOrderUnlocks, temporalUnlocks, competitiveGaps } = autoAnalysis;
+  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing, morphologicalZones: rawMorphZones, constraintInversions, secondOrderUnlocks, temporalUnlocks, competitiveGaps, productConstraints, productOpportunities, productActionPlan } = autoAnalysis;
 
   const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData, instantInsights } = analysis;
 
@@ -206,6 +206,17 @@ export default function OverviewPage() {
       {competitiveGaps.length > 0 && (
         <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.15 }}>
           <CompetitiveGapsCard data={competitiveGaps} />
+        </motion.div>
+      )}
+
+      {/* ═══ 0g. PRODUCT ACTION PLAN (product mode only) ═══ */}
+      {analysis.activeMode === "custom" && productActionPlan.length > 0 && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.17 }}>
+          <ProductActionPlanCard
+            constraints={productConstraints}
+            opportunities={productOpportunities}
+            actionPlan={productActionPlan}
+          />
         </motion.div>
       )}
 
@@ -1025,6 +1036,103 @@ function CompetitiveGapsCard({ data }: { data: import("@/lib/negativeSpaceEngine
         ))}
       </div>
     </div>
+  );
+}
+
+/* ── Product Action Plan Card (product mode only) ── */
+function ProductActionPlanCard({
+  constraints,
+  opportunities,
+  actionPlan,
+}: {
+  constraints: import("@/lib/productMode/types").ProductConstraint[];
+  opportunities: import("@/lib/productMode/types").ProductOpportunity[];
+  actionPlan: import("@/lib/productMode/types").ProductAction[];
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (actionPlan.length === 0) return null;
+
+  const PHASE_COLORS = [
+    "hsl(217 91% 55%)",
+    "hsl(263 70% 60%)",
+    "hsl(142 70% 38%)",
+    "hsl(38 92% 45%)",
+    "hsl(0 72% 52%)",
+  ];
+
+  return (
+    <Card className="border-border/60 bg-card">
+      <CardContent className="pt-5 pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Target size={14} className="text-primary" />
+            <h3 className="text-sm font-extrabold uppercase tracking-widest text-foreground">
+              Product GTM Action Plan
+            </h3>
+          </div>
+          <Badge variant="secondary" className="text-[9px]">{actionPlan.length} phases</Badge>
+        </div>
+
+        {/* Top constraints */}
+        {constraints.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {constraints.slice(0, 3).map(c => (
+              <span
+                key={c.id}
+                className="text-[9px] font-bold px-2 py-0.5 rounded-full border"
+                style={{
+                  borderColor: c.impact === "high" ? "hsl(0 72% 52% / 0.4)" : "hsl(38 92% 45% / 0.4)",
+                  color: c.impact === "high" ? "hsl(0 72% 52%)" : "hsl(38 92% 45%)",
+                  background: c.impact === "high" ? "hsl(0 72% 52% / 0.08)" : "hsl(38 92% 45% / 0.08)",
+                }}
+              >
+                {c.label}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Top opportunity */}
+        {opportunities.length > 0 && (
+          <div className="rounded-lg bg-muted/30 border border-border/40 px-3 py-2 mb-4">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1">Top Opportunity</p>
+            <p className="text-xs font-bold text-foreground">{opportunities[0].label}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{opportunities[0].gtmImplication}</p>
+          </div>
+        )}
+
+        {/* Phase timeline */}
+        <div className="space-y-2">
+          {actionPlan.slice(0, expanded ? 5 : 2).map((step, i) => (
+            <div key={step.phase} className="flex items-start gap-3">
+              <div
+                className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold text-white"
+                style={{ background: PHASE_COLORS[i % PHASE_COLORS.length] }}
+              >
+                {step.phase}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-[10px] font-bold text-foreground">{step.label}</p>
+                  <span className="text-[9px] text-muted-foreground">{step.timeHorizon}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">{step.successGate}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {actionPlan.length > 2 && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="mt-3 flex items-center gap-1 text-[10px] font-semibold text-primary hover:opacity-80"
+          >
+            {expanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            {expanded ? "Show less" : `Show all ${actionPlan.length} phases`}
+          </button>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

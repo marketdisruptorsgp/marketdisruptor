@@ -39,6 +39,9 @@ export function useEngineReset(
       isComputingRef.current = false;
       hydratedRef.current = false;
       runIdRef.current = 0;
+      setters.setProductConstraints([]);
+      setters.setProductOpportunities([]);
+      setters.setProductActionPlan([]);
       console.log("[useAutoAnalysis] Analysis changed — strategic state reset");
     }
     prevAnalysisIdRef.current = analysisId;
