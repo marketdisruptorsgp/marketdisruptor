@@ -246,7 +246,7 @@ describe("product mode structural inference — no service language", () => {
 
   it("product inference does NOT produce billable_hours", () => {
     const profile = inferProductStructuralProfile(headphoneEvidence);
-    expect((profile as Record<string, unknown>).billable_hours).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).billable_hours).toBeUndefined();
   });
 
   it("product binding constraints do NOT include labor_intensity", () => {
