@@ -98,7 +98,8 @@ export function runMorphologicalEngines(
 
       // ── Pipeline Trace: morphological results ──
       try {
-        const { traceMorphological } = require("@/lib/pipelineTrace");
+        const { traceMorphological, traceEvent } = await import("@/lib/pipelineTrace");
+        traceEvent(`morphological_search: ${result.vectors.length} vectors, ${result.zones.length} zones (${runMode})`);
         traceMorphological({
           runMode,
           evidenceCount: evidenceCount,
