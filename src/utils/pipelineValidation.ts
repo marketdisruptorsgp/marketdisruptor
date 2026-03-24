@@ -36,6 +36,23 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
     requires: ["intelData"],
     produces: ["assumptions", "flippedIdeas", "challengeMap", "transformations", "clusters", "viability", "concepts", "illustrations", "quickValidation"],
   },
+  // Product-mode pipeline step keys (used by stepConcepts, stepDecompose, etc.)
+  concepts: {
+    requires: ["intelData"],
+    produces: ["concepts", "illustrations"],
+  },
+  decompose: {
+    requires: [],
+    produces: ["structuralDecomposition", "assumptions"],
+  },
+  synthesis: {
+    requires: ["intelData", "decompose"],
+    produces: ["hiddenAssumptions", "flippedLogic", "clusters", "viability"],
+  },
+  pitch: {
+    requires: ["intelData", "synthesis"],
+    produces: ["slides", "elevatorPitch", "metrics"],
+  },
   redesign: {
     requires: ["intelData", "disrupt"],
     produces: ["concepts", "illustrations"],
@@ -83,6 +100,11 @@ const STEP_UI_LOCATION: Record<string, number> = {
   businessAnalysis: 2,
   businessStressTest: 4,
   businessPitchDeck: 5,
+  // Product-mode pipeline step keys
+  decompose: 2,
+  synthesis: 3,
+  concepts: 4,
+  pitch: 6,
 };
 
 export function assertStepOwnership(

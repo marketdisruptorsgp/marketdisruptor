@@ -128,6 +128,7 @@ export default function CommandDeckPage() {
   const { shouldRedirectHome } = useHydrationGuard();
   const autoAnalysis = useAutoAnalysis();
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [trace, setTrace] = useState(() => getTrace());
 
   // Auto-execute pipeline in the background — no visible Run button
   const pipelineProgress = usePipelineOrchestrator(
@@ -148,8 +149,9 @@ export default function CommandDeckPage() {
 
   // Restore persisted trace for this analysis (survives page reload within same tab)
   useEffect(() => {
-    if (analysisId) {
-      restoreTraceForAnalysis(analysisId);
+    if (analysisId && (!trace || trace.analysisId !== analysisId)) {
+      const restored = restoreTraceForAnalysis(analysisId);
+      setTrace(restored);
     }
   }, [analysisId]);
 
@@ -445,9 +447,7 @@ export default function CommandDeckPage() {
         )}
 
         {/* ═══ Pipeline Diagnostic panel ═══ */}
-        {analysisId && (() => {
-          const trace = getTrace();
-          return (
+        {analysisId && (
             <div className="rounded-xl border border-dashed border-border/60 bg-muted/30 px-3 py-2.5 space-y-2 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-col min-w-0">
@@ -476,8 +476,7 @@ export default function CommandDeckPage() {
               </div>
               {trace && showDiagnostics && <PipelineTraceViewer trace={trace} />}
             </div>
-          );
-        })()}
+        )}
 
         {/* ═══ Secondary navigation ═══ */}
         <motion.div
@@ -505,7 +504,7 @@ export default function CommandDeckPage() {
             Full Report
             <ArrowRight size={13} />
           </Button>
-          {getTrace() && (
+          {trace && (
             <Button
               size="sm"
               variant="outline"
