@@ -4,6 +4,7 @@
  */
 
 import type { Evidence } from "@/lib/evidenceEngine";
+import { traceMorphological, traceEvent } from "@/lib/pipelineTrace";
 import type { StrategicInsight } from "@/lib/strategicEngine";
 import type { OpportunityZone, OpportunityVector } from "@/lib/opportunityDesignEngine";
 import type { ConstraintInversion } from "@/lib/constraintInverter";
