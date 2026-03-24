@@ -1070,7 +1070,7 @@ function ProductActionPlanCard({
               Product GTM Action Plan
             </h3>
           </div>
-          <Badge variant="secondary" className="text-[9px]">{actionPlan.length} phases</Badge>
+          <span className="text-[9px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">{actionPlan.length} phases</span>
         </div>
 
         {/* Top constraints */}

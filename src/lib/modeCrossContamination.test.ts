@@ -172,19 +172,17 @@ describe("generatePlaybooks() — cross-mode contamination", () => {
  */
 function makeBaselineWithServiceDimension(): BusinessBaseline {
   return {
-    dimensions: [
-      {
-        id: "dim-1",
-        name: "Delivery model",
-        category: "operational_dependency",
-        currentValue: "Bespoke manual service delivery with hourly labor",
-        status: "hot",
-        hasConstraint: true,
-        hasLeverage: false,
-        evidenceCount: 6,
-        evidenceIds: ["ev-p1", "ev-p2"],
-      },
-    ],
+    "dim-1": {
+      id: "dim-1",
+      name: "Delivery model",
+      category: "operational_dependency",
+      currentValue: "Bespoke manual service delivery with hourly labor",
+      status: "hot",
+      hasConstraint: true,
+      hasLeverage: false,
+      evidenceCount: 6,
+      evidenceIds: ["ev-p1", "ev-p2"],
+    } as any,
   };
 }
 

@@ -17,7 +17,7 @@ import type { FirstMove } from "@/lib/reconfiguration/opportunityDeepening";
 //  PRODUCT FIRST-MOVE RESULT
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface ProductFirstMove extends FirstMove {
+export interface ProductFirstMove extends Omit<FirstMove, "successCriteria"> {
   /** Suggested timeline for the first move (more detailed than generic FirstMove) */
   timeline: string;
   /** Ordered list of success criteria (each must be measurable) */

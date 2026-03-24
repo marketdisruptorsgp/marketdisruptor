@@ -275,7 +275,7 @@ describe("service mode structural inference — no product language", () => {
 
   it("service inference does NOT produce feature_commoditization", () => {
     const profile = inferServiceStructuralProfile(consultancyEvidence);
-    expect((profile as Record<string, unknown>).feature_commoditization).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).feature_commoditization).toBeUndefined();
   });
 
   it("service binding constraints include labor_intensity", () => {

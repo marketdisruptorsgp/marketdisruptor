@@ -503,7 +503,7 @@ describe("ProductFacetProfile — interface contract", () => {
   });
 
   it("does NOT have owner_dependency field (service-mode only)", () => {
-    expect((headphoneProfile as Record<string, unknown>).owner_dependency).toBeUndefined();
+    expect((headphoneProfile as unknown as Record<string, unknown>).owner_dependency).toBeUndefined();
   });
 });
 
