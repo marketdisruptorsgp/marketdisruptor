@@ -43,13 +43,13 @@ function makeEvidence(
   };
 }
 
-function makeInsight(id: string, label: string): Partial<StrategicInsight> & { id: string; label: string } {
+function makeInsight(id: string, label: string): StrategicInsight {
   return {
     id,
     label,
     description: "",
     evidenceIds: [],
-  } as any;
+  } as unknown as StrategicInsight;
 }
 
 /** Minimal narrative fixture */
