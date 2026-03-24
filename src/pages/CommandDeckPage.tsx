@@ -169,6 +169,7 @@ export default function CommandDeckPage() {
   const {
     narrative,
     hasRun,
+    isComputing,
     deepenedOpportunities,
     morphologicalZones,
     constraintInversions,
@@ -376,6 +377,23 @@ export default function CommandDeckPage() {
     );
   }
 
+  // ── Guard: show a neutral computing state when the strategic engine is running
+  // but no results exist yet. This prevents stale data from a previous analysis
+  // being rendered while the fresh computation is in-flight.
+  if (isComputing && !hasRun) {
+    return (
+      <div className="flex-1 bg-background flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div
+            className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mx-auto"
+            style={{ borderColor: modeAccent }}
+          />
+          <p className="text-xs text-muted-foreground">Strategic analysis running…</p>
+        </div>
+      </div>
+    );
+  }
+
   // ── Strategic data ─────────────────────────────────────────────────────────
   const primaryThesis = deepenedOpportunities[0] ?? null;
 
@@ -412,6 +430,17 @@ export default function CommandDeckPage() {
         {/* Thin data / early synthesis warning */}
         {!!(disruptData as any)?._thinDataFallback && (
           <ThinDataBanner />
+        )}
+
+        {/* Strategic engine refresh indicator — shown when re-computing over existing results */}
+        {isComputing && hasRun && (
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground px-1">
+            <div
+              className="w-3 h-3 border border-t-transparent rounded-full animate-spin flex-shrink-0"
+              style={{ borderColor: modeAccent }}
+            />
+            <span>Refreshing strategic analysis…</span>
+          </div>
         )}
 
         {/* ═══ Zone 1: What we found ═══ */}

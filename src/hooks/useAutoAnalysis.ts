@@ -11,7 +11,7 @@
 
 import { useRef, useCallback, useMemo, useState } from "react";
 import type { Evidence } from "@/lib/evidenceEngine";
-import { startTrace, completeTrace, traceEvent, traceError } from "@/lib/pipelineTrace";
+import { startTrace, completeTrace, traceEvent, traceError, traceStrategicStages } from "@/lib/pipelineTrace";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { isPipelineRunning } from "@/lib/pipelineSignal";
@@ -344,6 +344,24 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         } catch (syncErr) {
           traceError(`Strategic engine sync fallback also failed: ${syncErr}`);
           console.warn("[StrategicEngine] Sync fallback also failed:", syncErr);
+          // Write a failure record so strategicStages is never silently null —
+          // the skip reason tells the trace viewer exactly what went wrong.
+          traceStrategicStages({
+            stage1_rawEvidenceCount: 0,
+            stage2_normalizedCount: 0,
+            stage2_dedupLosses: 0,
+            stage2b_facetsPopulated: false,
+            stage3_constraintHypotheses: [],
+            stage4_structuralProfile: null,
+            stage4_bindingConstraints: [],
+            stage5_qualifiedPatterns: [],
+            stage6_aiGatePassed: false,
+            stage6_aiGateDetails: { error: String(err), syncError: String(syncErr) },
+            stage6_deepenedLabels: [],
+            stage6_mode: "skipped",
+            stage6_skipReason: `Both async and sync engines failed. Async: ${err} | Sync: ${syncErr}`,
+            narrative: null,
+          });
         }
       })
       .finally(() => {
