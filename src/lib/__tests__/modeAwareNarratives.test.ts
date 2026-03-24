@@ -265,7 +265,7 @@ describe("product mode structural inference — no service language", () => {
 describe("service mode structural inference — no product language", () => {
   it("service inference does NOT produce durability_risk", () => {
     const profile = inferServiceStructuralProfile(consultancyEvidence);
-    expect((profile as Record<string, unknown>).durability_risk).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).durability_risk).toBeUndefined();
   });
 
   it("service inference does NOT produce repairability_friction", () => {
