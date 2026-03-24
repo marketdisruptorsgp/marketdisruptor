@@ -140,7 +140,6 @@ export function runMorphologicalEngines(
 
     // ── Pipeline Trace: final morphological counts ──
     try {
-      const { traceMorphological, traceEvent } = await import("@/lib/pipelineTrace");
       traceEvent(`morphological_final: inversions=${result.constraintInversions.length}, unlocks=${result.secondOrderUnlocks.length}, temporal=${result.temporalUnlocks.length}, gaps=${result.competitiveGaps.length}`);
       traceMorphological({
         runMode,
