@@ -270,7 +270,7 @@ describe("service mode structural inference — no product language", () => {
 
   it("service inference does NOT produce repairability_friction", () => {
     const profile = inferServiceStructuralProfile(consultancyEvidence);
-    expect((profile as Record<string, unknown>).repairability_friction).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).repairability_friction).toBeUndefined();
   });
 
   it("service inference does NOT produce feature_commoditization", () => {
