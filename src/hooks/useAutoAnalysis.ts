@@ -326,6 +326,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     }, 45_000);
 
     // Run async pipeline, sync fallback
+    traceEvent("strategic_engine_async_started");
     runStrategicAnalysisAsync(input)
       .then(applyResult)
       .catch((err) => {
