@@ -804,6 +804,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
       stage6_aiGateDetails: { evidenceCount: evCount, bindingConstraintCount: structuralProfile?.bindingConstraints.length ?? 0, suppressed: true },
       stage6_deepenedLabels: deepenedOpps.map(d => d.reconfigurationLabel),
       stage6_mode: "deterministic",
+      stage6_skipReason: deepenedOpps.length === 0 ? `Insufficient evidence or patterns (evCount=${evCount})` : undefined,
       narrative: narrative ? {
         strategicVerdict: narrative.strategicVerdict,
         primaryConstraint: narrative.primaryConstraint,
@@ -819,7 +820,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
       graphEdges: graph.edges.length,
       stages: stages.map(s => ({ stage: s.stage, inputCount: s.inputCount, outputCount: s.outputCount, durationMs: s.durationMs })),
     });
-  } catch (_) { /* trace not initialized */ }
+  } catch (traceErr) { console.warn("[PipelineTrace] Failed to write strategic stage trace:", traceErr); }
 
   activeRunFactory = null;
 
@@ -1152,6 +1153,9 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
       stage6_aiGateDetails: { evidenceCount: evCount, bindingConstraintCount, suppressed: !!input.suppressAIDeepening, modeMismatch: hasModeConstraintMismatch },
       stage6_deepenedLabels: deepenedOpps.map(d => d.reconfigurationLabel),
       stage6_mode: meetsAIThreshold ? "ai" : qualifiedPatternsResult.length > 0 ? "deterministic" : "skipped",
+      stage6_skipReason: (!meetsAIThreshold && qualifiedPatternsResult.length === 0)
+        ? `No patterns qualified — evCount=${evCount}, bindingConstraints=${bindingConstraintCount}, suppressed=${!!input.suppressAIDeepening}`
+        : undefined,
       narrative: narrative ? {
         strategicVerdict: narrative.strategicVerdict,
         primaryConstraint: narrative.primaryConstraint,
@@ -1167,7 +1171,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
       graphEdges: graph.edges.length,
       stages: stages.map(s => ({ stage: s.stage, inputCount: s.inputCount, outputCount: s.outputCount, durationMs: s.durationMs })),
     });
-  } catch (_) { /* trace not initialized */ }
+  } catch (traceErr) { console.warn("[PipelineTrace] Failed to write strategic stage trace:", traceErr); }
 
   activeRunFactory = null;
 

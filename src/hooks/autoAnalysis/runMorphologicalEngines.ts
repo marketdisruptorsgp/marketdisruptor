@@ -65,7 +65,30 @@ export function runMorphologicalEngines(
   const hasSufficientConstraints = activeConstraints.length >= 1;
 
   // Hard minimum: need at least 1 constraint and 5 evidence items
-  if (!hasSufficientConstraints || evidenceCount < 5) return result;
+  if (!hasSufficientConstraints || evidenceCount < 5) {
+    // Always write a skip trace so the downloaded JSON is never null for morphological
+    try {
+      const skipReason = !hasSufficientConstraints
+        ? `insufficient constraints (count=${activeConstraints.length}, need ≥1)`
+        : `insufficient evidence (count=${evidenceCount}, need ≥5)`;
+      traceEvent(`morphological_skipped: ${skipReason}`);
+      traceMorphological({
+        runMode: "skipped",
+        evidenceCount,
+        fullThreshold: 0,
+        limitedThreshold: 0,
+        zoneCount: 0,
+        vectorCount: 0,
+        constraintInversionCount: 0,
+        secondOrderUnlockCount: 0,
+        temporalUnlockCount: 0,
+        competitiveGapCount: 0,
+        degradedConfidence: true,
+        skipReason,
+      });
+    } catch (traceErr) { console.warn("[PipelineTrace] Failed to write morphological skip trace:", traceErr); }
+    return result;
+  }
 
   // Scale evidence thresholds by the number of active modes.
   // Multi-mode evidence is spread across schemas so the per-mode density
@@ -113,8 +136,7 @@ export function runMorphologicalEngines(
           competitiveGapCount: 0,
           degradedConfidence: result.degradedConfidence ?? false,
         });
-      } catch (_) { /* trace not initialized */ }
-
+      } catch (traceErr) { console.warn("[PipelineTrace] Failed to write morphological search trace:", traceErr); }
     } catch (err) {
       console.warn("[Morphological] Auto-run failed:", err);
     }
@@ -154,7 +176,7 @@ export function runMorphologicalEngines(
         competitiveGapCount: result.competitiveGaps.length,
         degradedConfidence: result.degradedConfidence ?? false,
       });
-    } catch (_) { /* trace not initialized */ }
+    } catch (traceErr) { console.warn("[PipelineTrace] Failed to write morphological final trace:", traceErr); }
   } catch (err) {
     console.warn("[StrategicEngines] Engine run failed:", err);
   }

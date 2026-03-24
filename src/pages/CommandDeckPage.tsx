@@ -29,7 +29,7 @@ import { BlockedPathsPanel } from "@/components/creative/BlockedPathsPanel";
 import { AllIdeasDrawer } from "@/components/creative/AllIdeasDrawer";
 import { ArrowRight, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { downloadTrace, getTrace, restoreTraceForAnalysis } from "@/lib/pipelineTrace";
+import { downloadTrace, getTrace, getLatestTrace, restoreTraceForAnalysis } from "@/lib/pipelineTrace";
 import PipelineTraceViewer from "@/components/PipelineTraceViewer";
 import { motion } from "framer-motion";
 import type { DeepenedOpportunity } from "@/lib/reconfiguration";
@@ -150,20 +150,21 @@ export default function CommandDeckPage() {
   // Restore persisted trace for this analysis + live-refresh while panel is open
   useEffect(() => {
     if (analysisId && (!trace || trace.analysisId !== analysisId)) {
-      const restored = restoreTraceForAnalysis(analysisId);
-      setTrace(restored);
+      // Prefer latest in-memory trace (may be more up-to-date than sessionStorage)
+      const latest = getLatestTrace(analysisId) ?? restoreTraceForAnalysis(analysisId);
+      setTrace(latest);
     }
   }, [analysisId]);
 
-  // Live-refresh trace from in-memory singleton every 2s while diagnostics are shown
+  // Live-refresh trace from in-memory store every 2s while diagnostics are shown
   useEffect(() => {
     if (!showDiagnostics) return;
     const id = setInterval(() => {
-      const latest = getTrace();
+      const latest = analysisId ? (getLatestTrace(analysisId) ?? getTrace()) : getTrace();
       if (latest) setTrace({ ...latest });
     }, 2000);
     return () => clearInterval(id);
-  }, [showDiagnostics]);
+  }, [showDiagnostics, analysisId]);
 
   const {
     narrative,
@@ -464,13 +465,16 @@ export default function CommandDeckPage() {
                   <span className="text-[11px] font-semibold text-foreground">Pipeline Diagnostic</span>
                   <span className="text-[10px] text-muted-foreground truncate">
                     {trace
-                      ? `${trace.analysisId || "unsaved"} · ${trace.edgeFunctions.length} edge call${trace.edgeFunctions.length !== 1 ? "s" : ""} · ${trace.evidenceExtraction?.dedupedTotal ?? 0} evidence items`
+                      ? `${trace.analysisId || "unsaved"} · run=${trace.runId ?? "?"} · status=${trace.status ?? (trace.completedAt ? "completed" : "running")} · ${trace.edgeFunctions.length} edge call${trace.edgeFunctions.length !== 1 ? "s" : ""} · ${trace.evidenceExtraction?.dedupedTotal ?? 0} evidence items`
                       : "No trace for this session — run a fresh analysis to populate diagnostics"}
                   </span>
+                  {trace && !trace.completedAt && (
+                    <span className="text-[10px] text-amber-500 font-medium">⚠ Trace still running — data may be incomplete</span>
+                  )}
                 </div>
                 {trace && (
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={downloadTrace} title="Download JSON trace">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => downloadTrace(analysisId, analysisDisplayName)} title="Download JSON trace">
                       <Download size={12} />
                     </Button>
                     <Button
@@ -518,7 +522,7 @@ export default function CommandDeckPage() {
             <Button
               size="sm"
               variant="outline"
-              onClick={downloadTrace}
+              onClick={() => downloadTrace(analysisId, analysisDisplayName)}
               className="gap-1.5 text-xs border-dashed"
               title="Download full pipeline diagnostic trace as JSON"
             >

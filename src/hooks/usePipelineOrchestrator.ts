@@ -8,7 +8,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
-import { startTrace, getTrace } from "@/lib/pipelineTrace";
+import { startTrace, completeTrace, getTrace } from "@/lib/pipelineTrace";
 import { runPipelineStateMachine, type PipelineResult } from "./pipeline/runPipelineStateMachine";
 import { acquireKeepAlive, releaseKeepAlive } from "./pipeline/keepAlive";
 import { setPipelineRunning } from "@/lib/pipelineSignal";
@@ -150,8 +150,9 @@ export function usePipelineOrchestrator(
     acquireKeepAlive();
     setStepTimings({});
 
-    // Ensure pipeline trace is started (may already exist from useAutoAnalysis)
-    if (!getTrace()) startTrace(analysisId);
+    // Start a fresh trace for this pipeline run (non-destructive if one is already
+    // active for this analysisId — the strategic engine will reuse it).
+    startTrace(analysisId, { source: "usePipelineOrchestrator", force: true });
 
     const ctx = buildCtx();
     const cb = buildCb();
@@ -177,6 +178,12 @@ export function usePipelineOrchestrator(
       runningRef.current = false;
       runAllRef.current = false;
       releaseKeepAlive();
+
+      // Always complete the trace in the orchestrator's finally so completedAt
+      // is never left null even if the strategic engine is still resolving its
+      // async promise. The strategic engine will write its fields before the
+      // orchestrator finally fires (it's triggered synchronously via onRecompute).
+      completeTrace(result.success ? "completed" : "failed");
 
       if (!result.success) {
         setPipelineError(result.error || "Pipeline failed");
