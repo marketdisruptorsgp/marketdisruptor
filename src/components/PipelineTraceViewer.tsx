@@ -469,6 +469,11 @@ export default function PipelineTraceViewer({ trace }: { trace: PipelineTrace })
 
   const toggle = (id: string) => setOpenSection(prev => prev === id ? null : id);
 
+  // Status badge colour + label
+  const traceStatus = (trace as any).status ?? (trace.completedAt ? "completed" : "running");
+  const isRunning = traceStatus === "running" || !trace.completedAt;
+  const runId = (trace as any).runId as string | undefined;
+
   const sections: { id: string; title: string; note?: string; content: React.ReactNode }[] = [
     {
       id: "edge",
@@ -508,6 +513,29 @@ export default function PipelineTraceViewer({ trace }: { trace: PipelineTrace })
 
   return (
     <div className="space-y-1.5">
+      {/* Trace identity + status header */}
+      <div className="flex items-center gap-2 text-[10px] text-muted-foreground px-0.5 flex-wrap">
+        <span>traceId: <span className="font-mono text-foreground">{trace.traceId}</span></span>
+        {runId && <span>runId: <span className="font-mono text-foreground">{runId}</span></span>}
+        <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide ${
+          traceStatus === "completed" ? "bg-emerald-500/15 text-emerald-600" :
+          traceStatus === "failed"    ? "bg-red-500/15 text-red-600" :
+                                        "bg-amber-500/15 text-amber-600"
+        }`}>
+          {traceStatus}
+        </span>
+        {trace.startedAt && <span>started: {new Date(trace.startedAt).toLocaleTimeString()}</span>}
+        {trace.completedAt && <span>completed: {new Date(trace.completedAt).toLocaleTimeString()}</span>}
+      </div>
+      {isRunning && (
+        <div className="flex items-center gap-1.5 text-[10px] text-amber-600 bg-amber-500/10 rounded px-2 py-1.5 border border-amber-500/20">
+          <AlertTriangle size={10} className="flex-shrink-0" />
+          <span>
+            <strong>Incomplete trace</strong> — pipeline is still running. Downloading now will produce a partial JSON.
+            Wait for the analysis to finish before downloading for complete diagnostics.
+          </span>
+        </div>
+      )}
       {sections.map(({ id, title, note, content }) => (
         <div key={id} className="rounded-lg border border-border/40 overflow-hidden">
           <button

@@ -165,7 +165,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     setIsComputing(true);
     isComputingRef.current = true;
 
-    // Start pipeline trace for diagnostics
+    // Start pipeline trace for diagnostics.
+    // Non-destructive: if usePipelineOrchestrator already started a trace for this
+    // analysis (force: false is the default), we reuse it instead of overwriting.
     startTrace(analysisId);
 
     // Build system intelligence
@@ -320,6 +322,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     const safetyTimer = setTimeout(() => {
       if (isComputingRef.current && thisRunId === runIdRef.current) {
         console.warn("[StrategicEngine] Safety timeout — force-clearing isComputing after 45s");
+        // Mark the trace as failed so completedAt is not left null indefinitely
+        completeTrace("failed");
         setIsComputing(false);
         isComputingRef.current = false;
       }
