@@ -1137,7 +1137,7 @@ export function runMorphologicalSearch(
   const constraintInputs = constraints.map(c => ({ id: c.id, evidenceIds: c.evidenceIds }));
   const leverageInputs = leveragePoints.map(l => ({ id: l.id, evidenceIds: l.evidenceIds }));
   const { vectors: patternVectors, origins: patternOrigins } = applyPatterns(
-    baseline, constraintInputs, leverageInputs, flatEvidence
+    baseline, constraintInputs, leverageInputs, flatEvidence, context
   );
 
   // Stage 3b: Generate AI alternative vectors (morphological shifts, strength-biased)

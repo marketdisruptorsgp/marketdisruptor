@@ -23,6 +23,7 @@ import type {
   OpportunityVector,
 } from "@/lib/opportunityDesignEngine";
 import { getDimensionsByStatus } from "@/lib/opportunityDesignEngine";
+import type { DiagnosticContext, InnovationMode } from "@/lib/diagnosticContext";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -127,6 +128,12 @@ export interface StrategicPattern {
   weakestIn?: string[];
   /** Pre-conditions that must hold for this pattern to succeed */
   prerequisiteConditions?: string[];
+  /**
+   * Optional whitelist of InnovationMode values for which this pattern is valid.
+   * When set, the pattern only fires if the active analysis mode is included.
+   * Omit (or leave undefined) for mode-agnostic patterns.
+   */
+  restrictToModes?: InnovationMode[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -233,6 +240,10 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     strengthByConstraint: { labor_intensity: "high", owner_dependency: "high", manual_process: "high", linear_scaling: "high", skill_scarcity: "medium" },
     contraindications: ["regulatory_barrier"],
     minimumEvidenceRequired: ["operational_dependency"],
+    // This pattern describes turning a service into a product — it is only
+    // meaningful when the business is a service. Applying it to a product
+    // analysis would be circular and misleading.
+    restrictToModes: ["service"],
   },
 
   // ── 5. Fragmented Supply → Aggregated Marketplace ──
@@ -885,12 +896,18 @@ export function resetPatternCounters(): void {
  *
  * Hot dimensions: patterns fire if trigger matches.
  * Warm dimensions: patterns fire only if evidenceCount ≥ 4 AND trigger matches.
+ *
+ * Pass an optional `context` to restrict patterns to the active analysis mode.
+ * Any pattern with `restrictToModes` set will only fire when the active mode
+ * is in that list — preventing service-specific transformations (e.g.
+ * "Service → Productized System") from appearing in product-mode analyses.
  */
 export function applyPatterns(
   baseline: BusinessBaseline,
   constraints: { id: string; label?: string; description?: string; evidenceIds: string[] }[],
   leveragePoints: { id: string; evidenceIds: string[] }[],
   flatEvidence: Evidence[],
+  context?: DiagnosticContext,
 ): { vectors: OpportunityVector[]; origins: Map<string, VectorOrigin> } {
   resetPatternCounters();
 
@@ -905,13 +922,29 @@ export function applyPatterns(
     ...warmDims.map(d => ({ dim: d, isWarm: true })),
   ];
 
+  // Pre-compute the set of active modes for quick mode-restriction checks.
+  const activeModes: Set<InnovationMode> = context
+    ? new Set(context.activeModes && context.activeModes.length > 0
+        ? context.activeModes
+        : [context.mode])
+    : new Set();
+
+  // Determine which patterns are eligible given the active mode(s).
+  // A pattern with `restrictToModes` fires only when at least one active mode
+  // is in its whitelist.  Patterns without the field are always eligible.
+  const eligiblePatterns = STRATEGIC_PATTERNS.filter(p => {
+    if (!p.restrictToModes) return true;
+    if (activeModes.size === 0) return true; // no context → no filtering
+    return p.restrictToModes.some(m => activeModes.has(m));
+  });
+
   for (const { dim, isWarm } of allActiveDims) {
     const dimEvidence = flatEvidence.filter(e => dim.evidenceIds.includes(e.id));
 
     // ── Relevance scoring: score all applicable patterns for this dimension ──
     const candidates: ScoredCandidate[] = [];
 
-    for (const pattern of STRATEGIC_PATTERNS) {
+    for (const pattern of eligiblePatterns) {
       if (!pattern.applicableDimensions.includes(dim.category)) continue;
 
       const triggerMatch = pattern.triggerCondition(dim, dimEvidence);

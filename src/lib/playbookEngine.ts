@@ -100,6 +100,12 @@ interface PlaybookTemplate {
   whyItWorks: string[];
   phases: PlaybookPhase[];
   baseImpact: Omit<PlaybookImpactScore, "leverageScore">;
+  /**
+   * Optional whitelist of EvidenceMode values for which this playbook is valid.
+   * If set, the playbook will only be surfaced when `mode` is in this list.
+   * Omit (or leave undefined) to make the playbook mode-agnostic.
+   */
+  restrictToModes?: EvidenceMode[];
 }
 
 const PLAYBOOK_TEMPLATES: PlaybookTemplate[] = [
@@ -108,6 +114,11 @@ const PLAYBOOK_TEMPLATES: PlaybookTemplate[] = [
     title: "Custom Work → Productized Systems",
     category: "margin_expansion",
     archetype: "modularization",
+    // This transformation is only meaningful when the business currently
+    // delivers bespoke services or custom consulting. Surfacing it for a
+    // product business would be misleading — a product already IS the
+    // productized system.
+    restrictToModes: ["service", "business_model"],
     triggerKeywords: [
       "custom", "bespoke", "project-based", "long lead", "low repeatability",
       "custom project", "one-off", "tailored", "made to order", "high variability",
@@ -500,8 +511,13 @@ export function generatePlaybooks(
 ): TransformationPlaybook[] {
   if (evidence.length < 3 && insights.length < 2) return [];
 
+  // Filter out templates that are restricted to specific modes and don't match.
+  const eligibleTemplates = PLAYBOOK_TEMPLATES.filter(t =>
+    !t.restrictToModes || t.restrictToModes.includes(mode)
+  );
+
   // Score each template against the current analysis
-  const scored = PLAYBOOK_TEMPLATES.map(template => {
+  const scored = eligibleTemplates.map(template => {
     const match = computeTemplateMatch(template, evidence, insights, narrative);
     return { template, ...match };
   })
@@ -519,7 +535,7 @@ export function generatePlaybooks(
         business_model: ["unbundling", "cost_collapse", "modularization"],
       };
       const priorities = modePriority[mode] || modePriority.product;
-      const sortedByMode = [...PLAYBOOK_TEMPLATES].sort((a, b) => {
+      const sortedByMode = [...eligibleTemplates].sort((a, b) => {
         const aIdx = priorities.indexOf(a.archetype || "");
         const bIdx = priorities.indexOf(b.archetype || "");
         return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
