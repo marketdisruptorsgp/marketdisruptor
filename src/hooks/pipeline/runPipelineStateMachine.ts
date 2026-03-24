@@ -150,6 +150,7 @@ export async function runPipelineStateMachine(
   // ═══ Phase 2.5: Concept Synthesis (Product Mode only, NON-BLOCKING) ═══
   const isProductMode = ctx.activeMode === "custom" || ctx.activeMode === "product";
   if (isProductMode && !opts.existingConcepts && synthesisResult) {
+    traceEvent("step:concepts running (background)");
     (async () => {
       try {
         let conceptResult = await runConceptSynthesis(ctx, cb, store, synthesisResult, decompResult);
@@ -159,23 +160,32 @@ export async function runPipelineStateMachine(
           conceptResult = await runConceptSynthesis(ctx, cb, store, synthesisResult, decompResult);
         }
         if (!conceptResult) {
+          traceError("Concept synthesis failed after retry");
+          traceEvent("step:concepts error");
           console.warn("[Pipeline] Concept synthesis failed after retry — continuing");
           cb.updateStatus("concepts", "error", "Concept generation unavailable");
+        } else {
+          traceEvent("step:concepts done");
         }
         cb.onRecompute?.();
       } catch (err) {
+        traceError(`Concept synthesis background error: ${err}`);
+        traceEvent("step:concepts error");
         console.warn("[Pipeline] Concept synthesis background error:", err);
         cb.updateStatus("concepts", "error", "Concept generation failed");
       }
     })();
   } else if (isProductMode && opts.existingConcepts) {
     console.log("[Pipeline] Reusing existing concepts data");
+    traceEvent("step:concepts reused");
     cb.updateStatus("concepts", "done");
   } else if (!isProductMode) {
+    traceEvent("step:concepts skipped (not product mode)");
     cb.updateStatus("concepts", "skipped");
   }
 
-  console.log(`[Pipeline] Core phases complete in ${Math.round((Date.now() - pipelineStart) / 1000)}s. Stress Test & Pitch available on-demand.`);
+  traceEvent(`pipeline_core_complete (elapsed=${elapsed()}s)`);
+  console.log(`[Pipeline] Core phases complete in ${elapsed()}s. Stress Test & Pitch available on-demand.`);
 
   // ═══ PHASE 3: Stress Test + Pitch (auto-run if runAll) ═══
   if (opts.existingStressTest) {
