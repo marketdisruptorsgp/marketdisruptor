@@ -147,13 +147,23 @@ export default function CommandDeckPage() {
   const analysisId = ctxAnalysisId || urlAnalysisId;
   const modeAccent = theme.primary;
 
-  // Restore persisted trace for this analysis (survives page reload within same tab)
+  // Restore persisted trace for this analysis + live-refresh while panel is open
   useEffect(() => {
     if (analysisId && (!trace || trace.analysisId !== analysisId)) {
       const restored = restoreTraceForAnalysis(analysisId);
       setTrace(restored);
     }
   }, [analysisId]);
+
+  // Live-refresh trace from in-memory singleton every 2s while diagnostics are shown
+  useEffect(() => {
+    if (!showDiagnostics) return;
+    const id = setInterval(() => {
+      const latest = getTrace();
+      if (latest) setTrace({ ...latest });
+    }, 2000);
+    return () => clearInterval(id);
+  }, [showDiagnostics]);
 
   const {
     narrative,
