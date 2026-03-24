@@ -241,7 +241,7 @@ describe("product mode structural inference — no service language", () => {
 
   it("product inference does NOT produce owner_dependency", () => {
     const profile = inferProductStructuralProfile(headphoneEvidence);
-    expect((profile as Record<string, unknown>).owner_dependency).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).owner_dependency).toBeUndefined();
   });
 
   it("product inference does NOT produce billable_hours", () => {
