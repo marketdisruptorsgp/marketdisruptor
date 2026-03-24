@@ -19,6 +19,7 @@
  */
 
 import { classifyTier } from "@/lib/tierDiscoveryEngine";
+import { traceEvidenceExtraction, traceEvent } from "@/lib/pipelineTrace";
 
 // ═══════════════════════════════════════════════════════════════
 //  CANONICAL TYPES
