@@ -90,6 +90,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [hasRun, setHasRun] = useState(false);
   const runIdRef = useRef(0);
   const hydratedRef = useRef(false);
+  const [productConstraints, setProductConstraints] = useState<import("@/lib/productMode/productConstraints").ConstraintSelectionResult[]>([]);
+  const [productOpportunities, setProductOpportunities] = useState<import("@/lib/productMode/productOpportunities").ProductOpportunity[]>([]);
+  const [productActionPlan, setProductActionPlan] = useState<import("@/lib/productMode/types").ProductAction[]>([]);
 
   const setters: EngineSetters = useMemo(() => ({
     setIntelligence, setStructuralProfile, setGraph, setEvidence,
@@ -98,6 +101,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     setDeepenedOpportunities, setMorphologicalZones, setMorphologicalVectors,
     setConstraintInversions, setSecondOrderUnlocks, setTemporalUnlocks,
     setCompetitiveGaps, setIsComputing, setHasRun,
+    setProductConstraints, setProductOpportunities, setProductActionPlan,
   }), []);
 
   // ── Reset on analysis switch ──
@@ -213,6 +217,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setDeepenedOpportunities(result.deepenedOpportunities ?? []);
       // Capture constraint hypotheses for the creative opportunity engine
       setConstraintHypotheses(result.constraintHypotheses?.hypotheses ?? []);
+      // Product mode: category-aware constraints, opportunities, and action plan
+      setProductConstraints(result.productConstraints ?? []);
+      setProductOpportunities(result.productOpportunities ?? []);
+      setProductActionPlan(result.productActionPlan ?? []);
       setHasRun(true);
 
       // Run deterministic morphological engines
@@ -371,5 +379,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     wowCards: creativeResult.wowCards,
     blockedPaths: creativeResult.blockedPaths,
     allCreativeIdeas: creativeResult.allIdeas,
+    productConstraints,
+    productOpportunities,
+    productActionPlan,
   };
 }

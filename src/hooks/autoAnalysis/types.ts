@@ -15,6 +15,9 @@ import type { SecondOrderUnlock } from "@/lib/secondOrderEngine";
 import type { TemporalUnlock } from "@/lib/temporalArbitrageEngine";
 import type { CompetitiveGap } from "@/lib/negativeSpaceEngine";
 import type { WowCard, BlockedPath, IdeaCandidate } from "@/lib/creativeOpportunityEngine";
+import type { ConstraintSelectionResult } from "@/lib/productMode/productConstraints";
+import type { ProductOpportunity } from "@/lib/productMode/productOpportunities";
+import type { ProductAction } from "@/lib/productMode/types";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
@@ -43,6 +46,12 @@ export interface AutoAnalysisResult {
   wowCards: WowCard[];
   blockedPaths: BlockedPath[];
   allCreativeIdeas: IdeaCandidate[];
+  /** Product-mode only: selected structural constraints */
+  productConstraints: ConstraintSelectionResult[];
+  /** Product-mode only: selected strategic opportunities */
+  productOpportunities: ProductOpportunity[];
+  /** Product-mode only: 5-phase validation and launch action plan */
+  productActionPlan: ProductAction[];
 }
 
 /** All mutable state managed by the auto-analysis engine */
@@ -67,6 +76,9 @@ export interface EngineState {
   competitiveGaps: CompetitiveGap[];
   isComputing: boolean;
   hasRun: boolean;
+  productConstraints: ConstraintSelectionResult[];
+  productOpportunities: ProductOpportunity[];
+  productActionPlan: ProductAction[];
 }
 
 export interface EngineSetters {
@@ -90,4 +102,7 @@ export interface EngineSetters {
   setCompetitiveGaps: (v: CompetitiveGap[]) => void;
   setIsComputing: (v: boolean) => void;
   setHasRun: (v: boolean) => void;
+  setProductConstraints: (v: ConstraintSelectionResult[]) => void;
+  setProductOpportunities: (v: ProductOpportunity[]) => void;
+  setProductActionPlan: (v: ProductAction[]) => void;
 }

@@ -50,6 +50,16 @@ import { humanizeLabel as humanize } from "@/lib/humanize";
 import { getFallbackPrecedents } from "@/lib/reconfiguration/precedentLibrary";
 import { translateConstraintToBusinessLanguage } from "@/lib/businessLanguage";
 import { traceStrategicStages, traceEvent, setPipelineDiagnosticSummary } from "@/lib/pipelineTrace";
+import {
+  selectProductConstraints,
+  type ConstraintSelectionResult,
+} from "@/lib/productMode/productConstraints";
+import {
+  selectProductOpportunities,
+  type ProductOpportunity,
+} from "@/lib/productMode/productOpportunities";
+import { buildProductActionPlan } from "@/lib/productMode/productActionPlan";
+import type { ProductAction } from "@/lib/productMode/types";
 
 /** Get a pattern-specific business narrative that references real company precedents */
 function patternToBusinessNarrative(patternId: string, contrarianBelief: string): string {
@@ -212,6 +222,12 @@ export interface StrategicAnalysisOutput {
   structuralProfile: StructuralProfile | null;
   qualifiedPatterns: QualifiedPattern[];
   deepenedOpportunities: DeepenedOpportunity[];
+  /** Product-mode only: selected structural constraints (durability, repairability, etc.) */
+  productConstraints: ConstraintSelectionResult[];
+  /** Product-mode only: selected strategic opportunities (modular design, parts marketplace, etc.) */
+  productOpportunities: ProductOpportunity[];
+  /** Product-mode only: 5-phase validation and launch action plan */
+  productActionPlan: ProductAction[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -765,6 +781,24 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   buildDiagnostic(stages, graph.nodes, flat.length, insights.length, scenarios.length);
   events.push("Strategic intelligence computed");
 
+  // ── Product Mode: Select category-aware constraints, opportunities, and action plan ──
+  let productConstraintsResult: ConstraintSelectionResult[] = [];
+  let productOpportunitiesResult: ProductOpportunity[] = [];
+  let productActionPlanResult: ProductAction[] = [];
+
+  if (input.analysisType === "product") {
+    const productCategory = input.selectedProduct
+      ? String(input.selectedProduct?.name ?? input.selectedProduct?.title ?? "product")
+      : "product";
+    const evidenceTexts = flat.map(e => `${e.label} ${e.description ?? ""}`.trim()).filter(Boolean);
+    productConstraintsResult = selectProductConstraints(productCategory, evidenceTexts);
+    productOpportunitiesResult = selectProductOpportunities(productCategory, productConstraintsResult);
+    productActionPlanResult = buildProductActionPlan(productCategory, productConstraintsResult, productOpportunitiesResult);
+    if (productConstraintsResult.length > 0) {
+      events.push(`Product mode: ${productConstraintsResult.length} constraints, ${productOpportunitiesResult.length} opportunities, ${productActionPlanResult.length}-phase action plan`);
+    }
+  }
+
   activeRunFactory = null;
 
   return {
@@ -791,6 +825,9 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     structuralProfile,
     qualifiedPatterns: qualifiedPatternsResult,
     deepenedOpportunities: deepenedOpps,
+    productConstraints: productConstraintsResult,
+    productOpportunities: productOpportunitiesResult,
+    productActionPlan: productActionPlanResult,
   };
 }
 
@@ -1101,6 +1138,24 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     });
   } catch (_) { /* trace not initialized */ }
 
+  // ── Product Mode: Select category-aware constraints, opportunities, and action plan ──
+  let productConstraintsResult: ConstraintSelectionResult[] = [];
+  let productOpportunitiesResult: ProductOpportunity[] = [];
+  let productActionPlanResult: ProductAction[] = [];
+
+  if (input.analysisType === "product") {
+    const productCategory = input.selectedProduct
+      ? String(input.selectedProduct?.name ?? input.selectedProduct?.title ?? "product")
+      : "product";
+    const evidenceTexts = flat.map(e => `${e.label} ${e.description ?? ""}`.trim()).filter(Boolean);
+    productConstraintsResult = selectProductConstraints(productCategory, evidenceTexts);
+    productOpportunitiesResult = selectProductOpportunities(productCategory, productConstraintsResult);
+    productActionPlanResult = buildProductActionPlan(productCategory, productConstraintsResult, productOpportunitiesResult);
+    if (productConstraintsResult.length > 0) {
+      events.push(`Product mode: ${productConstraintsResult.length} constraints, ${productOpportunitiesResult.length} opportunities, ${productActionPlanResult.length}-phase action plan`);
+    }
+  }
+
   activeRunFactory = null;
 
   return {
@@ -1110,5 +1165,8 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     activeConstraints: insights.filter(i => i.insightType === "constraint_cluster"),
     constraintInteractions: null, severityReport: null, viabilityReport: null, marketStructure: null,
     structuralProfile, qualifiedPatterns: qualifiedPatternsResult, deepenedOpportunities: deepenedOpps,
+    productConstraints: productConstraintsResult,
+    productOpportunities: productOpportunitiesResult,
+    productActionPlan: productActionPlanResult,
   };
 }

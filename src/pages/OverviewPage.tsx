@@ -34,6 +34,9 @@ import {
 import { motion } from "framer-motion";
 import type { InstantInsights } from "@/lib/instantInsights";
 import type { OpportunityZone } from "@/lib/opportunityDesignEngine";
+import type { ConstraintSelectionResult } from "@/lib/productMode/productConstraints";
+import type { ProductOpportunity } from "@/lib/productMode/productOpportunities";
+import type { ProductAction } from "@/lib/productMode/types";
 import {
   ArrowRight, Zap, TrendingUp, AlertTriangle,
   ShieldAlert, Target, HelpCircle, Lock,
@@ -52,7 +55,7 @@ export default function OverviewPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const autoAnalysis = useAutoAnalysis();
-  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing, morphologicalZones: rawMorphZones, constraintInversions, secondOrderUnlocks, temporalUnlocks, competitiveGaps } = autoAnalysis;
+  const { narrative, deepenedOpportunities, intelligence, completedSteps, hasRun, isComputing, morphologicalZones: rawMorphZones, constraintInversions, secondOrderUnlocks, temporalUnlocks, competitiveGaps, productConstraints, productOpportunities, productActionPlan } = autoAnalysis;
 
   const { selectedProduct, adaptiveContext, analysisId: ctxAnalysisId, decompositionData, instantInsights } = analysis;
 
@@ -138,6 +141,13 @@ export default function OverviewPage() {
   const showInstantInsights = !!instantInsights && !singleInsight && !earlyConstraint;
 
   const topMorphZones = rawMorphZones.filter(z => z.vectors.length > 0).slice(0, 3);
+
+  // Product mode: show product action plan for custom/product mode or when no mode is set
+  // (UI uses "custom" for product mode; engine uses "product")
+  const showProductActionPlan =
+    analysis.activeMode === "custom" ||
+    analysis.activeMode === "product" ||
+    (!analysis.activeMode);
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
@@ -352,6 +362,17 @@ export default function OverviewPage() {
               </div>
             )}
           </div>
+        </motion.div>
+      )}
+
+      {/* ═══ 6. PRODUCT ACTION PLAN (product mode only) ═══ */}
+      {showProductActionPlan && productActionPlan.length > 0 && (
+        <motion.div {...fadeIn} transition={{ duration: 0.3, delay: 0.25 }}>
+          <ProductActionPlanCard
+            actionPlan={productActionPlan}
+            productConstraints={productConstraints}
+            productOpportunities={productOpportunities}
+          />
         </motion.div>
       )}
 
@@ -1134,6 +1155,158 @@ function TerritoryIntelligenceCard({ territory }: { territory: any }) {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PRODUCT ACTION PLAN CARD
+// ═══════════════════════════════════════════════════════════════
+
+/** One icon per phase. The action plan always has exactly 5 phases. */
+const PHASE_ICONS = ["🔬", "🔧", "👥", "📦", "🏭"];
+const IMPACT_BADGE: Record<string, string> = {
+  high: "bg-red-500/10 text-red-600 border border-red-200",
+  medium: "bg-amber-500/10 text-amber-600 border border-amber-200",
+  low: "bg-green-500/10 text-green-600 border border-green-200",
+};
+
+function ProductActionPlanCard({
+  actionPlan,
+  productConstraints,
+  productOpportunities,
+}: {
+  actionPlan: ProductAction[];
+  productConstraints: ConstraintSelectionResult[];
+  productOpportunities: ProductOpportunity[];
+}) {
+  const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-1">
+        <Target size={15} className="text-primary" />
+        <h2 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+          What To Do In Order
+        </h2>
+      </div>
+
+      {/* Constraints summary */}
+      {productConstraints.length > 0 && (
+        <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            Product Constraints to Address
+          </p>
+          <div className="space-y-2">
+            {productConstraints.map(r => (
+              <div key={r.constraint.id} className="flex items-start gap-2">
+                <span className={`mt-0.5 shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${IMPACT_BADGE[r.constraint.impact]}`}>
+                  {r.constraint.impact}
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-foreground leading-snug">{r.constraint.label}</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{r.constraint.narrative}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Opportunities summary */}
+      {productOpportunities.length > 0 && (
+        <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            Strategic Opportunities
+          </p>
+          <div className="space-y-3">
+            {productOpportunities.map(opp => (
+              <div key={opp.id} className="space-y-1">
+                <p className="text-xs font-semibold text-foreground">{opp.label}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{opp.narrative}</p>
+                <p className="text-[11px] text-primary/80 leading-relaxed">
+                  <span className="font-semibold">GTM: </span>{opp.gtmImplication}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Action plan phases */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-4 py-3 border-b border-border">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            8-12 Week Validation Roadmap
+          </p>
+        </div>
+        <div className="divide-y divide-border">
+          {actionPlan.map((phase, idx) => {
+            const isExpanded = expandedPhase === phase.phase;
+            return (
+              <div key={phase.phase} className="px-4 py-3">
+                <button
+                  onClick={() => setExpandedPhase(isExpanded ? null : phase.phase)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">{PHASE_ICONS[idx] ?? "📌"}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
+                          Phase {phase.phase} · {phase.weekRange}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-foreground leading-snug truncate">
+                        {phase.title}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">{phase.estimatedCost}</span>
+                      {isExpanded ? <ChevronUp size={13} className="text-muted-foreground" /> : <ChevronDown size={13} className="text-muted-foreground" />}
+                    </div>
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="mt-3 space-y-3 pl-9">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1">Hypothesis</p>
+                      <p className="text-[11px] text-foreground leading-relaxed">{phase.hypothesis}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1">Go / No-Go Gates</p>
+                      <ul className="space-y-1">
+                        {phase.successCriteria.map((c, ci) => (
+                          <li key={ci} className="flex items-start gap-1.5 text-[11px] text-foreground">
+                            <span className="mt-0.5 text-green-500 shrink-0">✓</span>
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1">If You Fail This Gate</p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">{phase.failureFallback}</p>
+                    </div>
+                    <div className="flex gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Cost</p>
+                        <p className="text-xs font-semibold text-foreground">{phase.estimatedCost}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Time</p>
+                        <p className="text-xs font-semibold text-foreground">{phase.estimatedTimeCommitment}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

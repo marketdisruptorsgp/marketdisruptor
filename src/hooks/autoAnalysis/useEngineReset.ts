@@ -36,6 +36,9 @@ export function useEngineReset(
       setters.setInsights([]);
       setters.setOpportunities([]);
       setters.setDiagnostic(null);
+      setters.setProductConstraints([]);
+      setters.setProductOpportunities([]);
+      setters.setProductActionPlan([]);
       isComputingRef.current = false;
       hydratedRef.current = false;
       runIdRef.current = 0;
