@@ -42,6 +42,9 @@ export async function runPipelineStateMachine(
   const PIPELINE_BUDGET_MS = 150_000; // 2.5 min hard limit
 
   const isOverBudget = () => (Date.now() - pipelineStart) > PIPELINE_BUDGET_MS;
+  const elapsed = () => Math.round((Date.now() - pipelineStart) / 1000);
+
+  traceEvent("pipeline_started");
 
   // ═══ PHASE 1: Structural Decomposition (~20s) ═══
   // Skip decomposition entirely if businessAnalysisData already provides rich synthesis
@@ -49,20 +52,27 @@ export async function runPipelineStateMachine(
   let decompResult = opts.existingDecomp;
   if (!decompResult && canSkipDecomp) {
     console.log("[Pipeline] Skipping decomposition — businessAnalysisData has usable synthesis");
+    traceEvent("step:decompose skipped (businessAnalysisData has usable synthesis)");
     cb.updateStatus("decompose", "done");
     decompResult = store.businessAnalysisData; // Use biz data as a proxy
   } else if (!decompResult) {
+    traceEvent("step:decompose running");
     decompResult = await runDecompose(ctx, cb, store);
     if (!decompResult) {
+      traceError("Decomposition failed after retries");
+      traceEvent(`step:decompose error (elapsed=${elapsed()}s)`);
       toast.error("Structural decomposition failed. Try again or upload additional context.");
       return { success: false, error: "Decomposition failed after retries" };
     }
+    traceEvent(`step:decompose done (elapsed=${elapsed()}s)`);
   } else {
     console.log("[Pipeline] Reusing existing decomposition data");
+    traceEvent("step:decompose reused");
     cb.updateStatus("decompose", "done");
   }
 
   if (isOverBudget()) {
+    traceError(`Pipeline exceeded time budget after decomposition (${elapsed()}s)`);
     console.warn("[Pipeline] Over time budget after decomposition — aborting");
     return { success: false, error: "Pipeline exceeded time budget" };
   }
