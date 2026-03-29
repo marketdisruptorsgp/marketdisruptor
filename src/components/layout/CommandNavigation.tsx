@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, GitBranch,
   Search, Brain, Lightbulb, Shield, Sparkles,
-  FolderOpen, PlusCircle, Zap, Map, Eye, Layers,
+  FolderOpen, PlusCircle, Zap, Map, Eye, Layers, Shuffle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -53,6 +53,7 @@ const PIPELINE_ITEMS: NavItem[] = [
   { label: "Report", icon: Search, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true },
   { label: "Disrupt", icon: Brain, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
   { label: "Redesign", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
+  { label: "SCAMPER", icon: Shuffle, path: (id) => id ? `/analysis/${id}/scamper` : "/analysis/new", requiresAnalysis: true },
   { label: "Stress Test", icon: Shield, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
   { label: "Pitch", icon: Sparkles, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
 ];
